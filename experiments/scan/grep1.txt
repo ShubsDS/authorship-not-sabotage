@@ -1,0 +1,9 @@
+### 2608.16190 src=https://arxiv.org/html/2608.16190v1 chars=42071  Decorrelation Is Not Complementarity:Skill, Not Lineage, Governs Trusted-Monitor
+   HITS: NONE
+### 2607.06596 src=https://arxiv.org/html/2607.06596v1 chars=97774  Calibration-Family Overfit: Why Trusted Sabotage Monitors Don’t Transfer Across 
+   HITS: {'leakage': 2, 'blatancy': 13, 'transcript length': 2}
+      [blatancy] ...0.172 (95% ci [+0.158, +0.185]) on four open-weight families on a strict leak-free basis, holding across an eight-family matrix spanning four frontier vendors, blatancy-matched controls, a trained open-weight transcript-reading monitor up to 34b parameters, and a second code benchmark. the gap is geometric: each lineage’s sabotage occupies a different scorin...
+### 2506.05296 src=https://arxiv.org/html/2506.05296v1 chars=147695  Control Tax: The Price of Keeping AI in Check
+   HITS: NONE
+### 2506.15740 src=https://arxiv.org/html/2506.15740v1 chars=154766  SHADE-Arena: Evaluating Sabotage and Monitoring in LLM Agents
+   HITS: {'leakage': 1}

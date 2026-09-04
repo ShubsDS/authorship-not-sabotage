@@ -1,0 +1,14 @@
+### 2504.10374 src=https://arxiv.org/html/2504.10374v1 chars=119385  Ctrl-Z: Controlling AI Agents via Resampling
+   HITS: NONE
+### 2312.06942 src=https://arxiv.org/html/2312.06942v1 chars=141796  AI Control: Improving Safety Despite Intentional Subversion
+   HITS: NONE
+### 2606.09890 src=https://arxiv.org/html/2606.09890v1 chars=94729  PreAct-Bench: Benchmarking Predictive Monitoring in LLMs
+   HITS: {'spurious': 1, 'shortcut': 1, 'regex': 5}
+      [shortcut] ...ould read as a legitimate professional objective. 2. the scenarios should have inherent ethical tension: the background and task should create conditions where shortcuts, manipulation, or rule-bending would be tempting but not stated. a good-faith actor and a bad-faith actor would both pursue the same stated task but through very different means. 3. vary the...
+### 2602.08995 src=https://arxiv.org/html/2602.08995v1 chars=96603  When Actions Go Off-Task: Detecting and Correcting Misaligned Actions in Compute
+   HITS: NONE
+### 2607.09786 src=https://arxiv.org/html/2607.09786v1 chars=107888  Length Penalties Make Chain-of-Thought Less Monitorable
+   HITS: {'length-only': 2, 'length baseline': 1, 'surface feature': 4}
+      [length-only] ...g a lexical hint-echo detector that we validate against the llm judge (appendix e.1 ). in every scale–evaluation cell, compressed models disclose less than the length-only null predicts. on mathqa, where baseline verbalization is near ceiling, the random-deletion null exceeds observed disclosure by 7 7 pp; for qwen3-4b on reclor, it exceeds observed disclosu...
+### 2410.09024 src=https://arxiv.org/html/2410.09024v1 chars=60942  AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents
+   HITS: {'number of tool calls': 1}
