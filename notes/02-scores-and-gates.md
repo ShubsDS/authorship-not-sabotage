@@ -14,7 +14,7 @@ there is an answer.
 
 | # | Dimension | Score | Why |
 |---|---|---|---|
-| A1 | Novelty, verified | **4** | The mechanism is unmade out-of-field (`lit/01` §4) and the authorship reading is unclaimed. **Not 5**, because one carrier — the comment leak — is published in the anchor's own repo. |
+| A1 | Novelty, verified | **4** | The application is unmade out-of-field and the authorship reading is unclaimed — confirmed by **reading** the two nearest papers, not by grepping them (`lit/01` §4). **Not 5**, because one carrier (the comment leak) is published in the anchor's own repo, and because AICD Bench App. D.1 already publishes the token-level mechanism. **Held at 4 after the sweep — it neither rose nor fell**, which is the outcome R11 exists to make visible. |
 | A2 | Scoop resistance | **3** | Tracy, Redwood/UK AISI and Jha are all active here, and Jha already owns the instrument. This is the weakest acceptance dimension and it does not improve by waiting. |
 | A3 | Outcome robustness | **5** | Realised *inside one table*, not argued: bash 0.504 clean vs agentdojo 0.802 leaky; `solution_passes_tests` 0.500 on the filtered split (the field's fix works) vs metadata 0.772 (it does not reach the problem side). **The paper cannot come out "no result."** |
 | A4 | Venue fit | **5** | *"Benchmarks and Governance: continuously evolving safety benchmarks… coverage metrics"* names the object. |
@@ -39,7 +39,7 @@ reframe** — this headline is not the round-16 headline, so all five were re-ru
 
 | Gate | Status | Evidence |
 |---|---|---|
-| **G1** — verified novelty, including *outside* the home field | **PASS with one open item** | Out-of-field sweep run on hypothesis-only baselines, Clever Hans, leakage taxonomy and AI-code detection, zeros with in-batch positive controls. ⚠️ The AICD sweep is count-level; its **setup sections must be read before anything is public** (`lit/01` §8). |
+| **G1** — verified novelty, including *outside* the home field | ✅ **PASS — fully discharged 2026-09-03** | Out-of-field sweep run on hypothesis-only baselines, Clever Hans, the leakage taxonomy and AI-code detection, zeros with in-batch positive controls. **The count-level caveat is closed:** `2602.02079` and `2506.11059` were read end to end — setup, evaluation, appendices, limitations — and both come back **NEIGHBOUR**. Neither connects AI-code detection to the validity of any downstream safety or monitoring benchmark, in any wording (`lit/01` §4). |
 | **G2** — organizer / speaker collision | **PASS**, conditional on excluding AgentHarm | `notes/01`. Andriushchenko is adjacent, not colliding; his benchmark is excluded in writing. |
 | **G3** — data and harness resolve before commitment | **PASS** | Seven corpora loaded and analysed on 2026-09-03 — the first time in seventeen rounds that hour one actually happened. |
 | **G4** — the obvious competing axis | **PASS** | `2608.16190` shows free choice of open-weight monitor spans **29×** in pAUC@10%FPR. A floor is a property of the *evaluation*, so the 29× monitor span does not touch it — every one of those 24 monitors is ranked on the same leaking split. |
