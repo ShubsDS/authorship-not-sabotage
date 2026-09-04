@@ -141,6 +141,10 @@ The authorship claim needs honest code written by the **attack** model. Two rout
    > 779 of 5,000 rows are nondeterministic, 717 of them *"multiple distinct valid solutions"*, where
    > exact-match scoring would fail correct generations. The realised n per arm is 1,444 × that arm's
    > pass rate. **Report it; do not let a reader infer 3,420.**
+   >
+   > **Measured 2026-09-04:** filtered with our own harness rather than the shipped flag, the *human*
+   > arm holds **1,384** of those 1,444. The pair count is that intersected with whichever generated
+   > solutions pass, so the realised n is at most 1,384.
 
 > ### ★ What the dead lookup produced anyway
 > The confound is visible in the dataset schema, with no model run at all:

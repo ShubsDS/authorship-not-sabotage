@@ -224,6 +224,39 @@ are not comparable — which would produce a collapse that is an artifact of our
 | 90–98 % | Usable, but **use our own pass flag for both classes**, not the shipped column. Symmetry matters more than matching upstream. |
 | < 90 % | Debug before generating anything. Inspect disagreements by `difficulty` and `n_tests` first. |
 
+> ### ✅ RUN 2026-09-04 — **95.84 % on the analysis pool. Use our own flag for both classes.**
+>
+> | population | n | agreement | we fail / they pass |
+> |---|---|---|---|
+> | every row with a solution | 3,765 | **0.9575** | 141 |
+> | deterministic rows only | 3,126 | 0.9533 | 130 |
+> | **the analysis pool — what Gate S uses** | **1,444** | **0.9584** | 60 |
+>
+> Under our own flag the human arm holds **1,384 of the 1,444** ceiling. That lands squarely in the
+> middle band, so `gate_s_eval.py` filters **both** classes with our harness and never reads
+> `solution_passes_tests`. Report 95.84 % in §2 of the paper as the harness-fidelity figure.
+>
+> **What the remaining 60 are:** 102 output mismatches across the whole run (only 8 of them on
+> nondeterministic rows, so this is not the determinism cut leaking), 19 `ImportError` from the
+> pre-3.9 Python gap, then a long tail of `ValueError`, `AttributeError`, `RecursionError`. No
+> `MemoryError` and no timeouts remain — those were harness defects and are fixed.
+>
+> ### ⚠️ Three harness defects were found this way, and all three had the same direction
+> Every one failed **old human code specifically** while modern generated code passed, which would
+> have shrunk the human arm inside the very comparison Gate S exists to make — and none would have
+> been visible from the final AUROC:
+> 1. `from fractions import gcd`, removed in CPython 3.9. The artifact's flags predate it.
+> 2. Per-case timeout of 4 s, too tight for a 43-case problem. Now 10 s.
+> 3. **`RLIMIT_AS` set as an absolute cap.** A child forked from a worker inherits the worker's whole
+>    mapping — **13.59 GiB** once the artifact is in pandas — so an "8 GiB limit" was already exceeded
+>    before the solution ran a line. Small allocations fitted existing arenas; any large new one
+>    (`[0] * (10**7 + 1)`, which old competitive-programming code does constantly) failed instantly.
+>    74 of 234 disagreements. The limit is now headroom **on top of** what the child inherits, read
+>    from `/proc/self/status` at child start. Agreement 0.9349 → 0.9575.
+>
+> **If a fourth shows up, expect it to point the same way.** The asymmetry is structural: our checker
+> runs modern Python against a human class written years ago for an older one.
+
 > ### ⚠️ The artifact's flags were computed on an older Python — found 2026-09-04
 > A recurring disagreement is `from fractions import gcd`, which **CPython removed in 3.9**. Those
 > solutions passed for whoever built the artifact and raise `ImportError` for us. There will be more

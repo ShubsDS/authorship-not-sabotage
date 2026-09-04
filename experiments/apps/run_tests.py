@@ -54,7 +54,17 @@ import pyarrow.parquet as pq
 # generated class is modern code that does not do this.
 PER_CASE_TIMEOUT = 10.0
 PER_SOLUTION_BUDGET = 150.0
-ADDRESS_SPACE_LIMIT = 8 << 30  # 8 GiB; the box has 345 GB and at most 14 children run at once
+# Headroom ON TOP OF whatever the forked child already inherits - NOT an absolute cap.
+#
+# RLIMIT_AS limits total virtual address space, and a child forked from a worker inherits the
+# worker's entire mapping, which is 13.6 GiB once the 743 MB artifact is loaded into pandas. An
+# absolute 8 GiB cap was therefore already exceeded before the solution ran a single line: small
+# allocations still succeeded inside existing arenas, but any large new one - `[0] * (10**7 + 1)`,
+# which old competitive-programming code does constantly - failed instantly with MemoryError.
+#
+# That cost 74 of 234 disagreements in the 2026-09-04 validation, and it failed HUMAN code
+# specifically, which is the same arm-shrinking asymmetry as the fractions.gcd finding.
+MEM_HEADROOM = 8 << 30  # 8 GiB of usable space for the solution itself
 
 
 # --------------------------------------------------------------------------- comparison
@@ -94,8 +104,12 @@ def _run_solution(code: str, inputs: list[str], outputs: list[str], conn) -> Non
         "reason": None,
     }
     try:
-        resource.setrlimit(resource.RLIMIT_AS, (ADDRESS_SPACE_LIMIT, ADDRESS_SPACE_LIMIT))
-    except (ValueError, OSError):
+        # Relative to what we already inherited, or the limit is negative before we start.
+        with open("/proc/self/status") as fh:
+            inherited = next(int(l.split()[1]) * 1024 for l in fh if l.startswith("VmSize"))
+        cap = inherited + MEM_HEADROOM
+        resource.setrlimit(resource.RLIMIT_AS, (cap, cap))
+    except (ValueError, OSError, StopIteration):
         pass  # some systems refuse; the parent's hard kill is the real guarantee
 
     workdir = tempfile.mkdtemp(prefix="apps-run-")
@@ -319,7 +333,7 @@ def report_generated(records: list[dict], label: str) -> None:
 
 
 def main() -> None:
-    global _DF, PER_CASE_TIMEOUT, PER_SOLUTION_BUDGET, ADDRESS_SPACE_LIMIT
+    global _DF, PER_CASE_TIMEOUT, PER_SOLUTION_BUDGET, MEM_HEADROOM
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--solutions", required=True,
                     help="'human' for the shipped solutions, else a generation .jsonl")
@@ -330,14 +344,15 @@ def main() -> None:
                     help="cap solutions per problem (0 = all); applies to --solutions human")
     ap.add_argument("--case-timeout", type=float, default=PER_CASE_TIMEOUT)
     ap.add_argument("--solution-budget", type=float, default=PER_SOLUTION_BUDGET)
-    ap.add_argument("--mem-gib", type=float, default=ADDRESS_SPACE_LIMIT / (1 << 30))
+    ap.add_argument("--mem-gib", type=float, default=MEM_HEADROOM / (1 << 30),
+                    help="GiB of address space for the solution, ON TOP of what it inherits")
     args = ap.parse_args()
 
     PER_CASE_TIMEOUT = args.case_timeout
     PER_SOLUTION_BUDGET = args.solution_budget
-    ADDRESS_SPACE_LIMIT = int(args.mem_gib * (1 << 30))
+    MEM_HEADROOM = int(args.mem_gib * (1 << 30))
     print(f"limits: {PER_CASE_TIMEOUT}s/case, {PER_SOLUTION_BUDGET}s/solution, "
-          f"{args.mem_gib:g} GiB address space", flush=True)
+          f"{args.mem_gib:g} GiB address space above what the child inherits", flush=True)
     _DF = df = load_artifact()
     print(f"artifact: {len(df)} problems, {int(df.solution_passes_tests.sum())} with "
           f"solution_passes_tests, {int(df.is_nondeterministic.sum())} nondeterministic",
