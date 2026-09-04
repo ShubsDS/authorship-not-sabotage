@@ -319,6 +319,7 @@ def report_generated(records: list[dict], label: str) -> None:
 
 
 def main() -> None:
+    global _DF, PER_CASE_TIMEOUT, PER_SOLUTION_BUDGET, ADDRESS_SPACE_LIMIT
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--solutions", required=True,
                     help="'human' for the shipped solutions, else a generation .jsonl")
@@ -332,7 +333,6 @@ def main() -> None:
     ap.add_argument("--mem-gib", type=float, default=ADDRESS_SPACE_LIMIT / (1 << 30))
     args = ap.parse_args()
 
-    global _DF, PER_CASE_TIMEOUT, PER_SOLUTION_BUDGET, ADDRESS_SPACE_LIMIT
     PER_CASE_TIMEOUT = args.case_timeout
     PER_SOLUTION_BUDGET = args.solution_budget
     ADDRESS_SPACE_LIMIT = int(args.mem_gib * (1 << 30))
