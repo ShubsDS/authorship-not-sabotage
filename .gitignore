@@ -1,0 +1,17 @@
+# data pulled at run time — never committed, all of it is public and re-fetchable
+*.parquet
+*.eval
+data/
+runs/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# LaTeX build products
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.pdf
