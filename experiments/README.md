@@ -42,6 +42,8 @@ subset of the first, which is what K1 established).
 | `koran_split_eval.py` | **The apples-to-apples number.** Train on Koran's paired train split (2,418), score their exact 1,375-item test split, compare against the 24 monitors in `2608.16190`'s `runs/x0/monitor-summary.json`. |
 | `data.py` | Jha's own `src/data.py`, fetched verbatim and imported, so the split reconstruction is his and not ours. |
 | `auroc.py`, `bow.py`, `analyse.py`, `analyse2.py` | The K1 agent's lineage check, the metadata AUROCs, the inert-backdoor counts, the leak checks. |
+| `token_test.py` | The AICD App. D.1 token-level confirmation, with a permutation null. **Negative** — see `../TOKEN-TEST.md`. |
+| `gate_s_pool.py`, `gen_honest.py`, `run_tests.py`, `gate_s_eval.py` | Gate S: pool, generation (the only GPU code here), test execution, and the routing decision. See `../GATE-S-RUNBOOK.md`. |
 
 **The headline rows** (full detail in `RECOMPUTE.md`; caveats in `../lit/01`):
 
@@ -84,10 +86,14 @@ The scan attacked its own pooled numbers and they partly broke on task compositi
 within-task column is the honest one, and why **both outcomes already sit inside one table**: bash is
 clean, agentdojo leaks from character count alone.
 
-## The two standing reports
+## The standing reports
 
 - `K1-artifact-lineage.md` — which artifact is which, and who wrote each class. **PASS**: one dataset
   and one derived copy, honest code human-written, every backdoor LLM-written, and the confound is a
   property of the **stored-pair** protocol (ControlArena's *live* evals generate both classes).
 - `RECOMPUTE.md` — the coordinator's recompute of every load-bearing figure on the full artifact.
   Where a subagent number and this file disagree, this file wins.
+- `TOKEN-TEST.md` — the AICD App. D.1 token test, **run 2026-09-04 and negative**. The mechanism
+  stays borrowed. Also carries the by-product finding that string literals survive the field's
+  comment stripper, author bylines included.
+- `GATE-S-RUNBOOK.md` — the step-by-step execution guide for the one GPU experiment.

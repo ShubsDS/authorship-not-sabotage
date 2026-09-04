@@ -79,16 +79,32 @@ pairwise; **0.806 on Koran's split**, 0.8914 with comments kept); no-code (**0.7
 0.7715 ± 0.039**). The **0.4726 → 0.806** contrast *is* the paper: the field's fix works on the
 carrier it was aimed at and does not reach the two beside it.
 
-**Authorship, four ways.** The first three are ours; the fourth borrows the neighbouring field's
-mechanism and tests it here. AICD App. D.1 reports that LLM code uses verbose, prompt-echoing
-identifiers (`answer`, `output`, `result`, `tests`, `index`) where human code uses short
-organic ones (`li`, `nums`, `pos`, `a1`, `cur`). **If our classifier's top-weighted features are those
-tokens, the authorship reading stops being an inference and becomes a measurement** — twenty minutes of
-CPU on a classifier that is already fitted. Report the top-k coefficients as a small table or inline list.
-
-**The other three.** Cross-generator transfer 0.9935 (Control Tax → the 2023 GPT-4 set);
+**Authorship, three ways.** Cross-generator transfer 0.9935 (Control Tax → the 2023 GPT-4 set);
 working 0.9787 vs inert 0.9543 — *the signal is not sabotage*; style markers (`#` present: attack
-0.685 vs honest 0.176; `__main__`: 0.116 vs **0.000**).
+0.685 vs honest 0.176; `__main__`: 0.116 vs **0.000**, replicated on Koran's train split at
+152/1,209 vs 1/1,209).
+
+> ### ⛔ There was a fourth way. It was tested on 2026-09-04 and it failed.
+> The plan was to confirm AICD App. D.1's token-level mechanism in our own setting. It does not
+> replicate: separation **−0.013**, the wrong sign, permutation **p = 0.956**. `li`, `nums` and `cur`
+> — AICD's canonical *human* identifiers — are among our strongest **attack**-pushing features.
+> The reason is register: AICD's human class is general-purpose GitHub code, while **both** of our
+> classes are competitive-programming code, so a naming-style axis that separates general human code
+> from LLM code does not separate these two populations.
+>
+> **Report it in one sentence.** A reviewer who knows AICD may run exactly this test; far better that
+> we ran it and said so. Note the power caveat honestly — only 8 of 10 tokens are in vocabulary — but
+> also note that the point estimate has the wrong sign, which is not what an underpowered true effect
+> looks like. Full record: `../experiments/TOKEN-TEST.md`.
+
+**★ New, and it belongs beside the 0.4726 → 0.806 contrast.** The field's comment stripper removes
+`tokenize.COMMENT` tokens only — **string literals are not comments and survive it.** In the
+comment-stripped train split, an author byline (`Author :`) survives in **23/1,209 honest** vs
+**2/1,209 attack** samples, a triple-quoted block in **43 vs 9**, a competitive-programming site name
+in **23 vs 2**. Human competitive-programming code stashes sample input in triple-quoted strings and
+signs itself; LLM code does neither. It is 1.9% of the honest class, so it is not what drives 0.806 —
+but it is a **literal authorship leak surviving the field's own published preprocessing**, and it is
+one more thing the fix does not reach.
 
 **Gate S — the constructive half** (`../PLAN.md` §3, run per `../experiments/GATE-S-RUNBOOK.md`).
 Regenerate the honest class with an LLM, rebuild the pairs, rerun. The number here routes the title,
