@@ -59,6 +59,11 @@ novelty claim survives, and it is the paragraph a reviewer from this neighbourho
 - The artifacts, with **licence and per-class provenance** (`lit/01` §6), including the sentence that
   two of the seven declare none and that we redistribute nothing.
 - One dataset and one derived copy — not two (K1).
+- ★ **Lead §2 with the schema, not with prose.** `backdoors` carries `model` and `source`; `solutions`
+  carries only `code`, `compiles`, `passes_tests`. **The attack class records who generated it; the
+  honest class has no generator field because it has no generator.** One small table, no measurement,
+  and it survives every objection about protocol, metric and split. Everything after it in §3 is
+  quantification of a fact already established here.
 - Koran's split as the evaluation surface: 1,209 train / **1,375 test (172 attack / 1,203 honest)**,
   label = `backdoor_works`, comments stripped, reconstructed with Jha's own `src/data.py`.
 - **Protocols must be named and kept distinct.** Raw artifact vs Koran's filtered split; pooled vs

@@ -58,6 +58,35 @@ per-item scores on the exact split, which **deleted the GPU from the monitor com
 > value is published is not a gate, it is a lookup. This is how Gate M died. **Grep for it first —
 > and do that for Gate S route 1 (`RoganInglis/vllm-control-arena`) before renting anything.**
 
+## R19 — The dataset card is not the dataset. Verify the data, not its description.
+
+**New, 2026-09-04, and bought twice in one afternoon.**
+
+R15 says read the artifact rather than only the papers. This is the level below: **read the *data*
+rather than only the artifact's own description of itself.**
+
+1. **This repo's `lit/01` recorded `RoganInglis/vllm-control-arena` as holding "model-generated APPS
+   solutions with no attack/honest labels."** It holds no APPS data and no code whatsoever — 6,801
+   coding *task descriptions* mined from vLLM git commits, with twelve `overlap_*` side-task scores and
+   not one code column. An entire free route in the plan rested on that description.
+2. **`RoganInglis/control-tax`'s card is actively false.** It advertises *"`solutions`: List of
+   model-generated solutions (one per model)"* alongside a `models` column. In fact all 8,855 entries
+   are byte-identical within every one of the 2,368 rows — the human APPS reference duplicated once per
+   *attacker* model, to align positionally with `backdoors`. A reader who trusted the card would have
+   concluded that LLM-written honest solutions were shipping, and built a control on them.
+
+**The rule.** Before a dataset's description supports any plan step, **load the columns and compute one
+statistic that the description implies.** Row count, distinct values, a byte-equality check against the
+upstream source. It costs minutes. A card is written by hand, is not tested by CI, and can be wrong
+about the file sitting next to it.
+
+**Corollary, and it is the good half:** the same read that killed the route produced the paper's
+cleanest evidence. `backdoors` carries `model` and `source`; `solutions` carries neither. **The
+confound is in the schema.** Looking at the data rather than the description gives you both the
+correction and the finding.
+
+---
+
 ## R16 — Never schedule the check that could void a claim *after* the step that publishes it
 
 A previous plan put the sweep that could void its framing into "dead time," **behind** a public

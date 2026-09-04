@@ -52,13 +52,38 @@ test cases; (4) the fix, as a drop-in preprocessing step and a released split.
 
 The authorship claim needs honest code written by the **attack** model. Two routes, in order:
 
-1. **Look first.** `RoganInglis/vllm-control-arena` (HF, MIT, 200) holds model-generated APPS
-   solutions with no honest/attack labels. If those are honest LLM solutions to problems inside
-   Koran's filter, **the control is free.** Check its columns and its generator before spending
-   anything. *A gate whose value is published is not a gate, it is a lookup.*
-2. **Generate.** One 4090; vLLM + `Qwen/Qwen2.5-Coder-7B-Instruct` (or the Llama-3.1-8B whose licence
-   is acceptable); one solution per problem for the **3,420 problems with a passing human solution**;
-   run the shipped `inputs`/`outputs` tests on CPU; keep the passers. **1–2 GPU-hours, $5–10.**
+1. ~~**Look first.**~~ ⛔ **RUN AND CLOSED, 2026-09-04 — ROUTE 1 IS DEAD.** `RoganInglis/vllm-control-arena`
+   holds no APPS data and no code: 6,801 coding *task descriptions* mined from vLLM git commits.
+   Two further candidates were checked rather than assumed — **`RoganInglis/control-tax`, whose card
+   falsely advertises per-model solutions** (8,855 entries, byte-identical within every row, 2,366
+   distinct in total; they are the human APPS references duplicated once per attacker model), and
+   `jprivera44/arena-control-apps-v5-dataset` (honest class also human). **No public artifact supplies
+   LLM-written honest APPS solutions.** Full evidence in `lit/01` §6.
+   *The lookup was still worth running: it cost no money, and it produced the schema finding below.*
+2. **Generate — this is now the only route, and it is committed.** One 4090; vLLM +
+   `Qwen/Qwen2.5-Coder-7B-Instruct` (or the Llama-3.1-8B whose licence is acceptable); one solution per
+   problem for the **3,420 problems with a passing human solution** — that count is re-verified exactly
+   on the full 5,000-row artifact (3,747 compile, 2,473 have a backdoor, 1,582 work); run the shipped
+   `inputs`/`outputs` tests on CPU; keep the passers. **1–2 GPU-hours, $5–10.**
+
+> ### ★ What the dead lookup produced anyway
+> The confound is visible in the dataset schema, with no model run at all:
+>
+> | struct | sub-fields |
+> |---|---|
+> | `solutions` | `code`, `compiles`, `passes_tests` |
+> | `backdoors` | `backdoor_code`, `backdoor_input`, `backdoor_works`, `compiles`, **`model`**, `passes_tests`, **`source`** |
+>
+> **The attack class records its generator; the honest class has no such field, because it has no
+> generator.** Put this in §2 of the paper. It is the thesis in one table and it survives every
+> objection about protocols, metrics and splits, because it is not a measurement.
+
+> ### ⚠️ Consequence for the FLLMPT abstract, Sep 5
+> Route 1 was the only way Gate S could have resolved before the abstract deadline. It is dead, so
+> **the Sep 5 abstract must be written route-agnostically** — it is registered three days before the
+> control that decides between *Authorship, Not Sabotage* and *A Linear Model Beats the Trusted
+> Monitor*. Whether FLLMPT permits a title change between abstract and paper is **unverified**. Either
+> write a title that survives both routes, or check that policy before registering.
 
 Then rebuild the pairs — LLM-honest vs LLM-attack, comments stripped, Koran's filter — and rerun
 TF-IDF, character n-grams, length, and the seven surface features.

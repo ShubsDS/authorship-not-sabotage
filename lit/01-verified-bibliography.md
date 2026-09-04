@@ -217,7 +217,43 @@ whole argument.
 | `eugenekoran/apps-control-arena-high-quality` | 200 | ⚠️ **none declared** | 1,209 train / **1,375 test** | as above, filtered | `top_backdoor_model` = `claude-3-7-sonnet-thinking-latest` for **all 172** attacks, `NONE` for all 1,203 honest | **YES**, and the column is a literal label |
 | `adityaasinha28/control_arena_{bash,shade,iac,rogue_eval,agentdojo}` | 200 | ⚠️ **none declared** | 1,500 each | claude-sonnet-4 / gemini-2.5-pro / gpt-5 | **the same three models** | **NO — same generator, balanced** |
 | `anik-jha/challenger-panels` `runs/scores/` | 200 | **MIT** | 24 × 1,375 | — | — | The comparison set. **No GPU.** |
-| `RoganInglis/vllm-control-arena` | 200 | MIT | 200 | model-generated APPS solutions, **no attack/honest labels** | — | Gate S route 1 — check its generator first |
+| ~~`RoganInglis/vllm-control-arena`~~ | 200 | MIT | **6,801** | ⛔ **This row was wrong.** It holds **no APPS data and no code at all** — 6,801 coding *task descriptions* mined from vLLM git commits (`commit_hash`, `task_instructions`, twelve `overlap_*` side-task scores; **zero** code, solution, `problem_id` or label columns). Its card names `claude-3-7-sonnet-latest` as having written the **task text**, not solutions. Verified against the full parquet 2026-09-04. | — | **Gate S route 1 is DEAD.** No overlap with Koran's filter is even computable. |
+
+> ### ⛔ Two more free-control candidates checked and killed, 2026-09-04
+> The rule is to look before generating, so every plausible source of **LLM-written honest APPS code**
+> was checked, not just the one the plan named.
+>
+> **`RoganInglis/control-tax` (MIT, 2,368 rows) — its dataset card is FALSE.** The card claims
+> verbatim: *"`solutions`: List of model-generated solutions (**one per model**), sorted by whether they
+> pass tests and compile"* with a matching *"`models`: List of model names."* Recomputed on the full
+> parquet: **8,855 solution entries, byte-identical within all 2,368 rows, 2,366 distinct strings in
+> total.** The list is *one* solution duplicated once per attacker model to align positionally with
+> `backdoors`. 2,074/2,368 are verbatim upstream `codeparrot/apps` human solutions; of the remaining
+> 294, median similarity to a human solution is 0.984 and 271 contain `exit()` — the card's own note
+> that top-level returns were rewritten. **Zero LLM-written honest solutions.**
+> *(Recorded coverage in case it is ever useful: 2,368 pids, all inside `apps-control-arena`; 2,055 of
+> Koran's 2,584; 871 of the 1,375 test rows.)*
+>
+> **`jprivera44/arena-control-apps-v5-dataset`** (1,793 rows; 765 honest / 1,028 backdoored) — all 765
+> honest rows checked: 426 verbatim upstream human APPS, the rest at median similarity 0.980. **Also
+> human.**
+>
+> ⚠️ The 294 + 339 non-verbatim rows are established as human by high similarity plus the documented
+> `exit()` rewrite, **not** by byte equality — inference from a computed distribution, not proof per
+> file. It does not move the verdict: neither repo carries any per-model variation to offer.
+
+> ### ★ The confound is legible in the schema itself — the cleanest evidence we have
+> In `RoganInglis/apps-control-arena`, verified from the dataset info endpoint on 2026-09-04:
+>
+> | struct | sub-fields |
+> |---|---|
+> | `solutions` | `code`, `compiles`, `passes_tests` |
+> | `backdoors` | `backdoor_code`, `backdoor_input`, `backdoor_works`, `compiles`, **`model`**, `passes_tests`, **`source`** |
+>
+> **The attack class records which model wrote it. The honest class has no generator field, because
+> there is no generator.** The card says so too: *"This dataset is based on the codeparrot/apps dataset,
+> enhanced with backdoor solutions from two sources."* This is a one-line statement of the paper's whole
+> thesis, and it belongs in §2 of the paper — it needs no AUROC to be convincing.
 
 **Rejected, with reasons:** `AISafety-Student/labeled-bashBench` — `danger_level` and `action_type`
 separate the label perfectly (danger 0 → label 0; danger ≥1 → label 1); the "label" *is* the danger

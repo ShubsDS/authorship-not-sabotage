@@ -65,7 +65,8 @@ training, selecting and benchmarking monitors on **stored** pairs).
 | K2 — is the floor unreported? | **FAIL as framed; a narrower claim survives.** [`lit/01`](lit/01-verified-bibliography.md) |
 | G1 — is the mechanism claim ours? | **No, and we never claimed it.** Both AI-code-detection neighbours read end to end 2026-09-03: **NEIGHBOUR**, framing survives. [`lit/01`](lit/01-verified-bibliography.md) §4 |
 | Monitor comparison (24 × 1,375) | **No GPU needed** — `runs/scores/` is MIT and published. Gate M deleted. |
-| Gate S — same-generator honest class | **Sep 8.** The one GPU cost, $5–10. Routes fixed in [`PLAN.md`](PLAN.md) §3. |
+| Gate S — same-generator honest class | **Route 1 dead (2026-09-04)** — no public artifact holds LLM-written honest APPS code; three candidates checked, one with a false dataset card. **Route 2 committed: Sep 8, one 4090, $5–10.** [`PLAN.md`](PLAN.md) §3 |
+| The confound, with no experiment at all | `backdoors` carries `model` and `source`; `solutions` carries neither. **The honest class has no generator field because it has no generator.** |
 | Figures | 3 remain (protocol × baseline; per-corpus floors with permutation nulls; monitor-vs-floor dot plot) |
 | Prose | 4 pages, Sep 10–11. **This is the only real risk.** |
 
