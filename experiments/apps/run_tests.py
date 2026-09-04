@@ -43,9 +43,18 @@ from contextlib import redirect_stdout
 import pandas as pd
 import pyarrow.parquet as pq
 
-PER_CASE_TIMEOUT = 4.0        # seconds of wall clock for a single test case
-PER_SOLUTION_BUDGET = 60.0    # seconds of wall clock for one solution, all cases
-ADDRESS_SPACE_LIMIT = 4 << 30  # 4 GiB
+# Resource limits. Module-level because the forked children read them, CLI-overridable because they
+# are a *measurement choice*, not a constant.
+#
+# The first pass used 4 s / 60 s / 4 GiB and that was too tight in a way that biased the answer: 346
+# timeouts and 207 MemoryErrors were 41% of all disagreements with the artifact's own flags. APPS
+# solutions legitimately do things like `[0] * (10**7 + 1)` twice, and a problem with 43 test cases
+# legitimately takes more than 4 s per case. A limit that fails a correct solution makes our harness
+# look stricter than it is - and in Gate S it would shrink the human arm specifically, since the
+# generated class is modern code that does not do this.
+PER_CASE_TIMEOUT = 10.0
+PER_SOLUTION_BUDGET = 150.0
+ADDRESS_SPACE_LIMIT = 8 << 30  # 8 GiB; the box has 345 GB and at most 14 children run at once
 
 
 # --------------------------------------------------------------------------- comparison
@@ -318,9 +327,17 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=0, help="first N problems, for a smoke test")
     ap.add_argument("--max-per-problem", type=int, default=0,
                     help="cap solutions per problem (0 = all); applies to --solutions human")
+    ap.add_argument("--case-timeout", type=float, default=PER_CASE_TIMEOUT)
+    ap.add_argument("--solution-budget", type=float, default=PER_SOLUTION_BUDGET)
+    ap.add_argument("--mem-gib", type=float, default=ADDRESS_SPACE_LIMIT / (1 << 30))
     args = ap.parse_args()
 
-    global _DF
+    global _DF, PER_CASE_TIMEOUT, PER_SOLUTION_BUDGET, ADDRESS_SPACE_LIMIT
+    PER_CASE_TIMEOUT = args.case_timeout
+    PER_SOLUTION_BUDGET = args.solution_budget
+    ADDRESS_SPACE_LIMIT = int(args.mem_gib * (1 << 30))
+    print(f"limits: {PER_CASE_TIMEOUT}s/case, {PER_SOLUTION_BUDGET}s/solution, "
+          f"{args.mem_gib:g} GiB address space", flush=True)
     _DF = df = load_artifact()
     print(f"artifact: {len(df)} problems, {int(df.solution_passes_tests.sum())} with "
           f"solution_passes_tests, {int(df.is_nondeterministic.sum())} nondeterministic",
