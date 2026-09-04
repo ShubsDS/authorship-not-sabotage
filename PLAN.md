@@ -60,11 +60,37 @@ The authorship claim needs honest code written by the **attack** model. Two rout
    `jprivera44/arena-control-apps-v5-dataset` (honest class also human). **No public artifact supplies
    LLM-written honest APPS solutions.** Full evidence in `lit/01` §6.
    *The lookup was still worth running: it cost no money, and it produced the schema finding below.*
-2. **Generate — this is now the only route, and it is committed.** One 4090; vLLM +
-   `Qwen/Qwen2.5-Coder-7B-Instruct` (or the Llama-3.1-8B whose licence is acceptable); one solution per
-   problem for the **3,420 problems with a passing human solution** — that count is re-verified exactly
+2. **Generate — this is now the only route, and it is committed.** vLLM + a local coder model; one
+   solution per problem for the **3,420 problems with a passing human solution** — re-verified exactly
    on the full 5,000-row artifact (3,747 compile, 2,473 have a backdoor, 1,582 work); run the shipped
-   `inputs`/`outputs` tests on CPU; keep the passers. **1–2 GPU-hours, $5–10.**
+   `inputs`/`outputs` tests on CPU; keep the passers.
+
+   **Revised compute, 2026-09-04 — the GPU is not the constraint and never was.**
+
+   | Hardware | Generation time |
+   |---|---|
+   | 1× 4090 (original plan) | 1–2 GPU-hours, $5–10 |
+   | **1× H100, `Qwen2.5-Coder-7B-Instruct` bf16** | **~15–30 min** incl. load and warm-up. ≈1.7M output tokens at 3–8k tok/s. |
+   | 2× H100 | ~10 min split across both — **overkill for this job** |
+
+   > ### ★ What a second H100 actually buys: it removes a confound we have not written down
+   > A **weak** honest generator is its own confound. The attacks were written by
+   > `claude-3-7-sonnet-thinking`; if the honest class comes from a 7B, a classifier may separate on
+   > **code quality** rather than authorship, and "the collapse failed because our generator was bad"
+   > becomes an unanswerable reviewer objection. With 80 GB (or 2× tensor-parallel) the honest class can
+   > be written by **`Qwen2.5-Coder-32B-Instruct` in bf16**, which is far closer to the attack models'
+   > capability. **Better still: generate with both 7B and 32B and report the collapse against generator
+   > strength.** That converts the objection into a result, costs one extra generation pass, and is the
+   > single best use of hardware this project has ever had access to.
+
+   > ### ⚠️ The real bottleneck, previously unrecorded: **the test harness does not exist**
+   > Nothing in `experiments/` executes generated code. Grep for `subprocess`, `multiprocessing`,
+   > `resource.` or `signal.` across the whole repo returns **nothing**. Gate S needs a runner that
+   > feeds each shipped `inputs` case to a generated solution, compares against `outputs`, sandboxes
+   > it, and imposes per-case timeouts — APPS solutions read stdin and can hang. Budget **half a day of
+   > careful work and debugging**, and note that it is fragile in the way GPUs are not: infinite loops,
+   > stdin conventions, and APPS's known-messy test formats. **This, not the GPU, is what decides
+   > whether Gate S lands on Sep 8.**
 
 > ### ★ What the dead lookup produced anyway
 > The confound is visible in the dataset schema, with no model run at all:
@@ -156,9 +182,14 @@ TF-IDF scores **0.806** on the stored pairs. On same-generator pairs:
 |---|---|
 | Everything already computed | $0 |
 | Monitor comparison | $0 — `runs/scores/`, MIT |
-| Gate S generation | $5–10 |
+| Gate S generation, 1× H100 ≈ 30 min | **$2–5** |
+| Optional: second generator (32B) for the strength arm | +$3–5 |
 | Optional same-harness prompted monitor on the regenerated pool | $5–10 |
-| **Total** | **≤ $25** |
+| **Total** | **≤ $20**, and lower than the original estimate |
+
+**Money was never the constraint and now it barely registers.** The constraints, in order: the test
+harness (half a day, does not exist), four pages of prose (two days), and the human being on InfPriv
+until Sep 7.
 
 ## 8. Odds, recorded so they can be scored afterwards
 

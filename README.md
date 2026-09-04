@@ -77,7 +77,7 @@ training, selecting and benchmarking monitors on **stored** pairs).
 | [`PLAN.md`](PLAN.md) | The runbook to Sep 12 — Gate S and its four routes, schedule, cut order, stopping rules, budget |
 | [`experiments/`](experiments/README.md) | Every script behind every number, plus the recompute logs |
 | [`lit/01`](lit/01-verified-bibliography.md) | Verified citations, the K2 grep record with its positive controls, the out-of-field neighbours |
-| [`notes/01`](notes/01-venue-evorobust.md) | EvoRobust and FLLMPT, off their own CFP pages, with the G2 check |
+| [`notes/01`](notes/01-venue-evorobust.md) | EvoRobust, FLLMPT and AIWILD off their own CFP pages; ⚠️ G2 is run for EvoRobust **only** |
 | [`notes/02`](notes/02-scores-and-gates.md) | The paper on the acceptance/safety rubric, and all five gates run |
 | [`notes/03`](notes/03-method-rules.md) | The standing rules that bind this paper, each bought with a failure |
 | [`notes/04`](notes/04-dead-framings.md) | What is already dead here — read before rewriting a sentence |
