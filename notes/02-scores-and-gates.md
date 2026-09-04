@@ -63,7 +63,15 @@ downloads and no README."* Provenance is legible inside the files (`eval_file`,
 the comparison monitors come from an MIT repo. **Scope the title to "public releases of" rather than
 "ControlArena."**
 
-**Third:** *"A trained classifier beats zero-shot monitors — so what?"* The claim is Gururangan's,
+**Third, and new on 2026-09-04:** *"TF-IDF separating human-written from LLM-written code is a known
+result — AICD Bench publishes it. What is new here?"* **Answer: nothing about the mechanism, and that is
+the point.** We cite it as established and claim only the application: that a corpus whose classes
+differ by author is used to train, select and rank sabotage monitors, and that nobody has quantified
+what survives the field's preprocessing. A well-established separability result makes the benchmark's
+construction *less* defensible, not our contribution smaller. **This objection is why the paper leads
+with the validity claim rather than the number** (`../paper/OUTLINE.md` §1).
+
+**Fourth:** *"A trained classifier beats zero-shot monitors — so what?"* The claim is Gururangan's,
 not "our monitor is better": the label is recoverable from features that cannot see a backdoor, at
 200 training pairs, and from no code at all.
 

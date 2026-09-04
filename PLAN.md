@@ -15,12 +15,18 @@ Every CPU number exists (`experiments/`). Gate M is deleted — `runs/scores/` p
 per-item scores on the exact 1,375-item split, MIT, no GPU. What remains is **one control, three
 figures and four pages**, and the risk is entirely in the four pages.
 
+**G1 was discharged on 2026-09-03** (`lit/01` §4): both AI-code-detection neighbours were read end to
+end and both come back NEIGHBOUR. That was the last check that could void the framing, so under R16
+**the split and the paper are clear to be made public the moment Gate S returns.** Nothing else gates
+publication.
+
 ## 1. Schedule
 
 | Day | What | Notes |
 |---|---|---|
 | **Sep 5** | **Register the FLLMPT abstract before 23:00 GMT** | Title + 150 words, drawn from §2. Free, dual allowed, **mandatory** for the Sep 12 paper slot there. Not a target — an option that expires. |
 | **Sep 8** | **GATE S** (§3) — the same-generator control. Route 1 first: check `RoganInglis/vllm-control-arena`'s columns and generator **before renting anything** (R15 corollary). Route 2 if it does not carry honest LLM solutions to problems in Koran's filter. | Also: pull `runs/scores/` (24 × 1,375, MIT) and recompute the five agentic floors with **task-grouped** CV from `experiments/scan/`. |
+| **Sep 8, same day, CPU** | **The token-level confirmation.** AICD App. D.1 names the discriminating identifiers — `answer`, `output`, `result`, `tests`, `index` on the LLM side; `li`, `nums`, `pos`, `a1`, `cur` on the human side. Inspect the top-weighted features of the TF-IDF classifier already fitted in `experiments/apps/` and check whether they match. | ~20 minutes of CPU. It converts a **borrowed** mechanism into a **tested** one in our own setting, and it is the cheapest strengthening available. |
 | **Sep 9** | Figures, and the Gate S result routes the headline. | (i) protocol × baseline table; (ii) per-corpus floor bars with permutation nulls beside every bar; (iii) monitor-vs-floor dot plot on Koran's split. |
 | **Sep 10–11** | Write four pages. | First paragraph cites `2605.15377`, `2608.16190`, `2602.10153`, `2506.05296`, `2606.06529`, `2510.09462`; Limitations cites `1905.05778` **against ourselves**. |
 | **Sep 12** | **Submit to EvoRobust.** Submit to FLLMPT iff the abstract was registered. | EvoRobust is **AoE**; FLLMPT is **23:00 GMT — 13 hours earlier**. Do not learn this on the day. |
@@ -57,6 +63,26 @@ The authorship claim needs honest code written by the **attack** model. Two rout
 Then rebuild the pairs — LLM-honest vs LLM-attack, comments stripped, Koran's filter — and rerun
 TF-IDF, character n-grams, length, and the seven surface features.
 
+### Two design decisions the neighbouring field settled for us (added 2026-09-04)
+
+Both apply **whichever route supplies the pool**, and both need a sentence in the paper because a
+reviewer will ask.
+
+1. **The generator need not be the attacker's model.** The backdoors were written by
+   `claude-3-7-sonnet-thinking`; our constraints forbid paid APIs, so a local 7B stands in. The obvious
+   objection — *a collapse might just be Qwen-vs-Claude* — is answered by AICD Bench's finding that the
+   cues are **language- and generator-independent** (`lit/01` §4), and by our own cross-generator
+   transfer at **0.9935**. What the classifier keys on is LLM-ness, not one vendor's style. **This risk
+   was never written down before; it is answered now.**
+2. **Do NOT length-match the honest class to the human solutions.** CodeMirage gates its two classes to
+   agree on line count and character length (`2506.11059` §3.1). That is right for *their* task and
+   wrong for ours: **in deployment the untrusted model chooses its own trajectory length**, so matching
+   would remove a difference that legitimately belongs to the distribution we are modelling. This is the
+   same deployment-realism argument that answers the sharpest reviewer objection (`notes/02`), so it
+   costs nothing to state — but it must be stated **deliberately**, not by omission.
+   *If space allows*, report both arms — unmatched and post-hoc length-matched. That is a re-slice of
+   one pool, not a second generation run.
+
 ### The four routes, fixed in advance
 
 TF-IDF scores **0.806** on the stored pairs. On same-generator pairs:
@@ -80,6 +106,8 @@ TF-IDF scores **0.806** on the stored pairs. On same-generator pairs:
 - The **six first-paragraph citations**.
 - The **release of the split and the scripts**.
 - The sentence that **two of the seven corpora declare no licence**.
+- The sentence defending **why we do not length-match**, and the one licensing the **substitute
+  generator** (§3). Both are one line; both are the first thing a reviewer probes.
 
 ## 5. Cut order if Sep 10–11 slips
 

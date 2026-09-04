@@ -13,6 +13,18 @@ nulls, **F3** monitor-vs-floor dot plot on Koran's 1,375-item split.
 **Paragraph one credits the field before it says anything else.** This is the condition on which the
 novelty claim survives, and it is the paragraph a reviewer from this neighbourhood reads first.
 
+> ### ⚠️ Reframed 2026-09-04, after the out-of-field read
+> **Lead with the validity claim, not with the number.** To a reviewer who knows the AI-code-detection
+> literature, *"TF-IDF separates human-written from LLM-written code"* is 2025 news — AICD Bench
+> publishes exactly that, at token level, with their SVM beating every neural detector. If the paper
+> opens on **0.806 beats 20 of 24**, that reader's first thought is *of course it does*.
+>
+> The contribution is **not** that bag-of-words separates the classes. It is that **a corpus whose two
+> classes differ by author is being used to train, select and rank sabotage monitors**, and that nobody
+> has quantified what survives the field's own preprocessing. **The known-ness of the mechanism is the
+> argument, not a dent in it** — a well-established separability result is exactly what makes the
+> benchmark's construction indefensible.
+
 1. Trusted monitoring is evaluated on **stored** honest/attack pairs — `2312.06942`, `2506.05296`,
    `2605.15377`, `2608.16190`, and the reference DSPy tutorial.
 2. **The field already knows these pairs leak.** Koran §4.1 filters to working honest + working
@@ -62,7 +74,14 @@ pairwise; **0.806 on Koran's split**, 0.8914 with comments kept); no-code (**0.7
 0.7715 ± 0.039**). The **0.4726 → 0.806** contrast *is* the paper: the field's fix works on the
 carrier it was aimed at and does not reach the two beside it.
 
-**Authorship, three ways.** Cross-generator transfer 0.9935 (Control Tax → the 2023 GPT-4 set);
+**Authorship, four ways — the fourth added 2026-09-04.** The first three are ours; the fourth borrows
+the neighbouring field's mechanism and tests it here. AICD App. D.1 reports that LLM code uses verbose,
+prompt-echoing identifiers (`answer`, `output`, `result`, `tests`, `index`) where human code uses short
+organic ones (`li`, `nums`, `pos`, `a1`, `cur`). **If our classifier's top-weighted features are those
+tokens, the authorship reading stops being an inference and becomes a measurement** — twenty minutes of
+CPU on a classifier that is already fitted. Report the top-k coefficients as a small table or inline list.
+
+**Authorship, the original three ways.** Cross-generator transfer 0.9935 (Control Tax → the 2023 GPT-4 set);
 working 0.9787 vs inert 0.9543 — *the signal is not sabotage*; style markers (`#` present: attack
 0.685 vs honest 0.176; `__main__`: 0.116 vs **0.000**).
 
@@ -115,6 +134,19 @@ Written as a checklist someone can apply, in Kapoor & Narayanan's register (`220
   and style evidence plus the five same-generator settings**, and it says so in these words.
 - One benchmark family for the authorship mechanism. The generalisation claim is the November paper,
   not this one.
+- ⚠️ **Pre-empt the AICD counter-punch, do not wait for rebuttal.** AICD's SVM+TF-IDF scores *below
+  random* on their hardest task (43.05 Macro-F1 vs 45.73). A reviewer can wave that as *"bag-of-words is
+  weak at this."* It is not comparable — 77 generators, 9 languages, out-of-distribution generalisation,
+  and **Macro-F1, not AUROC**. Say so in one sentence. Comparing across protocols is the exact error
+  that killed this paper's previous headline (R18's companion); do not commit it in the other direction
+  either by quoting their number next to ours.
+- **The substitute generator, defended in one line.** The backdoors are `claude-3-7-sonnet-thinking`;
+  our honest class is written by a local open-weight model. AICD's cues are language- and
+  generator-independent and our own transfer is 0.9935, so what collapses is LLM-ness, not one vendor's
+  style. (`PLAN.md` §3.)
+- **Why we do not length-match**, deliberately: in deployment the untrusted model chooses its own
+  trajectory length, so matching would remove a difference that belongs to the distribution. Stated as a
+  design choice, not left as an omission.
 
 ---
 
