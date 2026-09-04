@@ -15,3 +15,8 @@ paper/*.out
 paper/*.bbl
 paper/*.blg
 paper/*.pdf
+
+# Gate S run products — regenerable, and the generations are large
+*.jsonl
+*.log
+gate_s_pool.parquet
