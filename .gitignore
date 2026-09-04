@@ -21,3 +21,4 @@ paper/*.pdf
 *.log
 gate_s_pool.parquet
 paper/fig/*.png
+.venv-gpu/

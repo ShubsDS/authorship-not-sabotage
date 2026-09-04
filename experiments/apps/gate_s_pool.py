@@ -56,12 +56,23 @@ def main() -> None:
     print(f"\ntest cases in the analysis pool: median {int(analysis.n_tests.median())}, "
           f"mean {analysis.n_tests.mean():.1f}, max {int(analysis.n_tests.max())}")
 
-    out = gen_pool[["problem_id", "question", "difficulty", "n_tests", "n_solutions",
-                    "backdoor_works", "is_nondeterministic"]].copy()
+    # Write ALL 5,000 problems, not just the 3,420, and flag them.
+    #
+    # The generation pool is defined by the artifact's shipped `solution_passes_tests`. But the
+    # harness validation may conclude we should define the human arm by *our own* pass flag instead
+    # (GATE-S-RUNBOOK.md §4.2), and our flag admits problems the shipped flag rejects. If we only
+    # generated for the 3,420 we would have to go back to the GPU. Generating the superset costs
+    # ~46% more GPU time - under an hour in total - and makes the generation robust to however the
+    # validation lands. Filter at analysis time, not at generation time.
+    out = df[["problem_id", "question", "difficulty", "n_tests", "n_solutions",
+              "solution_passes_tests", "backdoor_works", "is_nondeterministic"]].copy()
+    out["in_generation_pool"] = out.solution_passes_tests
     out["in_analysis_pool"] = out.problem_id.isin(set(analysis.problem_id))
     out.to_parquet("gate_s_pool.parquet", index=False)
     print(f"\nwrote gate_s_pool.parquet  {out.shape}  "
-          f"({int(out.in_analysis_pool.sum())} flagged in_analysis_pool)")
+          f"({int(out.in_generation_pool.sum())} in_generation_pool, "
+          f"{int(out.in_analysis_pool.sum())} in_analysis_pool)")
+    print("Generation runs over ALL rows; the flags are applied at analysis time.")
 
 
 if __name__ == "__main__":

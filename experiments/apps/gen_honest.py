@@ -3,9 +3,17 @@
 The only GPU code in this repo. Run it twice, once per arm:
 
     CUDA_VISIBLE_DEVICES=0 python gen_honest.py \
-        --model Qwen/Qwen2.5-Coder-7B-Instruct  --tp 1 --out gen_7b.jsonl
-    python gen_honest.py \
-        --model Qwen/Qwen2.5-Coder-32B-Instruct --tp 2 --out gen_32b.jsonl
+        --model Qwen/Qwen2.5-Coder-7B-Instruct  --out gen_7b.jsonl
+    CUDA_VISIBLE_DEVICES=1 python gen_honest.py \
+        --model Qwen/Qwen2.5-Coder-32B-Instruct --out gen_32b.jsonl
+
+The cards are H100 NVL at 94 GB, so the 32B fits at bf16 on ONE card (~62 GB of weights). Both arms
+therefore run concurrently, one GPU each, instead of sequentially at tensor_parallel_size=2 - which
+also removes the tensor-parallel failure mode entirely.
+
+Generation covers all 5,000 problems, not the 3,420 with a shipped passing solution: which problems
+are eligible depends on how the harness validation lands, and that is an analysis-time filter, not a
+generation-time one (`gate_s_pool.py`).
 
 Requires `gate_s_pool.parquet` (run `gate_s_pool.py` first). Resumable: problem_ids already in
 `--out` are skipped, so an interrupted allocation costs only the unfinished tail.
@@ -71,16 +79,24 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--model", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--tp", type=int, default=1, help="tensor_parallel_size")
+    ap.add_argument("--tp", type=int, default=1,
+                    help="tensor_parallel_size; 1 is right on 94 GB cards, even for the 32B")
     ap.add_argument("--max-tokens", type=int, default=2048)
     ap.add_argument("--max-model-len", type=int, default=8192)
     ap.add_argument("--gpu-memory-utilization", type=float, default=0.90)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--limit", type=int, default=0, help="first N problems, for a smoke test")
+    ap.add_argument("--generation-pool-only", action="store_true",
+                    help="restrict to the 3,420 with a shipped passing solution. Off by default: "
+                         "eligibility is an analysis-time filter, and generating the superset means "
+                         "the harness validation cannot send us back to the GPU.")
     args = ap.parse_args()
 
     pool = pd.read_parquet("gate_s_pool.parquet")
     pool["problem_id"] = pool.problem_id.astype(str)
+    if args.generation_pool_only:
+        pool = pool[pool.in_generation_pool]
+        print("restricted to in_generation_pool (the shipped solution_passes_tests)")
     done = already_done(args.out)
     todo = pool[~pool.problem_id.isin(done)]
     if args.limit:
