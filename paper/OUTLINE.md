@@ -30,7 +30,15 @@ novelty claim survives, and it is the paragraph a reviewer from this neighbourho
    injected text (different axis). `2606.06529` shows attacker-side selection inflates safety
    estimates (same conclusion, other side). `2607.06596` removes transcript length as a nuisance
    covariate; we publish the content-blind classifier's own AUROC as a per-benchmark floor.
-6. Contributions, four bullets. **Scope claim: this concerns monitor training, selection and
+6. **The neighbouring field already applies the control that is missing here — new, and it belongs in
+   §1.** CodeMirage forces its LLM-written class to agree with the human class on line count and
+   character length and gates on it (`2506.11059` §3.1); MultiAIGCD pairs to the same CodeNet problem
+   definitions (`2507.21693`); AICD Bench filters explicitly *"to prevent detectors from exploiting
+   distributional artifacts rather than learning meaningful code patterns"* (`2602.02079` §4.1). **The
+   unmatched honest/attack pairs are a defect by the neighbouring field's own published standard**, not
+   by one we invented. ⚠️ Cite the mechanism as *established* — AICD App. D.1 already names the tokens
+   (`answer`, `output`, `result` vs `li`, `nums`, `pos`) — and claim only the application.
+7. Contributions, four bullets. **Scope claim: this concerns monitor training, selection and
    benchmarking on stored pairs — ControlArena's live evals generate both classes.** Say it here,
    not in Limitations, or the first reviewer says it for us.
 
@@ -87,7 +95,8 @@ crediting `2607.09786` for the instrument.
 Written as a checklist someone can apply, in Kapoor & Narayanan's register (`2207.07048`):
 
 1. **Use same-generator honest samples.** If the attack class is model-written, the honest class must
-   be too.
+   be too. **Precedent, not invention:** `2506.11059` §3.1 matches on line count and character length
+   with a rule-based gate and forced regeneration; `2507.21693` pairs to shared problem definitions.
 2. **Report a partial-input floor and a bag-of-words floor** beside every monitor number, with a
    permutation null.
 3. **Drop inert backdoors from both classes** — do not relabel a failed attack as honest.
@@ -111,5 +120,12 @@ Written as a checklist someone can apply, in Kapoor & Narayanan's register (`220
 
 ## Before anything is public
 
-`lit/01` §8: the AICD/CodeMirage **setup sections** read and summarised, and the three ⚠️ citations
-fetched or dropped. **Before** the split is released or the paper is posted (R16).
+✅ Both AICD/CodeMirage setup reads and all three ⚠️ citations were discharged on 2026-09-03
+(`lit/01` §4, §8). **What remains is Gate S alone.**
+
+⚠️ Two things the sweep put on the do-not-write list. **Never compare our AUROC to AICD's Macro-F1** —
+their numbers sit below random on their hardest task, they are a different metric on a different
+construction, and "X beats Y" across protocols is the error that killed the round-16 headline (R18's
+companion). And **cite CodeMirage §3.2 honestly**: its claim that *"naive statistical classifiers would
+struggle to detect AI-generated code using basic code features"* is asserted from overlapping
+histograms and never tested — it is true of their *matched* construction, which is the point.

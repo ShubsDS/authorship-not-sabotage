@@ -79,23 +79,113 @@ A monitor is a classifier; a benchmark artifact is a benchmark artifact. **The m
 | `2207.07048` ✅ | Kapoor & Narayanan, *Leakage and the Reproducibility Crisis in ML-based Science*. 329 papers, 8 leakage types, "model info sheets". | The taxonomy, and the recommendation format the paper's §5 should imitate. |
 | `1808.04926` ✅ | Kaushik & Lipton. | Companion to Poliak. |
 | `2410.06992` ✅ | *SWE-Bench+* — 32.67% solution leakage, 31.08% weak tests, 12.47% → 3.97% resolution after filtering. | The same audit, done to the code-agent benchmark next door. The closest thing to a template. |
-| `2503.15223` ⚠️ · `2502.06215` ⚠️ | Code-eval validity, recorded from the round-17 sweep. **Titles and authors not verified in this repo.** | **Fetch before citing.** |
+| `2503.15223` ✅ | Wang, Pradel, Liu, *Are "Solved Issues" in SWE-bench Really Solved Correctly? An Empirical Study*. v1 19 Mar 2025, **v2 9 Sep 2025 — cite v2**; DOI `10.1145/3744916.3764576` (ACM, so no longer preprint-only). PatchDiff differential patch testing: **7.8%** of patches pass while failing the developer test suite, **29.6%** behave differently from ground truth, reported resolution rates inflated by **6.2 pp**. | A genuine sibling to SWE-Bench+ — same weak-test validity failure, different mechanism. |
+| `2502.06215` ✅ | Zhou, Weyssow, Widyasari, Zhang, He, Lyu, Chang, Zhang, Huang, Lo, *LessLeak-Bench: A First Investigation of Data Leakage in LLMs Across 83 Software Engineering Benchmarks*, 10 Feb 2025, v1, 25 pp. No venue stated. | ⚠️ **Do not pair this with SWE-Bench+ as though both report heavy leakage.** Its headline is that leakage is **minimal on average** — 4.8% Python, 2.8% Java, 0.7% C/C++ — with specific benchmarks failing badly (QuixBugs 100%, BigCloneBench 55.7%). It supports *"measure leakage per benchmark, because some fail badly"*, not *"leakage is pervasive."* |
 
 ### The mechanism, established out-of-field and never connected to AI control
 
-This is the live G1 risk and the reason the paper claims only the *application*.
+This was the live G1 risk and the reason the paper claims only the *application*. **Both papers were
+read end to end on 2026-09-03 — setup, evaluation, appendices, limitations — not greped** (R18). Raw
+full texts were saved and every quote below was checked against the source by the coordinator (R17).
+
+**Verdict: both NEIGHBOUR. The framing survives.** Neither paper connects AI-code detection to the
+validity of any downstream safety, security, monitoring or backdoor benchmark, in any wording.
 
 | id | Verified | Note |
 |---|---|---|
-| `2602.02079` ✅ | Orel, Azizov, Paul, Wang, Gurevych, Nakov, **AICD Bench**, EACL 2026. 2M examples, 77 models, 11 families, 9 languages; human/machine/hybrid/adversarial. | Full text greped: **"ai control", "control evaluation", "trusted monitor", "sabotage", "APPS", "monitoring" all 0.** |
-| `2506.11059` ✅ | Guo, Cheng, Zhang, Shen, Zhang, **CodeMirage**, 2025. 10 languages, 10 production LLMs, original + paraphrased. | Same greps 0, with `backdoor` = 1 and `safety` = 1 **as the in-batch positive controls proving the grep fires**. |
-| `2507.21693` ⚠️ | MultiAIGCD. Abstract-level only. | **Fetch before citing.** |
+| `2602.02079` ✅ | Orel, Azizov, Paul, Wang, Gurevych, Nakov, *AICD Bench: A Challenging Benchmark for AI-Generated Code Detection*. Submitted **2 Feb 2026, v1 only**; cs.LG primary, cs.SE. 2M examples, 77 generators (82 with quantizations), 11 families, 9 languages. | ⚠️ **Correction: the abs page states NO venue** — there is no `Comments:` field at all. This repo previously recorded "EACL 2026"; that attribution was unsourced and is **withdrawn** (R1). |
+| `2506.11059` ✅ | Guo, Cheng, Zhang, Shen, Zhang, *CodeMirage: A Multi-Lingual Benchmark for Detecting AI-Generated and Paraphrased Source Code from Production-Level LLMs*. Submitted **27 May 2025, v1 only**; cs.SE primary. 10 languages, 10 production LLMs, original + paraphrased. | No venue stated. The `2506` id on a May-2025 date is real, not a transcription error. |
 
-> **Open obligation, and it is the one check that can still void the framing.** The AICD sweep above
-> is full-text and its zeros carry in-batch controls — but the record is *counts*, and R18 exists
-> because counts are not practice. Read the setup and evaluation sections of `2602.02079` and
-> `2506.11059` and write one line each saying what they filter, strip and match. It costs hours and
-> no GPU. **Do it before the split is released or the paper is posted, not after** (R16).
+#### What they filter, strip and match — the R18 deliverable
+
+**`2602.02079` (AICD Bench).** §4.1, and the rationale is the interesting part:
+
+> *"We replicate Droid's filtering pipeline to maintain consistency in data distribution and **to
+> prevent detectors from exploiting distributional artifacts rather than learning meaningful code
+> patterns**."*
+
+- Removes *"unparsable code, overly simple or excessively complex samples, non-code and auto-generated
+  files, and non-English content."*
+- Table 3 band-pass, applied to **both classes alike**: AST depth 2–31 · max line length 12–400 · avg
+  line length 5–140 · **LOC 6–300** · alphanumeric fraction 0.20–0.75 · docstring English confidence
+  99–100%. A shared band-pass, **not** a per-pair length match.
+- MinHash de-duplication at threshold 0.8, *"applied jointly to the original and newly generated
+  samples"* — which actively deletes near-identical cross-class pairs.
+- **Classes are not matched** on length, difficulty or problem identity. Worse, class and source are
+  partly confounded **by design**: the 50K human samples from The Heap and 100K hybrids from Swallow
+  Code are loaded into the out-of-domain evaluation half.
+- They name their own filter as a distortion of the human class (Limitations): it *"excludes highly
+  verbose, overly complex, extremely short, or poorly structured code commonly found in practice."*
+
+**`2506.11059` (CodeMirage).** §3.1, and it is the mirror image — **matched by construction**:
+
+> *"To align the structural characteristics of the generated code with the original human-written
+> version, we additionally supply the LLMs with **metadata such as the line count and total character
+> length**."*
+
+Enforced, not merely requested: *"a rule-based inspector that verifies: (1) consistency with the
+original human-written code's line count and character length, and (2) adequate token-level
+divergence from the original, enforced by requiring a BLEU score below 0.5 to avoid recitation.
+Regeneration is forced if any check fails."* 1:10 human→machine mapping.
+
+- Human class: CodeParrot `github-code-clean`, 1,000 files × 10 languages, *"collected and sanitized in
+  May 2022, prior to the widespread deployment of code LLMs"* — the human label is guaranteed by date.
+- Machine class: **text-to-code, never code-to-code** — an LLM summarizes each human file, and the
+  summary alone is handed to 10 production LLMs, *"ensuring that the LLM does not access the original
+  human-written implementation."*
+- ✅ **They never strip comments and never discuss them.** `comment` and `docstring` occur **zero**
+  times in the entire paper — verified against the raw HTML, not only the text conversion.
+
+#### The three things this read found that a grep could not
+
+1. **AICD runs our baseline, and it wins.** §5.1 trains LR / SVM / CatBoost over TF-IDF (uni-, bi- and
+   tri-grams, no lowercasing, no normalisation, SVD to 500 dims). §5.2.1: *"classical models achieve
+   unexpectedly strong performance: SVM and Logistic Regression with TF-IDF features **outperform all
+   deep learning models**."* ⚠️ Their metric is **Macro-F1, not AUROC**, and on their hardest task the
+   numbers are *below* random (SVM TF-IDF 43.05, best neural DeBERTa 34.13, Random 45.73). **Do not
+   compare their number to ours** — that is R18's companion, and it is the exact error that killed the
+   round-16 headline.
+2. **AICD publishes our mechanism at token level, so we cannot claim it.** §5.2.1: *"language-independent
+   cues, such as variable naming patterns, play a central role in distinguishing human-written from
+   AI-generated code."* Appendix D.1: *"AI-generated code often uses verbose, prompt-echoing identifiers
+   like answer, output, result, tests, and index. In contrast, human-written code tended to use shorter,
+   organic identifiers like li, nums, pos, a1, and cur."* **Any interpretability claim about *which*
+   tokens carry the authorship signal is pre-empted.** Cite it as established; keep to the application.
+3. **The neighbouring field treats cross-class matching as a basic requirement — and that is an argument
+   we did not have.** CodeMirage forces line-count and character-length agreement and gates on it;
+   MultiAIGCD pairs to the same CodeNet problem definitions; AICD filters explicitly to stop detectors
+   exploiting distributional artifacts. **Three independent AI-code-detection papers spend engineering
+   effort on the control the AI-control monitoring benchmarks never applied.** The absence is therefore
+   a defect *by the neighbouring field's own published standard*, not by a standard we invented for the
+   occasion. This belongs in §1 and in the recommendations.
+
+#### The nearest sentence each paper has to our claim, verbatim
+
+- `2602.02079` §4.1 — the anti-artifact rationale quoted above. It is our confound logic applied
+  **inward**, to protect their own benchmark, never outward to anyone else's.
+- `2506.11059` §1 — *"Robust AI-code detection is therefore critical for secure software supply
+  chains, responsible academic practice, and licence compliance."* Detection as useful, not authorship
+  as a contaminant of someone else's labels.
+- ⚠️ **One CodeMirage claim points the other way and is worth citing honestly.** §3.2, from
+  distribution overlap in lines of code, character length and AST depth: *"This similarity implies that
+  naive statistical classifiers would struggle to detect AI-generated code using basic code features."*
+  **It is asserted from overlapping histograms and never tested with an actual naive classifier** — and
+  it is true *of their matched construction*, which is precisely our point about the unmatched one.
+
+#### Loose ends closed
+
+- **CodeMirage's single `backdoor` hit is benign.** It is reference [91] in the bibliography (Yan et al.,
+  USENIX Security 2024, an LLM-assisted backdoor attack on **code completion models** — training-data
+  poisoning), cited once in §1's motivation sweep. Not a code-backdoor benchmark, not APPS, not
+  monitoring. **Chased and closed.**
+- Control-term counts on both full texts, with in-batch positive controls: `ai control`, `control
+  evaluation`, `trusted monitor`, `sabotage`, `APPS`, `monitoring` = **0** in both; `backdoor` and
+  `safety` = 0 in AICD, 1 each in CodeMirage. Positive controls fire (`detection` 50 / `detect` 174,
+  ` the ` 303 / 326, `TF-IDF` 26, `paraphras` 60).
+
+| id | Verified | Note |
+|---|---|---|
+| `2507.21693` ✅ | Demirok, Kutlu, Mergen, *MultiAIGCD: A Comprehensive dataset for AI Generated Code Detection Covering Multiple Languages, Models,Prompts, and Scenarios*, 29 Jul 2025, v1. Python/Java/Go from CodeNet problem definitions; 6 LLMs × 3 prompts × 3 scenarios; **121,271 AI-generated / 32,148 human-written**. | The missing space in *"Models,Prompts"* is in the official arXiv title. **A third instance of point 3 above** — paired to the same problem definitions as the human code. |
 
 ## 5. LessWrong and the Alignment Forum (R9)
 
@@ -156,6 +246,9 @@ Kept because acting on a mis-remembered number costs exactly as much as a halluc
 
 ## 8. What is still owed before anything is public
 
-1. §4's AICD/CodeMirage **setup sections**, read and summarised in one line each (R16 + R18).
-2. `2503.15223`, `2502.06215`, `2507.21693` fetched, or dropped from the paper.
-3. The Gate S control (`../PLAN.md` §3) — the only number in the abstract that does not yet exist.
+1. ~~The AICD/CodeMirage setup sections, read and summarised.~~ ✅ **Discharged 2026-09-03** — §4. Both
+   NEIGHBOUR; the framing survives; three findings a grep could not have produced.
+2. ~~`2503.15223`, `2502.06215`, `2507.21693` fetched or dropped.~~ ✅ **All three verified** — §4. One
+   *characterisation* correction, not a bibliographic one: LessLeak-Bench reports leakage as minimal on
+   average, and must not be cited as though it reports the opposite.
+3. **The Gate S control** (`../PLAN.md` §3) — the only number in the abstract that does not yet exist.
