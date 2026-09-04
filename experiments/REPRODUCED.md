@@ -27,9 +27,35 @@ The two numbers reproduced from `anik-jha/challenger-panels` — `hash_count_onl
 by our independent reconstruction of his split. That is the strongest single check in this table,
 because it is the only one where an external party published the answer first.
 
-## Not reproduced here
+## The matched protocol and transfer, re-run 2026-09-04
 
-- The five agentic settings (`scan/`). Their numbers are in `README.md`; the corpora have not been
-  re-fetched on this machine.
-- Everything in `RECOMPUTE.md` under the DSPy matched protocol (0.9621 pairwise, 0.9935 transfer).
-  `matched.py` and `transfer.py` need only `fetch.py` and are cheap; they simply have not been re-run.
+| Number | RECOMPUTE | Re-run here | |
+|---|---|---|---|
+| Cross-generator transfer, Control Tax → the 2023 GPT-4 set | 0.9935 | **0.9935** | ✅ |
+| o3-mini → claude-3-7-sonnet | 0.9756 | **0.9756** | ✅ |
+| claude-3-7-sonnet → o3-mini | 0.8130 | **0.8130** | ✅ |
+| o1-mini → gemini-2.0-flash | 0.8283 | **0.8283** | ✅ |
+| Matched pairs, control_tax | 8,813 over 2,368 problems | **8,813 / 2,368** | ✅ |
+| TF-IDF AUROC, matched | 0.9425 | **0.9425** | ✅ |
+| 7 surface features | 0.8302 | **0.8302** | ✅ |
+| length-only, raw | 0.8255 within-pair / 0.674 AUROC | **0.821 / 0.674** | ✅ |
+| TF-IDF pairwise, working backdoors | 0.9787 (n=847) | **0.9787 (n=847)** | ✅ |
+| TF-IDF pairwise, all | 0.9621 | **0.9625** | ⚠️ |
+| TF-IDF pairwise, inert backdoors | 0.9543 (n=1,794) | **0.9548 (n=1,794)** | ⚠️ |
+
+### The two ⚠️ rows are one flipped pair each, and they set the reporting precision
+
+0.9625 − 0.9621 = 0.00040 and 1/2,641 = 0.00038. 0.9548 − 0.9543 = 0.00050 and 1/1,794 = 0.00056.
+**Each gap is a single pair changing side**, from logistic-regression solver and BLAS differences
+between this machine and the one `RECOMPUTE.md` was written on. The AUROCs, which are not
+threshold-sensitive in this way, match to four decimals.
+
+**Consequence for the paper: report pairwise accuracies to three decimals — 0.962, 0.979, 0.955.**
+The resolution of a pairwise accuracy over 2,641 pairs *is* 1/2,641, so a fourth decimal is one pair
+and is false precision. Do not let the 0.9621 in `RECOMPUTE.md` become a four-decimal claim.
+
+## Still not reproduced here
+
+- **The five agentic settings (`scan/`)** — the `bash` 0.504 … `agentdojo` 0.802 column that **F2 is
+  drawn from**. The numbers come from `README.md`; those five corpora have not been re-fetched on this
+  machine. ⚠️ This is now the only figure in the paper whose data has not been re-verified here.
