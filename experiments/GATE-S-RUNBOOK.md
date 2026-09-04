@@ -28,35 +28,36 @@ Four stages, and only stage 2 touches the GPU:
 
 ---
 
-## 1. Environment
+## 1. Environment — as actually measured, 2026-09-04
 
-Target: an interactive Slurm allocation, 2× H100, held for several days. No rental, no cost, no
-`sbatch` — commands run directly in the allocation.
+Slurm job `6557548` on `serval09`: **2× H100 NVL, 94 GB each** (not 80 — this matters), 16 CPUs,
+125 GB RAM, 4-day limit. Reach it from a login shell with
+`srun --jobid=<id> --overlap bash -c '...'`; `--pty` hangs against an already-running job.
 
-```bash
-# --- once, on the allocation ---
-# Put the HF cache on scratch, NOT $HOME. The 32B is ~62 GB of weights.
-export HF_HOME=/path/to/scratch/hf
-export HF_HUB_ENABLE_HF_TRANSFER=1
-mkdir -p "$HF_HOME"
-
-python -m venv .venv-gpu && source .venv-gpu/bin/activate
-pip install -U vllm transformers accelerate hf_transfer
-pip install pandas pyarrow scikit-learn requests huggingface_hub
-
-nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv   # confirm 2× H100, 80 GB each
-python -c "import torch;print(torch.__version__, torch.cuda.device_count())"
-```
-
-Pre-pull the weights **before** the generation run so a download failure is not a GPU-hour failure:
+**The 32B fits on ONE 94 GB card at bf16** (~62 GB of weights), so the two arms run **concurrently,
+one GPU each**, rather than sequentially at `tensor_parallel_size=2`. That halves wall time and
+removes the tensor-parallel failure mode.
 
 ```bash
-hf download Qwen/Qwen2.5-Coder-7B-Instruct
-hf download Qwen/Qwen2.5-Coder-32B-Instruct
-du -sh "$HF_HOME/hub"        # expect ~78 GB for both
+cd /u/fvc9ch/ai-safety/authorship-not-sabotage
+python3 -m venv .venv-gpu
+.venv-gpu/bin/pip install vllm pandas pyarrow
+.venv-gpu/bin/python -c "import vllm, torch; print(vllm.__version__, torch.cuda.device_count())"
 ```
 
-Confirm the scratch filesystem has ≥120 GB free before starting.
+> ### ⚠️ Put the HF cache somewhere with room, and export it in **every** shell
+> `$HOME` is quota-limited here. `/bigtemp` is 174 TB with 152 TB free, on `corezfs04`, and is
+> mounted on both the login node and `serval09` — verified writable from the compute node.
+> `/bigtemp1` is 96% full; `/bigtemp2` and `/localtmp` are node-local, not shared.
+>
+> ```bash
+> export HF_HOME=/bigtemp/$USER/hf
+> export HF_HUB_ENABLE_HF_TRANSFER=1
+> ```
+>
+> **A shell that misses this silently downloads 62 GB into `~/.cache/huggingface`.** Budget ~78 GB for
+> both models. Filesystems named `*temp` often carry an age-purge policy; the weights are
+> re-downloadable and nothing in the repo depends on them persisting.
 
 ---
 
@@ -104,14 +105,22 @@ python gate_s_pool.py                    # writes gate_s_pool.parquet
 nothing to leak on a shared node.
 
 ```bash
-# arm A — 7B, one GPU
-CUDA_VISIBLE_DEVICES=0 python gen_honest.py \
-  --model Qwen/Qwen2.5-Coder-7B-Instruct --tp 1 --out gen_7b.jsonl
+cd experiments/apps
+export HF_HOME=/bigtemp/$USER/hf
 
-# arm B — 32B, both GPUs (bf16 weights are ~62 GB; TP=2 leaves ample KV cache)
-python gen_honest.py \
-  --model Qwen/Qwen2.5-Coder-32B-Instruct --tp 2 --out gen_32b.jsonl
+# smoke the vLLM path first — it is the one path never exercised off the allocation
+CUDA_VISIBLE_DEVICES=0 ../../.venv-gpu/bin/python gen_honest.py \
+  --model Qwen/Qwen2.5-Coder-7B-Instruct --out smoke_7b.jsonl --limit 20
+
+# then both arms concurrently, one card each
+CUDA_VISIBLE_DEVICES=0 ../../.venv-gpu/bin/python gen_honest.py \
+  --model Qwen/Qwen2.5-Coder-7B-Instruct  --out gen_7b.jsonl   # terminal A
+CUDA_VISIBLE_DEVICES=1 ../../.venv-gpu/bin/python gen_honest.py \
+  --model Qwen/Qwen2.5-Coder-32B-Instruct --out gen_32b.jsonl  # terminal B
 ```
+
+Both are **resumable**: problem_ids already in the output are skipped, so a killed job costs only
+the unfinished tail. Generation covers **all 5,000 problems**, not the 3,420 — see §2.
 
 ### The generation protocol, fixed before the run
 
@@ -184,11 +193,26 @@ this rather than implying an isolation it does not have.
 ### 4.2 Validate the harness before trusting it — this step is not optional
 
 ```bash
-python run_tests.py --solutions human --out human_verify.jsonl
+python run_tests.py --solutions human --out human_verify.jsonl --max-per-problem 1
 ```
 
-Runs the harness on all 5,000 **human** solutions and compares its verdict to the shipped
-`solution_passes_tests` column. **Target: 3,420 passes.**
+> ### ★ Test `solutions[0]` only — 3,765 solutions, not 115,212
+> The artifact holds **115,212** human solutions over 5,000 problems, and testing all of them is a
+> three-hour job. It is also the wrong population. Measured 2026-09-04:
+>
+> - The `solutions` list is **sorted**: for every one of the 3,420 problems with a passing solution,
+>   the first passing-and-compiling one is at **index 0**.
+> - `_honest_code()` in `data.py` returns the first passing-and-compiling solution, so it always
+>   returns `solutions[0]`. **That is the only human solution the pipeline ever uses.**
+> - Among the 3,765 rows that have any solution, `solution_passes_tests` **is**
+>   `solutions[0].passes_tests` exactly, and `solution_compiles` is `solutions[0].compiles`. (1,235
+>   rows carry no solutions at all.)
+>
+> So `--max-per-problem 1` is a **complete, unsampled** pass over the population that matters — the
+> solution the pipeline uses — in about six minutes. The other 111,447 are alternates no number in
+> the paper touches. Run them later if a broader fidelity figure is wanted; do not block Gate S on it.
+
+Compares our verdict against the shipped `solution_passes_tests`. **Target: 3,420 passes.**
 
 This is R19 applied to our own tooling: the human class was filtered by *upstream's* harness, and if
 ours is stricter, the LLM honest class gets filtered more harshly than the human one and the two arms
