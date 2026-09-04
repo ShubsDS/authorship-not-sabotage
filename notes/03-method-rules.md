@@ -9,7 +9,9 @@ without it is a slogan.
 ## R1 — Verify every citation by fetching the source
 
 Never cite from a search snippet. `arxiv.org/abs/<id>` for title, full author list and date.
-**Live debt:** three ids in `lit/01` §4 are ⚠️ — fetch them or drop them from the paper.
+**No live debt:** the three ⚠️ ids were fetched and verified on 2026-09-03 (`lit/01` §8). The rule
+paid again on 2026-09-04, when a third-party listing advertised FLLMPT's paper deadline as Aug 30
+and the workshop's own CFP said Sep 12 (`notes/01`).
 
 ## R3 — A zero-result is citable only with a positive control in the same batch
 
@@ -55,8 +57,9 @@ published trivial baselines (killing a headline sentence), *and* ships `runs/sco
 per-item scores on the exact split, which **deleted the GPU from the monitor comparison entirely**.
 
 > **Corollary: check whether your gate is already answered before you schedule it.** A gate whose
-> value is published is not a gate, it is a lookup. This is how Gate M died. **Grep for it first —
-> and do that for Gate S route 1 (`RoganInglis/vllm-control-arena`) before renting anything.**
+> value is published is not a gate, it is a lookup. This is how Gate M died — and it is how Gate S
+> route 1 was closed for free on 2026-09-04, which found no artifact but did produce the schema
+> evidence the paper now leads §2 with (R19).
 
 ## R19 — The dataset card is not the dataset. Verify the data, not its description.
 
@@ -96,8 +99,10 @@ would have learned it two days later.
 
 **Order by irreversibility, not by cost. Cheapness is a reason to run something sooner.**
 
-**Live obligation:** the AICD/CodeMirage setup sections (`lit/01` §8) run **before** the split is
-released or the paper is posted.
+**No live obligation:** the AICD/CodeMirage setup read ran on 2026-09-03, before anything was
+published (`lit/01` §4, §8). The rule's remaining application is the Sep 5 → Sep 8 ordering: the
+FLLMPT abstract is registered three days *before* Gate S. That was a real R16 exposure until the
+title-change policy was checked and found not to lock (`notes/01`); the author list is what locks.
 
 ## R17 — Verify a delegated number yourself before it becomes load-bearing
 
