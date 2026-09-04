@@ -113,7 +113,9 @@ their separate n's, the pass rates, and the human-honest baseline **B** computed
 protocol — a reader cannot interpret the collapse without B.
 
 **F3 — the comparison, done honestly.** Against `runs/x0/monitor-summary.json`: TF-IDF **0.806 above
-20 of 24**; no-code **0.772 above 18 of 24**; median 0.609, max 0.937. Caveats **in the caption, not
+20 of 24**; no-code **0.7715 ± 0.0389 (5×5 CV) above 20 of 24**, or **0.7163 held-out above 18 of
+24** — ⚠️ **never pair 0.772 with "above 18"**, that mixes the CV value with the held-out count and is
+R18's companion error committed against ourselves (`fig/CAPTIONS.md`); median 0.609, max 0.937. Caveats **in the caption, not
 in Limitations**: those 24 are zero-shot prompted while ours is trained on the benchmark's own paired
 train split, and the metadata floor is fitted within the test split because their train/val is
 paired. **This is a Gururangan-style artifact statement, not a claim that bag-of-words is a better

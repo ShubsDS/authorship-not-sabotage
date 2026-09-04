@@ -132,7 +132,13 @@ For the five nearest papers, read the data/setup/preprocessing section and the a
 write **one line per paper** saying what they filtered, stripped, matched or excluded — *before*
 claiming a preprocessing artifact is unreported.
 
-> **Companion — compare on the same protocol or not at all.** Before writing any "X beats Y"
+> **Companion — compare on the same protocol or not at all.** ⚠️ **We committed this error against
+> ourselves and caught it on 2026-09-04.** `K1-artifact-lineage.md` §4.4 correctly recorded *"18 of 24
+> below 0.7163; 20 of 24 below 0.7715."* The summary documents compressed that to **"0.772, above 18"**
+> — the 5×5 CV *value* with the single-held-out *count* — and it reached the README and the outline's
+> F3 paragraph. Building the figure is what caught it, because a figure has to pick one number and
+> then count. **A number and its comparison count travel together or not at all.**
+> Before writing any "X beats Y"
 > sentence, write down **Y's split, Y's metric and Y's preprocessing**, and compute X under all
 > three. The round-16 headline compared a problem-level metadata floor of 0.82 against "a published
 > monitor at 0.64" that was a *pairwise accuracy* on a *matched* protocol where that floor is exactly

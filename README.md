@@ -19,7 +19,8 @@ on are **human-written versus LLM-written**. Honest solutions in `RoganInglis/ap
 from `codeparrot/apps` — no model is ever called; every backdoor is written by one of ten named LLMs.
 On the field's own filtered, comment-stripped split, a bag-of-words classifier that cannot read a
 backdoor reaches **AUROC 0.806 — above 20 of the 24 monitors ranked there** (median 0.609), a
-classifier that reads **no code at all** reaches **0.772**, above 18, and the bag-of-words signal is
+classifier that reads **no code at all** reaches **0.772**, above 20 (0.7163 on a single held-out
+slice, above 18 — state the protocol with the count), and the bag-of-words signal is
 as strong on **inert** backdoors (0.954 pairwise) as on working ones (0.979). A monitor validated on
 that corpus has been validated on a discrimination it will never face in deployment, where the
 untrusted model writes both classes.

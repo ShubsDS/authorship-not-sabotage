@@ -51,7 +51,7 @@ subset of the first, which is what K1 established).
 |---|---|---|
 | Koran's exact split, comments stripped | TF-IDF word 1–2gram | **AUROC 0.8063** — above **20 of 24** monitors (median 0.609) |
 | same, comments kept | TF-IDF | 0.8914 — above 22/24 |
-| same, **reads no code**: difficulty + `num_tests` + question length | LR | **0.7163 held-out · 0.7715 ± 0.039** (5×5 CV) — above 18/24 |
+| same, **reads no code**: difficulty + `num_tests` + question length | LR | **0.7163 held-out — above 18/24** · **0.7715 ± 0.0389** (5×5 CV) — **above 20/24**. Each value carries its own count; do not cross them. |
 | DSPy matched pairs, problem-disjoint 5-fold | TF-IDF, pairwise acc | **0.9621**; the tutorial's LLM monitor: 0.69 untrained, 0.78–0.81 GEPA |
 | same, split by `backdoor_works` | TF-IDF | working **0.9787** · non-working **0.9543** — the signal is not sabotage |
 | same | "the longer code is the attack" | 0.8255 on the raw artifact — and **0.4726, chance, on the filtered split** |
