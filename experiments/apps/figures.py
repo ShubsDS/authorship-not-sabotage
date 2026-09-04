@@ -33,13 +33,16 @@ NOCODE_HELDOUT = 0.7163                    # single 413-item held-out slice; cle
 # Never pair 0.7715 with "above 18": that count belongs to 0.7163. 0.7715 clears 20 of 24.
 # Mixing them is exactly R18's companion error, and it reached the README before this was caught.
 
-# scan/ numbers, from experiments/README.md. NOT re-run on this machine yet.
+# scan/ within-task floors and permutation nulls. Re-run on this machine 2026-09-04 by
+# scan/matched.py: all five within-task values reproduce exactly. The fourth column is the number
+# of task groups the within-task AUROC is averaged over, and it is not uniform - shade and iac rest
+# on FIVE groups each, which the paper has to say out loud.
 SCAN = [
-    ("bash",       0.504, 0.490),
-    ("shade",      0.602, 0.508),
-    ("iac",        0.704, 0.484),
-    ("rogue_eval", 0.616, 0.480),
-    ("agentdojo",  0.802, 0.512),
+    ("bash",       0.504, 0.490, 247),
+    ("shade",      0.602, 0.508, 5),
+    ("iac",        0.704, 0.484, 5),
+    ("rogue_eval", 0.616, 0.480, 25),
+    ("agentdojo",  0.802, 0.512, 16),
 ]
 
 
@@ -100,12 +103,12 @@ def fig2_corpora():
     where the data actually lives.
     """
     rows = SCAN[::-1]
-    names = [r[0] for r in rows]
+    names = [f"{r[0]}\n({r[3]} tasks)" for r in rows]
     vals = [r[1] for r in rows]
     nulls = [r[2] for r in rows]
     y = list(range(len(names)))
 
-    fig, ax = plt.subplots(figsize=(5.5, 2.4))
+    fig, ax = plt.subplots(figsize=(5.5, 2.7))
     style(ax)
     ax.axvline(0.5, color=MUTED, lw=1, ls=(0, (4, 3)), zorder=2)
     ax.text(0.5, len(names) - 0.35, "chance", ha="center", va="bottom", fontsize=7, color=MUTED)
@@ -120,7 +123,7 @@ def fig2_corpora():
         ax.text(v + 0.011, i, f"{v:.3f}", va="center", fontsize=7.5, color=INK)
 
     ax.set_yticks(y)
-    ax.set_yticklabels(names, fontsize=8.5, color=INK)
+    ax.set_yticklabels(names, fontsize=8, color=INK, linespacing=1.35)
     ax.set_ylim(-0.6, len(names) - 0.1)
     ax.set_xlim(0.44, 0.87)
     ax.set_xlabel("AUROC", fontsize=8.5, color=INK)
@@ -131,7 +134,8 @@ def fig2_corpora():
     fig.tight_layout(pad=0.4)
     fig.savefig(f"{OUT}/f2-corpus-floors.pdf")
     plt.close(fig)
-    print("F2: 5 settings; bash 0.504 (clean) to agentdojo 0.802 (leaky); nulls 0.480-0.512")
+    print("F2: 5 settings; bash 0.504 (clean, 247 tasks) to agentdojo 0.802 (leaky, 16 tasks); "
+          "nulls 0.480-0.512. shade and iac rest on 5 task groups each.")
 
 
 F1_ROWS = [

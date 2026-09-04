@@ -66,6 +66,7 @@ we redistribute nothing and report aggregates only, and the paper says so.
 
 | Script | What it computes |
 |---|---|
+| `fetch_scan.py` | The five `ca_*.parquet` corpora, fetched at run time. **Run this first** — everything below reads them. |
 | `floors.py`, `floors2.py` | The structural floor from six count features that read **no content** — `chars`, `lines`, `words`, `[ASSISTANT]`, `[TOOL]`, `[TOOL CALLS]`. |
 | `cot.py` | The 15-word regex over the untrusted policy's own scratchpad. AUROC 0.76–0.82 across all five settings, because prompted attack policies restate their side task in the reasoning the monitor reads. **One paragraph in the paper, not a section** — `2607.09786` owns this instrument. |
 | `bash_bench.py`, `prov.py` | Per-class generator provenance, and the rejection of `AISafety-Student/labeled-bashBench` (its `danger_level` annotation *is* the label — circular). |
@@ -74,13 +75,19 @@ we redistribute nothing and report aggregates only, and the paper says so.
 
 **The column that goes in the paper is the third one**, not the first:
 
-| setting | pooled 5-fold | task-grouped CV | **within-task, chars only** | permutation null |
-|---|---|---|---|---|
-| bash | 0.609 | 0.630 | **0.504** — clean | 0.490 |
-| shade | 0.664 | 0.382 | 0.602 | 0.508 |
-| iac | 0.535 | 0.602 | **0.704** | 0.484 |
-| rogue_eval | 0.668 | 0.673 | 0.616 | 0.480 |
-| agentdojo | 0.932 | 0.867 | **0.802** — leaky | 0.512 |
+| setting | pooled 5-fold | task-grouped CV | **within-task, chars only** | permutation null | task groups |
+|---|---|---|---|---|---|
+| bash | 0.610 | 0.624 | **0.504** — clean | 0.490 | **247** |
+| shade | 0.664 | 0.382 | 0.602 | 0.508 | **5** |
+| iac | 0.535 | 0.602 | **0.704** | 0.484 | **5** |
+| rogue_eval | 0.668 | 0.686 | 0.616 | 0.480 | 25 |
+| agentdojo | 0.932 | 0.866 | **0.802** — leaky | 0.512 | 16 |
+
+⚠️ **The last column is not decoration.** `shade` and `iac` average their within-task AUROC over
+**five** task groups; `bash` averages over 247. Those numbers are not equally solid and the paper
+says so. It is also why `shade`'s task-grouped CV is 0.382 — with five groups, `GroupKFold(5)` puts
+one entire task in each fold. Re-run 2026-09-04 (`../REPRODUCED.md`); the within-task column
+reproduces exactly, the task-grouped column moves in the third decimal across scikit-learn versions.
 
 The scan attacked its own pooled numbers and they partly broke on task composition. That is why the
 within-task column is the honest one, and why **both outcomes already sit inside one table**: bash is

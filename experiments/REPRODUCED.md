@@ -54,8 +54,34 @@ threshold-sensitive in this way, match to four decimals.
 The resolution of a pairwise accuracy over 2,641 pairs *is* 1/2,641, so a fourth decimal is one pair
 and is false precision. Do not let the 0.9621 in `RECOMPUTE.md` become a four-decimal claim.
 
+## The five agentic settings, re-run 2026-09-04
+
+Fetched with the new `scan/fetch_scan.py` (they had no producer either) and re-run through
+`scan/matched.py`.
+
+| setting | pooled | task-grouped CV | **within-task** (the paper's column) | task groups |
+|---|---|---|---|---|
+| bash | 0.6099 ✅ | 0.6239 (was 0.630) ⚠️ | **0.5044** ✅ | 247 |
+| shade | 0.6637 ✅ | 0.3819 ✅ | **0.6022** ✅ | 5 |
+| iac | 0.5346 ✅ | 0.6022 ✅ | **0.7041** ✅ | 5 |
+| rogue_eval | 0.6680 ✅ | 0.6864 (was 0.673) ⚠️ | **0.6158** ✅ | 25 |
+| agentdojo | 0.9320 ✅ | 0.8655 (was 0.867) ⚠️ | **0.8020** ✅ | 16 |
+
+**The within-task column — the one that goes in the paper and the one F2 draws — reproduces exactly
+on all five.** So does pooled. Three of the five task-grouped CV values move in the third decimal;
+that column uses `GradientBoostingClassifier`, whose fitted trees differ across scikit-learn
+versions. It is not the column we report, but `experiments/README.md` publishes it, so the drift is
+recorded rather than quietly overwritten.
+
+### ⚠️ The task-group counts are wildly uneven, and this had not been recorded
+
+`shade` and `iac` average their within-task AUROC over **five task groups each**; `bash` averages over
+**247**. A 0.704 computed within five groups and a 0.504 computed within 247 are not equally solid,
+and the README table presented all five as if they were. **F2 now prints the group count beside every
+setting**, and the paper must say it. It also explains `shade`'s task-grouped CV of 0.382 — with five
+groups, `GroupKFold(5)` puts one whole task in each fold.
+
 ## Still not reproduced here
 
-- **The five agentic settings (`scan/`)** — the `bash` 0.504 … `agentdojo` 0.802 column that **F2 is
-  drawn from**. The numbers come from `README.md`; those five corpora have not been re-fetched on this
-  machine. ⚠️ This is now the only figure in the paper whose data has not been re-verified here.
+Nothing load-bearing. `floors.py`, `floors2.py`, `cot.py` and `apps.py`/`apps2.py` in `scan/` have not
+been re-run; their outputs are supporting detail, not figure or abstract numbers.

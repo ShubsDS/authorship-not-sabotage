@@ -20,3 +20,4 @@ paper/*.pdf
 *.jsonl
 *.log
 gate_s_pool.parquet
+paper/fig/*.png
