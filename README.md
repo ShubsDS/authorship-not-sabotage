@@ -61,7 +61,7 @@ training, selecting and benchmarking monitors on **stored** pairs).
 | Piece | State |
 |---|---|
 | Every CPU number | **Done**, recomputed on the full artifact by the coordinator (R17). [`experiments/`](experiments/README.md) |
-| K1 — which artifact? | **PASS.** One dataset and one derived copy, not two. [`experiments/K1-report.md`](experiments/K1-report.md) |
+| K1 — which artifact? | **PASS.** One dataset and one derived copy, not two. [`experiments/K1-artifact-lineage.md`](experiments/K1-artifact-lineage.md) |
 | K2 — is the floor unreported? | **FAIL as framed; a narrower claim survives.** [`lit/01`](lit/01-verified-bibliography.md) |
 | Monitor comparison (24 × 1,375) | **No GPU needed** — `runs/scores/` is MIT and published. Gate M deleted. |
 | Gate S — same-generator honest class | **Sep 8.** The one GPU cost, $5–10. Routes fixed in [`PLAN.md`](PLAN.md) §3. |
