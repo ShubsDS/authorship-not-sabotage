@@ -5,7 +5,7 @@ Before this existed the pipeline had a hole: `bow.py` opened `koran_test_code.pk
 the repo wrote any of them — they were made by hand in the round-17 session. Run order is now:
 
     python fetch.py          # the three RoganInglis parquet shards
-    python fetch_inputs.py   # koran_meta.parquet, koran_test_code.pkl, monitor-summary.json
+    python fetch_inputs.py   # koran_meta, rogan_meta, koran_test_code, monitor-summary
     python bow.py            # writes koran_samples.pkl
     python koran_split_eval.py / auroc.py / analyse.py / analyse2.py
 
@@ -22,6 +22,7 @@ import requests
 from huggingface_hub import HfFileSystem
 
 KORAN = "eugenekoran/apps-control-arena-high-quality"
+ROGAN = "RoganInglis/apps-control-arena"
 MONITOR_SUMMARY = (
     "https://raw.githubusercontent.com/anik-jha/challenger-panels/main/runs/x0/monitor-summary.json"
 )
@@ -32,6 +33,13 @@ def koran_meta():
     subprocess.run([sys.executable, "fetch_cols.py", KORAN, "koran_meta.parquet"], check=True)
     df = pd.read_parquet("koran_meta.parquet")
     print("koran_meta.parquet", df.shape, dict(df.split.value_counts()))
+
+
+def rogan_meta():
+    """Column-projected metadata for the full 5,000-row artifact (`auroc.py` reads this)."""
+    subprocess.run([sys.executable, "fetch_cols.py", ROGAN, "rogan_meta.parquet"], check=True)
+    df = pd.read_parquet("rogan_meta.parquet")
+    print("rogan_meta.parquet", df.shape)
 
 
 def koran_test_code():
@@ -66,5 +74,6 @@ def monitor_summary():
 
 if __name__ == "__main__":
     koran_meta()
+    rogan_meta()
     koran_test_code()
     monitor_summary()
