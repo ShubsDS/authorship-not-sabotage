@@ -1,15 +1,25 @@
 # experiments/ — every number in the paper, and the script that produced it
 
-All of it runs on a **laptop CPU in minutes**. The only GPU anywhere in this paper is Gate S
-(`PLAN.md` §3), and that is one afternoon on one rented 4090.
+All of it runs on a **laptop CPU in minutes**. The only GPU anywhere in this paper is Gate S, and it
+has its own step-by-step execution guide: [`GATE-S-RUNBOOK.md`](GATE-S-RUNBOOK.md).
 
 ```
 uv venv && uv pip install pandas pyarrow scikit-learn requests huggingface_hub
-cd apps && python fetch.py      # pulls the three parquet shards first; everything else needs them
+cd apps
+python fetch.py          # the three RoganInglis parquet shards — everything needs these
+python fetch_inputs.py   # koran_meta.parquet, koran_test_code.pkl, monitor-summary.json
+python bow.py            # writes koran_samples.pkl
 ```
 
+**Run order matters, and it used to be undocumented.** `floors.py`, `matched.py`, `exact.py`,
+`transfer.py` and `koran.py` need only `fetch.py`. `auroc.py`, `analyse.py` and `analyse2.py` need
+`fetch_inputs.py`. `koran_split_eval.py` needs `bow.py` as well. `fetch_inputs.py` is new: the three
+files it writes were made by hand in the round-17 session and no script in the repo produced them, so
+a fresh clone could not reproduce the headline number.
+
 Nothing here downloads a model. Nothing here contacts a paid API. No artifact is redistributed —
-the scripts fetch public HuggingFace datasets at run time and `.gitignore` keeps the parquets out.
+the scripts fetch public HuggingFace datasets and one MIT GitHub repo at run time, and `.gitignore`
+keeps the parquets out.
 
 ---
 
@@ -23,7 +33,8 @@ subset of the first, which is what K1 established).
 | Script | What it computes |
 |---|---|
 | `fetch.py` | The three parquet shards, via the HF datasets-server. Run this first. |
-| `fetch_cols.py` | Column-projected reads over `HfFileSystem` — how to touch 744 MB without downloading it. |
+| `fetch_inputs.py` | The three intermediate files the scripts below read: `koran_meta.parquet`, `koran_test_code.pkl` (the Koran test split *with* the code structs) and `monitor-summary.json` (Jha's 24-monitor table, MIT). Run this second. |
+| `fetch_cols.py` | Column-projected reads over `HfFileSystem` — how to touch 744 MB without downloading it. Called by `fetch_inputs.py`; also usable directly as `python fetch_cols.py <repo> <out.parquet>`. |
 | `floors.py` | Problem-level and sample-level **metadata-only** floors under five eval protocols, P0–P4. **P3 (matched-within-problem) is exactly 0.5000** — the number that killed the round-16 headline. |
 | `matched.py`, `exact.py` | The DSPy trusted-monitor tutorial's matched-pair protocol reproduced (8,813 control_tax pairs, problem-disjoint 5-fold). TF-IDF, length-only, and the seven surface features. |
 | `transfer.py` | Cross-generator transfer of the bag-of-words classifier, plus the style markers (`#`, `__main__`, `def`). **train Control-Tax → test the 2023 GPT-4 set: 0.9935.** Style, not content. |
