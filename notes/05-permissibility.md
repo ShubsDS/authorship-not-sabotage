@@ -30,10 +30,15 @@ permissive. **Do not skip that sentence to save a line.**
 
 ## What we generate ourselves (Gate S)
 
-One local open-weight coder model writes honest solutions to APPS problems that already ship with
+Two local open-weight coder models write honest solutions to APPS problems that already ship with
 human solutions and public tests. No scraping, no API, no new data about anyone. The generated
 solutions and the rebuilt split are **released with the paper** — that release is B5 and it is the
 main thing another group can reuse.
+
+We also **execute** generated code for the first time in this project. It runs under per-case
+timeouts, address-space limits and a scratch working directory — the same bar the standard APPS and
+HumanEval harnesses use — on a machine we control, with no network dependence in the tests. That is
+not a container, and the paper says so rather than implying an isolation it does not have.
 
 ## Compute
 
@@ -41,8 +46,10 @@ main thing another group can reuse.
 |---|---|
 | Everything in `experiments/` | **$0** — laptop CPU, minutes |
 | Monitor comparison, 24 × 1,375 | **$0** — `runs/scores/` is published and MIT. *This used to be a GPU gate.* |
-| **Gate S** — one 4090, vLLM, `Qwen2.5-Coder-7B-Instruct` or Llama-3.1-8B, one solution per problem for the 3,420 problems with a passing human solution, tests executed on CPU | **1–2 GPU-hours, $5–10** |
-| Optional: one same-harness prompted monitor on the regenerated pool | $5–10 |
-| **September total for this paper** | **≤ $25** of the $200–300 |
+| **Gate S** — vLLM, `Qwen2.5-Coder-7B-Instruct` **and** `-32B-Instruct`, one solution per problem for the 3,420 problems with a passing human solution, tests executed on CPU | **$0** — a held 2× H100 interactive Slurm allocation, ~1 GPU-hour total |
+| Optional: one same-harness prompted monitor on the regenerated pool | **$0**, same allocation |
+| **September total for this paper** | **$0** |
 
-The binding constraint is **writing time**, not money, and has been since the board was re-scored.
+The binding constraints are **the test harness** (`../experiments/GATE-S-RUNBOOK.md` §4) and **writing
+time**. Money is not one, and the free allocation also means Gate S can be **re-run** — there is no
+one-shot GPU risk to plan around.
