@@ -7,8 +7,8 @@ re-verified on 2026-09-03.
 
 **`aiworkshoptracker.com` publishes deadlines in UTC. AoE = UTC − 12h**, so AoE is *later* than the
 UTC timestamp — a correction that **opens** rows, and once got used to close them. Verified against
-four venues independently: AIWILD Sep 6 13:00 UTC = Sep 5 AoE; InfPriv Sep 8 12:00 UTC = Sep 7 AoE;
-**EvoRobust Sep 13 12:29 UTC = Sep 12 AoE**; VERICODEGEN Sep 14 11:59 UTC = Sep 13 AoE.
+three venues independently: AIWILD Sep 6 13:00 UTC = Sep 5 AoE; **EvoRobust Sep 13 12:29 UTC = Sep 12
+AoE**; VERICODEGEN Sep 14 11:59 UTC = Sep 13 AoE.
 
 **FLLMPT is the exception and it will catch you: its deadlines are GMT, not AoE — 13 hours earlier
 than EvoRobust.**
@@ -63,8 +63,7 @@ mistake is rule R13.
 ⚠️ Its page **discourages** submissions from the NeurIPS/ICLR/ICML main tracks. Not applicable to us.
 
 **Because it is non-archival and permits concurrent submission, an AIWILD short paper does not consume
-the EvoRobust slot.** The Sep 12 EvoRobust version can be the same work with Gate S added. The only
-real cost is the human hours, which on Sep 4–5 belong to InfPriv.
+the EvoRobust slot.** The Sep 12 EvoRobust version can be the same work with Gate S added.
 
 > ### ⚠️ G2 has NOT been run for AIWILD
 > `2606.30449`'s group is the plausible occupant of any agent-monitoring workshop and is the same repo
@@ -123,7 +122,7 @@ Missing it costs **7–11 weeks**, not silence. Every date off the venue's own p
 | **FAccT 2027** | abstract Oct 27 / paper Nov 3 AoE | ≤14 pp, archival **or** non-archival | *"AI red teaming and adversarial testing"*, *"Science of responsible… AI evaluation"*, *"audits of systems"* — **the best-fitting venue in the window** |
 | **AAAI-27 workshops** | Nov 20 AoE | per workshop | List not public until ~Oct 2; historically the densest safety/alignment concentration |
 
-**Closed side-doors, checked so nobody re-checks them:** IAB's NeurIPS-reviews route (Oct 1) and
-InfPriv's fast track (Sep 25) both require an existing NeurIPS 2026 main-conference submission with
-reviews attached. Neither is reachable. AAAI-27's AI Alignment special track closed Aug 21 — note it
-for 2028, its topic list is a near-exact match.
+**Closed side-doors, checked so nobody re-checks them:** IAB's NeurIPS-reviews route (Oct 1) requires
+an existing NeurIPS 2026 main-conference submission with reviews attached and is not reachable.
+AAAI-27's AI Alignment special track closed Aug 21 — note it for 2028, its topic list is a near-exact
+match.

@@ -4,8 +4,8 @@ Written 2026-09-03. Thresholds, routes and stopping rules are fixed **now**, bef
 decides the title runs — which is the entire point of writing them down (`notes/03` R5, R16).
 
 **The human is serial and the GPU is trivial.** Nothing here needs more than one rented 4090 for an
-afternoon. Sep 3–7 belongs to the InfPriv paper in the ideation repo; this paper's first commitment
-is a title and 150 words on **Sep 5**, and its work starts **Sep 8**.
+afternoon. This paper's first commitment is a title and 150 words on **Sep 5**, and its work starts
+**Sep 8**.
 
 ---
 
@@ -212,8 +212,7 @@ TF-IDF scores **0.806** on the stored pairs. On same-generator pairs:
 | **Total** | **≤ $20**, and lower than the original estimate |
 
 **Money was never the constraint and now it barely registers.** The constraints, in order: the test
-harness (half a day, does not exist), four pages of prose (two days), and the human being on InfPriv
-until Sep 7.
+harness (half a day, does not exist), and four pages of prose (two days).
 
 ## 8. Odds, recorded so they can be scored afterwards
 

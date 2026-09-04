@@ -6,8 +6,8 @@ Target: **EvoRobust @ NeurIPS 2026** (Sydney) — 4 pp, non-archival, **deadline
 Free dual: FLLMPT, same day, iff the abstract is registered by Sep 5 23:00 GMT.
 
 Split out of the `beyond-private-training` ideation repo on 2026-09-03, after seventeen rounds of
-board work and one round of experiments. That repo keeps the InfPriv (Sep 7) leg and the full
-round-by-round history; this one holds the Sep 12 paper and nothing else.
+board work and one round of experiments. That repo keeps the full round-by-round history; this one
+holds the Sep 12 paper and nothing else.
 
 ---
 

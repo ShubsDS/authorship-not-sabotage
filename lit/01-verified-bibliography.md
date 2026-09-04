@@ -6,8 +6,8 @@ reference is a desk-reject, and a citation described from a search snippet has b
 
 Everything below was fetched on **2026-09-02 or 2026-09-03** unless the row says otherwise. Carried
 across from the ideation repo's `lit/02`, filtered to this paper and reorganised by the job each
-citation does. Entries about the InfPriv paper, the compression tax, sandbagging probes and C9 are
-not here; they were never about this paper.
+citation does. Entries about the compression tax, sandbagging probes and C9 are not here; they were
+never about this paper.
 
 ---
 
