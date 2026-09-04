@@ -84,10 +84,17 @@ python gate_s_pool.py                    # writes gate_s_pool.parquet
 3. The **paired analysis pool** additionally needs a working backdoor: `backdoor_works == True`,
    which is 1,582 problems dataset-wide.
 
-> ⚠️ **The analysis n is not 3,420.** A Gate S pair needs a passing LLM honest solution *and* a working
-> backdoor *and* determinism. The upper bound is 1,582 (working backdoors), before the generator's own
-> pass rate and the nondeterminism cut. **Expect roughly 1,000–1,400 pairs per arm.** Print the exact
-> intersection at this stage and put it in the paper; do not let the reader infer 3,420.
+> ⚠️ **The analysis n is not 3,420.** Measured on the full artifact, 2026-09-04:
+>
+> | Cut | n |
+> |---|---|
+> | `solution_passes_tests` — the generation pool | 3,420 |
+> | ∧ `backdoor_works` | 1,582 |
+> | ∧ deterministic — the **analysis ceiling** | **1,444** |
+>
+> The realised n per arm is 1,444 × that arm's pass rate. Put it in the paper; do not let a reader
+> infer 3,420. (Of the analysis pool: 1,061 interview, 277 introductory, 106 competition; median 18
+> test cases, max 223.)
 
 ---
 
@@ -151,6 +158,11 @@ Problem 0 ships **565 test cases**; problem 1 ships 278. Across 6,840 generated 
 subprocess per test case is millions of process launches. So:
 
 - **One forked worker process per *solution***, not per test case.
+- **One queue task per *problem*, not per solution.** The artifact holds **115,212** human solutions
+  over 5,000 problems, a median of 19 per problem. Sending a task per solution re-serialises that
+  problem's test arrays once per solution — ~19× the 743 MB of test data through the queue, which
+  stalls the run before the first result lands. This was measured, not predicted: the per-solution
+  version produced zero results in six minutes where the per-problem version does ~20 solutions/s.
 - Inside the worker, loop over cases: set `sys.stdin = io.StringIO(case_input)`, redirect stdout,
   `exec(compiled, {"__name__": "__main__"})`, catch `SystemExit`, compare, reset.
 - **Stop at the first failing case.** Only pass/fail is needed, so wrong solutions exit early — which
@@ -187,6 +199,23 @@ are not comparable — which would produce a collapse that is an artifact of our
 | ≥ 98 % | Harness is faithful. Proceed, and report the agreement rate in §2 of the paper. |
 | 90–98 % | Usable, but **use our own pass flag for both classes**, not the shipped column. Symmetry matters more than matching upstream. |
 | < 90 % | Debug before generating anything. Inspect disagreements by `difficulty` and `n_tests` first. |
+
+> ### ⚠️ The artifact's flags were computed on an older Python — found 2026-09-04
+> A recurring disagreement is `from fractions import gcd`, which **CPython removed in 3.9**. Those
+> solutions passed for whoever built the artifact and raise `ImportError` for us. There will be more
+> of this: the human class is old competitive-programming code and the shipped flags were produced by
+> a different interpreter than the one in the venv.
+>
+> **This is exactly the asymmetry that would corrupt Gate S**, and its direction is the dangerous one:
+> it makes our harness stricter on the *human* class only, because the generated class is modern code
+> from a modern model. Left alone it shrinks and skews the human arm while leaving the LLM arm intact.
+>
+> **Do not shim `fractions.gcd`.** Patching the human class so it passes is a thumb on the scale, and
+> a class-asymmetric one. The fix is the row above: **use our own pass flag for both classes**, so
+> both are filtered by one interpreter under one rule. Most problems carry ~19 solutions, so dropping
+> the ones that need a pre-3.9 interpreter still leaves nearly every problem represented — and that
+> loss is symmetric in the sense that matters, because it is applied by the same checker that judges
+> the generated code.
 
 Using our own flag for both classes is the safe default and costs nothing — the human run is already
 being done here.
@@ -268,7 +297,12 @@ refetch it. Generated solutions are ours to release.
 
 | Script | Status | Notes |
 |---|---|---|
-| `apps/gate_s_pool.py` | **to write** | §2. Small. |
-| `apps/gen_honest.py` | **to write** | §3. vLLM offline batch; the only GPU code in the repo. |
-| `apps/run_tests.py` | **to write — budget half a day** | §4. Fragile in the way GPUs are not. |
-| `apps/gate_s_eval.py` | **to write** | §5. Mostly a re-parameterisation of `matched.py`. |
+| `apps/gate_s_pool.py` | ✅ **written and run** | §2. Produces `gate_s_pool.parquet` and the 3,420 / 1,582 / 1,444 table. |
+| `apps/gen_honest.py` | ✅ **written, not yet run** | §3. The only GPU code in the repo, so it cannot be exercised off the allocation. Code extraction is unit-tested; the vLLM path is not. **Smoke it with `--limit 20` before the full run.** |
+| `apps/run_tests.py` | ✅ **written, validating** | §4. Full 115,212-solution human validation running. |
+| `apps/gate_s_eval.py` | ✅ **written, not yet run** | §5. Needs an arm's `gen_*.jsonl` and `pass_*.jsonl`. |
+
+**The one untested path is vLLM.** Everything else has been run on real data. Budget the first
+20 minutes of the allocation for `gen_honest.py --limit 20`, checking that the chat template applies,
+that generations terminate before `max_tokens`, and that `extract_code` finds a block — then launch
+the full arm.

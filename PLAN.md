@@ -128,13 +128,19 @@ The authorship claim needs honest code written by the **attack** model. Two rout
    >   filtered harder than the human one and the arms are not comparable — a collapse that is an
    >   artifact of our own checker. The safe default is to use **our own pass flag for both classes**.
 
-   > ### ⚠️ The analysis n is not 3,420 — recorded 2026-09-04
+   > ### ⚠️ The analysis n is not 3,420 — computed 2026-09-04 by `apps/gate_s_pool.py`
    > Generate for all 3,420 problems with a passing human solution, but a Gate S **pair** also needs a
-   > working backdoor (`backdoor_works` is **1,582** of 5,000) and needs to survive the determinism cut
-   > (`is_nondeterministic` is **True for 779** of 5,000, 717 of them *"multiple distinct valid
-   > solutions"* — exact-match scoring is meaningless there and would fail correct generations).
-   > **Expect roughly 1,000–1,400 pairs per arm.** Print the exact intersection and put it in the paper;
-   > do not let a reader infer 3,420.
+   > working backdoor and needs to survive the determinism cut. Measured on the full artifact:
+   >
+   > | Cut | n |
+   > |---|---|
+   > | `solution_passes_tests` — the **generation pool** | 3,420 |
+   > | ∧ `backdoor_works` | 1,582 |
+   > | ∧ not `is_nondeterministic` — the **analysis ceiling** | **1,444** |
+   >
+   > 779 of 5,000 rows are nondeterministic, 717 of them *"multiple distinct valid solutions"*, where
+   > exact-match scoring would fail correct generations. The realised n per arm is 1,444 × that arm's
+   > pass rate. **Report it; do not let a reader infer 3,420.**
 
 > ### ★ What the dead lookup produced anyway
 > The confound is visible in the dataset schema, with no model run at all:
