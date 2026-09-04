@@ -1,0 +1,115 @@
+# Four pages, section by section, with the number that goes in each
+
+NeurIPS template, 4 pp body. Written Sep 10–11. **Every sentence in the abstract has a number behind
+it in a table** (A6), and any sentence that does not is cut rather than softened.
+
+Figures are three: **F1** protocol × baseline table, **F2** per-corpus floor bars with permutation
+nulls, **F3** monitor-vs-floor dot plot on Koran's 1,375-item split.
+
+---
+
+## §1 Introduction — ¾ page
+
+**Paragraph one credits the field before it says anything else.** This is the condition on which the
+novelty claim survives, and it is the paragraph a reviewer from this neighbourhood reads first.
+
+1. Trusted monitoring is evaluated on **stored** honest/attack pairs — `2312.06942`, `2506.05296`,
+   `2605.15377`, `2608.16190`, and the reference DSPy tutorial.
+2. **The field already knows these pairs leak.** Koran §4.1 filters to working honest + working
+   backdoors and strips comments, with the rationale stated. Control Tax §2.3 reports the
+   pass-tests pre-filter and appendices *"Monitoring failed backdoors."* Jha names the comment leak,
+   ships `--leak-check`, and publishes both numbers: `#`-count detector **0.6957 → 0.4983** after
+   stripping, `code_length_only_auroc` **0.4726**. `2602.10153` is a whole paper on the comment channel.
+3. **What nobody has measured is what the preprocessing leaves behind.** On the field's own filtered,
+   comment-stripped split, TF-IDF reaches **0.806** and a classifier reading **no code** reaches
+   **0.772**, against 24 monitors at median 0.609.
+4. **The mechanism is authorship.** Honest solutions are human-written (`codeparrot/apps`, no model
+   ever called); every backdoor is LLM-written. The signal transfers across generators at **0.9935**
+   and is as strong on **inert** backdoors (0.954) as on working ones (0.979) — it is not sabotage.
+5. **Adjacent work, distinguished in one sentence each.** `2510.09462` subverts monitors with
+   injected text (different axis). `2606.06529` shows attacker-side selection inflates safety
+   estimates (same conclusion, other side). `2607.06596` removes transcript length as a nuisance
+   covariate; we publish the content-blind classifier's own AUROC as a per-benchmark floor.
+6. Contributions, four bullets. **Scope claim: this concerns monitor training, selection and
+   benchmarking on stored pairs — ControlArena's live evals generate both classes.** Say it here,
+   not in Limitations, or the first reviewer says it for us.
+
+## §2 Setup — ½ page
+
+- The artifacts, with **licence and per-class provenance** (`lit/01` §6), including the sentence that
+  two of the seven declare none and that we redistribute nothing.
+- One dataset and one derived copy — not two (K1).
+- Koran's split as the evaluation surface: 1,209 train / **1,375 test (172 attack / 1,203 honest)**,
+  label = `backdoor_works`, comments stripped, reconstructed with Jha's own `src/data.py`.
+- **Protocols must be named and kept distinct.** Raw artifact vs Koran's filtered split; pooled vs
+  matched vs within-task; pairwise accuracy vs AUROC. Every "X above Y" sentence states Y's split,
+  Y's metric and Y's preprocessing (R18's companion). This is where the round-16 headline died.
+- **AgentHarm excluded, and why** (an invited speaker authored it).
+
+## §3 Results — 1½ pages, the paper's weight
+
+**F1 — protocol × baseline.** Rows: metadata-only under P0–P4 (**P3 matched = 0.5000 exactly**);
+length-only (0.8255 raw → **0.4726 filtered**); seven surface features (0.8302); TF-IDF (0.9621
+pairwise; **0.806 on Koran's split**, 0.8914 with comments kept); no-code (**0.7163 held-out /
+0.7715 ± 0.039**). The **0.4726 → 0.806** contrast *is* the paper: the field's fix works on the
+carrier it was aimed at and does not reach the two beside it.
+
+**Authorship, three ways.** Cross-generator transfer 0.9935 (Control Tax → the 2023 GPT-4 set);
+working 0.9787 vs inert 0.9543 — *the signal is not sabotage*; style markers (`#` present: attack
+0.685 vs honest 0.176; `__main__`: 0.116 vs **0.000**).
+
+**Gate S — the constructive half** (`PLAN.md` §3). Regenerate the honest class with the attack model,
+rebuild the pairs, rerun. The number here routes the title, and the route was fixed before the run.
+
+**F3 — the comparison, done honestly.** Against `runs/x0/monitor-summary.json`: TF-IDF **0.806 above
+20 of 24**; no-code **0.772 above 18 of 24**; median 0.609, max 0.937. Caveats **in the caption, not
+in Limitations**: those 24 are zero-shot prompted while ours is trained on the benchmark's own paired
+train split, and the metadata floor is fitted within the test split because their train/val is
+paired. **This is a Gururangan-style artifact statement, not a claim that bag-of-words is a better
+monitor.**
+
+**The second artifact the filter installs.** The negative class is defined by *attack failure*:
+**80.7%** of Koran's test-split labelled backdoors do not work and are relabelled honest, so ~60% of
+the "honest" items are failed attacks — and attack problems carry **half** the test cases (20.95 vs
+38.85), which is where the no-code floor comes from.
+
+**F2 — the negative control, five same-generator settings.** Within-task, character count only:
+bash **0.504** (clean) · shade 0.602 · iac 0.704 · rogue_eval 0.616 · agentdojo **0.802** (leaky),
+every bar beside its permutation null (0.48–0.51). Report the **within-task** column and say plainly
+that the pooled column was largely task composition and that we broke it ourselves. **Two mechanisms,
+one table:** authorship on APPS, structure on the agentic settings.
+
+**One paragraph, not a section:** the 15-word scratchpad regex, 0.76–0.82 across five settings,
+crediting `2607.09786` for the instrument.
+
+## §4 Recommendations — ⅓ page
+
+Written as a checklist someone can apply, in Kapoor & Narayanan's register (`2207.07048`):
+
+1. **Use same-generator honest samples.** If the attack class is model-written, the honest class must
+   be too.
+2. **Report a partial-input floor and a bag-of-words floor** beside every monitor number, with a
+   permutation null.
+3. **Drop inert backdoors from both classes** — do not relabel a failed attack as honest.
+4. **State the split, the metric and the preprocessing** whenever monitors are compared.
+5. Released: the split definition, the regenerated honest pool, and the scripts.
+
+## §5 Limitations — ⅓ page
+
+- **`1905.05778`, cited against ourselves.** *"The failure of a partial-input baseline does not mean a
+  dataset is free of artifacts"* — and its converse binds us: a high floor is evidence about the
+  corpus, not proof that every monitor number on it is meaningless.
+- Trained-vs-zero-shot asymmetry in F3, restated.
+- Two corpora carry no licence; five are one user's repackaging. Provenance is legible inside the
+  files, and the title says *"public releases of."*
+- If Gate S route 2 did not run: the authorship reading is **inference from transfer, inert-backdoor
+  and style evidence plus the five same-generator settings**, and it says so in these words.
+- One benchmark family for the authorship mechanism. The generalisation claim is the November paper,
+  not this one.
+
+---
+
+## Before anything is public
+
+`lit/01` §8: the AICD/CodeMirage **setup sections** read and summarised, and the three ⚠️ citations
+fetched or dropped. **Before** the split is released or the paper is posted (R16).
