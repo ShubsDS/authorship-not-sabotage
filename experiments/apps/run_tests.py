@@ -184,20 +184,43 @@ def run_one(code: str, inputs: list[str], outputs: list[str], ctx) -> dict:
     return result
 
 
-def worker_loop(task_queue, done_queue) -> None:
-    """One long-lived worker; forks a fresh child per solution so a hang is contained.
+# The artifact, loaded once in the parent *before* the workers fork, so they inherit it
+# copy-on-write. Nothing about a problem travels through the queue except its row index: sending
+# the test arrays instead makes the parent the bottleneck and starves every worker. Measured, not
+# guessed - the version that pickled test data per problem kept 13 workers busy 12% of the time.
+_DF = None
 
-    A task is one *problem*, carrying its test cases once and all the solutions to run against
-    them. Sending one task per solution instead re-serialises the test arrays once per solution,
-    and at a median of 19 solutions per problem that is ~19x the 743 MB of test data through the
-    queue — which stalls the run before the first result lands.
-    """
+
+def _row_payload(row_idx, gen_code):
+    """Everything a worker needs for one problem, read out of the inherited frame."""
+    row = _DF.iloc[row_idx]
+    inputs, outputs = list(row.inputs), list(row.outputs)
+    pmeta = {"problem_id": row.problem_id,
+             "is_nondeterministic": bool(row.is_nondeterministic)}
+    if gen_code is None:
+        sols = [{"sol_idx": i, "code": s["code"],
+                 "expected_passes": bool(s["passes_tests"]),
+                 "expected_compiles": bool(s["compiles"])}
+                for i, s in enumerate(row.solutions)]
+        return pmeta, inputs, outputs, sols
+    if not gen_code.strip():
+        return (pmeta, inputs[:1], ["\x00"],
+                [{"sol_idx": 0, "code": "raise SystemExit('no code extracted')"}])
+    return pmeta, inputs, outputs, [{"sol_idx": 0, "code": gen_code}]
+
+
+def worker_loop(task_queue, done_queue, max_per_problem=0):
+    """One long-lived worker; forks a fresh child per solution so a hang is contained."""
     ctx = mp.get_context("fork")
     while True:
         task = task_queue.get()
         if task is None:
             break
-        pmeta, inputs, outputs, sols = task
+        row_idx, extra = task
+        pmeta, inputs, outputs, sols = _row_payload(row_idx, extra.get("code"))
+        pmeta.update({k: v for k, v in extra.items() if k != "code"})
+        if max_per_problem:
+            sols = sols[:max_per_problem]
         results = []
         for sol in sols:
             code = sol.pop("code")
@@ -221,48 +244,26 @@ def load_artifact() -> pd.DataFrame:
     return df
 
 
-def tasks_human(df: pd.DataFrame, max_per_problem: int = 0):
-    """One task per problem, carrying every shipped solution and its own `passes_tests`."""
-    for _, row in df.iterrows():
-        sols = [
-            {"sol_idx": i,
-             "code": sol["code"],
-             "expected_passes": bool(sol["passes_tests"]),
-             "expected_compiles": bool(sol["compiles"])}
-            for i, sol in enumerate(row.solutions)
-        ]
-        if max_per_problem:
-            sols = sols[:max_per_problem]
-        if not sols:
-            continue
-        pmeta = {"problem_id": row.problem_id,
-                 "is_nondeterministic": bool(row.is_nondeterministic)}
-        yield pmeta, list(row.inputs), list(row.outputs), sols
+def tasks_human(df):
+    """One task per problem. Just the row index: the worker reads the frame it inherited."""
+    for i in range(len(df)):
+        yield i, {}
 
 
-def tasks_generated(df: pd.DataFrame, path: str):
-    """One task per generated solution (one per problem by construction), with its test cases."""
-    by_pid = {r.problem_id: (list(r.inputs), list(r.outputs), bool(r.is_nondeterministic))
-              for _, r in df.iterrows()}
+def tasks_generated(df, path):
+    """One task per generated solution, carrying only its (small) code and metadata."""
+    idx_by_pid = {pid: i for i, pid in enumerate(df.problem_id)}
     with open(path) as fh:
         for line in fh:
             if not line.strip():
                 continue
             rec = json.loads(line)
             pid = str(rec["problem_id"])
-            if pid not in by_pid:
+            if pid not in idx_by_pid:
                 continue
-            inputs, outputs, nondet = by_pid[pid]
-            code = rec.get("code") or ""
-            pmeta = {"problem_id": pid, "model": rec.get("model"),
-                     "finish_reason": rec.get("finish_reason"),
-                     "is_nondeterministic": nondet}
-            if not code.strip():
-                # No extractable code block is a failure, and it is counted as one.
-                yield pmeta, inputs[:1], ["\x00"], \
-                    [{"sol_idx": 0, "code": "raise SystemExit('no code extracted')"}]
-            else:
-                yield pmeta, inputs, outputs, [{"sol_idx": 0, "code": code}]
+            yield idx_by_pid[pid], {"code": rec.get("code") or "",
+                                    "model": rec.get("model"),
+                                    "finish_reason": rec.get("finish_reason")}
 
 
 # --------------------------------------------------------------------------- report
@@ -319,16 +320,20 @@ def main() -> None:
                     help="cap solutions per problem (0 = all); applies to --solutions human")
     args = ap.parse_args()
 
-    df = load_artifact()
+    global _DF
+    _DF = df = load_artifact()
     print(f"artifact: {len(df)} problems, {int(df.solution_passes_tests.sum())} with "
-          f"solution_passes_tests, {int(df.is_nondeterministic.sum())} nondeterministic")
+          f"solution_passes_tests, {int(df.is_nondeterministic.sum())} nondeterministic",
+          flush=True)
 
-    gen = (tasks_human(df, args.max_per_problem) if args.solutions == "human"
+    gen = (tasks_human(df) if args.solutions == "human"
            else tasks_generated(df, args.solutions))
 
     ctx = mp.get_context("fork")
     task_queue, done_queue = ctx.Queue(maxsize=args.workers * 4), ctx.Queue()
-    workers = [ctx.Process(target=worker_loop, args=(task_queue, done_queue))
+    # Workers fork here, after _DF is populated, so the frame is inherited rather than pickled.
+    workers = [ctx.Process(target=worker_loop,
+                           args=(task_queue, done_queue, args.max_per_problem))
                for _ in range(args.workers)]
     for w in workers:
         w.start()
