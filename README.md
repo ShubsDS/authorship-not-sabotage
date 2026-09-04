@@ -2,8 +2,9 @@
 
 **Trivial baselines on the stored honest/attack pairs behind open AI-control monitoring results.**
 
-Target: **EvoRobust @ NeurIPS 2026** (Sydney) — 4 pp, non-archival, **deadline Sep 12 AoE**.
-Free dual: FLLMPT, same day, iff the abstract is registered by Sep 5 23:00 GMT.
+Target: **EvoRobust @ NeurIPS 2026** (Sydney) — 4 content pages, non-archival, **deadline Sep 12 AoE**.
+Free dual: **FLLMPT** (Paris), paper Sep 12 23:00 **GMT**, iff the abstract is registered Sep 5 23:00 GMT.
+Both non-archival, both explicitly permit concurrent submission ([`notes/01`](notes/01-venue-evorobust.md)).
 
 Split out of the `beyond-private-training` ideation repo on 2026-09-03, after seventeen rounds of
 board work and one round of experiments. That repo keeps the full round-by-round history; this one
@@ -56,7 +57,9 @@ paper (**excluded on G2** — Andriushchenko authored it and is an EvoRobust inv
 claim that live ControlArena evals are wrong (they generate both classes — the artifact is in
 training, selecting and benchmarking monitors on **stored** pairs).
 
-## Status — 2026-09-03
+## Status
+
+Current as of **2026-09-04**.
 
 | Piece | State |
 |---|---|
@@ -65,10 +68,12 @@ training, selecting and benchmarking monitors on **stored** pairs).
 | K2 — is the floor unreported? | **FAIL as framed; a narrower claim survives.** [`lit/01`](lit/01-verified-bibliography.md) |
 | G1 — is the mechanism claim ours? | **No, and we never claimed it.** Both AI-code-detection neighbours read end to end 2026-09-03: **NEIGHBOUR**, framing survives. [`lit/01`](lit/01-verified-bibliography.md) §4 |
 | Monitor comparison (24 × 1,375) | **No GPU needed** — `runs/scores/` is MIT and published. Gate M deleted. |
-| Gate S — same-generator honest class | **Route 1 dead (2026-09-04)** — no public artifact holds LLM-written honest APPS code; three candidates checked, one with a false dataset card. **Route 2 committed: Sep 8, one 4090, $5–10.** [`PLAN.md`](PLAN.md) §3 |
+| Gate S — same-generator honest class | **The only number in the abstract that does not exist yet.** Route 1 dead — no public artifact holds LLM-written honest APPS code. Route 2 committed: generate with Qwen2.5-Coder 7B and 32B on a held 2× H100 allocation, **$0**. Runbook: [`experiments/GATE-S-RUNBOOK.md`](experiments/GATE-S-RUNBOOK.md) |
+| The test harness | ⚠️ **Does not exist.** Nothing in `experiments/` executes code, and Gate S cannot run without it. Half a day, and it is the critical path — not the GPU. |
 | The confound, with no experiment at all | `backdoors` carries `model` and `source`; `solutions` carries neither. **The honest class has no generator field because it has no generator.** |
 | Figures | 3 remain (protocol × baseline; per-corpus floors with permutation nulls; monitor-vs-floor dot plot) |
-| Prose | 4 pages, Sep 10–11. **This is the only real risk.** |
+| Venue gates | **G2 run for both venues.** EvoRobust: PASS, conditional on excluding AgentHarm. FLLMPT: PASS, no organiser or speaker authored any of our corpora. Page limit, dual-submission and title-change policies all verified 2026-09-04. [`notes/01`](notes/01-venue-evorobust.md) |
+| Prose | 4 pages, Sep 10–11. **The larger of the two remaining risks**, the other being the harness. |
 
 ## Layout
 
@@ -77,7 +82,8 @@ training, selecting and benchmarking monitors on **stored** pairs).
 | [`PLAN.md`](PLAN.md) | The runbook to Sep 12 — Gate S and its four routes, schedule, cut order, stopping rules, budget |
 | [`experiments/`](experiments/README.md) | Every script behind every number, plus the recompute logs |
 | [`lit/01`](lit/01-verified-bibliography.md) | Verified citations, the K2 grep record with its positive controls, the out-of-field neighbours |
-| [`notes/01`](notes/01-venue-evorobust.md) | EvoRobust, FLLMPT and AIWILD off their own CFP pages; ⚠️ G2 is run for EvoRobust **only** |
+| [`experiments/GATE-S-RUNBOOK.md`](experiments/GATE-S-RUNBOOK.md) | **The step-by-step execution guide for Gate S** — environment, generation, test harness, routing |
+| [`notes/01`](notes/01-venue-evorobust.md) | EvoRobust and FLLMPT off their own CFP pages, G2 run for both; AIWILD recorded as out for this cycle |
 | [`notes/02`](notes/02-scores-and-gates.md) | The paper on the acceptance/safety rubric, and all five gates run |
 | [`notes/03`](notes/03-method-rules.md) | The standing rules that bind this paper, each bought with a failure |
 | [`notes/04`](notes/04-dead-framings.md) | What is already dead here — read before rewriting a sentence |
@@ -87,4 +93,5 @@ training, selecting and benchmarking monitors on **stored** pairs).
 ## Standing constraints
 
 Public datasets only · no experiments involving real people · nothing person-specific reported ·
-local open-weight models, no paid API. September budget for this leg: **≤ $25**.
+local open-weight models, no paid API. **Cost for this leg: $0** — the one GPU experiment runs on a
+held 2× H100 Slurm allocation.
