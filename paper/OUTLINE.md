@@ -13,10 +13,11 @@ nulls, **F3** monitor-vs-floor dot plot on Koran's 1,375-item split.
 **Paragraph one credits the field before it says anything else.** This is the condition on which the
 novelty claim survives, and it is the paragraph a reviewer from this neighbourhood reads first.
 
-> ### ⚠️ Reframed 2026-09-04, after the out-of-field read
-> **Lead with the validity claim, not with the number.** To a reviewer who knows the AI-code-detection
-> literature, *"TF-IDF separates human-written from LLM-written code"* is 2025 news — AICD Bench
-> publishes exactly that, at token level, with their SVM beating every neural detector. If the paper
+> ### ★ Lead with the validity claim, not with the number
+>
+> To a reviewer who knows the AI-code-detection literature, *"TF-IDF separates human-written from
+> LLM-written code"* is 2025 news — AICD Bench publishes exactly that, at token level, with their SVM
+> beating every neural detector. If the paper
 > opens on **0.806 beats 20 of 24**, that reader's first thought is *of course it does*.
 >
 > The contribution is **not** that bag-of-words separates the classes. It is that **a corpus whose two
@@ -42,9 +43,8 @@ novelty claim survives, and it is the paragraph a reviewer from this neighbourho
    injected text (different axis). `2606.06529` shows attacker-side selection inflates safety
    estimates (same conclusion, other side). `2607.06596` removes transcript length as a nuisance
    covariate; we publish the content-blind classifier's own AUROC as a per-benchmark floor.
-6. **The neighbouring field already applies the control that is missing here — new, and it belongs in
-   §1.** CodeMirage forces its LLM-written class to agree with the human class on line count and
-   character length and gates on it (`2506.11059` §3.1); MultiAIGCD pairs to the same CodeNet problem
+6. **The neighbouring field already applies the control that is missing here.** CodeMirage forces its
+   LLM-written class to agree with the human class on line count and character length and gates on it (`2506.11059` §3.1); MultiAIGCD pairs to the same CodeNet problem
    definitions (`2507.21693`); AICD Bench filters explicitly *"to prevent detectors from exploiting
    distributional artifacts rather than learning meaningful code patterns"* (`2602.02079` §4.1). **The
    unmatched honest/attack pairs are a defect by the neighbouring field's own published standard**, not
@@ -79,19 +79,22 @@ pairwise; **0.806 on Koran's split**, 0.8914 with comments kept); no-code (**0.7
 0.7715 ± 0.039**). The **0.4726 → 0.806** contrast *is* the paper: the field's fix works on the
 carrier it was aimed at and does not reach the two beside it.
 
-**Authorship, four ways — the fourth added 2026-09-04.** The first three are ours; the fourth borrows
-the neighbouring field's mechanism and tests it here. AICD App. D.1 reports that LLM code uses verbose,
-prompt-echoing identifiers (`answer`, `output`, `result`, `tests`, `index`) where human code uses short
+**Authorship, four ways.** The first three are ours; the fourth borrows the neighbouring field's
+mechanism and tests it here. AICD App. D.1 reports that LLM code uses verbose, prompt-echoing
+identifiers (`answer`, `output`, `result`, `tests`, `index`) where human code uses short
 organic ones (`li`, `nums`, `pos`, `a1`, `cur`). **If our classifier's top-weighted features are those
 tokens, the authorship reading stops being an inference and becomes a measurement** — twenty minutes of
 CPU on a classifier that is already fitted. Report the top-k coefficients as a small table or inline list.
 
-**Authorship, the original three ways.** Cross-generator transfer 0.9935 (Control Tax → the 2023 GPT-4 set);
+**The other three.** Cross-generator transfer 0.9935 (Control Tax → the 2023 GPT-4 set);
 working 0.9787 vs inert 0.9543 — *the signal is not sabotage*; style markers (`#` present: attack
 0.685 vs honest 0.176; `__main__`: 0.116 vs **0.000**).
 
-**Gate S — the constructive half** (`PLAN.md` §3). Regenerate the honest class with the attack model,
-rebuild the pairs, rerun. The number here routes the title, and the route was fixed before the run.
+**Gate S — the constructive half** (`../PLAN.md` §3, run per `../experiments/GATE-S-RUNBOOK.md`).
+Regenerate the honest class with an LLM, rebuild the pairs, rerun. The number here routes the title,
+and the route was fixed before the run. Report **both generator arms** (Qwen2.5-Coder 7B and 32B) with
+their separate n's, the pass rates, and the human-honest baseline **B** computed under the identical
+protocol — a reader cannot interpret the collapse without B.
 
 **F3 — the comparison, done honestly.** Against `runs/x0/monitor-summary.json`: TF-IDF **0.806 above
 20 of 24**; no-code **0.772 above 18 of 24**; median 0.609, max 0.937. Caveats **in the caption, not
@@ -157,8 +160,9 @@ Written as a checklist someone can apply, in Kapoor & Narayanan's register (`220
 
 ## Before anything is public
 
-✅ Both AICD/CodeMirage setup reads and all three ⚠️ citations were discharged on 2026-09-03
-(`lit/01` §4, §8). **What remains is Gate S alone.**
+Every pre-publication check is discharged: the AICD/CodeMirage setup reads and all three ⚠️ citations
+on 2026-09-03 (`lit/01` §4, §8), G2 for both venues by 2026-09-04 (`notes/01`). **What remains is
+Gate S alone** — `../experiments/GATE-S-RUNBOOK.md`.
 
 ⚠️ Two things the sweep put on the do-not-write list. **Never compare our AUROC to AICD's Macro-F1** —
 their numbers sit below random on their hardest task, they are a different metric on a different
