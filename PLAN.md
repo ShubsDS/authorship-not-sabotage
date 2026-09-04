@@ -73,15 +73,39 @@ The authorship claim needs honest code written by the **attack** model. Two rout
    | **1× H100, `Qwen2.5-Coder-7B-Instruct` bf16** | **~15–30 min** incl. load and warm-up. ≈1.7M output tokens at 3–8k tok/s. |
    | 2× H100 | ~10 min split across both — **overkill for this job** |
 
-   > ### ★ What a second H100 actually buys: it removes a confound we have not written down
-   > A **weak** honest generator is its own confound. The attacks were written by
-   > `claude-3-7-sonnet-thinking`; if the honest class comes from a 7B, a classifier may separate on
-   > **code quality** rather than authorship, and "the collapse failed because our generator was bad"
-   > becomes an unanswerable reviewer objection. With 80 GB (or 2× tensor-parallel) the honest class can
-   > be written by **`Qwen2.5-Coder-32B-Instruct` in bf16**, which is far closer to the attack models'
-   > capability. **Better still: generate with both 7B and 32B and report the collapse against generator
-   > strength.** That converts the objection into a result, costs one extra generation pass, and is the
-   > single best use of hardware this project has ever had access to.
+   > ### ★ The generator protocol, settled 2026-09-04
+   > **Generate the honest class twice: `Qwen2.5-Coder-7B-Instruct` and `Qwen2.5-Coder-32B-Instruct`.**
+   >
+   > **Why not one model.** A weak honest generator is its own confound, and its failure mode is
+   > *directional*. The attacks are `claude-3-7-sonnet-thinking`; if the honest class is a 7B, a
+   > classifier can separate on **code quality** rather than authorship — which pushes toward **no
+   > collapse**, i.e. toward the *content* headline. A too-weak generator does not add noise, it biases
+   > the conclusion, and *"your generator was bad"* cannot be answered after the fact.
+   >
+   > | 7B | 32B | Reading |
+   > |---|---|---|
+   > | collapse | collapse | **Authorship, robustly** — generator strength is irrelevant |
+   > | no collapse | collapse | The 7B result was quality, not authorship. The arm saved the headline. |
+   > | no collapse | no collapse | **Content**, and defensible — the generator cannot be blamed |
+   >
+   > **Three details that matter more than the size choice:**
+   > 1. **Same family, two sizes.** Mixing families confounds scale with lineage and the arm measures
+   >    nothing.
+   > 2. **One solution per problem, no best-of-n reranking.** Filtering to *passes tests* is correct —
+   >    it mirrors Koran's filter on the human class. Any further selection on quality would install a
+   >    selection artifact, which is the thing this paper audits.
+   > 3. **Report both n's.** The 32B passes at a higher rate, so the arms differ in size. Match them or
+   >    state both.
+   >
+   > **The residual, stated in Limitations rather than implied away:** without a paid API the honest
+   > class cannot come from the attack model itself, so some cross-model difference always remains. The
+   > evidence that it is small is our own **0.9935** cross-generator transfer and AICD's
+   > generator-independence finding. Cite both; do not claim the control is perfect.
+   >
+   > **If only one arm fits: run the 32B.** The 7B's failure mode points at the wrong headline.
+   >
+   > ⚠️ Cost note: two arms is ~45 min of H100 but **6,840 solutions to execute instead of 3,420** —
+   > the load doubles on the harness below, not on the GPU.
 
    > ### ⚠️ The real bottleneck, previously unrecorded: **the test harness does not exist**
    > Nothing in `experiments/` executes generated code. Grep for `subprocess`, `multiprocessing`,
