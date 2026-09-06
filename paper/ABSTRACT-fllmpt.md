@@ -1,4 +1,15 @@
-# FLLMPT abstract registration — due 2026-09-05, 23:00 GMT
+# FLLMPT abstract registration — was due 2026-09-05, 23:00 GMT
+
+> ### ⛔ THAT DEADLINE HAS PASSED (checked 2026-09-06, 06:04 GMT — about 7 hours after it closed).
+> If the abstract was registered before it closed, FLLMPT is still live for the Sep 12 paper. If it
+> was not, **FLLMPT is gone** and EvoRobust is the sole target — see `ABSTRACT-evorobust.md`.
+>
+> ⚠️ **And the "the title can be changed later" claim in this file is an inference, not a verified
+> fact.** It came from the NeurIPS handbook freezing only *author names* at the abstract deadline and
+> saying nothing about titles. The FLLMPT CFP itself says nothing about editing a registered abstract
+> — re-checked 2026-09-06, no hits for edit / revise / update / change. Whether OpenReview's form
+> actually stays open between the two deadlines is per-venue configuration that cannot be read
+> without logging in. **Do not rely on it; check the submission form.**
 
 **What actually locks on Sep 5 is the author list**, not the title: NeurIPS policy, which FLLMPT
 mirrors, freezes author names at the abstract deadline and says nothing about titles, and OpenReview
