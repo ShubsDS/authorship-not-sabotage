@@ -125,6 +125,32 @@ The authorship claim needs honest code written by the **attack** model. Two rout
    > beats a code-specialised model of similar size on APPS is untested. And it is **dense** — all
    > 27.8B active per token, against arm 2's ~3B — so it is several times slower to generate.
 
+   > ### ★ The size ladder — added 2026-09-08, and it is better than the arm it replaces
+   > **`Qwen3-8B` → `Qwen3-14B` → `Qwen3-32B`.** Same family, same generation, all dense, all ungated.
+   > This is the scale axis that switching arm 1 to a different family gave up, recovered properly.
+   >
+   > **It converts Gate S from a binary control into a dose-response curve.** Instead of *"does the
+   > signal collapse"*, we get **ρ as a function of generator capability**, and both shapes are
+   > informative:
+   >
+   > | shape of ρ across 8B → 14B → 32B | Reading |
+   > |---|---|
+   > | **decreasing** | The residual signal is a *capability gap*. Extrapolating toward a generator as strong as `claude-3-7-sonnet-thinking` predicts full collapse — which **measures** the paper's stated residual instead of assuming it. |
+   > | **flat** | Capability is not what the classifier keys on. The signal is authorship as such (or content), and generator strength is irrelevant. |
+   >
+   > This directly attacks the paper's weakest sentence — *"without a paid API the honest class cannot
+   > come from the attack model itself, so some cross-model difference always remains"* — by turning an
+   > assumption into a trend with three points on it.
+   >
+   > ⚠️ **The bottom rung is noisy by construction.** Weaker generators pass fewer tests, so they yield
+   > fewer pairs: expect the 8B arm to land near 100 pairs against ~1,444 eligible problems. **Report
+   > the per-arm n beside every ρ and let the trend carry the claim, not any single point.** Do not fix
+   > the small n with best-of-n sampling — that is the selection artifact this paper audits.
+   >
+   > **Scheduling note.** The 8B (~16 GB) and 14B (~30 GB) fit a *single* A100 and are short jobs, so
+   > they backfill into gaps that arm 1's 2-GPU 3.5-hour request cannot use. The 32B needs 2 cards and
+   > competes with arm 1 directly, so it is **held until arm 1 lands**.
+
    > ### ⚠️ Compute reality, 2026-09-08 — the GPU became the constraint after all
    > The plan said money was not a constraint and the GPU was trivial. Both true; **queue time was
    > neither.** The 4-day interactive allocation (2× H100) expired 2026-09-07 with **nothing
