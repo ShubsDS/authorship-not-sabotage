@@ -40,7 +40,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_honest import PROMPT, already_done, extract_code  # noqa: E402  - identical by construction
 
 MODEL = "claude-sonnet-5"
-MAX_TOKENS = 2048          # same ceiling as the vLLM arms
+MAX_TOKENS = 4096          # same ceiling as the vLLM arms; 2048 truncated 34% of them
 BATCH_LIMIT = 100_000      # API maximum requests per batch
 # Sonnet 5 list price per million tokens; the Batch API bills at 50%.
 PRICE_IN, PRICE_OUT, BATCH_DISCOUNT = 2.00, 10.00, 0.5

@@ -81,7 +81,7 @@ def main() -> None:
     ap.add_argument("--out", required=True)
     ap.add_argument("--tp", type=int, default=1,
                     help="tensor_parallel_size; 1 is right on 94 GB cards, even for the 32B")
-    ap.add_argument("--max-tokens", type=int, default=2048)
+    ap.add_argument("--max-tokens", type=int, default=4096)
     ap.add_argument("--max-model-len", type=int, default=8192)
     ap.add_argument("--gpu-memory-utilization", type=float, default=0.90)
     ap.add_argument("--seed", type=int, default=0)
