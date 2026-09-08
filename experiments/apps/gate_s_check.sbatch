@@ -20,7 +20,7 @@
 set -euo pipefail
 
 REPO=/u/fvc9ch/ai-safety/authorship-not-sabotage
-TAG="${TAG:-q3c30}"
+TAG="${TAG:-q38}"
 
 cd "$REPO/experiments/apps"
 echo "=== $(date) | node $(hostname) | tag $TAG ==="

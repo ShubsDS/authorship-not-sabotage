@@ -7,22 +7,26 @@
 # the submission deadline. Generation is GPU-bound and needs almost no CPU; the CPU-heavy stage is
 # now a separate job on the ordinary compute queue (gate_s_check.sbatch).
 #
-#   sbatch gate_s_gen.sbatch
-#   sbatch --export=MODEL=Qwen/Qwen2.5-Coder-32B-Instruct,TAG=q25c32 gate_s_gen.sbatch
+#   sbatch gate_s_gen.sbatch                                                   # Qwen3.8-27B
+#   sbatch --export=MODEL=Qwen/Qwen3-Coder-30B-A3B-Instruct,TAG=q3c30 gate_s_gen.sbatch
+#
+# Qwen3.8-27B is dense (27.8B active every token) where Qwen3-Coder-30B-A3B is a mixture of experts
+# with ~3B active, so the first is several times slower per token. Hence 3.5 hours rather than 2.
+# Generation is resumable, so a job that hits the wall clock can be resubmitted to finish the tail.
 #
 #SBATCH --job-name=gate-s-gen
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:nvidia_h100_nvl:1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=100G
-#SBATCH --time=02:00:00
+#SBATCH --time=03:30:00
 #SBATCH --output=/u/fvc9ch/ai-safety/authorship-not-sabotage/experiments/apps/gen_%x_%j.log
 
 set -euo pipefail
 
 REPO=/u/fvc9ch/ai-safety/authorship-not-sabotage
-MODEL="${MODEL:-Qwen/Qwen3-Coder-30B-A3B-Instruct}"
-TAG="${TAG:-q3c30}"
+MODEL="${MODEL:-Qwen/Qwen3.8-27B}"
+TAG="${TAG:-q38}"
 
 export HF_HOME=/bigtemp/fvc9ch/hf
 export HF_HUB_ENABLE_HF_TRANSFER=1
