@@ -27,6 +27,7 @@ set -euo pipefail
 REPO=/u/fvc9ch/ai-safety/authorship-not-sabotage
 MODEL="${MODEL:-Qwen/Qwen3.8-27B}"
 TAG="${TAG:-q38}"
+TP="${TP:-1}"          # tensor_parallel_size; 2 to split the model across two smaller cards
 
 export HF_HOME=/bigtemp/fvc9ch/hf
 export HF_HUB_ENABLE_HF_TRANSFER=1
@@ -36,10 +37,11 @@ export PATH="$REPO/.venv-gpu/bin:$PATH"   # vLLM shells out to `ninja`; without 
 cd "$REPO/experiments/apps"
 echo "=== $(date) | node $(hostname) | model $MODEL | tag $TAG ==="
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+echo "tensor_parallel_size=$TP"
 
 # Resumable: problem_ids already present in the output file are skipped, so a job that hits the
 # wall clock can simply be resubmitted and will pick up the tail.
-python gen_honest.py --model "$MODEL" --out "gen_${TAG}.jsonl"
+python gen_honest.py --model "$MODEL" --out "gen_${TAG}.jsonl" --tp "$TP"
 
 echo "=== $(date) | generation done -> gen_${TAG}.jsonl ==="
 wc -l "gen_${TAG}.jsonl"
