@@ -31,10 +31,10 @@ GPU. `experiments/GATE-S-RUNBOOK.md` is the step-by-step execution guide for all
 | Day | What | Notes |
 |---|---|---|
 | **Sep 5** | **Register the FLLMPT abstract before 23:00 GMT** | Title + 150 words from §2, **and the full author list with OpenReview profiles** — the author list is the only thing that locks on this date. The title does not (`notes/01`). Free, dual explicitly allowed. An option that expires. |
-| **Sep 6–7** | **Build and validate the test harness** (`experiments/GATE-S-RUNBOOK.md` §4). | The one piece of Gate S that does not exist. Validate it against the shipped `solution_passes_tests` on the human class *before* generating anything. **This is the critical path.** |
-| **Sep 8** | **GATE S** — generate, execute, route (`experiments/GATE-S-RUNBOOK.md`). | Route 1 is dead (§3); route 2 is the only route. Also: pull `runs/scores/` (24 × 1,375, MIT). |
+| ~~Sep 6–7~~ | ✅ **Harness built and validated 2026-09-04**, three days early. **95.84 %** agreement on the analysis pool → *use our own pass flag for both classes* (`GATE-S-RUNBOOK.md` §4.2). | Three defects found and fixed, all failing old human code specifically. |
+| ~~Sep 8~~ | ⏳ **GATE S IS LATE.** The interactive allocation expired 2026-09-07 with nothing generated. Now queued as batch jobs on A100s, estimated start **2026-09-09**. | The only missing number in the paper. Route 4 (§3) applies if it does not land by Sep 10. |
 | ~~Sep 8, CPU~~ | ⛔ **RUN EARLY AND NEGATIVE, 2026-09-04.** The AICD App. D.1 token test does **not** replicate here: separation −0.013 in the wrong direction, permutation p = 0.956. `li`, `nums` and `cur` — AICD's canonical *human* identifiers — are among our strongest *attack*-pushing features, because both our classes are competitive-programming code and AICD's human class is general-purpose GitHub code. **The mechanism stays borrowed.** Full record and the by-product finding: `experiments/TOKEN-TEST.md`. | It was the cheapest strengthening available and it did not pay. §3 goes back to **three** ways, and the paper reports the negative in one sentence rather than letting a reviewer run it. |
-| **Sep 9** | Figures, and the Gate S result routes the headline. | (i) protocol × baseline table; (ii) per-corpus floor bars with permutation nulls beside every bar; (iii) monitor-vs-floor dot plot on Koran's split. |
+| ~~Sep 9~~ | ✅ **All three figures built 2026-09-04**, five days early, and every number in them re-verified on this machine (`experiments/REPRODUCED.md`). F1 is a LaTeX table, F2 and F3 are PDFs, captions drafted in `paper/fig/CAPTIONS.md`. | Building F3 caught a crossed protocol/count pairing that had reached the README. |
 | **Sep 10–11** | Write four pages. | First paragraph cites `2605.15377`, `2608.16190`, `2602.10153`, `2506.05296`, `2606.06529`, `2510.09462`; Limitations cites `1905.05778` **against ourselves**. |
 | **Sep 12** | **Submit to EvoRobust.** Submit to FLLMPT iff the abstract was registered. | EvoRobust is **AoE**; FLLMPT is **23:00 GMT — 13 hours earlier**. Do not learn this on the day. FLLMPT takes the NeurIPS main-track format (9-page limit), so the 4-page PDF drops in legally as-is; disclose the concurrent submission on their form. |
 
@@ -77,39 +77,65 @@ The authorship claim needs honest code written by the **attack** model. Two rout
    Budget ~15–30 min for the 7B on one GPU and ~30–45 min for the 32B across both. Full command
    sequence in `experiments/GATE-S-RUNBOOK.md` §3.
 
-   > ### ★ The generator protocol, settled 2026-09-04
-   > **Generate the honest class twice: `Qwen2.5-Coder-7B-Instruct` and `Qwen2.5-Coder-32B-Instruct`.**
+   > ### ★ The generator protocol — **revised 2026-09-08**
+   > **Arm 1 (primary): `Qwen/Qwen3.8-27B`.  Arm 2: `Qwen/Qwen3-Coder-30B-A3B-Instruct`.**
    >
-   > **Why not one model.** A weak honest generator is its own confound, and its failure mode is
-   > *directional*. The attacks are `claude-3-7-sonnet-thinking`; if the honest class is a 7B, a
-   > classifier can separate on **code quality** rather than authorship — which pushes toward **no
-   > collapse**, i.e. toward the *content* headline. A too-weak generator does not add noise, it biases
-   > the conclusion, and *"your generator was bad"* cannot be answered after the fact.
+   > <details><summary>What this replaced, and why the original reasoning still binds</summary>
    >
-   > | 7B | 32B | Reading |
+   > Settled 2026-09-04 as `Qwen2.5-Coder-7B-Instruct` + `-32B-Instruct` — same family, two sizes, so
+   > the second arm measured **scale**. The reasoning was that a weak honest generator is its own
+   > confound with a *directional* failure: the attacks are `claude-3-7-sonnet-thinking`, so if the
+   > honest class is a 7B a classifier can separate on **code quality** rather than authorship, which
+   > pushes toward *no collapse* — the content headline. A too-weak generator does not add noise, it
+   > biases the conclusion, and *"your generator was bad"* cannot be answered after the fact.
+   >
+   > **That argument is what killed the 7B arm.** Its smoke-tested pass rate was 2/20 on interview-tier
+   > problems, which at ~1,444 eligible problems yields on the order of 150–200 pairs — a diagnostic
+   > too small to read. The fix is not a weaker second arm, it is two adequate ones.
+   > </details>
+   >
+   > **The second arm now measures generator identity, not scale.** Two models of similar size, one
+   > general-purpose and one code-specialised:
+   >
+   > | arm 1 (Qwen3.8-27B) | arm 2 (Qwen3-Coder-30B) | Reading |
    > |---|---|---|
-   > | collapse | collapse | **Authorship, robustly** — generator strength is irrelevant |
-   > | no collapse | collapse | The 7B result was quality, not authorship. The arm saved the headline. |
-   > | no collapse | no collapse | **Content**, and defensible — the generator cannot be blamed |
+   > | collapse | collapse | **Authorship, robustly** — not an artifact of one generator |
+   > | collapse | no collapse | Generator-specific. Report both; the claim narrows to arm 1's setting. |
+   > | no collapse | no collapse | **Content**, and defensible — two unrelated generators agree |
    >
-   > **Three details that matter more than the size choice:**
-   > 1. **Same family, two sizes.** Mixing families confounds scale with lineage and the arm measures
-   >    nothing.
+   > **Three details that still bind, unchanged from the original protocol:**
+   > 1. ~~Same family, two sizes.~~ **Deliberately abandoned.** With both arms adequate, cross-model
+   >    agreement answers *"a collapse might just be Qwen-vs-Claude"* — the sharpest recorded objection
+   >    (§3 design decision 1) — which two sizes of one family never could.
    > 2. **One solution per problem, no best-of-n reranking.** Filtering to *passes tests* is correct —
    >    it mirrors Koran's filter on the human class. Any further selection on quality would install a
-   >    selection artifact, which is the thing this paper audits.
-   > 3. **Report both n's.** The 32B passes at a higher rate, so the arms differ in size. Match them or
-   >    state both.
+   >    selection artifact, which is the thing this paper audits. **This one is load-bearing; do not
+   >    relax it to buy n.**
+   > 3. **Report both n's**, and the pass rate that produced each.
    >
    > **The residual, stated in Limitations rather than implied away:** without a paid API the honest
    > class cannot come from the attack model itself, so some cross-model difference always remains. The
    > evidence that it is small is our own **0.9935** cross-generator transfer and AICD's
    > generator-independence finding. Cite both; do not claim the control is perfect.
    >
-   > **If only one arm fits: run the 32B.** The 7B's failure mode points at the wrong headline.
+   > **If only one arm fits: run arm 1.** It is the one the title routes on.
    >
-   > ⚠️ Two arms is ~45 min of H100 but **6,840 solutions to execute instead of 3,420** — the load
-   > doubles on the harness, not on the GPU.
+   > ⚠️ **Two open unknowns, recorded before the run rather than after.** Arm 1 is a *vision-language*
+   > model (`image-text-to-text`, `Qwen3_5ForConditionalGeneration`) and general-purpose, so whether it
+   > beats a code-specialised model of similar size on APPS is untested. And it is **dense** — all
+   > 27.8B active per token, against arm 2's ~3B — so it is several times slower to generate.
+
+   > ### ⚠️ Compute reality, 2026-09-08 — the GPU became the constraint after all
+   > The plan said money was not a constraint and the GPU was trivial. Both true; **queue time was
+   > neither.** The 4-day interactive allocation (2× H100) expired 2026-09-07 with **nothing
+   > generated**. Since then: every H100 on the cluster is held by a job with >3d20h remaining, so the
+   > H100 queue does not clear before the deadline. Gate S now runs on **2× A100 with
+   > `tensor_parallel_size=2`**, estimated start 2026-09-09.
+   >
+   > **Structural lesson, not a scheduling anecdote:** a held interactive allocation is not progress.
+   > Gate S is now two *batch* jobs (`experiments/apps/gate_s_gen.sbatch` → `gate_s_check.sbatch`,
+   > chained with `afterok`) which need nobody attached to a shell, and the GPU job asks for 4 cores
+   > rather than 16 so it fits scheduling gaps.
 
    > ### ⚠️ The real bottleneck: **the test harness does not exist**
    > Nothing in `experiments/` executes code. Grep for `subprocess`, `multiprocessing`, `resource.` or
@@ -241,6 +267,9 @@ LLM-honest number is **G**. Route on **ρ = (G − 0.5) / (B − 0.5)**, the fra
 
 ## 6. Stopping rules
 
+- **Gate S does not land by end of Sep 10** → §3 route 4, ship without the control. Version A of
+  `paper/ABSTRACT-evorobust.md` is already route-agnostic; its one control sentence gets deleted and
+  the authorship reading is stated as inference in Limitations, in those words.
 - **Gate S route 2 fails** → §3, ship without the control.
 - **Sep 10–11 slips** → the November window (`notes/01`) takes it. Nothing is lost but the slot; the
   split, the scripts and the numbers are public either way.
