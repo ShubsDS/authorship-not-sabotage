@@ -142,7 +142,26 @@ def main() -> None:
         ["problem_id", "honest", "attack"]], f"G  {args.label} honest")
 
     rho = (G["auroc"] - 0.5) / (B["auroc"] - 0.5) if B["auroc"] > 0.5 else float("nan")
-    if rho <= COLLAPSE:
+
+    # rho > 1 means the classifier separates the regenerated pairs BETTER than the stored ones.
+    # The pre-registered bands assumed rho in [0, 1] - that a substitute generator can only remove
+    # signal - and that assumption is wrong. A different-vendor generator does not remove the
+    # authorship gap, it REPLACES it, and the replacement can be larger than the original.
+    #
+    # Reading such an arm as "no collapse -> content" would be a straight error: it is not evidence
+    # that the backdoors are separable on content, it is evidence that this arm cannot tell the two
+    # hypotheses apart. Only a generator close to the attacker's own lineage can shrink the gap
+    # rather than swap it.
+    import math
+    sd = math.sqrt(G["auroc_sd"] ** 2 + B["auroc_sd"] ** 2)
+    excess_sd = (G["auroc"] - B["auroc"]) / sd if sd > 0 else 0.0
+
+    if rho > 1.0 and excess_sd > 2.0:
+        verdict = (f"CONFOUNDED - G exceeds B by {excess_sd:.1f} sd. The substitute generator "
+                   f"introduced a LARGER authorship gap than the one it removed. This arm does not "
+                   f"discriminate authorship from content; do not route a title on it.")
+        title = "INCONCLUSIVE - needs a generator closer to the attacker's lineage"
+    elif rho <= COLLAPSE:
         verdict, title = "COLLAPSE -> authorship", "Authorship, Not Sabotage (stands)"
     elif rho <= NO_COLLAPSE:
         verdict, title = "PARTIAL", "Stands; the abstract states the split"
@@ -151,12 +170,19 @@ def main() -> None:
 
     print(f"\n  B = {B['auroc']:.4f}   G = {G['auroc']:.4f}   "
           f"rho = (G-0.5)/(B-0.5) = {rho:.4f}")
+    print(f"  per-carrier shift B -> G:  TF-IDF {G['auroc']-B['auroc']:+.4f}   "
+          f"length-only {G['length_only_auroc']-B['length_only_auroc']:+.4f}   "
+          f"surface7 {G['surface7_auroc']-B['surface7_auroc']:+.4f}")
+    print("  (lexical UP while length-only falls to chance is the signature of a swapped, not "
+          "removed, authorship gap)")
     print(f"  bands: <= {COLLAPSE} collapse | <= {NO_COLLAPSE} partial | > {NO_COLLAPSE} content")
     print(f"  {verdict}\n  title: {title}")
-    print("\nRoute on the 32B arm; the 7B is the confound diagnostic (PLAN.md §3).")
+    print("\nRoute the title on the arm whose generator is closest to the attacker's lineage "
+          "(PLAN.md §3). A cross-vendor arm bounds the effect; it does not decide it.")
 
     if args.out:
-        json.dump({"arm": args.label, "B": B, "G": G, "rho": rho, "verdict": verdict,
+        json.dump({"arm": args.label, "B": B, "G": G, "rho": rho,
+                   "excess_sd": excess_sd, "verdict": verdict,
                    "title": title}, open(args.out, "w"), indent=2)
         print(f"wrote {args.out}")
 

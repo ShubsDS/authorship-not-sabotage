@@ -1,0 +1,25 @@
+{
+  "arm": "q3c30",
+  "B": {
+    "label": "B  human honest",
+    "n_pairs": 668,
+    "auroc": 0.8739202842317011,
+    "auroc_sd": 0.015981697003801115,
+    "pairwise_acc": 0.9685669397374032,
+    "length_only_auroc": 0.6527721720525097,
+    "surface7_auroc": 0.8025943247985248
+  },
+  "G": {
+    "label": "G  q3c30 honest",
+    "n_pairs": 668,
+    "auroc": 0.9615738711726547,
+    "auroc_sd": 0.009000373827576935,
+    "pairwise_acc": 0.9730445516777018,
+    "length_only_auroc": 0.4885487172927571,
+    "surface7_auroc": 0.8090818794230723
+  },
+  "rho": 1.2344178442232856,
+  "excess_sd": 4.778899600505003,
+  "verdict": "CONFOUNDED - G exceeds B by 4.8 sd. The substitute generator introduced a LARGER authorship gap than the one it removed. This arm does not discriminate authorship from content; do not route a title on it.",
+  "title": "INCONCLUSIVE - needs a generator closer to the attacker's lineage"
+}
