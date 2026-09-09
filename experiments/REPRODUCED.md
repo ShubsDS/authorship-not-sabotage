@@ -81,6 +81,37 @@ and the README table presented all five as if they were. **F2 now prints the gro
 setting**, and the paper must say it. It also explains `shade`'s task-grouped CV of 0.382 — with five
 groups, `GroupKFold(5)` puts one whole task in each fold.
 
+## Gate S: B, computed for the first time 2026-09-09
+
+Not a re-run — **a number that did not exist before**. `gate_s_eval.py` computes B and G together
+and requires an arm's `--gen-file`/`--pass-file`, so B sat blocked behind a GPU queue despite being
+a CPU job: it is human honest code against the same working backdoors, through the same pipeline.
+`apps/gate_s_baseline.py` runs that half alone, importing `evaluate()` from `gate_s_eval` so the two
+cannot drift.
+
+| Number | Value |
+|---|---|
+| **B — TF-IDF AUROC, human honest vs working backdoors** | **0.8714** (sd 0.0085 across 5 folds) |
+| n pairs | **1,444** — the full analysis ceiling, no drops |
+| pairwise accuracy | 0.9605 |
+| length-only / surface-7 | 0.6081 / 0.7673 |
+
+**The cross-check that makes this trustworthy:** pairwise lands at **0.9605** against the matched
+protocol's independently computed **0.962** — different pool (1,444 analysis problems vs 8,813
+control_tax pairs), different machine, different script. Within 0.002.
+
+Environment reproduced every documented artifact count exactly before B was trusted: 5,000 rows,
+3,420 passing, 1,582 working backdoors, 779 nondeterministic (717 *"multiple distinct valid
+solutions"*), **1,444** analysis ceiling, difficulty split 1,061/277/106, median 18 test cases.
+pandas 3.0.5, scikit-learn 1.9.0. Record: `apps/gate_s_baseline.json`.
+
+> ### ⚠️ Two things that must travel with B
+> 1. **It is the ceiling pool, not ρ's denominator.** ρ needs B and G over the *same* problems, and
+>    G's eligible set is 1,444 ∩ whichever generations pass. `gate_s_eval.py` recomputes B per arm.
+> 2. **It moves the routing thresholds.** `PLAN.md`'s 0.601 / 0.720 are arithmetic at an assumed
+>    B = 0.806. At the measured B they are **0.6226 / 0.7674** — and a G in 0.720–0.767 routes
+>    *differently* under the two, which is a title change. Route on ρ, never on a remembered AUROC.
+
 ## Still not reproduced here
 
 Nothing load-bearing. `floors.py`, `floors2.py`, `cot.py` and `apps.py`/`apps2.py` in `scan/` have not
