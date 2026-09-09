@@ -108,9 +108,11 @@ one more thing the fix does not reach.
 
 **Gate S — the constructive half** (`../PLAN.md` §3, run per `../experiments/GATE-S-RUNBOOK.md`).
 Regenerate the honest class with an LLM, rebuild the pairs, rerun. The number here routes the title,
-and the route was fixed before the run. Report **both generator arms** (Qwen2.5-Coder 7B and 32B) with
-their separate n's, the pass rates, and the human-honest baseline **B** computed under the identical
-protocol — a reader cannot interpret the collapse without B.
+and the route was fixed before the run. Report **every arm that ran** — `Qwen3.8-27B` (primary),
+`Qwen3-Coder-30B-A3B`, and the 8B→14B→32B ladder as a dose-response curve in ρ — each with its own
+n and pass rate, and the human-honest baseline **B** computed under the identical protocol.
+**A reader cannot interpret the collapse without B.** B is measured: **0.8714** on the analysis
+ceiling (`../experiments/REPRODUCED.md`); `gate_s_eval.py` recomputes it per arm for ρ.
 
 **F3 — the comparison, done honestly.** Against `runs/x0/monitor-summary.json`: TF-IDF **0.806 above
 20 of 24**; no-code **0.7715 ± 0.0389 (5×5 CV) above 20 of 24**, or **0.7163 held-out above 18 of

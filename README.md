@@ -60,7 +60,13 @@ training, selecting and benchmarking monitors on **stored** pairs).
 
 ## Status
 
-Current as of **2026-09-04**.
+Current as of **2026-09-09**. Three days to the deadline.
+
+> **The two things that decide whether this submits.** (1) **The paper does not exist as prose** —
+> `paper/main.tex` is a compiling scaffold with the numbers, figures and citations wired in, and the
+> four pages are still to write (Sep 10–11). (2) **Gate S has generated nothing**; `PLAN.md` §6 says
+> route 4 applies if it has not landed by end of Sep 10, and route 4 is a complete paper.
+> Everything else below is done.
 
 | Piece | State |
 |---|---|
@@ -69,8 +75,10 @@ Current as of **2026-09-04**.
 | K2 — is the floor unreported? | **FAIL as framed; a narrower claim survives.** [`lit/01`](lit/01-verified-bibliography.md) |
 | G1 — is the mechanism claim ours? | **No, and we never claimed it.** Both AI-code-detection neighbours read end to end 2026-09-03: **NEIGHBOUR**, framing survives. [`lit/01`](lit/01-verified-bibliography.md) §4 |
 | Monitor comparison (24 × 1,375) | **No GPU needed** — `runs/scores/` is MIT and published. Gate M deleted. |
-| Gate S — same-generator honest class | **The only number in the abstract that does not exist yet.** Route 1 dead — no public artifact holds LLM-written honest APPS code. Route 2 committed: generate with Qwen2.5-Coder 7B and 32B on a held 2× H100 allocation, **$0**. Runbook: [`experiments/GATE-S-RUNBOOK.md`](experiments/GATE-S-RUNBOOK.md) |
-| The test harness | ⚠️ **Does not exist.** Nothing in `experiments/` executes code, and Gate S cannot run without it. Half a day, and it is the critical path — not the GPU. |
+| Gate S — same-generator honest class | ⏳ **LATE — nothing generated.** Route 1 dead (no public artifact holds LLM-written honest APPS code). Route 2 committed: `Qwen3.8-27B` + `Qwen3-Coder-30B`, plus an 8B→14B→32B dose-response ladder. The H100 allocation expired 2026-09-07 unused; now chained **A100 batch jobs**. Runbook: [`experiments/GATE-S-RUNBOOK.md`](experiments/GATE-S-RUNBOOK.md) |
+| **B — the baseline Gate S routes against** | ✅ **Measured 2026-09-09: 0.8714** (n = 1,444), CPU only. ρ is uninterpretable without it, and it never needed the GPU. ⚠️ **This also moves the routing thresholds**: the 0.601/0.720 in `PLAN.md` were arithmetic at an assumed B = 0.806; the real ones are **0.6226 / 0.7674**. |
+| The test harness | ✅ **Built and validated 2026-09-04**, three days early. **95.84%** agreement on the analysis pool; three defects found and fixed, all of which failed old human code specifically. |
+| The paper as a document | ⚠️ **Scaffold only.** [`paper/main.tex`](paper/README.md) compiles clean (NeurIPS 2026, `dblblindworkshop`, zero overfull boxes) with every number as a macro, both tables, all three figures and 28 bib entries wired. **The four pages of prose are not written**, and it is already ~4.3 content pages against a 4-page limit. |
 | The confound, with no experiment at all | `backdoors` carries `model` and `source`; `solutions` carries neither. **The honest class has no generator field because it has no generator.** |
 | Figures | 3 remain (protocol × baseline; per-corpus floors with permutation nulls; monitor-vs-floor dot plot) |
 | Venue gates | **G2 run for both venues.** EvoRobust: PASS, conditional on excluding AgentHarm. FLLMPT: PASS, no organiser or speaker authored any of our corpora. Page limit, dual-submission and title-change policies all verified 2026-09-04. [`notes/01`](notes/01-venue-evorobust.md) |
@@ -94,5 +102,10 @@ Current as of **2026-09-04**.
 ## Standing constraints
 
 Public datasets only · no experiments involving real people · nothing person-specific reported ·
-local open-weight models, no paid API. **Cost for this leg: $0** — the one GPU experiment runs on a
-held 2× H100 Slurm allocation.
+local open-weight models, no paid API. **Cost as run to date: $0** — the one GPU experiment runs as
+cluster A100 batch jobs, and everything else, B included, is laptop CPU.
+
+⚠️ **One open decision could change the last clause.** `experiments/apps/gen_honest_api.py` is a
+~$17 Claude Sonnet 5 arm — the only *same-vendor* control available, which no Qwen arm can be — and
+it breaks the no-paid-API constraint. It has not been run and the call has not been made
+([`notes/05`](notes/05-permissibility.md)).

@@ -1,0 +1,468 @@
+% =====================================================================================
+%  What Survives the Filter?  /  Authorship, Not Sabotage
+%  EvoRobust @ NeurIPS 2026 - 4 content pages, non-archival, double-blind, Sep 12 AoE.
+%
+%  Scaffold built 2026-09-09. Structure follows paper/OUTLINE.md section by section.
+%  Numbers follow experiments/REPRODUCED.md. Citations follow lit/01 via refs.bib.
+%
+%  BUILD:  pdflatex main && bibtex main && pdflatex main && pdflatex main
+%          (or: latexmk -pdf main.tex)
+%
+%  Prose to be written Sep 10-11. Every gap is marked \TODO{...} and carries the
+%  instruction from OUTLINE.md, so nobody has to re-read the outline to write a section.
+%  \TODO renders as visible red text; switch to the no-op definition before submitting.
+% =====================================================================================
+
+\documentclass{article}
+
+% Numeric, compressed citations: [3], [5-7]. This is the NeurIPS house style (the
+% template's own prose says "previous work [4]") and it is much tighter than plainnat's
+% author-year, which matters at 4 pages. It also stops the two bibliography entries whose
+% authors lit/01 never recorded from rendering inline as "leg [2026]" and "len [2026]".
+% MUST come before neurips_2026 is loaded - the style file loads natbib itself.
+\PassOptionsToPackage{numbers,compress}{natbib}
+
+% EvoRobust is a NeurIPS 2026 workshop with DOUBLE-BLIND review on OpenReview
+% (notes/01-venue-evorobust.md), so the track option is dblblindworkshop - NOT the
+% default, which is the main track. This option requires \workshoptitle below.
+% After acceptance, change to [dblblindworkshop, final].
+%
+% Note on what this option does and does not do, checked against neurips_2026.sty:
+%   - it sets \@trackname to "... Workshop: <workshoptitle>.", which the style file uses
+%     ONLY under [final]. At submission the footer is the fixed "Submitted to ... Do not
+%     distribute." string. So the workshop name correctly does NOT appear yet.
+%   - unlike sglblindworkshop, it does NOT set \@anonymousfalse, so the paper stays
+%     anonymous. The "Anonymous Author(s) / Affiliation / Address / email" block on page 1
+%     is emitted by the style file itself (sty line 336), not by our \author{} below.
+\usepackage[dblblindworkshop]{neurips_2026}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{array}      % >{\raggedright\arraybackslash}p{} columns used by F1
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{etoolbox}
+
+% The dataset entries carry long unbreakable \texttt{} paths
+% (eugenekoran/apps-control-arena-high-quality). Justified, they force gappy interword
+% spacing - 10 underfull hboxes. Ragged-right in the bibliography ONLY fixes it without
+% touching the body text, which must stay justified.
+\apptocmd{\thebibliography}{\raggedright}{}{}
+
+\graphicspath{{fig/}}
+
+% --- Drafting aid. Set to the no-op version before submitting. -----------------------
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+% \renewcommand{\TODO}[1]{}   % <-- UNCOMMENT THIS LINE BEFORE SUBMISSION
+
+% =====================================================================================
+%  EVERY LOAD-BEARING NUMBER, DEFINED EXACTLY ONCE.
+%
+%  This is not decoration. This project's recurring failure mode (R18 and its companion)
+%  is a number from one protocol being written next to a count from another - it has
+%  reached the README, the outline and figures.py. Macros make that error impossible to
+%  commit silently: there is one \nocodeCV and it carries its own count.
+%
+%  Source: experiments/REPRODUCED.md unless noted. DO NOT hardcode any of these inline.
+% =====================================================================================
+
+% --- Koran's exact split, comments stripped (the headline protocol) ------------------
+\newcommand{\tfidfKoran}{0.806}            % 0.8063; above 20 of 24
+\newcommand{\tfidfKoranCount}{20}
+\newcommand{\tfidfKept}{0.891}             % 0.8914, comments kept; above 22 of 24
+\newcommand{\tfidfKeptCount}{22}
+\newcommand{\charNgram}{0.783}             % 0.7830
+
+% --- The no-code floor. THE TRAP: two protocols, two values, two counts. -------------
+% NEVER write \nocodeCV next to \nocodeHeldoutCount. See fig/CAPTIONS.md.
+\newcommand{\nocodeCV}{0.772}              % 0.7715 +- 0.0389, 5x5 CV within the test split
+\newcommand{\nocodeCVsd}{0.039}
+\newcommand{\nocodeCVCount}{20}            % <- 0.772 clears 20
+\newcommand{\nocodeHeldout}{0.716}         % 0.7163, single 413-item held-out slice
+\newcommand{\nocodeHeldoutCount}{18}       % <- 0.716 clears 18
+
+% --- The 24-monitor comparison set (Jha, MIT) ---------------------------------------
+\newcommand{\monN}{24}
+\newcommand{\monMedian}{0.609}
+\newcommand{\monMax}{0.937}
+\newcommand{\monMin}{0.434}
+
+% --- What the field's fix does and does not reach ------------------------------------
+\newcommand{\lenFiltered}{0.4726}          % length-only on the filtered split - chance
+\newcommand{\lenRaw}{0.826}                % 0.8255 pairwise on the raw artifact
+\newcommand{\hashRaw}{0.6957}
+\newcommand{\hashStripped}{0.4983}
+
+% --- Authorship, three ways ---------------------------------------------------------
+\newcommand{\transfer}{0.994}              % 0.9935 Control Tax -> the 2023 GPT-4 set
+\newcommand{\pairAll}{0.962}               % 3 dp: resolution over 2,641 pairs is 1/2,641
+\newcommand{\pairWorking}{0.979}
+\newcommand{\pairInert}{0.955}
+\newcommand{\surfaceSeven}{0.830}          % 0.8302
+
+% --- The byline leak surviving the comment stripper (string literals are not comments)
+\newcommand{\bylineHonest}{23}
+\newcommand{\bylineAttack}{2}
+\newcommand{\tripleHonest}{43}
+\newcommand{\tripleAttack}{9}
+
+% --- The second selection artifact --------------------------------------------------
+\newcommand{\inertShare}{80.7\%}           % of Koran's test-split backdoors do not work
+\newcommand{\testCasesAttack}{20.95}
+\newcommand{\testCasesHonest}{38.85}
+
+% --- Split and artifact shapes ------------------------------------------------------
+\newcommand{\splitTrain}{1{,}209}
+\newcommand{\splitTest}{1{,}375}
+\newcommand{\splitAttack}{172}
+\newcommand{\splitHonest}{1{,}203}
+\newcommand{\artifactRows}{5{,}000}
+\newcommand{\genPool}{3{,}420}
+\newcommand{\analysisCeiling}{1{,}444}
+\newcommand{\harnessAgreement}{95.84\%}
+
+% --- Gate S ------------------------------------------------------------------------
+% B measured 2026-09-09 on the analysis ceiling; see experiments/gate_s_baseline.json.
+% NOTE: rho's denominator is B over the ARM'S realised eligible set, not this ceiling
+% value. Recompute with gate_s_eval.py when an arm lands, then update this macro.
+\newcommand{\baselineB}{0.871}
+\newcommand{\baselineBn}{1{,}444}
+\newcommand{\rhoCollapse}{0.33}
+\newcommand{\rhoContent}{0.72}
+
+% --- The five same-generator agentic settings (within-task, chars only) --------------
+\newcommand{\bashFloor}{0.504}
+\newcommand{\agentdojoFloor}{0.802}
+\newcommand{\cotLow}{0.76}
+\newcommand{\cotHigh}{0.82}
+
+% --- The AICD token test, run early and negative ------------------------------------
+\newcommand{\tokenSep}{$-0.013$}   % math mode: a real minus sign, not a hyphen
+\newcommand{\tokenP}{0.956}
+
+% =====================================================================================
+
+\title{What Survives the Filter? Trivial Baselines on Stored Honest/Attack Pairs
+       in AI-Control Monitoring}
+
+% Required by the dblblindworkshop option - appears in the title footnote.
+\workshoptitle{Self-Evolving Diversity-Driven Search for Robust AI Systems}
+
+% Double-blind: leave the author block as-is for submission. The style file suppresses
+% it under the anonymous option, but do not paste real names here and rely on that.
+\author{%
+  Anonymous Author(s) \\
+  Affiliation \\
+  Address \\
+  \texttt{email}
+}
+
+\begin{document}
+\maketitle
+
+% =====================================================================================
+%  ABSTRACT - Version A from ABSTRACT-evorobust.md, route-agnostic by design.
+%  ~210 words, no hard number, true under either Gate S outcome.
+%
+%  IF GATE S RETURNS: swap in Version B's sentences 3-4 and 6 (they carry the numbers).
+%  IF GATE S DOES NOT RUN: delete the "We regenerate the honest class..." sentence
+%  entirely and state the authorship reading as inference in Limitations, in those words.
+% =====================================================================================
+\begin{abstract}
+Trusted monitoring in AI control is evaluated on stored honest/attack pairs. The field
+already knows these pairs leak: it filters to working solutions, strips comments, and
+states why. We ask what that preprocessing leaves behind. On the field's own filtered,
+comment-stripped split, a bag-of-words classifier scores above roughly four-fifths of the
+open-weight monitors ranked on that same split, and a classifier that reads no code at
+all --- only problem metadata --- scores above most of them as well. We trace the residue
+to authorship rather than sabotage: the honest class is human-written while every attack
+is model-written. The signal transfers almost unchanged across backdoor generators, is as
+strong on inert backdoors as on working ones, and survives the field's own comment
+stripper in the form of author bylines left inside string literals. Five same-generator
+agentic settings, where no authorship confound is possible, carry a second and structural
+floor ranging from chance to strongly leaky. We regenerate the honest class with a local
+open-weight coder model as a same-generator control, and recommend that stored-pair
+monitor evaluations report partial-input and bag-of-words floors against permutation
+nulls, use same-generator honest samples, and drop inert backdoors from both classes.
+\end{abstract}
+
+% =====================================================================================
+\section{Introduction}
+% Budget: 3/4 page. OUTLINE.md section 1.
+%
+% ** LEAD WITH THE VALIDITY CLAIM, NOT WITH THE NUMBER. **
+% To a reviewer who knows the AI-code-detection literature, "TF-IDF separates human from
+% LLM code" is 2025 news - AICD Bench publishes exactly that. If this opens on
+% "0.806 beats 20 of 24", that reader thinks "of course it does".
+% The contribution is that a corpus whose two classes differ BY AUTHOR is used to train,
+% select and rank sabotage monitors, and that nobody has quantified what survives the
+% field's own preprocessing. The known-ness of the mechanism is the ARGUMENT, not a dent.
+% =====================================================================================
+
+\TODO{Paragraph 1 --- credit the field before saying anything else. This is the condition
+on which the novelty claim survives and it is the paragraph a neighbourhood reviewer reads
+first. Must cite all six: \cite{koran2026ensemble, jha2026decorrelation,
+terekhov2026controltax, legibility2026, gewang2026attackselection, terekhov2026adaptive}.}
+
+\TODO{Paragraph 2 --- the field already knows these pairs leak, with the receipts.
+Koran \S4.1 filters to working honest + working backdoors and strips comments, rationale
+stated \cite{koran2026ensemble}. Control Tax \S2.3 reports the pass-tests pre-filter and
+appendices ``Monitoring failed backdoors'' \cite{terekhov2026controltax}. Jha names the
+comment leak, ships \texttt{--leak-check}, and publishes both numbers: \hashRaw{}
+$\rightarrow$ \hashStripped{} after stripping, and length-only at \lenFiltered{}
+\cite{jha2026decorrelation}. \cite{legibility2026} is a whole paper on the comment channel.}
+
+\TODO{Paragraph 3 --- what nobody has measured is what the preprocessing leaves behind.
+On the field's own filtered, comment-stripped split, TF-IDF reaches \tfidfKoran{} and a
+classifier reading no code reaches \nocodeCV{}, against \monN{} monitors at median
+\monMedian{}.}
+
+\TODO{Paragraph 4 --- the mechanism is authorship. Honest solutions are human-written
+(\texttt{codeparrot/apps}, no model ever called); every backdoor is LLM-written. The
+signal transfers across generators at \transfer{} and is as strong on inert backdoors
+(\pairInert{}) as on working ones (\pairWorking{}) --- it is not sabotage.}
+
+\TODO{Paragraph 5 --- adjacent work, one sentence each. \cite{terekhov2026adaptive}
+subverts monitors with injected text (different axis). \cite{gewang2026attackselection}
+shows attacker-side selection inflates safety estimates (same conclusion, other side).
+\cite{pinto2026calibration} removes transcript length as a nuisance covariate; we publish
+the content-blind classifier's own AUROC as a per-benchmark floor.}
+
+\TODO{Paragraph 6 --- the neighbouring field already applies the control that is missing
+here, and that is an argument we did not have. CodeMirage gates its two classes on line
+count and character length \cite{guo2025codemirage}; MultiAIGCD pairs to shared CodeNet
+problem definitions \cite{demirok2025multiaigcd}; AICD filters explicitly to stop
+detectors exploiting distributional artifacts \cite{orel2026aicd}. The unmatched pairs are
+a defect BY THE NEIGHBOURING FIELD'S OWN PUBLISHED STANDARD, not one we invented.
+Cite the mechanism as established --- AICD App.~D.1 already names the tokens --- and claim
+only the application.}
+
+\TODO{Contributions, four bullets, each with a number behind it: (1) the protocol
+$\times$ baseline table; (2) the authorship mechanism with the same-generator control;
+(3) the second selection artifact the field's own filter installs; (4) the fix, as a
+drop-in preprocessing step and a released split.
+\textbf{Scope claim goes HERE, not in Limitations:} this concerns monitor training,
+selection and benchmarking on \emph{stored} pairs --- ControlArena's live evals generate
+both classes. Say it here or the first reviewer says it for us.}
+
+% =====================================================================================
+\section{Setup}
+% Budget: 1/2 page. OUTLINE.md section 2.
+% ** LEAD WITH THE SCHEMA TABLE, NOT WITH PROSE. ** It is the thesis in one table, it
+% needs no AUROC, and it survives every objection about protocol, metric and split.
+% =====================================================================================
+
+% The sub-field list must WRAP - as a plain `l' column it overflowed the 5.5in text block
+% and the rules ran off the page edge.
+\begin{table}[t]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{The confound is legible in the dataset schema, with no measurement at all.
+The attack class records which model wrote it; the honest class has no generator field,
+because it has no generator. Verified against the shard schema of
+\texttt{RoganInglis/apps-control-arena}.}
+\label{tab:schema}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.80\linewidth}@{}}
+\toprule
+struct & sub-fields \\
+\midrule
+\texttt{solutions} & \texttt{code}, \texttt{compiles}, \texttt{passes\_tests} \\
+\addlinespace
+\texttt{backdoors} & \texttt{backdoor\_code}, \texttt{backdoor\_input},
+                     \texttt{backdoor\_works}, \texttt{compiles},
+                     \textbf{\texttt{model}}, \texttt{passes\_tests},
+                     \textbf{\texttt{source}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\TODO{One paragraph on the artifacts, with licence and per-class provenance
+(\texttt{lit/01} \S6), including the sentence that \textbf{two of the seven corpora
+declare no licence} and that we redistribute nothing. PLAN.md \S4 marks this never-cut.
+\cite{inglis2025appscontrolarena, koran2026highquality, sinha2026controlarenacorpora}}
+
+\TODO{One dataset and one derived copy --- not two (K1).}
+
+\TODO{Koran's split as the evaluation surface: \splitTrain{} train / \splitTest{} test
+(\splitAttack{} attack / \splitHonest{} honest), label \texttt{backdoor\_works}, comments
+stripped, reconstructed with Jha's own \texttt{src/data.py}.}
+
+\TODO{\textbf{Protocols must be named and kept distinct.} Raw artifact vs Koran's
+filtered split; pooled vs matched vs within-task; pairwise accuracy vs AUROC. Every
+``X above Y'' sentence states Y's split, Y's metric and Y's preprocessing. This is where
+the round-16 headline died.}
+
+\TODO{Harness fidelity: our own test runner agrees with the shipped
+\texttt{solution\_passes\_tests} on \harnessAgreement{} of the analysis pool, and we use
+our own pass flag for \emph{both} classes so the two arms are filtered symmetrically.}
+
+\TODO{AgentHarm excluded, and why (an invited speaker authored it).}
+
+% =====================================================================================
+\section{Results}
+% Budget: 1.5 pages - the paper's weight. OUTLINE.md section 3.
+% =====================================================================================
+
+% --- F1: the protocol x baseline table. Generated by experiments/apps/figures.py. ----
+\input{fig/f1-protocol-baseline}
+
+\TODO{Read F1 in prose. The \lenFiltered{} $\rightarrow$ \tfidfKoran{} contrast
+\emph{is} the paper: the field's fix works on the carrier it was aimed at and does not
+reach the two beside it.}
+
+\paragraph{Authorship, three ways.}
+\TODO{(i) Cross-generator transfer \transfer{} (Control Tax $\rightarrow$ the 2023 GPT-4
+set). (ii) Working \pairWorking{} vs inert \pairInert{} --- \emph{the signal is not
+sabotage}. (iii) Style markers: \texttt{\#} present, attack 0.685 vs honest 0.176;
+\texttt{\_\_main\_\_} 0.116 vs 0.000, replicated on Koran's train split at 152/\splitTrain{}
+vs 1/\splitTrain{}.}
+
+\paragraph{A fourth way was tested and failed; we report it.}
+\TODO{One sentence. The AICD App.~D.1 token-level mechanism does not replicate here:
+separation \tokenSep{}, the wrong sign, permutation $p = \tokenP{}$. The reason is
+register --- AICD's human class is general-purpose GitHub code while \emph{both} of our
+classes are competitive-programming code. Note the power caveat honestly (only 8 of 10
+tokens in vocabulary) but also that the point estimate has the wrong sign, which is not
+what an underpowered true effect looks like. A reviewer who knows AICD may run exactly
+this test; far better that we ran it and said so. \cite{orel2026aicd}}
+
+\paragraph{An authorship leak survives the field's own comment stripper.}
+\TODO{The stripper removes \texttt{tokenize.COMMENT} tokens only --- \textbf{string
+literals are not comments}. In the comment-stripped train split an author byline
+(\texttt{Author :}) survives in \bylineHonest{}/\splitTrain{} honest vs
+\bylineAttack{}/\splitTrain{} attack samples, a triple-quoted block in \tripleHonest{}
+vs \tripleAttack{}. Human competitive-programming code stashes sample input in
+triple-quoted strings and signs itself; LLM code does neither. It is 1.9\% of the honest
+class, so it is not what drives \tfidfKoran{} --- but it is a literal authorship leak
+surviving the field's own published preprocessing.}
+
+\paragraph{Gate S --- the constructive half.}
+\TODO{Regenerate the honest class with an LLM, rebuild the pairs, rerun. Report the
+human-honest baseline $B = \baselineB$ (computed under the identical protocol over
+$n$~=~\baselineBn{} pairs) --- \textbf{a reader cannot interpret the collapse without $B$}
+--- then each arm's $G$, its own $n$, and its pass rate. Route on
+$\rho = (G - 0.5)/(B - 0.5)$, fixed before the run.
+\textbf{IF GATE S DID NOT RUN:} delete this paragraph and state the authorship reading as
+inference in Limitations, in those words (PLAN.md \S3, route 4).}
+
+% --- F3: the monitor comparison ------------------------------------------------------
+\begin{figure}[t]\centering
+\includegraphics[width=0.86\linewidth]{f3-monitors-vs-floors.pdf}
+\caption{\textbf{Two floors against the \monN{} open-weight monitors ranked on the same
+split.} All values are AUROC on Koran et al.'s \splitTest{}-item test split
+(\splitAttack{} attack / \splitHonest{} honest), comments stripped. Monitor scores are
+\texttt{runs/x0/monitor-summary.json} from \cite{jha2026decorrelation} (MIT); median
+\monMedian{}, max \monMax{}. \textbf{Two caveats belong here rather than in Limitations.}
+(i)~The \monN{} monitors are zero-shot prompted while the bag-of-words classifier is
+\emph{trained} on the benchmark's own paired train split --- this is a statement about
+what the corpus makes recoverable, in the sense of \cite{gururangan2018annotation}, not a
+claim that bag-of-words is a better monitor. (ii)~The no-code floor is fitted \emph{within}
+the test split by $5\times5$ cross-validation, because the released train/val split is
+paired and therefore metadata-balanced; on a single held-out slice of the same items it is
+\nocodeHeldout{}, above \nocodeHeldoutCount{} of \monN{}.}
+\label{fig:monitors}
+\end{figure}
+
+\paragraph{The second artifact the filter installs.}
+\TODO{The negative class is defined by \emph{attack failure}: \inertShare{} of Koran's
+test-split labelled backdoors do not work and are relabelled honest, so roughly 60\% of
+the ``honest'' items are failed attacks --- and attack problems carry half the test cases
+(\testCasesAttack{} vs \testCasesHonest{}), which is where the no-code floor comes from.}
+
+% --- F2: the negative control --------------------------------------------------------
+\begin{figure}[t]\centering
+\includegraphics[width=0.86\linewidth]{f2-corpus-floors.pdf}
+\caption{\textbf{The structural floor in five same-generator agentic settings.} Each
+setting's content-blind classifier --- six count features, no content read --- scored
+\emph{within task} against its own permutation null. No authorship confound is possible
+here: claude-sonnet-4, gemini-2.5-pro and gpt-5 write both classes in all five.
+\texttt{bash} sits on its null at \bashFloor{}; \texttt{agentdojo} reaches
+\agentdojoFloor{} from character count alone. \textbf{The task-group count beside each
+setting matters:} \texttt{shade} and \texttt{iac} average over five task groups each while
+\texttt{bash} averages over 247, so these floors are not equally well determined. We report
+the within-task column because our own pooled numbers partly broke on task composition,
+and we broke them ourselves. Two of these corpora declare no licence; we redistribute
+nothing and report aggregates only.}
+\label{fig:corpora}
+\end{figure}
+
+\TODO{Read F2 in prose. \textbf{Two mechanisms, one table:} authorship on APPS,
+structure on the agentic settings.}
+
+\paragraph{One paragraph, not a section.}
+\TODO{The 15-word scratchpad regex, \cotLow{}--\cotHigh{} across all five settings,
+because prompted attack policies restate their side task in the reasoning the monitor
+reads. Credit \cite{lengthpenalties2026} for the instrument --- it owns it. First item in
+the cut order if Sep 10--11 slips.}
+
+% =====================================================================================
+\section{Recommendations}
+% Budget: 1/3 page. Written as a checklist someone can apply, in Kapoor \& Narayanan's
+% register \cite{kapoor2022leakage}.
+% =====================================================================================
+
+\begin{enumerate}\itemsep0pt
+\item \TODO{\textbf{Use same-generator honest samples.} If the attack class is
+      model-written, the honest class must be too. \textbf{Precedent, not invention:}
+      \cite{guo2025codemirage} \S3.1 matches on line count and character length with a
+      rule-based gate and forced regeneration; \cite{demirok2025multiaigcd} pairs to
+      shared problem definitions.}
+\item \TODO{\textbf{Report a partial-input floor and a bag-of-words floor} beside every
+      monitor number, with a permutation null.}
+\item \TODO{\textbf{Drop inert backdoors from both classes} --- do not relabel a failed
+      attack as honest.}
+\item \TODO{\textbf{State the split, the metric and the preprocessing} whenever monitors
+      are compared.}
+\item \TODO{Released: the split definition, the regenerated honest pool, and the scripts.}
+\end{enumerate}
+
+% =====================================================================================
+\section{Limitations}
+% Budget: 1/3 page. OUTLINE.md section 5.
+% =====================================================================================
+
+\TODO{\textbf{\cite{feng2019misleading}, cited against ourselves} --- ``the failure of a
+partial-input baseline does not mean a dataset is free of artifacts'', and its converse
+binds us: a high floor is evidence about the corpus, not proof that every monitor number
+on it is meaningless. PLAN.md \S4 marks this never-cut.}
+
+\TODO{Trained-vs-zero-shot asymmetry in Figure~\ref{fig:monitors}, restated.}
+
+\TODO{Two corpora carry no licence; five are one user's repackaging. The title says
+``public releases of''.}
+
+\TODO{\textbf{If Gate S route 2 did not run:} the authorship reading is inference from
+transfer, inert-backdoor and style evidence plus the five same-generator settings ---
+\emph{and it says so in these words}.}
+
+\TODO{One benchmark family for the authorship mechanism. The generalisation claim is the
+November paper, not this one.}
+
+\TODO{\textbf{Pre-empt the AICD counter-punch; do not wait for rebuttal.} Their SVM+TF-IDF
+scores below random on their hardest task (43.05 Macro-F1 vs 45.73 random). A reviewer can
+wave that as ``bag-of-words is weak at this''. It is not comparable --- 77 generators, 9
+languages, out-of-distribution generalisation, and \textbf{Macro-F1, not AUROC}. One
+sentence. \textbf{Never quote their number next to ours} --- comparing across protocols is
+the exact error that killed this paper's previous headline. \cite{orel2026aicd}}
+
+\TODO{\textbf{The substitute generator, defended in one line.} The backdoors are
+\texttt{claude-3-7-sonnet-thinking}; our honest class is written by a local open-weight
+model. AICD's cues are language- and generator-independent and our own transfer is
+\transfer{}, so what collapses is LLM-ness, not one vendor's style.}
+
+\TODO{\textbf{Why we do not length-match, deliberately.} In deployment the untrusted model
+chooses its own trajectory length, so matching would remove a difference that belongs to
+the distribution we are modelling. Stated as a design choice, not left as an omission ---
+it is the first thing a reviewer probes.}
+
+% =====================================================================================
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

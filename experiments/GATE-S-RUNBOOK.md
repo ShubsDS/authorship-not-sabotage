@@ -20,11 +20,23 @@ Four stages, and only stage 2 touches the GPU:
 | Stage | What | Where | Wall time |
 |---|---|---|---|
 | 1 | Build the problem pool | CPU | 10 min |
-| 2 | Generate honest solutions, two models | **2× H100** | ~1 h total |
+| 2 | Generate honest solutions | **1–2× A100**, batch | ~2–3.5 h per arm |
 | 3 | Execute against shipped tests, keep the passers | CPU, many cores | 1–2 h |
 | 4 | Rebuild pairs, refit, route the title | CPU | 20 min |
 
-**Stage 3 is the risk, not stage 2.** Build and validate the harness *before* the GPU day.
+**Stage 3 was the risk, not stage 2** — the harness is now built and validated (§4.2), so as
+of 2026-09-09 the risk is stage 2's *queue time*, not any of the code.
+
+> ### ⚠️ STATUS 2026-09-09 — nothing has been generated yet
+> The 4-day interactive 2× H100 allocation expired 2026-09-07 with **nothing generated**, and
+> every H100 on the cluster is held by a job with >3d20h remaining. Gate S is now two chained
+> **batch** jobs (`apps/gate_s_gen.sbatch` → `apps/gate_s_check.sbatch`, `--dependency=afterok`)
+> which need nobody attached to a shell.
+>
+> **`PLAN.md` §6 stopping rule: if Gate S has not landed by end of Sep 10, take route 4** and
+> ship without the control. Do not spend Sep 11 debugging a generator.
+>
+> **B does not need the GPU and is already measured** — see §5.1.
 
 ---
 
@@ -101,22 +113,36 @@ python gate_s_pool.py                    # writes gate_s_pool.parquet
 
 ## 3. Stage 2 — generation (GPU)
 
-`gen_honest.py`, run twice. Offline batch inference via vLLM's `LLM` class — no server, no ports,
-nothing to leak on a shared node.
+`gen_honest.py`. Offline batch inference via vLLM's `LLM` class — no server, no ports, nothing
+to leak on a shared node.
+
+> ### ★ The arms, revised 2026-09-08. The Qwen2.5-Coder pair is RETIRED.
+> `PLAN.md` §3 is the authority; this is the executable summary.
+>
+> | Arm | Model | Role | Cards |
+> |---|---|---|---|
+> | **1 (primary — routes the title)** | `Qwen/Qwen3.8-27B` | dense, general-purpose | 1–2 |
+> | 2 | `Qwen/Qwen3-Coder-30B-A3B-Instruct` | MoE, code-specialised. Cross-model agreement answers *"a collapse might just be Qwen-vs-Claude"* | 1 |
+> | ladder | `Qwen3-8B` → `Qwen3-14B` → `Qwen3-32B` | turns Gate S from a binary into a dose-response curve in ρ | 1 / 1 / 2 |
+>
+> The old `Qwen2.5-Coder-7B` arm was killed by its own smoke test: 2/20 on interview-tier
+> problems, which yields ~150–200 pairs — too small to read. **If only one arm fits, run arm 1.**
+
+Submit as batch jobs, chained so stage 3 starts by itself:
 
 ```bash
 cd experiments/apps
+sbatch gate_s_gen.sbatch                                                    # arm 1, Qwen3.8-27B
+sbatch --export=MODEL=Qwen/Qwen3-Coder-30B-A3B-Instruct,TAG=q3c30 gate_s_gen.sbatch
+sbatch --dependency=afterok:<gen_job_id> gate_s_check.sbatch                # stage 3 + 4
+```
+
+To smoke the vLLM path first — it is the one path never exercised off the allocation:
+
+```bash
 export HF_HOME=/bigtemp/$USER/hf
-
-# smoke the vLLM path first — it is the one path never exercised off the allocation
-CUDA_VISIBLE_DEVICES=0 ../../.venv-gpu/bin/python gen_honest.py \
-  --model Qwen/Qwen2.5-Coder-7B-Instruct --out smoke_7b.jsonl --limit 20
-
-# then both arms concurrently, one card each
-CUDA_VISIBLE_DEVICES=0 ../../.venv-gpu/bin/python gen_honest.py \
-  --model Qwen/Qwen2.5-Coder-7B-Instruct  --out gen_7b.jsonl   # terminal A
-CUDA_VISIBLE_DEVICES=1 ../../.venv-gpu/bin/python gen_honest.py \
-  --model Qwen/Qwen2.5-Coder-32B-Instruct --out gen_32b.jsonl  # terminal B
+../../.venv-gpu/bin/python gen_honest.py \
+  --model Qwen/Qwen3.8-27B --out smoke_q38.jsonl --limit 20
 ```
 
 Both are **resumable**: problem_ids already in the output are skipped, so a killed job costs only
@@ -280,22 +306,29 @@ being done here.
 ### 4.3 Score the generated solutions
 
 ```bash
-python run_tests.py --solutions gen_7b.jsonl  --out pass_7b.jsonl
-python run_tests.py --solutions gen_32b.jsonl --out pass_32b.jsonl
+python run_tests.py --solutions gen_q38.jsonl   --out pass_q38.jsonl   --workers 14
+python run_tests.py --solutions gen_q3c30.jsonl --out pass_q3c30.jsonl --workers 14
 ```
 
-Report per arm: n generated, n compiled, n passed, pass rate, n timed out, n truncated. **The 32B
-will pass at a higher rate**, so the arms differ in size — report both n's; do not subsample one to
-match the other without saying so.
+Report per arm: n generated, n compiled, n passed, pass rate, n timed out, n truncated. **The
+stronger arms pass at a higher rate**, so the arms differ in size — report each arm's own n; do not
+subsample one to match another without saying so. The ladder's bottom rung is noisy by construction
+(expect ~100 pairs at 8B against ~1,444 eligible), so **let the trend carry the claim, not any
+single point**, and never fix a small n with best-of-n sampling — that is the selection artifact
+this paper audits.
 
 ---
 
 ## 5. Stage 4 — rebuild the pairs and route the title (CPU)
 
 ```bash
-python gate_s_eval.py --arm gen_7b  --pass pass_7b.jsonl
-python gate_s_eval.py --arm gen_32b --pass pass_32b.jsonl
+python gate_s_eval.py --gen-file gen_q38.jsonl   --pass-file pass_q38.jsonl   --label q38
+python gate_s_eval.py --gen-file gen_q3c30.jsonl --pass-file pass_q3c30.jsonl --label q3c30
 ```
+
+> ⚠️ These are the script's **real** flags. This file previously documented
+> `--arm ... --pass ...`, which `gate_s_eval.py` does not accept and which would have failed at
+> the first invocation on the node.
 
 For each arm, on the **same eligible problem set** (passing LLM honest solution + `backdoor_works` +
 deterministic):
@@ -306,10 +339,37 @@ deterministic):
 4. Report AUROC and pairwise accuracy, plus the character n-gram, length-only and seven-surface-feature
    rows for the same table.
 
-### The baseline the thresholds are measured against
+### 5.1 The baseline the thresholds are measured against — **measured 2026-09-09**
 
 `gate_s_eval.py` also fits the identical pipeline on the **human** honest class restricted to the same
 eligible problems. Call that **B**, and the LLM-honest number **G**.
+
+> ### ★ B needs no GPU, and it has been run: **B = 0.8714**
+> `gate_s_eval.py` requires an arm's `--gen-file`/`--pass-file`, so B was unreachable until a GPU
+> job landed — for no reason, since B is human honest code against the same backdoors. `apps/gate_s_baseline.py`
+> runs that half alone, importing `evaluate()` from `gate_s_eval` so the two cannot drift.
+>
+> ```bash
+> python fetch.py && python gate_s_pool.py && python gate_s_baseline.py
+> ```
+>
+> | | |
+> |---|---|
+> | TF-IDF AUROC (**B**) | **0.8714** (sd 0.0085 across folds) |
+> | n pairs | 1,444 — the full analysis ceiling |
+> | pairwise accuracy | 0.9605 |
+> | length-only / surface-7 | 0.6081 / 0.7673 |
+>
+> Cross-check: pairwise 0.9605 against the paper's independently computed matched-protocol
+> **0.962**, on a different pool and a different machine. Record: `apps/gate_s_baseline.json`.
+>
+> **⚠️ Two caveats that must travel with this number.**
+> 1. **It is the CEILING pool, not ρ's denominator.** B is arm-dependent: ρ needs B and G over the
+>    *same* problems, and G's eligible set is 1,444 ∩ whichever generations pass. `gate_s_eval.py`
+>    recomputes B correctly per arm. **Do not carry 0.8714 into ρ.**
+> 2. It uses the artifact's shipped `solution_passes_tests`, not our own harness flag (§4.2), because
+>    `human_verify.jsonl` lives on the cluster. Pass `--human-pass-file human_verify.jsonl` to get the
+>    1,384-problem version once that file is to hand.
 
 > **Why B is recomputed and not taken as 0.806.** 0.806 is TF-IDF trained on Koran's paired train split
 > and scored on their exact 1,375-item test split — a protocol whose honest class *is* the human code.
@@ -332,9 +392,25 @@ Retained signal **ρ = (G − 0.5) / (B − 0.5)**.
 > 0.5 + 0.33 × 0.306 = **0.601** and 0.5 + 0.72 × 0.306 = **0.720**, reproducing the 0.60 and 0.72
 > already written down. Fixed **2026-09-04, before the run.**
 
-**Route on the 32B arm.** The 7B arm is the confound diagnostic, read against `../PLAN.md` §3's
-7B × 32B table: a 7B that does not collapse while the 32B does means the 7B result was code quality,
-not authorship.
+> ### ⚠️ 0.601 and 0.720 are ILLUSTRATIVE. The measured B moves them. — 2026-09-09
+> Those two figures were computed at an assumed **B = 0.806**, which is the Koran-split headline
+> and *not* the protocol B is fitted under. Measured on the analysis ceiling, **B = 0.8714**, so the
+> absolute AUROCs the bands correspond to are:
+>
+> | ρ band | Reading | G must be |
+> |---|---|---|
+> | ≤ 0.33 | collapse → authorship | **≤ 0.6226** |
+> | 0.33–0.72 | partial | ≤ 0.7674 |
+> | > 0.72 | content → new title | **> 0.7674** |
+>
+> **The trap is a G between 0.720 and 0.767.** Read against the illustrative numbers that is
+> "content" and the paper gets retitled; read against the real ones it is "partial" and the title
+> stands. **Route on ρ, computed by `gate_s_eval.py` from that arm's own B — never by eyeballing G
+> against a remembered threshold.** The ratio itself is unchanged; only the prose figures were stale.
+
+**Route on arm 1 (`Qwen3.8-27B`).** Arm 2 and the ladder are the confound diagnostics, read against
+`../PLAN.md` §3's tables: an arm that does not collapse while arm 1 does means that arm's result was
+code quality, not authorship.
 
 **If neither arm produces usable pairs by end of Sep 8**, take the fourth route in `../PLAN.md` §3 —
 ship without the control, authorship stated as inference in Limitations. Do not spend Sep 9 debugging
@@ -354,10 +430,12 @@ refetch it. Generated solutions are ours to release.
 
 | Script | Status | Notes |
 |---|---|---|
-| `apps/gate_s_pool.py` | ✅ **written and run** | §2. Produces `gate_s_pool.parquet` and the 3,420 / 1,582 / 1,444 table. |
-| `apps/gen_honest.py` | ✅ **written, not yet run** | §3. The only GPU code in the repo, so it cannot be exercised off the allocation. Code extraction is unit-tested; the vLLM path is not. **Smoke it with `--limit 20` before the full run.** |
-| `apps/run_tests.py` | ✅ **written, validating** | §4. Full 115,212-solution human validation running. |
-| `apps/gate_s_eval.py` | ✅ **written, not yet run** | §5. Needs an arm's `gen_*.jsonl` and `pass_*.jsonl`. |
+| `apps/gate_s_pool.py` | ✅ **written and run** | §2. Produces `gate_s_pool.parquet` and the 3,420 / 1,582 / 1,444 table. Re-verified on a second machine 2026-09-09: every count exact. |
+| `apps/gen_honest.py` | ✅ **written, NOT yet run** | §3. The only GPU code in the repo, so it cannot be exercised off the allocation. Code extraction is unit-tested; the vLLM path is not. **Smoke it with `--limit 20` before the full run.** |
+| `apps/gen_honest_api.py` | ⚠️ **written, NOT run, and it spends money** | A Claude Sonnet 5 batch arm, ~$17. It is same-vendor, which no Qwen arm can be — but it breaks the standing "no paid API / $0" constraint and **that decision is still open**. See `../notes/05-permissibility.md`. |
+| `apps/run_tests.py` | ✅ **written and validated** | §4. 95.84% agreement on the analysis pool; three defects found and fixed. |
+| `apps/gate_s_baseline.py` | ✅ **written and RUN 2026-09-09** | §5.1. B = 0.8714 over n=1,444. CPU only. Imports `evaluate()` from `gate_s_eval` so the two cannot drift. |
+| `apps/gate_s_eval.py` | ✅ **written, not yet run** | §5. Needs an arm's `gen_*.jsonl` and `pass_*.jsonl`. Its **B half is now exercised** via `gate_s_baseline.py`; only the G half is untested code. |
 
 **The one untested path is vLLM.** Everything else has been run on real data. Budget the first
 20 minutes of the allocation for `gen_honest.py --limit 20`, checking that the chat template applies,

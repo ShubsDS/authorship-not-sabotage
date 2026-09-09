@@ -8,6 +8,14 @@ __pycache__/
 *.pyc
 .DS_Store
 
+# Derived data caches. These were tracked until 2026-09-09, which contradicted three
+# separate statements that we redistribute nothing (notes/05, experiments/README).
+# koran_test_code.pkl in particular held the `solutions`/`backdoors` code structs of
+# eugenekoran/apps-control-arena-high-quality — a corpus that declares NO LICENCE — as a
+# 24 MB blob. Both are rebuilt by `fetch_inputs.py` then `bow.py`; nothing is lost.
+# NOTE: untracking does not rewrite history. They remain in earlier commits.
+*.pkl
+
 # LaTeX build products
 paper/*.aux
 paper/*.log
@@ -15,6 +23,11 @@ paper/*.out
 paper/*.bbl
 paper/*.blg
 paper/*.pdf
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+# NOTE: paper/*.pdf ignores the built main.pdf only - paper/fig/*.pdf (F2, F3) is a
+# different path and stays tracked, which is intended.
 
 # Gate S run products — regenerable, and the generations are large
 *.jsonl

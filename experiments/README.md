@@ -17,9 +17,15 @@ python bow.py            # writes koran_samples.pkl
 files it writes were made by hand in the round-17 session and no script in the repo produced them, so
 a fresh clone could not reproduce the headline number.
 
-Nothing here downloads a model. Nothing here contacts a paid API. No artifact is redistributed —
-the scripts fetch public HuggingFace datasets and one MIT GitHub repo at run time, and `.gitignore`
-keeps the parquets out.
+Nothing in the CPU pipeline downloads a model or contacts a paid API, and no artifact is
+redistributed — the scripts fetch public HuggingFace datasets and one MIT GitHub repo at run time,
+and `.gitignore` keeps the parquets and the derived `.pkl` caches out.
+
+⚠️ **Two exceptions, both stated rather than implied.** `gen_honest.py` downloads open-weight
+models (Gate S, GPU). `gen_honest_api.py` **does** contact a paid API — a ~$17 Claude Sonnet 5 arm
+whose approval is an open decision (`../notes/05-permissibility.md`); it has not been run. And the
+two `.pkl` caches were **tracked in this repo until 2026-09-09**, one of them holding 24 MB of code
+from a corpus that declares no licence; they are untracked now, but they remain in git history.
 
 ---
 
@@ -44,6 +50,8 @@ subset of the first, which is what K1 established).
 | `auroc.py`, `bow.py`, `analyse.py`, `analyse2.py` | The K1 agent's lineage check, the metadata AUROCs, the inert-backdoor counts, the leak checks. |
 | `token_test.py` | The AICD App. D.1 token-level confirmation, with a permutation null. **Negative** — see `../TOKEN-TEST.md`. |
 | `gate_s_pool.py`, `gen_honest.py`, `run_tests.py`, `gate_s_eval.py` | Gate S: pool, generation (the only GPU code here), test execution, and the routing decision. See `../GATE-S-RUNBOOK.md`. |
+| `gate_s_baseline.py` | **B, the human-honest baseline Gate S routes against — CPU, ~10 min.** `gate_s_eval.py` computes B and G together and requires an arm's generation file, so B was unreachable until a GPU job landed, for no reason. This runs that half alone and **imports `evaluate()` from `gate_s_eval`** rather than reimplementing it, so the two cannot drift. **Run 2026-09-09: B = 0.8714, n = 1,444** (`gate_s_baseline.json`). |
+| `gen_honest_api.py` | ⚠️ A Claude Sonnet 5 batch arm, **~$17 — it breaks the `$0` / no-paid-API constraint and that decision is open.** Not run. See `../notes/05-permissibility.md`. |
 
 **The headline rows** (full detail in `RECOMPUTE.md`; caveats in `../lit/01`):
 
