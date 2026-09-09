@@ -35,3 +35,14 @@ paper/*.synctex.gz
 gate_s_pool.parquet
 paper/fig/*.png
 .venv-gpu/
+
+# credentials - never in this repo. The key lives outside the working tree entirely.
+*.env
+.env*
+*secret*
+*credential*
+*api_key*
+*.key
+
+# batch state files carry provider batch ids, not secrets, but they are run state
+*.batch.json
