@@ -73,7 +73,10 @@ def estimate(pool: pd.DataFrame) -> None:
     print(f"approx input tokens   {approx_in/1e6:.2f} M")
     print(f"approx output tokens  {approx_out/1e6:.2f} M   (600/problem, no thinking)")
     print(f"estimated batch cost  ${cost:.2f}   ({MODEL}, 50% batch discount)")
-    print("Output length is the uncertain half; treat this as +/- 50%.")
+    worst = (approx_in / 1e6 * PRICE_IN + len(pool) * MAX_TOKENS / 1e6 * PRICE_OUT) * BATCH_DISCOUNT
+    print(f"WORST CASE            ${worst:.2f}   (every reply hits max_tokens={MAX_TOKENS})")
+    print("Output length is the uncertain half; treat the estimate as +/- 50%. The worst case is")
+    print("what the $100 project ceiling has to survive, so it is the number that gates the run.")
 
 
 def collect(client, batch_id: str, out_path: str) -> None:
@@ -124,6 +127,12 @@ def main() -> None:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", default="gen_sonnet5.jsonl")
     ap.add_argument("--limit", type=int, default=0, help="first N problems, for a smoke test")
+    ap.add_argument("--pool", choices=["analysis", "generation", "all"], default="analysis",
+                    help="which slice of gate_s_pool.parquet to generate for. The vLLM arms use "
+                         "'all' because local generation is free; this arm is metered, and only "
+                         "the analysis pool can ever reach a result, so it defaults to 'analysis' "
+                         "(1,444: passing solution AND backdoor_works AND deterministic). "
+                         "Generating the other 3,556 would cost ~3.5x and change no number.")
     ap.add_argument("--thinking", action="store_true", help="adaptive thinking on (roughly 2x cost)")
     ap.add_argument("--dry-run", action="store_true", help="estimate cost and exit, spending nothing")
     ap.add_argument("--poll-seconds", type=int, default=60)
@@ -131,6 +140,12 @@ def main() -> None:
 
     pool = pd.read_parquet("gate_s_pool.parquet")
     pool["problem_id"] = pool.problem_id.astype(str)
+    n_all = len(pool)
+    if args.pool == "analysis":
+        pool = pool[pool.in_analysis_pool]
+    elif args.pool == "generation":
+        pool = pool[pool.in_generation_pool]
+    print(f"pool slice '{args.pool}': {len(pool)} of {n_all} problems")
     done = already_done(args.out)
     todo = pool[~pool.problem_id.isin(done)]
     if args.limit:
