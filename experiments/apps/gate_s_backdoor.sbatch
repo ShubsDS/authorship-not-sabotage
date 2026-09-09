@@ -5,10 +5,10 @@
 #
 #SBATCH --job-name=gate-s-bd
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:nvidia_h100_nvl:1
-#SBATCH --cpus-per-task=8
+#SBATCH --gres=gpu:a100:1
+#SBATCH --cpus-per-task=14
 #SBATCH --mem=100G
-#SBATCH --time=03:00:00
+#SBATCH --time=05:00:00
 #SBATCH --output=/u/fvc9ch/ai-safety/authorship-not-sabotage/experiments/apps/bd_%x_%j.log
 set -euo pipefail
 REPO=/u/fvc9ch/ai-safety/authorship-not-sabotage
