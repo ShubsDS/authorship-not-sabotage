@@ -4,9 +4,11 @@ Written 2026-09-03, current as of **2026-09-04**. Thresholds, routes and stoppin
 **now**, before the check that decides the title runs — which is the entire point of writing them
 down (`notes/03` R5, R16).
 
-**The human is serial and the GPU is trivial.** The GPU is a held 2× H100 interactive Slurm
-allocation, so Gate S costs **$0** and can be re-run. This paper's first commitment is a title, 150
-words and a correct author list on **Sep 5**, and its work starts **Sep 8**.
+~~**The human is serial and the GPU is trivial.**~~ ⚠️ **Half of this was wrong, and it cost Gate S.**
+Money was never a constraint and still is not — Gate S runs on cluster batch jobs at **$0** and can be
+re-run. But **queue time was a constraint**, and the sentence above is why nobody treated it as one:
+the 4-day interactive allocation expired 2026-09-07 with nothing generated. *A held allocation is not
+progress.* Gate S is now chained batch jobs that need nobody attached to a shell (§3).
 
 ---
 
@@ -72,10 +74,11 @@ The authorship claim needs honest code written by the **attack** model. Two rout
    on the full 5,000-row artifact (3,747 compile, 2,473 have a backdoor, 1,582 work); run the shipped
    `inputs`/`outputs` tests on CPU; keep the passers.
 
-   **The compute is a held 2× H100 interactive Slurm allocation, available for days.** It costs
-   nothing and can be re-run, which removes the whole class of "we get one shot at the GPU" risk.
-   Budget ~15–30 min for the 7B on one GPU and ~30–45 min for the 32B across both. Full command
-   sequence in `experiments/GATE-S-RUNBOOK.md` §3.
+   ~~**The compute is a held 2× H100 interactive Slurm allocation, available for days.**~~
+   ⛔ **Expired 2026-09-07 with nothing generated.** The compute is now **chained A100 batch jobs**
+   (`gate_s_gen.sbatch` → `gate_s_check.sbatch`). Still $0, still re-runnable; the risk moved from
+   "one shot at the GPU" to **queue time**, which is the thing this plan did not price. Budget
+   ~2–3.5 h per arm. Full command sequence in `experiments/GATE-S-RUNBOOK.md` §3.
 
    > ### ★ The generator protocol — **revised 2026-09-08**
    > **Arm 1 (primary): `Qwen/Qwen3.8-27B`.  Arm 2: `Qwen/Qwen3-Coder-30B-A3B-Instruct`.**
@@ -268,7 +271,28 @@ LLM-honest number is **G**. Route on **ρ = (G − 0.5) / (B − 0.5)**, the fra
 > 0.5 + 0.33 × 0.306 = **0.601**, 0.5 + 0.72 × 0.306 = **0.720**. Restated **2026-09-04, before the
 > run**; 0.806 remains the headline for the stored benchmark and is untouched.
 
-**Route on the 32B arm**; the 7B is the confound diagnostic, read against the 7B × 32B table above.
+> ### ⚠️ B IS NOW MEASURED, AND IT IS NOT 0.806 — 2026-09-09
+> **B = 0.8714** (sd 0.0085, n = 1,444), computed on the analysis ceiling by
+> `experiments/apps/gate_s_baseline.py`. This is a **CPU job that never needed the GPU**, and it was
+> blocked only because `gate_s_eval.py` demands an arm's generation file.
+>
+> The ratio is unchanged. What changes is the **absolute AUROC each band corresponds to**:
+>
+> | ρ band | 0.601 / 0.720 implied (at B = 0.806) | **actual, at B = 0.8714** |
+> |---|---|---|
+> | ≤ 0.33 collapse | 0.601 | **0.6226** |
+> | 0.33–0.72 partial | 0.720 | **0.7674** |
+>
+> **A G between 0.720 and 0.767 routes differently under the two.** Against the illustrative numbers
+> it reads "content" and the paper gets retitled; against the measured B it is "partial" and the title
+> stands. **Route on ρ as computed by `gate_s_eval.py` from that arm's own B.** Never eyeball G
+> against 0.60/0.72 — those two figures are illustrative arithmetic, not thresholds.
+>
+> ⚠️ And 0.8714 itself is **not** ρ's denominator: it is fitted on the ceiling pool, while ρ needs B
+> over the arm's realised eligible set. `gate_s_eval.py` recomputes it correctly per arm.
+
+**Route on arm 1 (`Qwen3.8-27B`)**; arm 2 and the ladder are the confound diagnostics, read against
+the tables above.
 
 **All four are a paper.** Do not spend Sep 9 debugging a generator.
 
@@ -310,9 +334,14 @@ came back NEIGHBOUR both ways, and the paper already claims only the application
 
 ## 7. Budget
 
-**$0.** The GPU is a held 2× H100 interactive Slurm allocation and every other number in the paper is
-laptop CPU or a published MIT artifact (`runs/scores/`). The optional prompted-monitor arm on the
-regenerated pool would also run on that allocation.
+**$0 as run to date.** Gate S runs as cluster A100 batch jobs and every other number in the paper is
+laptop CPU or a published MIT artifact (`runs/scores/`) — including **B, measured 2026-09-09 on a
+laptop in ten minutes**. The optional prompted-monitor arm on the regenerated pool is also free.
+
+⚠️ **One open item can make this not $0.** `experiments/apps/gen_honest_api.py` is a Claude Sonnet 5
+batch arm costing ~**$17**. It is the only same-vendor control available and no Qwen arm can replace
+it — but it breaks the standing "no paid API" constraint, and **the decision has not been made**.
+See `notes/05-permissibility.md`.
 
 **Money is not a constraint on this paper and there is nothing to trade off against it.** The two real
 constraints, in order: the **test harness** (half a day, does not exist) and **four pages of prose**

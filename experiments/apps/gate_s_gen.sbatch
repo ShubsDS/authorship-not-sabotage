@@ -14,9 +14,17 @@
 # with ~3B active, so the first is several times slower per token. Hence 3.5 hours rather than 2.
 # Generation is resumable, so a job that hits the wall clock can be resubmitted to finish the tail.
 #
+# ⚠️ GPU TYPE, corrected 2026-09-09. This line said `nvidia_h100_nvl` while PLAN.md said Gate S
+# had moved to A100s because every H100 is held by a job with >3d20h remaining — i.e. the H100
+# queue does not clear before the deadline. Commit f52a291 ("Move Gate S to A100s") only added the
+# --tp passthrough and never touched this line, so a job submitted as written would have queued
+# against exactly the cards the plan had already written off.
+#
+# Set GRES when submitting if the cluster names its A100s differently:
+#   sbatch --gres=gpu:nvidia_a100:2 --export=TP=2 gate_s_gen.sbatch
 #SBATCH --job-name=gate-s-gen
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:nvidia_h100_nvl:1
+#SBATCH --gres=gpu:a100:2
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=100G
 #SBATCH --time=03:30:00
@@ -27,7 +35,8 @@ set -euo pipefail
 REPO=/u/fvc9ch/ai-safety/authorship-not-sabotage
 MODEL="${MODEL:-Qwen/Qwen3.8-27B}"
 TAG="${TAG:-q38}"
-TP="${TP:-1}"          # tensor_parallel_size; 2 to split the model across two smaller cards
+TP="${TP:-2}"          # tensor_parallel_size. 2 on A100s (80GB): the 27.8B dense arm 1 does not
+                       # fit one card at bf16. Override TP=1 for the 8B/14B ladder rungs, which do.
 
 export HF_HOME=/bigtemp/fvc9ch/hf
 export HF_HUB_ENABLE_HF_TRANSFER=1
