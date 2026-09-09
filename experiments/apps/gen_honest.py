@@ -86,6 +86,11 @@ def main() -> None:
     ap.add_argument("--gpu-memory-utilization", type=float, default=0.90)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--limit", type=int, default=0, help="first N problems, for a smoke test")
+    ap.add_argument("--chunk", type=int, default=250,
+                    help="write results to disk every N problems. vLLM's generate() is blocking "
+                         "and returns everything at once, so a job killed inside one call loses "
+                         "ALL of it - that is how job 6559568 timed out with zero output despite "
+                         "this script being 'resumable'. Chunking makes resume actually work.")
     ap.add_argument("--generation-pool-only", action="store_true",
                     help="restrict to the 3,420 with a shipped passing solution. Off by default: "
                          "eligibility is an analysis-time filter, and generating the superset means "
@@ -139,28 +144,42 @@ def main() -> None:
     sampling = SamplingParams(temperature=0.0, top_p=1.0, max_tokens=args.max_tokens,
                               seed=args.seed)
 
-    outputs = llm.generate(prompts, sampling)
+    # Generate in chunks and flush after each one. A job killed mid-chunk loses only that chunk;
+    # everything before it is on disk and the resume filter above will skip it next time.
+    import time as _time
+    n_trunc = n_nocode = n_done = 0
+    started = _time.monotonic()
+    row_list = list(rows.iterrows())
+    for start in range(0, len(prompts), args.chunk):
+        chunk_prompts = prompts[start:start + args.chunk]
+        chunk_rows = row_list[start:start + args.chunk]
+        outputs = llm.generate(chunk_prompts, sampling)
+        with open(args.out, "a") as fh:
+            for (_, row), out in zip(chunk_rows, outputs):
+                comp = out.outputs[0]
+                code = extract_code(comp.text)
+                truncated = comp.finish_reason == "length"
+                n_trunc += truncated
+                n_nocode += (not code)
+                fh.write(json.dumps({
+                    "problem_id": row.problem_id,
+                    "model": args.model,
+                    "code": code,
+                    "raw": comp.text,
+                    "finish_reason": comp.finish_reason,
+                    "n_prompt_tokens": len(out.prompt_token_ids),
+                    "n_output_tokens": len(comp.token_ids),
+                    "truncated": bool(truncated),
+                }) + "\n")
+            fh.flush()
+        n_done += len(outputs)
+        el = (_time.monotonic() - started) / 60
+        rate = n_done / max(el, 1e-9)
+        eta = (len(prompts) - n_done) / max(rate, 1e-9)
+        print(f"  [{el:6.1f} min] {n_done}/{len(prompts)} written  "
+              f"({rate:.1f}/min, eta {eta:.0f} min)", flush=True)
 
-    n_trunc = n_nocode = 0
-    with open(args.out, "a") as fh:
-        for (_, row), out in zip(rows.iterrows(), outputs):
-            comp = out.outputs[0]
-            code = extract_code(comp.text)
-            truncated = comp.finish_reason == "length"
-            n_trunc += truncated
-            n_nocode += (not code)
-            fh.write(json.dumps({
-                "problem_id": row.problem_id,
-                "model": args.model,
-                "code": code,
-                "raw": comp.text,
-                "finish_reason": comp.finish_reason,
-                "n_prompt_tokens": len(out.prompt_token_ids),
-                "n_output_tokens": len(comp.token_ids),
-                "truncated": bool(truncated),
-            }) + "\n")
-
-    print(f"\nwrote {len(outputs)} generations to {args.out}")
+    print(f"\nwrote {n_done} generations to {args.out}")
     print(f"  truncated at max_tokens   {n_trunc}")
     print(f"  no extractable code block {n_nocode}")
     print("Both counts are failures and stay in the denominator. Next: run_tests.py")

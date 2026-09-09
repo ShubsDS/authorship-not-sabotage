@@ -19,7 +19,7 @@
 #SBATCH --gres=gpu:nvidia_h100_nvl:1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=100G
-#SBATCH --time=03:30:00
+#SBATCH --time=12:00:00
 #SBATCH --output=/u/fvc9ch/ai-safety/authorship-not-sabotage/experiments/apps/gen_%x_%j.log
 
 set -euo pipefail

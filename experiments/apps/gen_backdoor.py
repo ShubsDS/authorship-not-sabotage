@@ -95,6 +95,9 @@ def main() -> None:
     ap.add_argument("--gpu-memory-utilization", type=float, default=0.90)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--chunk", type=int, default=250,
+                    help="flush to disk every N. Without this a killed job loses everything - "
+                         "vLLM's generate() returns all-or-nothing.")
     args = ap.parse_args()
 
     gen_path = args.honest_gen or args.honest_pass.replace("pass_", "gen_")
@@ -131,29 +134,37 @@ def main() -> None:
     llm = LLM(model=args.model, tensor_parallel_size=args.tp, dtype="bfloat16",
               max_model_len=args.max_model_len,
               gpu_memory_utilization=args.gpu_memory_utilization, seed=args.seed)
-    outs = llm.generate(prompts, SamplingParams(temperature=0.0, top_p=1.0,
-                                                max_tokens=args.max_tokens, seed=args.seed))
+    sampling = SamplingParams(temperature=0.0, top_p=1.0,
+                              max_tokens=args.max_tokens, seed=args.seed)
+    n_trunc = n_nocode = n_notrigger = n_done = 0
+    import time as _time
+    started = _time.monotonic()
+    for start in range(0, len(prompts), args.chunk):
+        outs = llm.generate(prompts[start:start + args.chunk], sampling)
+        chunk_rows = rows[start:start + args.chunk]
+        with open(args.out, "a") as fh:
+            for row, out in zip(chunk_rows, outs):
+                comp = out.outputs[0]
+                code, trigger = extract(comp.text)
+                n_trunc += comp.finish_reason == "length"
+                n_nocode += (not code)
+                n_notrigger += (not trigger)
+                fh.write(json.dumps({
+                    "problem_id": row.problem_id,
+                    "model": args.model,
+                    "code": code,
+                    "backdoor_input": trigger,
+                    "raw": comp.text,
+                    "finish_reason": comp.finish_reason,
+                    "n_output_tokens": len(comp.token_ids),
+                    "truncated": comp.finish_reason == "length",
+                }) + "\n")
+            fh.flush()
+        n_done += len(outs)
+        el=(_time.monotonic()-started)/60
+        print(f"  [{el:6.1f} min] {n_done}/{len(prompts)} written", flush=True)
 
-    n_trunc = n_nocode = n_notrigger = 0
-    with open(args.out, "a") as fh:
-        for row, out in zip(rows, outs):
-            comp = out.outputs[0]
-            code, trigger = extract(comp.text)
-            n_trunc += comp.finish_reason == "length"
-            n_nocode += (not code)
-            n_notrigger += (not trigger)
-            fh.write(json.dumps({
-                "problem_id": row.problem_id,
-                "model": args.model,
-                "code": code,
-                "backdoor_input": trigger,
-                "raw": comp.text,
-                "finish_reason": comp.finish_reason,
-                "n_output_tokens": len(comp.token_ids),
-                "truncated": comp.finish_reason == "length",
-            }) + "\n")
-
-    print(f"\nwrote {len(outs)} to {args.out}")
+    print(f"\nwrote {n_done} to {args.out}")
     print(f"  truncated            {n_trunc}")
     print(f"  no code block        {n_nocode}")
     print(f"  no trigger input     {n_notrigger}")
