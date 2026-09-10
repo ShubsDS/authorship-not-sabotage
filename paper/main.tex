@@ -151,6 +151,28 @@
 \newcommand{\armOneTfidfDelta}{+0.088}
 \newcommand{\armOneLenG}{0.489}        % length carrier falls to chance while TF-IDF rises
 
+% --- Pair similarity: why the same-generator attack class needs TWO arms ------------
+% RESULTS.md 4.8-4.9. Character similarity of honest/attack pairs, comments stripped.
+% The stored benchmark's classes are largely INDEPENDENT programs, so an attack class
+% built by editing its own honest solution changes similarity as well as authorship,
+% and its S cannot separate "the benchmark measured authorship" from "we made the two
+% classes the same text". Report S beside the similarity or it is uninterpretable.
+\newcommand{\simStored}{0.469}         % stored benchmark, n=400
+\newcommand{\simStoredHigh}{2.5\%}     % share above 0.95
+\newcommand{\simStoredLow}{60.8\%}     % share below 0.60
+\newcommand{\simEdit}{0.924}           % edit arm - near-copies, n=1,110
+\newcommand{\simEditHigh}{68.7\%}
+\newcommand{\simIndep}{0.415}          % independent arm - matches the stored regime, n=600
+\newcommand{\simIndepLow}{76.8\%}
+\newcommand{\nIndep}{600}
+
+% --- Robustness of B to the pass-flag choice (RESULTS.md 4.7) ------------------------
+\newcommand{\baselineBownflag}{0.873}  % 0.8729 under our own flag
+\newcommand{\baselineBownflagN}{1{,}406}
+
+% --- Harness (RESULTS.md 4.6): re-validated after the I/O fix, analysis pool unmoved --
+\newcommand{\harnessFailWePass}{0}     % we-pass/they-fail on the analysis pool: none
+
 % --- The five same-generator agentic settings (within-task, chars only) --------------
 \newcommand{\bashFloor}{0.504}
 \newcommand{\agentdojoFloor}{0.802}
@@ -314,8 +336,10 @@ We use seven public corpora, and their per-class provenance is the object of stu
 than an assumption: in the APPS family the honest class is human and the attack class is one
 of ten named models, while in the five agentic settings the same three models write
 \emph{both} classes. \textbf{Two of the seven declare no licence}
-\cite{koran2026highquality, sinha2026controlarenacorpora}; we report aggregates, redistribute
-nothing, and say the licences are absent rather than implying they are permissive. We exclude
+\cite{koran2026highquality, sinha2026controlarenacorpora}; we report only aggregates over
+them, redistribute no corpus, and say the licences are absent rather than implying they are
+permissive. (Our release does carry one 8\,KB MIT-licensed file of published monitor scores,
+with its notice.) We exclude
 AgentHarm, whose author is an invited speaker here. Note also that the APPS-backdoor corpora
 are two views of one artifact, not two datasets: every problem in the filtered release
 \cite{koran2026highquality} is present in \cite{inglis2025appscontrolarena}, byte-identical
@@ -337,9 +361,13 @@ pairwise accuracy on a matched protocol where that floor is $0.5000$ by construc
 \paragraph{Test harness.}
 Gate S requires executing generated code, so we built a runner that feeds each shipped input
 case to a solution under per-case timeouts and address-space limits. It agrees with the
-artifact's own \texttt{solution\_passes\_tests} on \harnessAgreement{} of the analysis pool,
-and we use \emph{our own} flag for both classes: a checker stricter on one class than the
-other would manufacture exactly the artifact this paper documents.
+artifact's own \texttt{solution\_passes\_tests} on \harnessAgreement{} of the analysis pool
+and is strictly conservative there --- it never credits a solution the artifact rejects
+(\harnessFailWePass{} such cases). We use \emph{our own} flag for both classes: a checker
+stricter on one class than the other would manufacture exactly the artifact this paper
+documents. The headline does not depend on that choice --- under the artifact's flag
+$B = \baselineB$ at $n = \baselineBn{}$, under ours $B = \baselineBownflag{}$ at
+$n = \baselineBownflagN{}$, within one standard deviation of each other.
 
 % =====================================================================================
 \section{Results}
@@ -417,18 +445,58 @@ control that regenerates one side of a stored pair inherits a fresh generator ga
 of the one it removed. Isolating content requires holding authorship constant by
 construction --- one model writing both classes.
 
-\TODO{S --- the same-generator arm. One model writes honest AND backdoored solutions, so
-authorship is constant and whatever remains separable is sabotage content. Report $S$ with
-its $\pm2$sd interval, the arm's $n$, and the pass rate.
-\textbf{Read it as \texttt{gate\_s\_samegen.py} does:} authorship if the interval's upper
-bound $< 0.60$; content if its lower bound $> 0.75$; otherwise \emph{state the interval and
-do not round it into a verdict}.
-\textbf{IF S DID NOT LAND:} delete this block only. The paragraph above stands on its own
---- it is a result, not a gap --- and the authorship reading is then stated as inference in
-Limitations, in those words (PLAN.md \S3, route 4).
-\textbf{Not a same-model control:} \texttt{claude-3-7-sonnet} wrote the stored backdoors
-and is retired (404 on 2026-09-09), so the generator is same-vendor and same-lineage but a
-later generation. Say so here, not only in Limitations.}
+\paragraph{Holding authorship constant needs care about what else changes.}
+The same-generator design has one model write both classes. The obvious way to build the
+attack half is to hand the model its own honest solution and ask for a subtle bug --- which
+does hold authorship constant, but also makes each pair a program and a near-copy of that
+program. \textbf{The stored benchmark's pairs are not like that.} Measured over 400
+analysis-pool pairs, their mean character similarity is \simStored{}, with \simStoredLow{}
+of pairs below 0.60 and only \simStoredHigh{} above 0.95: a human wrote one side and a model
+wrote the other, neither from the other. An edit-based attack class therefore changes
+authorship \emph{and} pair similarity, and a low $S$ from it would be equally consistent
+with \emph{the benchmark's separability was authorship} --- the claim under test --- and
+with \emph{we made the two classes nearly the same text}. Publishing the first from such an
+arm would be this paper's own thesis committed by this paper.
+
+We therefore generate the attack class twice. The \textbf{edit} arm is shown its own honest
+solution; the \textbf{independent} arm is shown only the problem statement. Both share one
+honest class, so they differ solely in how the attack half was produced.
+
+\begin{table}[t]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{Why the same-generator control needs two arms. Character similarity of
+honest/attack pairs, comments stripped. The edit arm's classes are near-copies; the
+independent arm reproduces the stored benchmark's regime, where the two classes are largely
+independent programs. Only the independent arm changes authorship \emph{alone}.}
+\label{tab:similarity}
+\begin{tabular}{@{}l r r r l@{}}
+\toprule
+Attack class & mean sim. & $>0.95$ & $<0.60$ & changes vs.\ the benchmark \\
+\midrule
+\textbf{stored benchmark} & \simStored{} & \simStoredHigh{} & \simStoredLow{} & --- (the regime to match) \\
+edit (shown its own solution) & \simEdit{} & \simEditHigh{} & 4.3\% & authorship \emph{and} similarity \\
+\textbf{independent} (problem only) & \simIndep{} & 1.0\% & \simIndepLow{} & \textbf{authorship only} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:similarity} shows the concern was warranted and the margin is not subtle:
+\simEditHigh{} of the edit arm's pairs exceed 0.95 similarity against \simStoredHigh{} in
+the benchmark it is meant to model, and its median pair is the same program with one line
+changed. The independent arm sits in the stored regime instead, and if anything slightly
+further from it --- so it cannot manufacture a low $S$ by making the classes alike.
+\textbf{We therefore route on the independent arm} ($n = \nIndep{}$ requested), and report
+the edit arm as what it can honestly support: hold the program fixed, change only the
+sabotage, and ask whether a trivial baseline still sees it.
+
+\TODO{S itself. Report the value with its $\pm2$sd interval, the arm's realised $n$, the
+pass rate, \textbf{and the pair similarity beside it} --- without that number $S$ is not
+interpretable. \textbf{Read it as \texttt{gate\_s\_samegen.py} does:} authorship if the
+interval's upper bound $< 0.60$; content if its lower bound $> 0.75$; otherwise state the
+interval and \emph{do not round it into a verdict}.
+\textbf{IF S DID NOT LAND:} delete this block only. Everything above stands --- the arm-1
+null and the similarity result are findings, not gaps --- and the authorship reading is
+stated as inference in Limitations, in those words (PLAN.md \S3, route 4).}
 
 % --- F3: the monitor comparison ------------------------------------------------------
 \begin{figure}[t]\centering
@@ -535,12 +603,22 @@ zero-shot, ours is trained on the benchmark's own train split --- so it is a cla
 corpus in the sense of \citet{gururangan2018annotation}, not about bag-of-words as a monitor.
 
 \textbf{The generator is not the original attacker.} \texttt{claude-3-7-sonnet-thinking} is
-retired, so our classes come from a later model of the same lineage and, in the open-weight
-arm, another vendor. Some cross-model difference remains; that it is small is an inference
-from our \transfer{} transfer and \citet{orel2026aicd}'s generator-independence result, not
-something we show directly. We also do not length-match, deliberately: in deployment the
-untrusted model chooses its own trajectory length, so matching would erase a difference that
-belongs to the distribution being modelled.
+retired --- it returns 404 against a live key --- so our classes come from a later model of
+the same lineage and, in the open-weight arm, another vendor. This is a same-vendor,
+same-lineage control, not a same-model one. Some cross-model difference remains; that it is
+small is an inference from our \transfer{} transfer and \citet{orel2026aicd}'s
+generator-independence result, not something we show directly. We also do not length-match,
+deliberately: in deployment the untrusted model chooses its own trajectory length, so
+matching would erase a difference that belongs to the distribution being modelled.
+
+\textbf{Two interpreter-era artifacts, falling in opposite directions.} Executing code
+written years apart under one interpreter is not neutral. A patched \texttt{stdin} without a
+\texttt{.buffer} attribute breaks the fast-I/O idiom modern models favour, penalising the
+\emph{model} class; \texttt{fractions.gcd}, removed in Python 3.9, breaks old
+competitive-programming code, penalising the \emph{human} class. We found and fixed the
+first; the second is not fixable --- that code genuinely does not run here, so we score it
+as failing. The same-generator arm is immune, because both its classes are modern and from
+one model. $B$ is not, and we report it rather than leave it to be found.
 
 \textbf{Scope and provenance.} One benchmark family for the authorship mechanism, five
 agentic settings for the structural one; whether stored-pair corpora leak this way in
