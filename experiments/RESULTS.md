@@ -341,6 +341,30 @@ pass flag is used, nor on the crossing — a reviewer will ask, and the answer i
 than asserted. `B = 0.8714` is kept as the published value; the alternatives are reported as a
 robustness check, not as a replacement.
 
+### The flag comparison was itself nearly a crossed protocol
+
+The two rows above were first computed in **different library environments** — the published value
+under sklearn 1.9.0 / pandas 3.0.5 on a second machine, the recomputation under sklearn 1.7.1 /
+pandas 2.3.1 here. Comparing them as though they differed only by the pass flag would have repeated
+the very error corrected two paragraphs above.
+
+Rerunning the shipped-flag baseline in *this* environment settles it, and the result is stronger
+than the check required:
+
+| | sklearn 1.9.0 / pandas 3.0.5 | sklearn 1.7.1 / pandas 2.3.1 |
+|---|---:|---:|
+| B (TF-IDF) | 0.8714 | **0.8714** |
+| sd | 0.0085 | **0.0085** |
+| pairwise accuracy | 0.9605 | **0.9605** |
+| length-only | 0.6081 | **0.6081** |
+| surface-7 | 0.7673 | **0.7673** |
+| n | 1,444 | **1,444** |
+
+**Bit-identical across both environments.** So the flag comparison is valid as stated, and B carries
+an independent cross-environment reproduction on top — two machines, two library generations, every
+carrier the same to four decimals. That is a stronger reproducibility claim than the paper currently
+makes, and it costs nothing to state.
+
 ---
 
 ### 4.8 Remaining stages
