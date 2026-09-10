@@ -136,6 +136,20 @@
 \newcommand{\baselineBn}{1{,}444}
 \newcommand{\rhoCollapse}{0.33}
 \newcommand{\rhoContent}{0.72}
+% Absolute AUROC each band corresponds to AT THE MEASURED B. Do NOT use 0.601/0.720:
+% those are arithmetic at an assumed B = 0.806 and route a G in 0.720-0.767 wrongly.
+\newcommand{\gCollapseMax}{0.6226}
+\newcommand{\gPartialMax}{0.7674}
+
+% --- Arm 1: regenerate the honest half only (Qwen3-Coder-30B vs stored backdoors) -----
+% CONFOUNDED. Do not route a title on it. experiments/RESULTS.md section 3.
+\newcommand{\armOneN}{668}
+\newcommand{\armOneBprime}{0.874}      % B recomputed on arm 1's own eligible problems
+\newcommand{\armOneG}{0.962}
+\newcommand{\armOneRho}{1.234}
+\newcommand{\armOneSd}{4.78}
+\newcommand{\armOneTfidfDelta}{+0.088}
+\newcommand{\armOneLenG}{0.489}        % length carrier falls to chance while TF-IDF rises
 
 % --- The five same-generator agentic settings (within-task, chars only) --------------
 \newcommand{\bashFloor}{0.504}
@@ -187,10 +201,14 @@ is model-written. The signal transfers almost unchanged across backdoor generato
 strong on inert backdoors as on working ones, and survives the field's own comment
 stripper in the form of author bylines left inside string literals. Five same-generator
 agentic settings, where no authorship confound is possible, carry a second and structural
-floor ranging from chance to strongly leaky. We regenerate the honest class with a local
-open-weight coder model as a same-generator control, and recommend that stored-pair
-monitor evaluations report partial-input and bag-of-words floors against permutation
-nulls, use same-generator honest samples, and drop inert backdoors from both classes.
+floor ranging from chance to strongly leaky. Regenerating only the honest half does not
+isolate content: with an open-weight model writing honest solutions against the stored
+backdoors, separability \emph{rises} rather than falls, because the substitute generator
+introduces a larger authorship gap than it removes. We therefore hold authorship constant
+by construction, generating both classes from a single model, and report what a
+bag-of-words classifier can still separate. We recommend that stored-pair monitor
+evaluations report partial-input and bag-of-words floors against permutation nulls, use
+same-generator honest samples, and drop inert backdoors from both classes.
 \end{abstract}
 
 % =====================================================================================
@@ -209,15 +227,15 @@ nulls, use same-generator honest samples, and drop inert backdoors from both cla
 \TODO{Paragraph 1 --- credit the field before saying anything else. This is the condition
 on which the novelty claim survives and it is the paragraph a neighbourhood reviewer reads
 first. Must cite all six: \cite{koran2026ensemble, jha2026decorrelation,
-terekhov2026controltax, legibility2026, gewang2026attackselection, terekhov2026adaptive}.}
+terekhov2025controltax, sreevatsa2026legibility, gewang2026attackselection, terekhov2026adaptive}.}
 
 \TODO{Paragraph 2 --- the field already knows these pairs leak, with the receipts.
 Koran \S4.1 filters to working honest + working backdoors and strips comments, rationale
 stated \cite{koran2026ensemble}. Control Tax \S2.3 reports the pass-tests pre-filter and
-appendices ``Monitoring failed backdoors'' \cite{terekhov2026controltax}. Jha names the
+appendices ``Monitoring failed backdoors'' \cite{terekhov2025controltax}. Jha names the
 comment leak, ships \texttt{--leak-check}, and publishes both numbers: \hashRaw{}
 $\rightarrow$ \hashStripped{} after stripping, and length-only at \lenFiltered{}
-\cite{jha2026decorrelation}. \cite{legibility2026} is a whole paper on the comment channel.}
+\cite{jha2026decorrelation}. \cite{sreevatsa2026legibility} is a whole paper on the comment channel.}
 
 \TODO{Paragraph 3 --- what nobody has measured is what the preprocessing leaves behind.
 On the field's own filtered, comment-stripped split, TF-IDF reaches \tfidfKoran{} and a
@@ -282,27 +300,46 @@ struct & sub-fields \\
 \end{tabular}
 \end{table}
 
-\TODO{One paragraph on the artifacts, with licence and per-class provenance
-(\texttt{lit/01} \S6), including the sentence that \textbf{two of the seven corpora
-declare no licence} and that we redistribute nothing. PLAN.md \S4 marks this never-cut.
-\cite{inglis2025appscontrolarena, koran2026highquality, sinha2026controlarenacorpora}}
+Table~\ref{tab:schema} is the argument of this paper in a form that requires no
+measurement. It is the record schema of \texttt{RoganInglis/apps-control-arena}
+\cite{inglis2025appscontrolarena}, the canonical stored-pair artifact for APPS-based
+control evaluations. The attack class carries \texttt{model} and \texttt{source}, naming
+the system that produced each backdoor. The honest class carries no such field --- not
+because it was omitted, but because there is no generator to name. Honest solutions are
+taken from APPS \cite{hendrycks2021apps} and are human-written; no model is called at any
+point in their construction. Every backdoor is model-written.
 
-\TODO{One dataset and one derived copy --- not two (K1).}
+\paragraph{Artifacts and provenance.}
+We use seven public corpora, and their per-class provenance is the object of study rather
+than an assumption: in the APPS family the honest class is human and the attack class is one
+of ten named models, while in the five agentic settings the same three models write
+\emph{both} classes. \textbf{Two of the seven declare no licence}
+\cite{koran2026highquality, sinha2026controlarenacorpora}; we report aggregates, redistribute
+nothing, and say the licences are absent rather than implying they are permissive. We exclude
+AgentHarm, whose author is an invited speaker here. Note also that the APPS-backdoor corpora
+are two views of one artifact, not two datasets: every problem in the filtered release
+\cite{koran2026highquality} is present in \cite{inglis2025appscontrolarena}, byte-identical
+except a re-validated \texttt{backdoor\_works}.
 
-\TODO{Koran's split as the evaluation surface: \splitTrain{} train / \splitTest{} test
-(\splitAttack{} attack / \splitHonest{} honest), label \texttt{backdoor\_works}, comments
-stripped, reconstructed with Jha's own \texttt{src/data.py}.}
+\paragraph{Evaluation surface, and naming protocols.}
+Our headline protocol is the filtered, comment-stripped split of \cite{koran2026ensemble}:
+\splitTrain{} train and \splitTest{} test items (\splitAttack{} attack, \splitHonest{}
+honest), labelled by \texttt{backdoor\_works}, reconstructed with the released code of
+\cite{jha2026decorrelation} rather than our own. It is the surface on which \monN{}
+open-weight monitors have published per-item scores, which is what makes a floor comparable
+to a monitor at all. The raw artifact, this filtered split, pooled evaluation, matched pairs
+and within-task evaluation are five different populations, and pairwise accuracy and AUROC
+are two different metrics; every comparison below names its split, metric and preprocessing,
+and no value is placed beside a count from another protocol. The failure is not
+hypothetical --- an earlier version of this work compared a problem-level floor against a
+pairwise accuracy on a matched protocol where that floor is $0.5000$ by construction.
 
-\TODO{\textbf{Protocols must be named and kept distinct.} Raw artifact vs Koran's
-filtered split; pooled vs matched vs within-task; pairwise accuracy vs AUROC. Every
-``X above Y'' sentence states Y's split, Y's metric and Y's preprocessing. This is where
-the round-16 headline died.}
-
-\TODO{Harness fidelity: our own test runner agrees with the shipped
-\texttt{solution\_passes\_tests} on \harnessAgreement{} of the analysis pool, and we use
-our own pass flag for \emph{both} classes so the two arms are filtered symmetrically.}
-
-\TODO{AgentHarm excluded, and why (an invited speaker authored it).}
+\paragraph{Test harness.}
+Gate S requires executing generated code, so we built a runner that feeds each shipped input
+case to a solution under per-case timeouts and address-space limits. It agrees with the
+artifact's own \texttt{solution\_passes\_tests} on \harnessAgreement{} of the analysis pool,
+and we use \emph{our own} flag for both classes: a checker stricter on one class than the
+other would manufacture exactly the artifact this paper documents.
 
 % =====================================================================================
 \section{Results}
@@ -312,44 +349,86 @@ our own pass flag for \emph{both} classes so the two arms are filtered symmetric
 % --- F1: the protocol x baseline table. Generated by experiments/apps/figures.py. ----
 \input{fig/f1-protocol-baseline}
 
-\TODO{Read F1 in prose. The \lenFiltered{} $\rightarrow$ \tfidfKoran{} contrast
-\emph{is} the paper: the field's fix works on the carrier it was aimed at and does not
-reach the two beside it.}
+Table~\ref{tab:protocol-baseline} reports what a deliberately trivial classifier recovers
+under each protocol. The single most informative pair of rows is the contrast between
+\lenFiltered{} and \tfidfKoran{}. Code length --- the carrier the field's preprocessing was
+aimed at --- is driven to chance on the filtered split, exactly as intended, and the
+\texttt{\#}-count detector likewise falls from \hashRaw{} to \hashStripped{}. The fix
+works. But on that same filtered, comment-stripped split a bag-of-words classifier still
+reaches \tfidfKoran{}, above \tfidfKoranCount{} of the \monN{} monitors ranked there, and a
+classifier that reads \emph{no code at all} --- only problem difficulty, test count and
+question length --- reaches \nocodeCV{}, above \nocodeCVCount{}. The preprocessing removed
+the carrier it targeted and did not reach the two beside it.
 
-\paragraph{Authorship, three ways.}
-\TODO{(i) Cross-generator transfer \transfer{} (Control Tax $\rightarrow$ the 2023 GPT-4
-set). (ii) Working \pairWorking{} vs inert \pairInert{} --- \emph{the signal is not
-sabotage}. (iii) Style markers: \texttt{\#} present, attack 0.685 vs honest 0.176;
-\texttt{\_\_main\_\_} 0.116 vs 0.000, replicated on Koran's train split at 152/\splitTrain{}
-vs 1/\splitTrain{}.}
+\paragraph{The signal is authorship, not sabotage.}
+Three measurements point the same way. First, the classifier \emph{transfers across
+backdoor generators} at \transfer{} pairwise: trained on one attacker's backdoors it
+identifies another's almost perfectly, so what it has learned is not any single model's
+sabotage style. Second, it is as strong on \textbf{inert} backdoors (\pairInert{}) as on
+working ones (\pairWorking{}) --- if it were detecting sabotage, backdoors that do not
+function should be harder, and they are not. Third, the residual carriers are stylistic
+rather than semantic: a \texttt{\#} character is present in 0.685 of attack samples against
+0.176 of honest ones, and \texttt{\_\_main\_\_} appears in 0.116 of attack samples against
+\textbf{0.000} of honest ones, replicated on the train split at 152/\splitTrain{} versus
+1/\splitTrain{}. None of these is a property of a backdoor. All of them are properties of
+who wrote the file.
 
-\paragraph{A fourth way was tested and failed; we report it.}
-\TODO{One sentence. The AICD App.~D.1 token-level mechanism does not replicate here:
-separation \tokenSep{}, the wrong sign, permutation $p = \tokenP{}$. The reason is
-register --- AICD's human class is general-purpose GitHub code while \emph{both} of our
-classes are competitive-programming code. Note the power caveat honestly (only 8 of 10
-tokens in vocabulary) but also that the point estimate has the wrong sign, which is not
-what an underpowered true effect looks like. A reviewer who knows AICD may run exactly
-this test; far better that we ran it and said so. \cite{orel2026aicd}}
+\paragraph{A fourth test was run and failed; we report it.}
+We attempted to confirm the token-level mechanism of \cite{orel2026aicd} in our setting and
+it does not replicate: separation \tokenSep{} --- the wrong sign --- at permutation
+$p = \tokenP{}$. The reason is register. Their human class is general-purpose repository
+code, whereas \emph{both} of our classes are competitive-programming code, so an identifier
+axis that separates general human code from model code does not separate these two
+populations. Only 8 of their 10 canonical tokens are in our vocabulary, so the test is
+underpowered; but the point estimate has the wrong sign, which is not what an underpowered
+true effect looks like. We report it because a reader who knows that work may run exactly
+this test.
 
 \paragraph{An authorship leak survives the field's own comment stripper.}
-\TODO{The stripper removes \texttt{tokenize.COMMENT} tokens only --- \textbf{string
-literals are not comments}. In the comment-stripped train split an author byline
-(\texttt{Author :}) survives in \bylineHonest{}/\splitTrain{} honest vs
-\bylineAttack{}/\splitTrain{} attack samples, a triple-quoted block in \tripleHonest{}
-vs \tripleAttack{}. Human competitive-programming code stashes sample input in
-triple-quoted strings and signs itself; LLM code does neither. It is 1.9\% of the honest
-class, so it is not what drives \tfidfKoran{} --- but it is a literal authorship leak
-surviving the field's own published preprocessing.}
+The stripper removes \texttt{tokenize.COMMENT} tokens, and \textbf{string literals are not
+comments}. In the comment-stripped train split an author byline (\texttt{Author :})
+survives in \bylineHonest{} of \splitTrain{} honest samples against \bylineAttack{} of
+\splitTrain{} attack samples, and a triple-quoted block in \tripleHonest{} against
+\tripleAttack{}. Human competitive-programming code stashes sample input in triple-quoted
+strings and signs itself; model-written code does neither. At 1.9\% of the honest class
+this is not what drives \tfidfKoran{}. It is something narrower and, for our purposes,
+sharper: a literal record of authorship surviving the field's own published preprocessing.
 
-\paragraph{Gate S --- the constructive half.}
-\TODO{Regenerate the honest class with an LLM, rebuild the pairs, rerun. Report the
-human-honest baseline $B = \baselineB$ (computed under the identical protocol over
-$n$~=~\baselineBn{} pairs) --- \textbf{a reader cannot interpret the collapse without $B$}
---- then each arm's $G$, its own $n$, and its pass rate. Route on
-$\rho = (G - 0.5)/(B - 0.5)$, fixed before the run.
-\textbf{IF GATE S DID NOT RUN:} delete this paragraph and state the authorship reading as
-inference in Limitations, in those words (PLAN.md \S3, route 4).}
+\paragraph{Regenerating one half of a pair does not isolate content.}
+To test the authorship reading constructively we must remove the authorship gap and see
+what survives. The obvious move is to replace the human honest class with model-written
+solutions, keeping the stored backdoors. Under the identical pipeline the human-honest
+baseline is $B = \baselineB$ over $n = \baselineBn{}$ pairs, and thresholds were fixed
+from it before any arm ran: retained signal $\rho = (G - 0.5)/(B - 0.5)$, with
+$\rho \le \rhoCollapse{}$ ($G \le \gCollapseMax{}$) reading as authorship and
+$\rho > \rhoContent{}$ ($G > \gPartialMax{}$) as content.
+
+The move fails, informatively. With an open-weight model writing the honest class against
+the same backdoors ($n = \armOneN{}$ pairs, $B' = \armOneBprime{}$ recomputed on those same
+problems), separation does not fall --- it \emph{rises}, to $G = \armOneG{}$, giving
+$\rho = \armOneRho{}$, some \armOneSd{} standard deviations above $B'$. The carrier
+decomposition says why: TF-IDF gains \armOneTfidfDelta{} while the length carrier collapses
+to \armOneLenG{}, near chance. The new gap is lexical rather than structural --- vocabulary
+and idiom, not program size. Substituting the honest author did not remove the authorship
+confound; it replaced one with a larger one.
+
+This is a negative result about \emph{method}, and it generalises beyond our setting: any
+control that regenerates one side of a stored pair inherits a fresh generator gap in place
+of the one it removed. Isolating content requires holding authorship constant by
+construction --- one model writing both classes.
+
+\TODO{S --- the same-generator arm. One model writes honest AND backdoored solutions, so
+authorship is constant and whatever remains separable is sabotage content. Report $S$ with
+its $\pm2$sd interval, the arm's $n$, and the pass rate.
+\textbf{Read it as \texttt{gate\_s\_samegen.py} does:} authorship if the interval's upper
+bound $< 0.60$; content if its lower bound $> 0.75$; otherwise \emph{state the interval and
+do not round it into a verdict}.
+\textbf{IF S DID NOT LAND:} delete this block only. The paragraph above stands on its own
+--- it is a result, not a gap --- and the authorship reading is then stated as inference in
+Limitations, in those words (PLAN.md \S3, route 4).
+\textbf{Not a same-model control:} \texttt{claude-3-7-sonnet} wrote the stored backdoors
+and is retired (404 on 2026-09-09), so the generator is same-vendor and same-lineage but a
+later generation. Say so here, not only in Limitations.}
 
 % --- F3: the monitor comparison ------------------------------------------------------
 \begin{figure}[t]\centering
@@ -369,11 +448,16 @@ paired and therefore metadata-balanced; on a single held-out slice of the same i
 \label{fig:monitors}
 \end{figure}
 
-\paragraph{The second artifact the filter installs.}
-\TODO{The negative class is defined by \emph{attack failure}: \inertShare{} of Koran's
-test-split labelled backdoors do not work and are relabelled honest, so roughly 60\% of
-the ``honest'' items are failed attacks --- and attack problems carry half the test cases
-(\testCasesAttack{} vs \testCasesHonest{}), which is where the no-code floor comes from.}
+\paragraph{The filter installs a second artifact.}
+Labelling by \texttt{backdoor\_works} defines the negative class by \emph{attack failure}
+rather than by honesty. \inertShare{} of the test split's labelled backdoors do not work
+and are therefore relabelled honest, so a majority of the ``honest'' class consists of
+failed attacks rather than of honest solutions. This is not a neutral relabelling: attack
+problems carry roughly half as many test cases as honest ones (\testCasesAttack{} versus
+\testCasesHonest{}), because a problem with fewer tests is easier to backdoor
+undetectably. Difficulty and test count are thus correlated with the label before any code
+is read, which is precisely where the content-blind floor of \nocodeCV{} comes from. The
+filter that removes the comment channel installs a metadata channel in its place.
 
 % --- F2: the negative control --------------------------------------------------------
 \begin{figure}[t]\centering
@@ -392,14 +476,23 @@ nothing and report aggregates only.}
 \label{fig:corpora}
 \end{figure}
 
-\TODO{Read F2 in prose. \textbf{Two mechanisms, one table:} authorship on APPS,
-structure on the agentic settings.}
+The five agentic settings in Figure~\ref{fig:corpora} are the negative control, and they
+come free: the same three models write both classes, so no authorship confound is possible
+there. Any floor that survives must be structural. The result is a range rather than a
+verdict. \texttt{bash} sits on its permutation null at \bashFloor{} --- clean, and evidence
+that a content-blind floor is not automatic. \texttt{agentdojo} reaches \agentdojoFloor{}
+from character count alone. A per-benchmark floor is therefore not a formality to be waved
+through; it separates corpora that are sound from corpora that are not, and it must be
+measured per corpus rather than assumed. \textbf{Two mechanisms, one table:} authorship on
+the APPS pairs, structure on the agentic settings, and neither is visible without running
+the baseline.
 
-\paragraph{One paragraph, not a section.}
-\TODO{The 15-word scratchpad regex, \cotLow{}--\cotHigh{} across all five settings,
-because prompted attack policies restate their side task in the reasoning the monitor
-reads. Credit \cite{lengthpenalties2026} for the instrument --- it owns it. First item in
-the cut order if Sep 10--11 slips.}
+\paragraph{A third channel, noted rather than developed.}
+In the same five settings a fifteen-word regular expression over the untrusted policy's own
+scratchpad reaches \cotLow{}--\cotHigh{}, because prompted attack policies restate their
+side task in the reasoning the monitor is given. We note this only to bound the claim: the
+instrument belongs to \cite{little2026length}, which validates it properly against an LLM
+judge and a length-matched null, and we defer to that treatment.
 
 % =====================================================================================
 \section{Recommendations}
@@ -407,19 +500,25 @@ the cut order if Sep 10--11 slips.}
 % register \cite{kapoor2022leakage}.
 % =====================================================================================
 
-\begin{enumerate}\itemsep0pt
-\item \TODO{\textbf{Use same-generator honest samples.} If the attack class is
-      model-written, the honest class must be too. \textbf{Precedent, not invention:}
-      \cite{guo2025codemirage} \S3.1 matches on line count and character length with a
-      rule-based gate and forced regeneration; \cite{demirok2025multiaigcd} pairs to
-      shared problem definitions.}
-\item \TODO{\textbf{Report a partial-input floor and a bag-of-words floor} beside every
-      monitor number, with a permutation null.}
-\item \TODO{\textbf{Drop inert backdoors from both classes} --- do not relabel a failed
-      attack as honest.}
-\item \TODO{\textbf{State the split, the metric and the preprocessing} whenever monitors
-      are compared.}
-\item \TODO{Released: the split definition, the regenerated honest pool, and the scripts.}
+\begin{enumerate}\itemsep1pt
+\item \textbf{Generate both classes with the same model.} If the attack class is
+      model-written, the honest class must be too --- and, as our arm-1 null shows,
+      regenerating only one side is not sufficient, because it substitutes one authorship
+      gap for another. This is precedent rather than invention: \cite{guo2025codemirage}
+      gates its two classes on line count and character length with forced regeneration,
+      and \cite{demirok2025multiaigcd} pairs to shared problem definitions. The
+      neighbouring field treats cross-class matching as a basic requirement.
+\item \textbf{Report a partial-input floor and a bag-of-words floor beside every monitor
+      number}, each against a permutation null. Both are minutes of CPU. A monitor that
+      does not clear its corpus's own floor has not been shown to do anything.
+\item \textbf{Do not define the negative class by attack failure.} Drop inert backdoors
+      from both classes rather than relabelling a failed attack as honest, which imports
+      the attacker's success rate into the label.
+\item \textbf{State the split, the metric and the preprocessing} whenever monitors are
+      compared. ``Above $X$ of $Y$'' is meaningless without all three, and a value from one
+      protocol must never be placed beside a count from another.
+\item \textbf{Release the split definition and the scripts}, so a floor can be recomputed
+      rather than trusted. Ours accompany this paper.
 \end{enumerate}
 
 % =====================================================================================
@@ -427,39 +526,33 @@ the cut order if Sep 10--11 slips.}
 % Budget: 1/3 page. OUTLINE.md section 5.
 % =====================================================================================
 
-\TODO{\textbf{\cite{feng2019misleading}, cited against ourselves} --- ``the failure of a
-partial-input baseline does not mean a dataset is free of artifacts'', and its converse
-binds us: a high floor is evidence about the corpus, not proof that every monitor number
-on it is meaningless. PLAN.md \S4 marks this never-cut.}
+\textbf{A high floor is evidence about a corpus, not a verdict on results computed on it.}
+\citet{feng2019misleading} warn that the \emph{failure} of a partial-input baseline does not
+show a dataset is artifact-free; the converse binds us. Our floors show the label is
+recoverable without reading a backdoor, not that any particular monitor exploits that.
+Relatedly, Figure~\ref{fig:monitors} is asymmetric by construction --- those monitors are
+zero-shot, ours is trained on the benchmark's own train split --- so it is a claim about the
+corpus in the sense of \citet{gururangan2018annotation}, not about bag-of-words as a monitor.
 
-\TODO{Trained-vs-zero-shot asymmetry in Figure~\ref{fig:monitors}, restated.}
+\textbf{The generator is not the original attacker.} \texttt{claude-3-7-sonnet-thinking} is
+retired, so our classes come from a later model of the same lineage and, in the open-weight
+arm, another vendor. Some cross-model difference remains; that it is small is an inference
+from our \transfer{} transfer and \citet{orel2026aicd}'s generator-independence result, not
+something we show directly. We also do not length-match, deliberately: in deployment the
+untrusted model chooses its own trajectory length, so matching would erase a difference that
+belongs to the distribution being modelled.
 
-\TODO{Two corpora carry no licence; five are one user's repackaging. The title says
-``public releases of''.}
+\textbf{Scope and provenance.} One benchmark family for the authorship mechanism, five
+agentic settings for the structural one; whether stored-pair corpora leak this way in
+general is not established here. Two of our seven corpora declare no licence and five are
+one user's repackaging, so claims are scoped to those public releases. Finally,
+\citet{orel2026aicd} report TF-IDF scoring below random on their hardest task; that is
+Macro-F1 over 77 generators under distribution shift, and we deliberately do not place it
+beside our AUROC --- comparing across protocols is the error this paper is about.
 
-\TODO{\textbf{If Gate S route 2 did not run:} the authorship reading is inference from
-transfer, inert-backdoor and style evidence plus the five same-generator settings ---
-\emph{and it says so in these words}.}
-
-\TODO{One benchmark family for the authorship mechanism. The generalisation claim is the
-November paper, not this one.}
-
-\TODO{\textbf{Pre-empt the AICD counter-punch; do not wait for rebuttal.} Their SVM+TF-IDF
-scores below random on their hardest task (43.05 Macro-F1 vs 45.73 random). A reviewer can
-wave that as ``bag-of-words is weak at this''. It is not comparable --- 77 generators, 9
-languages, out-of-distribution generalisation, and \textbf{Macro-F1, not AUROC}. One
-sentence. \textbf{Never quote their number next to ours} --- comparing across protocols is
-the exact error that killed this paper's previous headline. \cite{orel2026aicd}}
-
-\TODO{\textbf{The substitute generator, defended in one line.} The backdoors are
-\texttt{claude-3-7-sonnet-thinking}; our honest class is written by a local open-weight
-model. AICD's cues are language- and generator-independent and our own transfer is
-\transfer{}, so what collapses is LLM-ness, not one vendor's style.}
-
-\TODO{\textbf{Why we do not length-match, deliberately.} In deployment the untrusted model
-chooses its own trajectory length, so matching would remove a difference that belongs to
-the distribution we are modelling. Stated as a design choice, not left as an omission ---
-it is the first thing a reviewer probes.}
+\TODO{If S did not land, add here, in these words: ``the authorship reading is inference
+from the transfer, inert-backdoor and style evidence together with the five same-generator
+settings.'' If S did land, delete this.}
 
 % =====================================================================================
 \bibliographystyle{plainnat}

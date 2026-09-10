@@ -22,10 +22,13 @@ wrong thing**.
 > backdoor generators, is as strong on inert backdoors as on working ones, and survives the field's
 > own comment stripper in the form of author bylines left inside string literals. Five same-generator
 > agentic settings, where no authorship confound is possible, carry a second and structural floor
-> ranging from chance to strongly leaky. We regenerate the honest class with a local open-weight
-> coder model as a same-generator control, and recommend that stored-pair monitor evaluations report
-> partial-input and bag-of-words floors against permutation nulls, use same-generator honest samples,
-> and drop inert backdoors from both classes.
+> ranging from chance to strongly leaky. Regenerating only the honest half does not isolate content:
+> with an open-weight model writing honest solutions against the stored backdoors, separability
+> *rises* rather than falls, because the substitute generator introduces a larger authorship gap than
+> it removes. We therefore hold authorship constant by construction, generating both classes from a
+> single model, and report what a bag-of-words classifier can still separate. We recommend that
+> stored-pair monitor evaluations report partial-input and bag-of-words floors against permutation
+> nulls, use same-generator honest samples, and drop inert backdoors from both classes.
 
 **~210 words. No hard number appears, and every claim is true under either Gate S outcome.**
 
@@ -51,17 +54,30 @@ and sentence 6 with:
 2. **Pairwise accuracies get three decimals.** 0.962, 0.979, 0.955, 0.994 — the resolution over
    ~2,600 pairs is 1/2,600, so a fourth decimal is one pair (`experiments/REPRODUCED.md`).
 
-## The Gate S sentence, three ways
+## The Gate S sentence — rewritten 2026-09-10, because the old one described a failed method
+
+> ### ⛔ The original control sentence is dead. Do not restore it.
+> Version A used to say *"We regenerate the honest class with a local open-weight coder model as a
+> same-generator control."* Two things are wrong with it, and both are now measured
+> (`experiments/RESULTS.md`):
+>
+> 1. **It was never same-generator.** Qwen honest against stored Claude backdoors is *cross*-generator.
+> 2. **It does not work as a control.** That is exactly arm 1, and it came back **ρ = 1.234** — G above
+>    B, +4.78 sd. Separation got *worse*. TF-IDF rose +0.088 while the length carrier fell to chance
+>    (0.489): the substitute generator swapped a human-vs-Claude gap for a larger Qwen-vs-Claude one.
+>
+> **Regenerating one half of a pair cannot isolate content.** The replacement sentence in Version A
+> says so, and it is true under every outcome below — which is the point.
+
+The arm-1 null is a *result*, not a gap, and it is what motivates the same-generator design. The
+remaining sentence to write is the one reporting **S** (one model writes both classes):
 
 | Situation | Sentence |
 |---|---|
-| Collapse (ρ ≤ 0.33) | "Regenerating the honest class with a local coder model removes the signal." |
-| Partial / no collapse | "Regenerating the honest class with a local coder model leaves *X* of it intact." |
-| **Gate S does not run** | Drop the control sentence entirely. The authorship reading then rests on transfer, inert backdoors, style markers and the five same-generator settings — **stated as inference in Limitations**, in those words (`PLAN.md` §3, route 4). |
-
-Version A's control sentence — *"We regenerate the honest class … as a same-generator control"* —
-describes the method, not the result, so it survives the first two rows unchanged. **It does not
-survive row three**; if Gate S does not run, that sentence has to go.
+| S near 0.5 (interval upper < 0.60) | "With one model writing both classes the signal disappears: the stored benchmark's separability was authorship." |
+| S clearly high (interval lower > 0.75) | "Even with authorship held constant the classifier separates at *S*, so these backdoors carry real surface signal — and the recommendation shifts to reporting the floor, not to same-generator sampling alone." |
+| **Interval spans the bands** | State the interval. `gate_s_samegen.py` deliberately refuses to round an inconclusive interval into a verdict; the abstract must not do it either. |
+| **S does not land by the deadline** | Keep the arm-1 null (it stands alone), drop the "we therefore hold authorship constant" clause to a method sentence in Limitations, and state the authorship reading as inference — in those words (`PLAN.md` §3, route 4). |
 
 ## Title
 
