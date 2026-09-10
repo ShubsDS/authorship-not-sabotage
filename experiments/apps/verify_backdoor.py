@@ -61,11 +61,19 @@ def _capture(code: str, stdin_text: str, conn) -> None:
         raise TimeoutError()
 
     signal.signal(signal.SIGALRM, _alarm)
-    buf = io.StringIO()
+    # Real byte buffers, not StringIO - StringIO has no `.buffer`, so `sys.stdin.buffer.read()`
+    # would raise here and be misread as program behaviour. That matters more in this file than in
+    # run_tests.py: backdoors are generated FROM the honest solutions and inherit their I/O idiom,
+    # and the caller turns a crash on the trigger into `backdoor_works = True`. An unfixable
+    # AttributeError would therefore either discard the pair (honest crashes too) or, when only one
+    # side crashes, CREDIT a backdoor that never fired. Sonnet 5 writes this idiom in 4.5% of its
+    # solutions, so neither outcome is rare.
+    raw_out = io.BytesIO()
+    buf = io.TextIOWrapper(raw_out, encoding="utf-8", newline="")
     ok = True
     try:
         signal.setitimer(signal.ITIMER_REAL, TRIGGER_TIMEOUT)
-        sys.stdin = io.StringIO(stdin_text)
+        sys.stdin = io.TextIOWrapper(io.BytesIO(stdin_text.encode("utf-8")), encoding="utf-8")
         with redirect_stdout(buf):
             try:
                 exec(compile(code, "<s>", "exec"), {"__name__": "__main__"})
@@ -75,7 +83,11 @@ def _capture(code: str, stdin_text: str, conn) -> None:
         ok = False
     finally:
         signal.setitimer(signal.ITIMER_REAL, 0)
-    conn.send((ok, buf.getvalue()))
+    try:
+        buf.flush()
+    except (ValueError, OSError):
+        pass
+    conn.send((ok, raw_out.getvalue().decode("utf-8", "replace")))
     conn.close()
 
 

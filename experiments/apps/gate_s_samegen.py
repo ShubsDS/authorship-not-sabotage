@@ -56,6 +56,22 @@ def main() -> None:
     bd_ok = {json.loads(l)["problem_id"] for l in open(f"bdpass_{tag}.jsonl")
              if l.strip() and json.loads(l)["passes_tests"] and json.loads(l)["backdoor_works"]}
 
+    # The whole claim of this arm is that ONE model wrote both classes. Nothing above enforces it -
+    # the files are located by tag, so a mismatched pair produces a confident and wrong verdict.
+    # (Observed: Sonnet 5 honest against the stored claude-3-7 backdoors scores S=0.92 and prints
+    # "CONTENT", when it is really a cross-generator comparison - the G arm under another name.)
+    hon_models = {json.loads(l).get("model") for l in open(f"gen_{tag}.jsonl") if l.strip()}
+    bd_models = {json.loads(l).get("model") for l in open(f"bd_{tag}.jsonl") if l.strip()}
+    if hon_models != bd_models:
+        raise SystemExit(
+            f"REFUSING: the two classes do not share a generator.\n"
+            f"  honest   {sorted(m or '?' for m in hon_models)}\n"
+            f"  backdoor {sorted(m or '?' for m in bd_models)}\n"
+            f"This script measures what survives when authorship is held constant. With different\n"
+            f"generators on the two sides it measures authorship instead, and its verdict lines\n"
+            f"would be wrong rather than merely weak. Use gate_s_eval.py for cross-generator arms.")
+    print(f"generator on both sides: {sorted(hon_models)[0]}")
+
     eligible = sorted(hon_pass & bd_ok & set(honest) & set(bd))
     print(f"honest generated {len(honest)}, of which pass tests {len(hon_pass)}")
     print(f"backdoors generated {len(bd)}, of which usable {len(bd_ok)}")
