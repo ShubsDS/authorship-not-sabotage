@@ -295,6 +295,10 @@ The harness is also **strictly conservative on the analysis pool** — 60 we-fai
 
 ### The residual disagreements are a Python-version artifact, not a harness defect
 
+**This was already known, not newly found.** `GATE-S-RUNBOOK.md` §4.2 recorded "19 `ImportError`
+from the pre-3.9 Python gap" on 2026-09-04. What follows confirms that diagnosis at the full scale
+and names the exact call; it does not discover it.
+
 Across the full run, `ImportError` accounts for 250 of the we-fail/they-pass rows over 122 problems.
 The dominant cause:
 

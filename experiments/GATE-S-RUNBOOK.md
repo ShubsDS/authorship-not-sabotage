@@ -252,6 +252,14 @@ are not comparable — which would produce a collapse that is an artifact of our
 
 > ### ✅ RUN 2026-09-04 — **95.84 % on the analysis pool. Use our own flag for both classes.**
 >
+> ♻️ **Re-run 2026-09-10 after the harness changed, and the headline held.** `run_tests.py` was
+> fixed that day (`StringIO` has no `.buffer`, so `sys.stdin.buffer.read()` failed instantly), which
+> touched the I/O path every solution runs through, so this table could not simply be assumed to
+> carry over. Re-scored: **the analysis pool is unchanged to four decimals — 0.9584, still 60
+> disagreements.** The wider populations moved slightly (3,765: 0.9575 → 0.9586, 141 → 137). The
+> 95.84 % figure below stands and is still the one to report. Full comparison, and the two protocol
+> crossings it took to make it honest, in **`RESULTS.md` §4.6**.
+>
 > | population | n | agreement | we fail / they pass |
 > |---|---|---|---|
 > | every row with a solution | 3,765 | **0.9575** | 141 |
@@ -367,9 +375,13 @@ eligible problems. Call that **B**, and the LLM-honest number **G**.
 > 1. **It is the CEILING pool, not ρ's denominator.** B is arm-dependent: ρ needs B and G over the
 >    *same* problems, and G's eligible set is 1,444 ∩ whichever generations pass. `gate_s_eval.py`
 >    recomputes B correctly per arm. **Do not carry 0.8714 into ρ.**
-> 2. It uses the artifact's shipped `solution_passes_tests`, not our own harness flag (§4.2), because
->    `human_verify.jsonl` lives on the cluster. Pass `--human-pass-file human_verify.jsonl` to get the
->    1,384-problem version once that file is to hand.
+> 2. It uses the artifact's shipped `solution_passes_tests`, not our own harness flag (§4.2).
+>    ✅ **Done 2026-09-10** — the human harness output now exists as `pass_human_fixed.jsonl`:
+>    `gate_s_baseline.py --human-pass-file pass_human_fixed.jsonl` gives **B = 0.8729, n = 1,406**,
+>    against the published 0.8714 at n = 1,444. Within one sd, so the headline does not depend on the
+>    flag. The n is 1,406 rather than the 1,384 predicted here because 1,384 is the stricter
+>    `solutions[0]` reading; 1,406 admits any solution our harness passed and now *uses that
+>    solution*, which it did not before — see `RESULTS.md` §4.7 for the crossed protocol that fixed.
 
 > **Why B is recomputed and not taken as 0.806.** 0.806 is TF-IDF trained on Koran's paired train split
 > and scored on their exact 1,375-item test split — a protocol whose honest class *is* the human code.
