@@ -29,25 +29,31 @@ import time
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gen_backdoor import PROMPT, extract  # noqa: E402 - identical to the local arm by construction
+from gen_backdoor import PROMPT, PROMPT_INDEPENDENT, extract  # noqa: E402 - shared with the local arm
 from gen_honest import already_done  # noqa: E402
 
 MODEL = "claude-sonnet-5"
 MAX_TOKENS = 4096
 PRICE_IN, PRICE_OUT, BATCH_DISCOUNT = 2.00, 10.00, 0.5
 STATE_FILE = "bd_sonnet5.batch.json"
+STATE_FILE_IND = "bdind_sonnet5.batch.json"
 BUDGET_CEILING = 100.0   # hard stop: total spend on this project must stay under $100
 
 
-def build(pool: pd.DataFrame, honest: dict):
+def build(pool: pd.DataFrame, honest: dict, independent: bool = False):
     from anthropic.types.message_create_params import MessageCreateParamsNonStreaming
     from anthropic.types.messages.batch_create_params import Request
     reqs, kept = [], []
     for _, row in pool.iterrows():
         sol = honest.get(row.problem_id, "")
-        if not sol.strip():
+        # The independent arm never shows the model a reference solution - that is the whole point -
+        # but it stays on the same problems as the edit arm so the two are comparable.
+        if not independent and not sol.strip():
             continue
-        body = PROMPT.replace("<question>", row.question).replace("<solution>", sol)
+        if independent:
+            body = PROMPT_INDEPENDENT.replace("<question>", row.question)
+        else:
+            body = PROMPT.replace("<question>", row.question).replace("<solution>", sol)
         reqs.append(Request(custom_id=f"p{row.problem_id}",
                             params=MessageCreateParamsNonStreaming(
                                 model=MODEL, max_tokens=MAX_TOKENS,
@@ -57,13 +63,15 @@ def build(pool: pd.DataFrame, honest: dict):
     return reqs, kept
 
 
-def estimate(pool: pd.DataFrame, honest: dict, spent_so_far: float) -> float:
-    chars = sum(len(r.question) + len(honest.get(r.problem_id, "")) + 400
+def estimate(pool: pd.DataFrame, honest: dict, spent_so_far: float,
+             independent: bool = False) -> float:
+    chars = sum(len(r.question) + (0 if independent else len(honest.get(r.problem_id, ""))) + 400
                 for _, r in pool.iterrows())
     approx_in, approx_out = chars / 4, len(pool) * 700
     cost = (approx_in / 1e6 * PRICE_IN + approx_out / 1e6 * PRICE_OUT) * BATCH_DISCOUNT
     print(f"problems              {len(pool)}")
-    print(f"approx input tokens   {approx_in/1e6:.2f} M   (question + honest solution + prompt)")
+    what = "question + prompt" if independent else "question + honest solution + prompt"
+    print(f"approx input tokens   {approx_in/1e6:.2f} M   ({what})")
     print(f"approx output tokens  {approx_out/1e6:.2f} M")
     print(f"estimated batch cost  ${cost:.2f}")
     print(f"already spent         ${spent_so_far:.2f}")
@@ -82,6 +90,11 @@ def main() -> None:
     ap.add_argument("--spent", type=float, default=0.0,
                     help="dollars already spent on this project, for the budget ceiling")
     ap.add_argument("--poll-seconds", type=int, default=60)
+    ap.add_argument("--independent", action="store_true",
+                    help="write the backdoored solution from the PROBLEM ALONE, never shown a "
+                         "reference solution. The default arm edits the model's own honest "
+                         "solution, which also makes the pair a near-copy; this one changes only "
+                         "authorship, matching the benchmark's independent-programs structure.")
     args = ap.parse_args()
 
     gen_path = args.honest_gen or args.honest_pass.replace("pass_", "gen_")
@@ -100,7 +113,7 @@ def main() -> None:
         print("nothing to do")
         return
 
-    cost = estimate(todo, honest, args.spent)
+    cost = estimate(todo, honest, args.spent, args.independent)
     if args.spent + cost > BUDGET_CEILING:
         raise SystemExit(f"\nREFUSING: projected ${args.spent + cost:.2f} exceeds the "
                          f"${BUDGET_CEILING:.0f} ceiling. Narrow the pool with --limit.")
@@ -113,16 +126,17 @@ def main() -> None:
         raise SystemExit("ANTHROPIC_API_KEY is not set")
     client = anthropic.Anthropic()
 
+    state_file = STATE_FILE_IND if args.independent else STATE_FILE
     batch_id = None
-    if os.path.exists(STATE_FILE):
-        batch_id = json.load(open(STATE_FILE))["batch_id"]
+    if os.path.exists(state_file):
+        batch_id = json.load(open(state_file))["batch_id"]
         print(f"resuming batch {batch_id}")
     if batch_id is None:
-        reqs, kept = build(todo, honest)
+        reqs, kept = build(todo, honest, args.independent)
         print(f"\nsubmitting {len(reqs)} backdoor requests to {MODEL} ...")
         batch = client.messages.batches.create(requests=reqs)
         batch_id = batch.id
-        json.dump({"batch_id": batch_id, "n": len(reqs)}, open(STATE_FILE, "w"))
+        json.dump({"batch_id": batch_id, "n": len(reqs)}, open(state_file, "w"))
         print(f"batch {batch_id}; state saved")
 
     started = time.time()
@@ -152,6 +166,7 @@ def main() -> None:
             tout += msg.usage.output_tokens
             fh.write(json.dumps({
                 "problem_id": res.custom_id[1:], "model": MODEL, "code": code,
+                "arm": "independent" if args.independent else "edit",
                 "backdoor_input": trig, "raw": text, "finish_reason": msg.stop_reason,
                 "n_output_tokens": msg.usage.output_tokens,
                 "truncated": msg.stop_reason == "max_tokens",
@@ -160,7 +175,7 @@ def main() -> None:
     spend = (tin / 1e6 * PRICE_IN + tout / 1e6 * PRICE_OUT) * BATCH_DISCOUNT
     print(f"\nsucceeded {n_ok} | no code {n_nocode} | no trigger {n_notrig} | truncated {n_trunc}")
     print(f"ACTUAL COST ${spend:.2f}   (running total ${args.spent + spend:.2f})")
-    os.remove(STATE_FILE)
+    os.remove(state_file)
     print(f"\nNext: verify_backdoor.py --backdoors {args.out} --honest-gen {gen_path} "
           f"--out bdpass_sonnet5.jsonl")
 
