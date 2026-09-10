@@ -152,5 +152,14 @@ own-goal a reviewer may notice.
 
 MIT is the obvious default (it matches `RoganInglis/apps-control-arena` and
 `anik-jha/challenger-panels`, the two artifacts this work builds on most directly), but **the choice
-is the authors' and has not been made.** Whatever is chosen, add the file and include the MIT notice
-for the `monitor-summary.json` that ships in the repo.
+is the authors' and has not been made.** It is a one-line decision and nothing else blocks on it.
+
+> ✅ **The third-party half is done (2026-09-10).** `THIRD-PARTY-NOTICES.md` now carries Jha's MIT
+> licence in full for the `monitor-summary.json` this repo redistributes, which is what that licence
+> requires of a redistributor. The tracked file was checked against upstream before the notice was
+> written rather than after: **byte-identical**, 5,797 bytes, matching SHA-256 prefix `ca60d68c`,
+> 24 rows. That notice stands whatever licence the authors pick for their own code.
+>
+> ⛔ **Still open: the repo's own `LICENSE`.** Redistributing someone else's MIT file correctly does
+> not grant anyone permission to reuse *our* split definition or scripts. Until that file exists the
+> release is still a release without a licence.
