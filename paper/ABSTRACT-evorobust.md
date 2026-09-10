@@ -66,5 +66,5 @@ survive row three**; if Gate S does not run, that sentence has to go.
 ## Title
 
 The EvoRobust title is not locked by anything and can be decided on Sep 12. Route-agnostic option,
-same as the FLLMPT one: **What Survives the Filter? Trivial Baselines on Stored Honest/Attack Pairs
+**What Survives the Filter? Trivial Baselines on Stored Honest/Attack Pairs
 in AI-Control Monitoring**. If Gate S collapses, *Authorship, Not Sabotage* is stronger.

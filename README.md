@@ -3,8 +3,12 @@
 **Trivial baselines on the stored honest/attack pairs behind open AI-control monitoring results.**
 
 Target: **EvoRobust @ NeurIPS 2026** (Sydney) — 4 content pages, non-archival, **deadline Sep 12 AoE**.
-Free dual: **FLLMPT** (Paris), paper Sep 12 23:00 **GMT**, iff the abstract is registered Sep 5 23:00 GMT.
-Both non-archival, both explicitly permit concurrent submission ([`notes/01`](notes/01-venue-evorobust.md)).
+Non-archival, and it permits concurrent submission ([`notes/01`](notes/01-venue-evorobust.md)).
+
+> **FLLMPT was dropped on 2026-09-10.** It was only ever reachable by registering an abstract before
+> Sep 5 23:00 GMT; that date passed unregistered, so the option expired. **EvoRobust is the sole
+> target.** Its G2 record stays in `notes/01` because the check was really run, but no schedule,
+> deadline or format in this repo depends on FLLMPT any more.
 
 Split out of the `beyond-private-training` ideation repo on 2026-09-03, after seventeen rounds of
 board work and one round of experiments. That repo keeps the full round-by-round history; this one
@@ -81,7 +85,7 @@ Current as of **2026-09-09**. Three days to the deadline.
 | The paper as a document | ⚠️ **Scaffold only.** [`paper/main.tex`](paper/README.md) compiles clean (NeurIPS 2026, `dblblindworkshop`, zero overfull boxes) with every number as a macro, both tables, all three figures and 28 bib entries wired. **The four pages of prose are not written**, and it is already ~4.3 content pages against a 4-page limit. |
 | The confound, with no experiment at all | `backdoors` carries `model` and `source`; `solutions` carries neither. **The honest class has no generator field because it has no generator.** |
 | Figures | 3 remain (protocol × baseline; per-corpus floors with permutation nulls; monitor-vs-floor dot plot) |
-| Venue gates | **G2 run for both venues.** EvoRobust: PASS, conditional on excluding AgentHarm. FLLMPT: PASS, no organiser or speaker authored any of our corpora. Page limit, dual-submission and title-change policies all verified 2026-09-04. [`notes/01`](notes/01-venue-evorobust.md) |
+| Venue gates | **G2 PASS for EvoRobust**, conditional on excluding AgentHarm. Page limit, dual-submission and title-change policies verified 2026-09-04. (G2 was also run for FLLMPT, now dropped.) [`notes/01`](notes/01-venue-evorobust.md) |
 | Prose | 4 pages, Sep 10–11. **The larger of the two remaining risks**, the other being the harness. |
 
 ## Layout
@@ -92,7 +96,7 @@ Current as of **2026-09-09**. Three days to the deadline.
 | [`experiments/`](experiments/README.md) | Every script behind every number, plus the recompute logs |
 | [`lit/01`](lit/01-verified-bibliography.md) | Verified citations, the K2 grep record with its positive controls, the out-of-field neighbours |
 | [`experiments/GATE-S-RUNBOOK.md`](experiments/GATE-S-RUNBOOK.md) | **The step-by-step execution guide for Gate S** — environment, generation, test harness, routing |
-| [`notes/01`](notes/01-venue-evorobust.md) | EvoRobust and FLLMPT off their own CFP pages, G2 run for both; AIWILD recorded as out for this cycle |
+| [`notes/01`](notes/01-venue-evorobust.md) | EvoRobust off its own CFP page, G2 run; FLLMPT and AIWILD recorded as out for this cycle |
 | [`notes/02`](notes/02-scores-and-gates.md) | The paper on the acceptance/safety rubric, and all five gates run |
 | [`notes/03`](notes/03-method-rules.md) | The standing rules that bind this paper, each bought with a failure |
 | [`notes/04`](notes/04-dead-framings.md) | What is already dead here — read before rewriting a sentence |

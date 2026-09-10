@@ -1,4 +1,10 @@
-# The venues — EvoRobust Sep 12, FLLMPT as a free dual, AIWILD closing Sep 5
+# The venues — EvoRobust Sep 12 (FLLMPT and AIWILD both out)
+
+> ⛔ **FLLMPT was DROPPED on 2026-09-10, and AIWILD is out for this cycle. EvoRobust is the sole
+> target.** FLLMPT was only reachable by registering an abstract before Sep 5 23:00 GMT; that gate
+> passed unregistered, so the option expired. Everything about FLLMPT below is kept as the record of
+> a check that was really performed — its G2 pass, its format, its 23:00 GMT wall — but **none of it
+> constrains this paper any more.** Read the FLLMPT rows as history, not as a live deadline.
 
 Every row below was confirmed by fetching the workshop's own CFP page, not an aggregator. EvoRobust
 and FLLMPT were both re-fetched on **2026-09-04** and every date, page limit and policy below is off

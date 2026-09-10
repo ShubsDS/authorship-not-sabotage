@@ -20,9 +20,9 @@ figures and four pages**. The risk is in the four pages and in the test harness 
 nowhere else.
 
 **Every check that could void the framing has been run.** G1 is discharged (`lit/01` §4 — both
-AI-code-detection neighbours read end to end, both NEIGHBOUR). G2 is discharged for **both** venues
-(`notes/01` — EvoRobust conditional on excluding AgentHarm; FLLMPT clear, no organiser or speaker
-authored any of our corpora). Under R16, **the split and the paper are clear to be made public the
+AI-code-detection neighbours read end to end, both NEIGHBOUR). G2 is discharged for EvoRobust
+(`notes/01` — conditional on excluding AgentHarm). FLLMPT was dropped 2026-09-10; **EvoRobust is the
+sole target.** Under R16, **the split and the paper are clear to be made public the
 moment Gate S returns.** Nothing else gates publication.
 
 **The one thing that does not exist yet is the test harness** (§3). It is the critical path, not the
@@ -32,13 +32,13 @@ GPU. `experiments/GATE-S-RUNBOOK.md` is the step-by-step execution guide for all
 
 | Day | What | Notes |
 |---|---|---|
-| **Sep 5** | **Register the FLLMPT abstract before 23:00 GMT** | Title + 150 words from §2, **and the full author list with OpenReview profiles** — the author list is the only thing that locks on this date. The title does not (`notes/01`). Free, dual explicitly allowed. An option that expires. |
+| ~~Sep 5~~ | ⛔ **FLLMPT DROPPED 2026-09-10.** The abstract was never registered before the Sep 5 23:00 GMT gate, so the option expired exactly as this row warned. | One target now: EvoRobust. Nothing downstream depends on it — the 4-page PDF, the AoE deadline and the format were always EvoRobust's. |
 | ~~Sep 6–7~~ | ✅ **Harness built and validated 2026-09-04**, three days early. **95.84 %** agreement on the analysis pool → *use our own pass flag for both classes* (`GATE-S-RUNBOOK.md` §4.2). | Three defects found and fixed, all failing old human code specifically. |
 | ~~Sep 8~~ | ⏳ **GATE S IS LATE.** The interactive allocation expired 2026-09-07 with nothing generated. Now queued as batch jobs on A100s, estimated start **2026-09-09**. | The only missing number in the paper. Route 4 (§3) applies if it does not land by Sep 10. |
 | ~~Sep 8, CPU~~ | ⛔ **RUN EARLY AND NEGATIVE, 2026-09-04.** The AICD App. D.1 token test does **not** replicate here: separation −0.013 in the wrong direction, permutation p = 0.956. `li`, `nums` and `cur` — AICD's canonical *human* identifiers — are among our strongest *attack*-pushing features, because both our classes are competitive-programming code and AICD's human class is general-purpose GitHub code. **The mechanism stays borrowed.** Full record and the by-product finding: `experiments/TOKEN-TEST.md`. | It was the cheapest strengthening available and it did not pay. §3 goes back to **three** ways, and the paper reports the negative in one sentence rather than letting a reviewer run it. |
 | ~~Sep 9~~ | ✅ **All three figures built 2026-09-04**, five days early, and every number in them re-verified on this machine (`experiments/REPRODUCED.md`). F1 is a LaTeX table, F2 and F3 are PDFs, captions drafted in `paper/fig/CAPTIONS.md`. | Building F3 caught a crossed protocol/count pairing that had reached the README. |
 | **Sep 10–11** | Write four pages. | First paragraph cites `2605.15377`, `2608.16190`, `2602.10153`, `2506.05296`, `2606.06529`, `2510.09462`; Limitations cites `1905.05778` **against ourselves**. |
-| **Sep 12** | **Submit to EvoRobust.** Submit to FLLMPT iff the abstract was registered. | EvoRobust is **AoE**; FLLMPT is **23:00 GMT — 13 hours earlier**. Do not learn this on the day. FLLMPT takes the NeurIPS main-track format (9-page limit), so the 4-page PDF drops in legally as-is; disclose the concurrent submission on their form. |
+| **Sep 12** | **Submit to EvoRobust.** | **AoE**, so the effective wall is 2026-09-13 11:59 UTC. 4 content pages, non-archival. No concurrent submission to disclose. |
 
 ## 2. The abstract, as it stands before Gate S
 
@@ -354,6 +354,8 @@ Judgment, not measurement — the point is that they are written down before the
 | Path | P(submit) | P(accept ¦ submit) |
 |---|---|---|
 | EvoRobust, Sep 12 | 0.80 | 0.45–0.55 |
-| FLLMPT, Sep 12 | 0.60 — **only if the abstract is registered Sep 5** | 0.30–0.40 |
+
+FLLMPT was dropped 2026-09-10 (abstract never registered by its Sep 5 gate), so it carries no
+probability mass.
 
 The risk on this paper is the writing and the harness, not the science.
