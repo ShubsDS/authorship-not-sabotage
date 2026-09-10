@@ -173,13 +173,102 @@ next to the point estimate, because the worst case is the number a budget ceilin
 | all 5,000 (as originally coded) | $17.00 | $102.00 | not run |
 | **1,444 analysis pool (as run)** | **$5.00** | **$30.24** | **$8.62** |
 
-### 4.3 Remaining stages
+### 4.3 Honest class — test execution
+
+```
+python run_tests.py --solutions gen_sonnet5.jsonl --out pass_sonnet5.jsonl --workers 8
+```
+
+**1,112 of 1,444 pass — 77.01%.** 1,444 solutions in 152.7 s.
+
+| Failure reason | n |
+|---|---:|
+| mismatch | 293 |
+| timeout | 17 |
+| compile: SyntaxError | 13 |
+| raised: ValueError | 3 |
+| raised: IndexError | 2 |
+| raised: NameError | 2 |
+| raised: TypeError | 1 |
+| budget exceeded or died | 1 |
+| **passed** | **1,112** |
+
+Pass rate splits sharply on whether generation was truncated, which is why truncation is counted
+rather than ignored:
+
+| Generation outcome | n | passed | rate |
+|---|---:|---:|---:|
+| clean (not truncated) | 1,331 | — | — |
+| truncated, partial code kept | 31 | — | — |
+| truncated, no code | 82 | 0 | 0.0000 |
+
+(Split measured on the pre-fix run; the group sizes are unchanged by the fix in §4.4.)
+
+---
+
+## 4.4 A harness artifact found mid-run, and why it mattered
+
+The first execution of the honest class returned **1,062 / 1,444 (73.55%)** with a conspicuous
+cluster of **61 `AttributeError`s**, every one failing at case 0 in ~0.1 s — before the program
+could compute anything.
+
+**Cause.** `run_tests.py` patched stdin with `io.StringIO`, which has no `.buffer` attribute. Any
+solution using `sys.stdin.buffer.read()` — a standard competitive-programming fast-I/O idiom —
+raised `AttributeError` immediately, whatever it would have computed. `sys.stdout.buffer.write()`
+had the same defect.
+
+**Fix.** Wrap real byte buffers: `io.TextIOWrapper(io.BytesIO(...))` exposes `.buffer` natively, so
+the text and binary paths both work.
+
+| | before | after |
+|---|---:|---:|
+| passed | 1,062 (73.55%) | **1,112 (77.01%)** |
+| `raised: AttributeError` | 61 | **0** |
+| fail → pass | — | **50** |
+| **pass → fail (regressions)** | — | **0** |
+
+The 11 ex-`AttributeError` solutions that still fail now report a real diagnosis (9 mismatch,
+1 IndexError, 1 TypeError) instead of having it masked.
+
+### Why this was not a routine bug
+
+The idiom is **class-correlated**, so the artifact was invisible on the benchmark as shipped and
+became load-bearing only once a generator that writes this way was introduced:
+
+| Class | uses `std{in,out}.buffer` | rate |
+|---|---:|---:|
+| human honest (the B class) | 2 / 3,420 | 0.06% |
+| stored `claude-3-7` backdoors | 0 / 1,582 | 0.00% |
+| **Claude Sonnet 5 honest** | **61 / 1,362** | **4.48%** |
+
+Two consequences:
+
+1. **B = 0.8714 is unaffected and is not recomputed.** The bug touches 2 human solutions and zero
+   backdoors — far below its ±0.0085 standard deviation.
+2. **It would have biased arm 2 in the worst possible direction.** The 61 are not a random 4.5% of
+   the honest class; they are exactly its fast-I/O stylistic subgroup. Silently dropping them would
+   have reshaped the honest class's style distribution along the same lexical axis the TF-IDF
+   classifier reads — a methodology artifact manufacturing a result, which is the failure mode this
+   paper exists to document. The paper would have been produced by the bug it is about.
+
+The idiom gap is also a finding in its own right: Sonnet 5 uses this construction **~75× more often
+than human APPS authors do**. That is a concrete instance of the lexical authorship channel arm 1
+detected as a +0.0877 TF-IDF rise against a length carrier collapsing to chance.
+
+> **Rule this earns.** A pass/fail harness must be validated against *each* class it will score, not
+> only against the one it was written for. Agreement with the shipped flag on human code (0.9575)
+> said nothing about a generator whose style differs.
+
+---
+
+### 4.5 Remaining stages
 
 | Stage | Status |
 |---|---|
 | honest generation | ✅ done — §4.1 |
-| honest test execution | ⏳ running |
-| backdoor generation | pending |
+| honest test execution | ✅ done — §4.3, §4.4 |
+| backdoor generation | ⏳ in flight — `msgbatch_01LCpHv4vQaEs85xTBkJ9qUE`, 1,112 requests |
+| harness re-validation vs shipped flag | ⏳ running |
 | backdoor verification | pending |
 | same-generator evaluation (S) | pending |
 

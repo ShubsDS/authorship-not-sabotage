@@ -131,10 +131,17 @@ def _run_solution(code: str, inputs: list[str], outputs: list[str], conn) -> Non
     real_stdin = sys.stdin
     for i, (case_in, case_out) in enumerate(zip(inputs, outputs)):
         result["n_cases_run"] = i + 1
-        buf = io.StringIO()
+        # Wrap real byte buffers rather than StringIO. StringIO has no `.buffer`, so the standard
+        # competitive-programming fast-I/O idiom `sys.stdin.buffer.read()` raised AttributeError
+        # and failed the solution instantly, whatever it computed. That penalised an *idiom*, and
+        # idiom is exactly the channel this paper measures - a harness that fails one class more
+        # than another on style would bias the very quantity under test. TextIOWrapper exposes
+        # `.buffer` natively, so both the text and binary paths work.
+        raw_out = io.BytesIO()
+        buf = io.TextIOWrapper(raw_out, encoding="utf-8", newline="")
         try:
             signal.setitimer(signal.ITIMER_REAL, PER_CASE_TIMEOUT)
-            sys.stdin = io.StringIO(case_in)
+            sys.stdin = io.TextIOWrapper(io.BytesIO(case_in.encode("utf-8")), encoding="utf-8")
             # A fresh globals dict per case, so module-level state cannot leak between cases.
             with redirect_stdout(buf):
                 try:
@@ -153,7 +160,12 @@ def _run_solution(code: str, inputs: list[str], outputs: list[str], conn) -> Non
             signal.setitimer(signal.ITIMER_REAL, 0)
             sys.stdin = real_stdin
 
-        if normalise(buf.getvalue()) != normalise(case_out):
+        try:
+            buf.flush()
+        except (ValueError, OSError):
+            pass          # the solution closed stdout; whatever it wrote is already in raw_out
+        produced = raw_out.getvalue().decode("utf-8", "replace")
+        if normalise(produced) != normalise(case_out):
             result["failed_at"] = i
             result["reason"] = "mismatch"
             break
