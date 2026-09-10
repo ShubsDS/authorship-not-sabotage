@@ -261,7 +261,89 @@ detected as a +0.0877 TF-IDF rise against a length carrier collapsing to chance.
 
 ---
 
-### 4.5 Remaining stages
+## 4.6 Harness fidelity re-validated after the fix (2026-09-10)
+
+The §4.4 change touched the I/O plumbing every solution runs through, so the human class it had
+previously been validated against had to be re-scored rather than assumed unaffected.
+
+```
+python run_tests.py --solutions human --out pass_human_fixed.jsonl --workers 8
+```
+
+115,212 solutions in 11,241.9 s (3.1 h). **The run was mis-scoped**: only `solutions[0]` per problem
+is ever used downstream, so the population that matters is 3,765, not 115,212. The superset is still
+usable — the 3,765 are a subset of it — but the same mis-scoping has now cost time twice.
+
+### Compared on the same protocol, not on the headline
+
+The run's own headline is 0.9193 over 115,212 rows. That is **not** comparable to the 0.9575 on
+record, which was measured over 3,765. Nor is a two-sided disagreement count comparable to the
+recorded column, which is one-sided (*we fail / they pass*). Both crossings are corrected here:
+
+| population | n | agree (pre-fix) | agree (post-fix) | we fail / they pass |
+|---|---:|---:|---:|---:|
+| every row with a solution | 3,765 | 0.9575 | **0.9586** | 141 → **137** |
+| deterministic rows only | 3,126 | 0.9533 | **0.9543** | 130 → **127** |
+| **the analysis pool — what Gate S uses** | **1,444** | **0.9584** | **0.9584** | 60 → **60** |
+
+**The analysis pool is unchanged to four decimal places, with an identical disagreement count.**
+The paper's 95.84% harness-fidelity figure survives the fix and is not recomputed. This is what
+§4.4's idiom table predicted: 2 human uses in 3,420, so there was almost nothing there to recover.
+
+The harness is also **strictly conservative on the analysis pool** — 60 we-fail/they-pass and
+**0 we-pass/they-fail**. It never credits a solution the artifact rejects.
+
+### The residual disagreements are a Python-version artifact, not a harness defect
+
+Across the full run, `ImportError` accounts for 250 of the we-fail/they-pass rows over 122 problems.
+The dominant cause:
+
+```
+>>> from fractions import gcd
+ImportError: cannot import name 'gcd' from 'fractions'      # Python 3.12.11
+```
+
+`fractions.gcd` was removed in Python 3.9. 19 of those 122 problems use it. The artifact's
+`solution_passes_tests` was computed on an older interpreter; the code genuinely does not run here,
+so this is **correctly** scored as a failure and is not fixed.
+
+It is worth reporting because it is **era-correlated in the opposite direction from §4.4**:
+
+| Artifact | Penalises | Direction |
+|---|---|---|
+| `StringIO` has no `.buffer` (§4.4, **fixed**) | modern LLM fast-I/O idiom | against the model class |
+| `fractions.gcd` removed in 3.9 (**not fixable**) | pre-3.9 human code | against the human class |
+
+Both are interpreter-era effects that fall unevenly on classes written in different eras. Gate S's
+same-generator arm is immune — both its classes are modern and from one model — but B is not, and
+the paper should say so rather than let a reviewer find it.
+
+## 4.7 B is robust to the pass-flag choice
+
+B was published from the artifact's **shipped** flag because no harness output for the human class
+existed yet. It does now, and the runbook specifies our own flag for both classes, so B was
+recomputed. A protocol crossing surfaced in the process:
+
+> `build_pairs()` gated eligibility on **our** flag but selected the code with `_honest_code()`,
+> which returns the first solution the **artifact** marks passing. A problem could therefore qualify
+> because solution #7 passes our harness while the code actually used was solution #0, which our
+> harness fails. Measured: **22 of 1,406 pairs, 1.56%**. Selection now uses the same flag that
+> gated, which is also how the runbook's recorded 1,384 arises (the stricter `solutions[0]` reading).
+
+| Protocol | n | B | sd |
+|---|---:|---:|---:|
+| shipped flag — **as published** | 1,444 | **0.8714** | 0.0085 |
+| our flag, crossed selection (the bug) | 1,406 | 0.8731 | 0.0102 |
+| our flag, consistent selection (**fixed**) | 1,406 | **0.8729** | 0.0107 |
+
+**All three sit inside one standard deviation of each other.** The headline does not depend on which
+pass flag is used, nor on the crossing — a reviewer will ask, and the answer is now measured rather
+than asserted. `B = 0.8714` is kept as the published value; the alternatives are reported as a
+robustness check, not as a replacement.
+
+---
+
+### 4.8 Remaining stages
 
 | Stage | Status |
 |---|---|

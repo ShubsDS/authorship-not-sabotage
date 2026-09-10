@@ -52,7 +52,8 @@ COLS = ["problem_id", "solutions", "backdoors",
         "solution_passes_tests", "backdoor_works", "is_nondeterministic"]
 
 
-def build_pairs(df: pd.DataFrame, honest_ok: set[str] | None) -> pd.DataFrame:
+def build_pairs(df: pd.DataFrame, honest_ok: set[str] | None,
+                honest_idx: dict[str, list[int]] | None = None) -> pd.DataFrame:
     rows, no_backdoor, no_honest = [], 0, 0
     for _, r in df.iterrows():
         if not (r.backdoor_works and not r.is_nondeterministic):
@@ -68,7 +69,17 @@ def build_pairs(df: pd.DataFrame, honest_ok: set[str] | None) -> pd.DataFrame:
                "backdoors": [dict(b) for b in r.backdoors],
                "solutions": [dict(s) for s in r.solutions],
                "top_backdoor_model": None}
-        bd, human = _pick_backdoor(row), _honest_code(row)
+        bd = _pick_backdoor(row)
+        if honest_idx is None:
+            human = _honest_code(row)
+        else:
+            # Select with the SAME flag that gated eligibility. _honest_code() picks the first
+            # solution the *artifact* marks passing, so gating on our harness while selecting on
+            # theirs admitted 22 of 1,406 pairs whose actual code our harness fails - a crossed
+            # protocol, not a judgement call. Picking the first solution WE passed gives 1,384,
+            # which is the count the runbook recorded.
+            human = next((row["solutions"][i]["code"] for i in honest_idx.get(pid, [])
+                          if i < len(row["solutions"])), None)
         if bd is None:
             no_backdoor += 1
             continue
@@ -99,17 +110,25 @@ def main() -> None:
     df["problem_id"] = df.problem_id.astype(str)
     print(f"artifact rows {len(df)}")
 
-    honest_ok = None
+    honest_ok = honest_idx = None
     if args.human_pass_file:
-        honest_ok = {json.loads(l)["problem_id"] for l in open(args.human_pass_file)
-                     if l.strip() and json.loads(l)["passed"]}
+        honest_idx = {}
+        for line in open(args.human_pass_file):
+            if not line.strip():
+                continue
+            r = json.loads(line)
+            if r["passed"]:
+                honest_idx.setdefault(str(r["problem_id"]), []).append(r["sol_idx"])
+        for v in honest_idx.values():
+            v.sort()
+        honest_ok = set(honest_idx)
         print(f"human pass flag: OUR OWN harness, {len(honest_ok)} passing "
-              f"({args.human_pass_file})")
+              f"({args.human_pass_file}); code selected with the same flag")
     else:
         print("human pass flag: the artifact's shipped `solution_passes_tests` "
               "(no --human-pass-file given)")
 
-    pairs = build_pairs(df, honest_ok)
+    pairs = build_pairs(df, honest_ok, honest_idx)
     print(f"\neligible pairs (passing human honest + working backdoor + deterministic): "
           f"{len(pairs)}")
     if len(pairs) < 50:
