@@ -22,6 +22,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 OUT = "../../paper/fig"
+
+# Without this, matplotlib stamps /CreationDate into the PDF and every rebuild differs from the
+# last by exactly those 8 bytes - identical plots that git reports as changed, and a reproducibility
+# claim that cannot be checked by hash. Suppressing the timestamp makes the figures bit-reproducible.
+PDF_METADATA = {"CreationDate": None}
 BLUE, ORANGE = "#2a78d6", "#eb6834"
 INK, INK2, MUTED = "#0b0b0b", "#52514e", "#8c8b86"
 GRID = "#e3e2dd"
@@ -87,7 +92,7 @@ def fig3_monitors():
     for t in leg.get_texts():
         t.set_color(INK)
     fig.tight_layout(pad=0.4)
-    fig.savefig(f"{OUT}/f3-monitors-vs-floors.pdf")
+    fig.savefig(f"{OUT}/f3-monitors-vs-floors.pdf", metadata=PDF_METADATA)
     plt.close(fig)
     print(f"F3: {n} monitors, median {statistics.median(aurocs):.4f}, max {aurocs[-1]:.3f}")
     print(f"    below bag-of-words 0.8063:      {below_tfidf}/{n}")
@@ -132,7 +137,7 @@ def fig2_corpora():
     for t in leg.get_texts():
         t.set_color(INK)
     fig.tight_layout(pad=0.4)
-    fig.savefig(f"{OUT}/f2-corpus-floors.pdf")
+    fig.savefig(f"{OUT}/f2-corpus-floors.pdf", metadata=PDF_METADATA)
     plt.close(fig)
     print("F2: 5 settings; bash 0.504 (clean, 247 tasks) to agentdojo 0.802 (leaky, 16 tasks); "
           "nulls 0.480-0.512. shade and iac rest on 5 task groups each.")

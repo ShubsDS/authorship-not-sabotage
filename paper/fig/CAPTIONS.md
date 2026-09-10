@@ -11,9 +11,17 @@ Regenerate the figures with `experiments/apps/figures.py`; do not hand-edit the 
 > constants in `figures.py` (`F1_ROWS`, `SCAN`); F3 reads the tracked `monitor-summary.json`. None of
 > them needs the parquet shards.
 >
-> ⚠️ **Regenerating changes the PDF bytes even when the content is identical** — matplotlib's font
-> subsetting differs across versions (17,318 → 17,597 bytes for F2 on matplotlib 3.11.1). Do not
-> re-run and commit casually; the diff is noise and may carry subtle rendering changes.
+> ✅ **The figures are now bit-reproducible on a fixed matplotlib (2026-09-10).** They previously
+> differed on every rebuild by exactly 8 bytes, the `/CreationDate` matplotlib stamps into each PDF.
+> `figures.py` now passes `metadata={"CreationDate": None}`, so two consecutive runs give identical
+> hashes and git no longer reports unchanged plots as modified. Verified when the change was made:
+> every decompressed content stream matched the previous build — 45/45 for F2, 42/42 for F3, equal
+> SHA-256 — so only the timestamp and the xref offsets it shifted actually changed. F1's `.tex`
+> already reproduced exactly.
+>
+> ⚠️ **A different matplotlib version will still change the bytes** — font subsetting differs across
+> versions (17,318 → 17,597 for F2 on matplotlib 3.11.1). Reproducibility here means *same version,
+> same bytes*, not across versions. Built on matplotlib 3.10.5.
 
 > ### ⛔ MISSING: there is no Gate S figure
 > The paper's constructive half — B, the arm-1 confound, and S — is prose-only. See the bottom of
