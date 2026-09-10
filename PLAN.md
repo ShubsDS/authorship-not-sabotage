@@ -25,8 +25,12 @@ AI-code-detection neighbours read end to end, both NEIGHBOUR). G2 is discharged 
 sole target.** Under R16, **the split and the paper are clear to be made public the
 moment Gate S returns.** Nothing else gates publication.
 
-**The one thing that does not exist yet is the test harness** (§3). It is the critical path, not the
-GPU. `experiments/GATE-S-RUNBOOK.md` is the step-by-step execution guide for all of Gate S.
+~~**The one thing that does not exist yet is the test harness.**~~ ✅ **Built and validated
+2026-09-04** (95.84 % agreement), and a further class-correlated defect was found and fixed
+2026-09-10 — see `experiments/RESULTS.md` §4.4. **The binding constraint is now the page limit:**
+the paper runs ~5.5 content pages against a hard 4, and §1 is unwritten.
+`experiments/GATE-S-RUNBOOK.md` is the execution guide; **`experiments/RESULTS.md` is the ledger of
+what has actually been measured.**
 
 ## 1. Schedule
 
@@ -34,7 +38,7 @@ GPU. `experiments/GATE-S-RUNBOOK.md` is the step-by-step execution guide for all
 |---|---|---|
 | ~~Sep 5~~ | ⛔ **FLLMPT DROPPED 2026-09-10.** The abstract was never registered before the Sep 5 23:00 GMT gate, so the option expired exactly as this row warned. | One target now: EvoRobust. Nothing downstream depends on it — the 4-page PDF, the AoE deadline and the format were always EvoRobust's. |
 | ~~Sep 6–7~~ | ✅ **Harness built and validated 2026-09-04**, three days early. **95.84 %** agreement on the analysis pool → *use our own pass flag for both classes* (`GATE-S-RUNBOOK.md` §4.2). | Three defects found and fixed, all failing old human code specifically. |
-| ~~Sep 8~~ | ⏳ **GATE S IS LATE.** The interactive allocation expired 2026-09-07 with nothing generated. Now queued as batch jobs on A100s, estimated start **2026-09-09**. | The only missing number in the paper. Route 4 (§3) applies if it does not land by Sep 10. |
+| ~~Sep 8~~ | ✅ **Gate S is running, and arm 1 has returned.** Arm 1 (regenerate the honest half) is **CONFOUNDED — ρ = 1.234**, separation *worse* not better; that is a result about the method, not a failure. The same-generator arm (one model writes both classes) is mid-flight. | Ledger: `experiments/RESULTS.md`. Route 4 (§3) still applies if S does not land by the deadline, and the arm-1 null stands on its own under it. |
 | ~~Sep 8, CPU~~ | ⛔ **RUN EARLY AND NEGATIVE, 2026-09-04.** The AICD App. D.1 token test does **not** replicate here: separation −0.013 in the wrong direction, permutation p = 0.956. `li`, `nums` and `cur` — AICD's canonical *human* identifiers — are among our strongest *attack*-pushing features, because both our classes are competitive-programming code and AICD's human class is general-purpose GitHub code. **The mechanism stays borrowed.** Full record and the by-product finding: `experiments/TOKEN-TEST.md`. | It was the cheapest strengthening available and it did not pay. §3 goes back to **three** ways, and the paper reports the negative in one sentence rather than letting a reviewer run it. |
 | ~~Sep 9~~ | ✅ **All three figures built 2026-09-04**, five days early, and every number in them re-verified on this machine (`experiments/REPRODUCED.md`). F1 is a LaTeX table, F2 and F3 are PDFs, captions drafted in `paper/fig/CAPTIONS.md`. | Building F3 caught a crossed protocol/count pairing that had reached the README. |
 | **Sep 10–11** | Write four pages. | First paragraph cites `2605.15377`, `2608.16190`, `2602.10153`, `2506.05296`, `2606.06529`, `2510.09462`; Limitations cites `1905.05778` **against ourselves**. |

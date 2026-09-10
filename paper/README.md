@@ -44,11 +44,23 @@ before the style file. Numeric is NeurIPS house style, it is far tighter than au
 at 4 pages, and it stops the two entries whose authors `lit/01` never recorded from
 rendering inline as "leg [2026]" and "len [2026]".
 
-**3. It is currently ~4.3 content pages against a 4-page limit — and that is with
-`\TODO` markers, not prose.** References start partway down page 5 and do not count.
-The fixed cost is the float load: two tables (schema, F1) and two figures (F2, F3).
-F1 alone is 14 rows. `PLAN.md` §5 already fixes the cut order — CoT paragraph, then the
-character-n-gram row, then the fifth agentic setting. Expect to need it.
+**3. ⚠️ THE BINDING CONSTRAINT: ~5.5 content pages against a hard 4 — and §1 is unwritten.**
+Measured 2026-09-10 with §2–§5 drafted: 7 pages total, references starting on page 7.
+`PLAN.md` §5's cut order (CoT paragraph → character-n-gram row → fifth agentic setting)
+is worth well under half a page and **will not close this**. The gap needs editorial
+decisions, and the honest framing is that a 4-page workshop paper cannot carry a 9-page
+paper's content. The levers, largest first:
+
+| Lever | Saves | Cost |
+|---|---|---|
+| **Move F1 (Table 2, 14 rows) to supplementary** | ~0.6 pp | EvoRobust allows unlimited supplementary. F1 is a lookup table, not an argument — the two rows that matter (0.4726 → 0.806) can live in prose. **Recommended first cut.** |
+| **Fold the schema table into a sentence** | ~0.25 pp | It is the thesis in one table, but the thesis also fits in one sentence. |
+| **Drop F2 or F3** | ~0.5 pp each | Painful. F3 is the headline comparison; F2 is the negative control and the only evidence a floor is not automatic. Prefer cutting F1 twice over cutting either of these. |
+| **Cut §5 Limitations to three items** | ~0.3 pp | Already condensed once from seven to three paragraphs. |
+| **Cut the CoT paragraph** | ~0.1 pp | `PLAN.md` §5's first cut; it is now six lines, so it buys little. |
+
+Deciding this is not a formatting question and it is not mine to settle. **Do it before
+writing §1**, or §1 gets written twice.
 
 ### Both tables are width-constrained; do not "tidy" the column specs
 
@@ -80,10 +92,12 @@ impossible to cross by accident:
 ## Before submitting
 
 - [ ] Uncomment the `\renewcommand{\TODO}[1]{}` line so markers stop rendering.
-- [ ] `grep -n INCOMPLETE refs.bib` — **18 of 28 entries** need their author list
-      completed from the arXiv abs page. Two (`legibility2026`, `lengthpenalties2026`)
-      have **no authors at all** recorded in `lit/01`, and one of those is the paper we
-      credit for owning the scratchpad-regex instrument. Budget an hour.
+- [x] ~~Complete the bibliography.~~ **Done 2026-09-10.** All 27 entries verified against the arXiv
+      API in one query (HTTP 200, 16/16 entries — not a throttled stub, per R3). **Six of `lit/01`'s
+      partial records were wrong, not merely incomplete**; see the CORRECTIONS block atop `refs.bib`.
+      Control Tax is a *2025* paper with a longer title; `2607.09786`'s author is Bryce Little, where
+      `lit/01` recorded none — for the paper we credit with owning the scratchpad-regex instrument;
+      and AICD's "Paul" and "Wang" are first names, so "Paul et al." would have been wrong.
 - [ ] Confirm the content body is within 4 pages.
 - [ ] Gate S: either fill the Results paragraph and update `\baselineB`, or delete that
       paragraph and take route 4 (`PLAN.md` §3) — the Limitations `\TODO` for it is

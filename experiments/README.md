@@ -103,6 +103,10 @@ clean, agentdojo leaks from character count alone.
 
 ## The standing reports
 
+- **`RESULTS.md` — the Gate S results ledger.** Every number produced by an actual run, with the
+  command that produced it, and superseded rows kept rather than overwritten. **Start here for
+  what has been measured**; `GATE-S-RUNBOOK.md` is what to run, `RESULTS.md` is what came back.
+
 - `K1-artifact-lineage.md` — which artifact is which, and who wrote each class. **PASS**: one dataset
   and one derived copy, honest code human-written, every backdoor LLM-written, and the confound is a
   property of the **stored-pair** protocol (ControlArena's *live* evals generate both classes).

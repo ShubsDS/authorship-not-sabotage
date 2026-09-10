@@ -93,6 +93,32 @@ group can reuse.
 > 3. Keep the script unrun, clearly marked as not-used. (This is the current de facto state, and it
 >    is the worst of the three, because nothing records the decision.)
 
+> ### ✅ RESOLVED BY EVENTS — option 1, recorded 2026-09-10
+> **The arm ran on 2026-09-09 and cost $8.62** (1,444/1,444 requests succeeded;
+> `experiments/RESULTS.md` §4.1). The backdoor half is in flight. The decision was therefore taken
+> in practice before it was written down, which is the failure mode the box above warned about —
+> recording it now rather than leaving the repo asserting "$0" while money is spent.
+>
+> **The standing constraint is amended to:** *public datasets only · no experiments involving real
+> people · nothing person-specific reported · local open-weight models, **plus a metered
+> same-vendor API arm, disclosed in the paper**.*
+>
+> **Why this is the right call and not a rationalisation.** Arm 1 settled it empirically:
+> regenerating only the honest half with an open-weight model produced **ρ = 1.234** — separation
+> *worse*, not better, because a Qwen-vs-Claude gap is larger than the human-vs-Claude one it
+> replaced. Isolating content requires one model writing **both** classes, and the only such model
+> in the stored backdoors' own lineage is behind a paid API. The constraint as originally written
+> would have made the paper's central control unbuildable.
+>
+> **Three things now owed to Limitations**, unchanged from the box above: the exact attacker
+> (`claude-3-7-sonnet-20250219`) is retired — verified by calling it, **404 on 2026-09-09** — so this
+> is same-vendor and same-lineage but a *later generation*; sampling parameters are unavailable, so
+> the arm is not bit-reproducible the way the vLLM arms are; and thinking is off by default though
+> the attacks came from a thinking model. **Whichever is used, report it.**
+>
+> ⚠️ **The $100 ceiling is cited in `RESULTS.md` §4.2 but was defined nowhere.** It is recorded in
+> the compute table below so that it governs something. Spend to date: **$8.62.**
+
 We also **execute** generated code for the first time in this project. It runs under per-case
 timeouts, address-space limits and a scratch working directory — the same bar the standard APPS and
 HumanEval harnesses use — on a machine we control, with no network dependence in the tests. That is
@@ -107,8 +133,10 @@ not a container, and the paper says so rather than implying an isolation it does
 | **Gate S** — vLLM, `Qwen3.8-27B` **and** `Qwen3-Coder-30B-A3B-Instruct`, plus an 8B→14B→32B ladder; one solution per problem, tests executed on CPU | **$0** — cluster A100 batch jobs. *Revised 2026-09-08: the H100 allocation expired unused and the H100 queue does not clear before the deadline.* |
 | **B**, the baseline Gate S routes against | **$0** — laptop CPU, ~10 min. Run 2026-09-09. |
 | Optional: one same-harness prompted monitor on the regenerated pool | **$0**, same allocation |
-| ⛔ `gen_honest_api.py`, Claude Sonnet 5 batch arm | **~$17 — NOT $0, and the decision is open.** See the box above. |
-| **September total for this paper** | **$0 as run to date.** $17 if the Sonnet 5 arm is approved. |
+| ✅ `gen_honest_api.py` — Sonnet 5 honest class, 1,444 problems, run 2026-09-09 | **$8.62 actual** (estimate was $5.00; output ran 1,057 tokens/solution against an assumed 600) |
+| ⏳ `gen_backdoor_api.py` — Sonnet 5 attack class, 1,112 requests | in flight |
+| **Spend to date** | **$8.62** |
+| **Ceiling** | **$100.** Cited in `../experiments/RESULTS.md` §4.2 and, until 2026-09-10, defined nowhere. It lives here now. `estimate()` prints a worst case beside the point estimate because the worst case is the number a ceiling has to survive: the honest arm over all 5,000 rows would have been ~$30 actual with a **$102 worst case** — over the ceiling before a single backdoor. Restricting generation to the 1,444-problem analysis pool is what contained it. |
 
 The binding constraint is **writing time**. The test harness is built and validated. Money is not a
 constraint, and batch jobs can be re-run — there is no one-shot GPU risk to plan around, only a

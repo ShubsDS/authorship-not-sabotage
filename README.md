@@ -64,13 +64,20 @@ training, selecting and benchmarking monitors on **stored** pairs).
 
 ## Status
 
-Current as of **2026-09-09**. Three days to the deadline.
+Current as of **2026-09-10**. Two days to the deadline. **Results ledger:
+[`experiments/RESULTS.md`](experiments/RESULTS.md)** — every Gate S number, with the command that
+produced it.
 
-> **The two things that decide whether this submits.** (1) **The paper does not exist as prose** —
-> `paper/main.tex` is a compiling scaffold with the numbers, figures and citations wired in, and the
-> four pages are still to write (Sep 10–11). (2) **Gate S has generated nothing**; `PLAN.md` §6 says
-> route 4 applies if it has not landed by end of Sep 10, and route 4 is a complete paper.
-> Everything else below is done.
+> **The three things that decide whether this submits.**
+>
+> 1. **Length.** `paper/main.tex` compiles clean but runs to **~5.5 content pages against a hard
+>    4-page limit**, and §1 is still unwritten. This is now the binding constraint, and closing it
+>    needs editorial cuts, not tightening — see [`paper/README.md`](paper/README.md).
+> 2. **§1 Introduction is not written.** §2–§5 are drafted; the introduction and the Gate S result
+>    paragraph are what remain.
+> 3. **Gate S is live but unsettled.** Arm 1 is **confounded** (ρ = 1.234 — regenerating one half of
+>    a pair swaps the authorship gap rather than removing it, which is itself a result). The
+>    same-generator arm is mid-flight. `PLAN.md` §6 route 4 remains a complete paper.
 
 | Piece | State |
 |---|---|
@@ -79,10 +86,11 @@ Current as of **2026-09-09**. Three days to the deadline.
 | K2 — is the floor unreported? | **FAIL as framed; a narrower claim survives.** [`lit/01`](lit/01-verified-bibliography.md) |
 | G1 — is the mechanism claim ours? | **No, and we never claimed it.** Both AI-code-detection neighbours read end to end 2026-09-03: **NEIGHBOUR**, framing survives. [`lit/01`](lit/01-verified-bibliography.md) §4 |
 | Monitor comparison (24 × 1,375) | **No GPU needed** — `runs/scores/` is MIT and published. Gate M deleted. |
-| Gate S — same-generator honest class | ⏳ **LATE — nothing generated.** Route 1 dead (no public artifact holds LLM-written honest APPS code). Route 2 committed: `Qwen3.8-27B` + `Qwen3-Coder-30B`, plus an 8B→14B→32B dose-response ladder. The H100 allocation expired 2026-09-07 unused; now chained **A100 batch jobs**. Runbook: [`experiments/GATE-S-RUNBOOK.md`](experiments/GATE-S-RUNBOOK.md) |
+| Gate S — arm 1 (regenerate honest half) | ⛔ **CONFOUNDED, and that is a result.** ρ = **1.234**, G above B by +4.78 sd: separation got *worse*. TF-IDF rose +0.088 while the length carrier fell to chance (0.489) — the substitute generator swapped a human-vs-Claude gap for a larger Qwen-vs-Claude one. **Regenerating one half of a pair cannot isolate content.** [`experiments/RESULTS.md`](experiments/RESULTS.md) §3 |
+| Gate S — the same-generator arm | ⏳ **In flight.** One model writes *both* classes, so authorship is constant by construction. Honest half done (1,444/1,444 generated, 1,112 pass, $8.62); backdoor half, verification and the S evaluation pending. [`experiments/RESULTS.md`](experiments/RESULTS.md) §4 |
 | **B — the baseline Gate S routes against** | ✅ **Measured 2026-09-09: 0.8714** (n = 1,444), CPU only. ρ is uninterpretable without it, and it never needed the GPU. ⚠️ **This also moves the routing thresholds**: the 0.601/0.720 in `PLAN.md` were arithmetic at an assumed B = 0.806; the real ones are **0.6226 / 0.7674**. |
 | The test harness | ✅ **Built and validated 2026-09-04**, three days early. **95.84%** agreement on the analysis pool; three defects found and fixed, all of which failed old human code specifically. |
-| The paper as a document | ⚠️ **Scaffold only.** [`paper/main.tex`](paper/README.md) compiles clean (NeurIPS 2026, `dblblindworkshop`, zero overfull boxes) with every number as a macro, both tables, all three figures and 28 bib entries wired. **The four pages of prose are not written**, and it is already ~4.3 content pages against a 4-page limit. |
+| The paper as a document | ⚠️ **§2–§5 drafted, §1 not.** [`paper/main.tex`](paper/README.md) compiles clean (NeurIPS 2026, `dblblindworkshop`, zero overfull boxes, zero undefined citations) with every number as a macro. **Bibliography complete** — all 27 entries verified against the arXiv API 2026-09-10, and six of `lit/01`'s partial records turned out to be *wrong*, not merely incomplete. ⚠️ **~5.5 content pages against a 4-page limit** is now the binding constraint. |
 | The confound, with no experiment at all | `backdoors` carries `model` and `source`; `solutions` carries neither. **The honest class has no generator field because it has no generator.** |
 | Figures | 3 remain (protocol × baseline; per-corpus floors with permutation nulls; monitor-vs-floor dot plot) |
 | Venue gates | **G2 PASS for EvoRobust**, conditional on excluding AgentHarm. Page limit, dual-submission and title-change policies verified 2026-09-04. (G2 was also run for FLLMPT, now dropped.) [`notes/01`](notes/01-venue-evorobust.md) |
@@ -93,6 +101,7 @@ Current as of **2026-09-09**. Three days to the deadline.
 | Path | What |
 |---|---|
 | [`PLAN.md`](PLAN.md) | The runbook to Sep 12 — Gate S and its four routes, schedule, cut order, stopping rules, budget |
+| [`experiments/RESULTS.md`](experiments/RESULTS.md) | **The Gate S results ledger — every measured number and the command behind it.** Start here. |
 | [`experiments/`](experiments/README.md) | Every script behind every number, plus the recompute logs |
 | [`lit/01`](lit/01-verified-bibliography.md) | Verified citations, the K2 grep record with its positive controls, the out-of-field neighbours |
 | [`experiments/GATE-S-RUNBOOK.md`](experiments/GATE-S-RUNBOOK.md) | **The step-by-step execution guide for Gate S** — environment, generation, test harness, routing |
