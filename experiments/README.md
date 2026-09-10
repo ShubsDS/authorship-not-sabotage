@@ -4,7 +4,7 @@ All of it runs on a **laptop CPU in minutes**. The only GPU anywhere in this pap
 has its own step-by-step execution guide: [`GATE-S-RUNBOOK.md`](GATE-S-RUNBOOK.md).
 
 ```
-uv venv && uv pip install pandas pyarrow scikit-learn requests huggingface_hub
+uv venv && uv pip install pandas pyarrow scikit-learn requests huggingface_hub matplotlib
 cd apps
 python fetch.py          # the three RoganInglis parquet shards — everything needs these
 python fetch_inputs.py   # koran_meta.parquet, koran_test_code.pkl, monitor-summary.json

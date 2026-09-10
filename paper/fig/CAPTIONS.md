@@ -1,7 +1,23 @@
-# Figure captions — drafted 2026-09-04
+# Figure captions — drafted 2026-09-04, inventory checked 2026-09-10
 
 The outline says some caveats belong **in the caption, not in Limitations**. Those are marked below.
 Regenerate the figures with `experiments/apps/figures.py`; do not hand-edit the PDFs or the `.tex`.
+
+> ### Regenerating: two things to know before you run it
+> **`figures.py` needs `matplotlib`, which the documented install line omitted until 2026-09-10.** A
+> fresh clone following `experiments/README.md` could not rebuild the figures. Fixed there.
+>
+> **All three figures are laptop-reproducible with no data fetch.** F1 and F2 are computed from
+> constants in `figures.py` (`F1_ROWS`, `SCAN`); F3 reads the tracked `monitor-summary.json`. None of
+> them needs the parquet shards.
+>
+> ⚠️ **Regenerating changes the PDF bytes even when the content is identical** — matplotlib's font
+> subsetting differs across versions (17,318 → 17,597 bytes for F2 on matplotlib 3.11.1). Do not
+> re-run and commit casually; the diff is noise and may carry subtle rendering changes.
+
+> ### ⛔ MISSING: there is no Gate S figure
+> The paper's constructive half — B, the arm-1 confound, and S — is prose-only. See the bottom of
+> this file for what exists to plot and what it would cost.
 
 ## F1 · `f1-protocol-baseline.tex`
 
@@ -55,3 +71,41 @@ figure has to pick one number and then count.
 so a fourth decimal is a single pair. Re-running on a second machine moved exactly one pair in two of
 these numbers (`experiments/REPRODUCED.md`). AUROCs are not threshold-sensitive in that way and match
 to four decimals.
+
+---
+
+## The figure that does not exist yet — Gate S
+
+Three figures cover the *diagnostic* half of the paper (what the preprocessing leaves behind, how
+the floors compare to monitors, the same-generator negative control). **Nothing covers the
+constructive half**, which is the newest and most contested part of the argument.
+
+### What already exists to plot, with no further runs
+
+| Quantity | Value | Source |
+|---|---|---|
+| **B** (benchmark as shipped) | 0.8714 ± 0.0085, n = 1,444 | `apps/gate_s_baseline.json` |
+| routing thresholds | collapse ≤ 0.6226 · content > 0.7674 | same |
+| **arm 1** B′ → G | 0.8739 ± 0.0160 → 0.9616 ± 0.0090, n = 668 | `apps/gate_s_q3c30.json` |
+| **ρ** | 1.2344, +4.78 sd — CONFOUNDED | same |
+| carrier decomposition, B′ → G | TF-IDF 0.874 → 0.962 · length 0.653 → **0.489** · surface-7 0.803 → 0.809 | same |
+| **S** | pending | `apps/gate_s_samegen.py` |
+
+### The strongest candidate: the carrier decomposition
+
+Three carriers, B′ → G, as paired points on one AUROC axis. It renders the paper's sharpest new
+sentence — *the new gap is lexical, not structural* — as a picture: **TF-IDF rises while length
+collapses to chance and surface-7 does not move.** At present those three numbers sit inside a
+sentence, where a reader has to do the comparison in their head. It is also what turns arm 1 from
+"an arm that failed" into "a diagnosis of why one-sided regeneration cannot work", which is a
+contribution rather than a gap.
+
+A second option is a ρ number line — B, the two thresholds, arm 1 landing off-scale above 1, and a
+slot for S — which shows the routing rule was fixed in advance and where each arm fell.
+
+### ⚠️ This is a SWAP, not an addition
+
+The paper is already ~5.5 content pages against a hard 4 (`../README.md`). A new float costs
+~0.5 pp. The recommended trade is **F1 out to supplementary, Gate S figure in**: F1 is a 14-row
+lookup table whose two load-bearing rows (0.4726 → 0.806) are already stated in prose, whereas the
+Gate S figure carries an argument that currently has no visual at all. Do not add it on top.
