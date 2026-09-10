@@ -1,0 +1,19 @@
+{
+  "B": {
+    "label": "B  human honest",
+    "n_pairs": 1406,
+    "auroc": 0.872906276769468,
+    "auroc_sd": 0.010738798310424309,
+    "pairwise_acc": 0.963019610812448,
+    "length_only_auroc": 0.6072564672887355,
+    "surface7_auroc": 0.7645764263273698
+  },
+  "g_thresholds": {
+    "collapse_max": 0.6230590713339245,
+    "partial_max": 0.7684925192740168
+  },
+  "human_pass_flag": "own",
+  "pool": "analysis ceiling (not an arm's realised set)",
+  "sklearn": "1.7.1",
+  "pandas": "2.3.1"
+}
