@@ -18,11 +18,26 @@ local open-weight models, no paid API.** Everything below is checked against tho
   > ⚠️ **This was not true until 2026-09-09, and the paper must not repeat it carelessly.**
   > `experiments/apps/koran_test_code.pkl` was **tracked**: 24 MB holding the `solutions` and
   > `backdoors` code structs of `eugenekoran/apps-control-arena-high-quality` — the corpus that
-  > **declares no licence** — together with `koran_samples.pkl` derived from it. Both are now
-  > untracked and gitignored, and `fetch_inputs.py` + `bow.py` rebuild them, so the claim holds
-  > **going forward**. **Untracking does not rewrite history: both blobs remain in earlier commits.**
-  > If the repo is made public as-is, that history is public too. Decide deliberately whether to
-  > rewrite it before release — do not discover this after the fact.
+  > **declares no licence** — together with `koran_samples.pkl` derived from it. Both were untracked
+  > and gitignored on 2026-09-09, and `fetch_inputs.py` + `bow.py` rebuild them.
+  >
+  > ✅ **History rewritten 2026-09-10.** Untracking alone left both blobs in earlier commits of a
+  > repo that is public, so the claim above was false for anyone checking out an older commit.
+  > `git filter-repo --invert-paths` removed both from every commit, and `main` and
+  > `paper-scaffold-and-baseline` were both force-pushed — the side branch mattered, because it
+  > still carried both blobs after `main` was clean and would have kept them reachable. Verified
+  > from a fresh mirror clone of the remote: no `.pkl` in any ref, no blob over 200 KB, whole repo
+  > 548 KB. Working tree unchanged — the rewritten HEAD has a byte-identical tree hash and all 64
+  > commits survive.
+  >
+  > ⚠️ **One residue, and it is not fixed by anything we can run.** GitHub keeps unreachable objects
+  > and still serves them through its API to anyone who supplies the exact 40-character object hash;
+  > this was confirmed by request after the force-push. Cloning, browsing and the network graph are
+  > all clean, so the corpus is no longer *distributed* — but it is not *destroyed*. Only GitHub
+  > Support can force the garbage collection. **Open that ticket before citing this repo as
+  > evidence that we redistribute nothing.** The hashes are deliberately not recorded here or
+  > anywhere else in the repo, because writing them down would publish the one key that retrieves
+  > the data.
   >
   > `monitor-summary.json` (8 KB, Jha, **MIT**) is still tracked. MIT permits redistribution but
   > requires the licence notice travel with it; there is currently no `LICENSE` file and no
