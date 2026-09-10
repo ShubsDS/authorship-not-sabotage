@@ -425,7 +425,51 @@ an arm's pairs average above 0.80 that S must be reported as a bound, not a verd
 > independent arm will convert fewer requests into usable pairs. 600 should clear the 50-pair floor
 > comfortably; if it comes back thin the answer is a top-up batch, not a quietly small n.
 
-### 4.9 Remaining stages
+## 4.9 Both attack arms landed — and the second one was necessary
+
+| | edit | independent |
+|---|---:|---:|
+| requests | 1,112 | 600 |
+| **succeeded** | **1,112 (100%)** | **600 (100%)** |
+| errored | 0 | 0 |
+| no code block | 2 | 0 |
+| no trigger input | 5 | 13 |
+| truncated | 4 | 10 |
+| batch wall-clock | 871.9 min | 180.3 min |
+| **actual cost** | **$5.01** | **$3.01** |
+
+Running total **$13.63** of the $100 ceiling. The edit arm took 4.8× as long as the independent one
+despite only 1.85× the requests — larger prompts (it carries the honest solution) against a queue
+whose load is not ours to control.
+
+### The pair-similarity check, which is why the second arm exists
+
+Measured on the generated code with comments stripped, against the stored benchmark as the target:
+
+| arm | n | mean | median | > 0.95 | < 0.60 |
+|---|---:|---:|---:|---:|---:|
+| **edit** — shown its own honest solution | 1,110 | **0.924** | 0.990 | **68.7%** | 4.3% |
+| **independent** — given the problem only | 600 | **0.415** | 0.386 | 1.0% | 76.8% |
+| **stored benchmark** — the structure to match | 400 | 0.469 | 0.475 | 2.5% | 60.8% |
+
+**The concern was correct and the margin is not subtle.** The edit arm's classes are near-copies:
+68.7% of its pairs exceed 0.95 similarity, against 2.5% in the benchmark it is meant to model. Its
+median pair is 0.990 — the same program with a line changed. Any S computed from it would have
+measured our construction, not the benchmark.
+
+**The independent arm reproduces the benchmark's structure.** At mean 0.415 against the stored 0.469
+it sits in the same regime — independent programs by one author. It is if anything slightly *more*
+dissimilar than the benchmark (76.8% below 0.60 against 60.8%), which is the safe direction: it
+cannot manufacture a low S by making the classes alike.
+
+So the two arms answer two different questions, and only one of them is the paper's:
+
+| arm | what its S can support |
+|---|---|
+| edit | *Hold the program fixed and change only the sabotage — can a trivial baseline see it?* A real result, but narrow. |
+| **independent** | *Authorship is the only thing that changed.* **This is the arm the title routes on.** |
+
+### 4.10 Remaining stages
 
 | Stage | Status |
 |---|---|
@@ -433,9 +477,10 @@ an arm's pairs average above 0.80 that S must be reported as a bound, not a verd
 | honest test execution | ✅ done — §4.3, §4.4 |
 | harness re-validation vs shipped flag | ✅ done — §4.6 |
 | B under our own flag | ✅ done — §4.7 |
-| backdoor generation, **edit** arm | ⏳ in flight — 1,112 requests |
-| backdoor generation, **independent** arm | ⏳ in flight — 600 requests |
-| backdoor verification (both arms) | pending |
+| backdoor generation, **edit** arm | ✅ done — 1,112/1,112, $5.01 |
+| backdoor generation, **independent** arm | ✅ done — 600/600, $3.01 |
+| pair-similarity check | ✅ done — §4.9, the second arm was necessary |
+| backdoor verification (both arms) | ⏳ running |
 | same-generator evaluation, S (both arms) | pending |
 | Gate S figure | ⛔ does not exist — `paper/fig/CAPTIONS.md` |
 
