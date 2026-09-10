@@ -27,16 +27,27 @@ Four stages, and only stage 2 touches the GPU:
 **Stage 3 was the risk, not stage 2** — the harness is now built and validated (§4.2), so as
 of 2026-09-09 the risk is stage 2's *queue time*, not any of the code.
 
-> ### ⚠️ STATUS 2026-09-09 — nothing has been generated yet
-> The 4-day interactive 2× H100 allocation expired 2026-09-07 with **nothing generated**, and
-> every H100 on the cluster is held by a job with >3d20h remaining. Gate S is now two chained
-> **batch** jobs (`apps/gate_s_gen.sbatch` → `apps/gate_s_check.sbatch`, `--dependency=afterok`)
-> which need nobody attached to a shell.
+> ### STATUS 2026-09-10 — the GPU route was overtaken; the live arm is the API one
+> ~~*Nothing has been generated yet.*~~ Superseded. The 4-day interactive 2× H100 allocation
+> expired 2026-09-07 with nothing generated and the H100 queue never cleared, so the vLLM route
+> (§3) stopped being the critical path. **Gate S is now running through the Sonnet 5 batch API**,
+> which does not depend on the cluster at all.
 >
-> **`PLAN.md` §6 stopping rule: if Gate S has not landed by end of Sep 10, take route 4** and
-> ship without the control. Do not spend Sep 11 debugging a generator.
+> | Stage | State |
+> |---|---|
+> | B, the baseline | ✅ **0.8714** (n=1,444); **0.8729** under our own flag (n=1,406), within 1 sd |
+> | arm 1 — regenerate the honest half only (Qwen3-Coder-30B) | ⛔ **CONFOUNDED**, ρ = 1.234 |
+> | same-generator honest class | ✅ 1,444/1,444 generated, 1,112 pass |
+> | same-generator attack class, **edit** arm | ✅ 1,112/1,112 |
+> | same-generator attack class, **independent** arm | ✅ 600/600 — **this is the arm the title routes on** (§6) |
+> | backdoor verification | ⏳ running |
+> | **S** | pending — the last number |
 >
-> **B does not need the GPU and is already measured** — see §5.1.
+> Spend $13.63 of the $100 ceiling. Full ledger: **`RESULTS.md`**.
+>
+> **`PLAN.md` §6 stopping rule still stands:** if S does not land, take route 4 and ship without
+> it. The arm-1 null and the pair-similarity result are findings in their own right and survive
+> under route 4 — they are not gaps.
 
 ---
 

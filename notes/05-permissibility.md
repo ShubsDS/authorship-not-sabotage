@@ -1,7 +1,12 @@
 # Permissibility, licences and compute
 
 **Public datasets only · no experiments involving real people · nothing person-specific reported ·
-local open-weight models, no paid API.** Everything below is checked against those.
+local open-weight models, plus a metered same-vendor API arm, disclosed in the paper.**
+Everything below is checked against those.
+
+> ⚠️ The last clause was **amended 2026-09-10**; it read *"local open-weight models, no paid API"*
+> until then. The amendment, the argument for it and the $100 ceiling it operates under are in the
+> resolution box further down — do not read the constraint without reading why it moved.
 
 ## Is this research allowed? Yes, and nothing here is close to a line
 
@@ -39,9 +44,13 @@ local open-weight models, no paid API.** Everything below is checked against tho
   > anywhere else in the repo, because writing them down would publish the one key that retrieves
   > the data.
   >
-  > `monitor-summary.json` (8 KB, Jha, **MIT**) is still tracked. MIT permits redistribution but
-  > requires the licence notice travel with it; there is currently no `LICENSE` file and no
-  > attribution notice in the repo. See the open item at the foot of this file.
+  > `monitor-summary.json` (8 KB, Jha, **MIT**) is still tracked, and MIT permits that provided the
+  > notice travels with it. ✅ **It now does** — `THIRD-PARTY-NOTICES.md` reproduces the upstream
+  > licence in full (added 2026-09-10). So "we redistribute nothing" is *almost* right and the
+  > precise claim is better: **we redistribute one 8 KB MIT-licensed file, with its notice.** Say it
+  > that way in the paper rather than the round number.
+  >
+  > ⚠️ The repo itself still has **no `LICENSE`**. See the open item at the foot of this file.
 
 ## The one honest flag: two of the seven corpora declare no licence
 
@@ -63,8 +72,10 @@ solutions and public tests. No scraping, no new data about anyone. The generated
 rebuilt split are **released with the paper** — that release is B5 and it is the main thing another
 group can reuse.
 
-> ### ⛔ OPEN DECISION — `gen_honest_api.py` breaks the "no paid API / $0" constraint
-> **Raised 2026-09-09. Not resolved. Do not let this reach the paper unresolved either way.**
+> ### ~~⛔ OPEN DECISION~~ — SUPERSEDED, see the resolution box directly below
+> **Raised 2026-09-09. Closed 2026-09-10 (option 1).** Kept because the reasoning is what
+> justifies the amended constraint, and because a decision recorded only as its outcome loses the
+> argument that produced it. **Read this box for the trade-off, the box below for the ruling.**
 >
 > Commit `e27ed50` added `experiments/apps/gen_honest_api.py`, a **Claude Sonnet 5 batch arm at
 > roughly $17**. It is not mentioned in any markdown file in this repo — it exists only as a script
@@ -95,7 +106,8 @@ group can reuse.
 
 > ### ✅ RESOLVED BY EVENTS — option 1, recorded 2026-09-10
 > **The arm ran on 2026-09-09 and cost $8.62** (1,444/1,444 requests succeeded;
-> `experiments/RESULTS.md` §4.1). The backdoor half is in flight. The decision was therefore taken
+> `experiments/RESULTS.md` §4.1). Both attack arms have since landed too — edit $5.01,
+> independent $3.01 — for **$13.63 total against the $100 ceiling**. The decision was therefore taken
 > in practice before it was written down, which is the failure mode the box above warned about —
 > recording it now rather than leaving the repo asserting "$0" while money is spent.
 >
@@ -134,9 +146,9 @@ not a container, and the paper says so rather than implying an isolation it does
 | **B**, the baseline Gate S routes against | **$0** — laptop CPU, ~10 min. Run 2026-09-09. |
 | Optional: one same-harness prompted monitor on the regenerated pool | **$0**, same allocation |
 | ✅ `gen_honest_api.py` — Sonnet 5 honest class, 1,444 problems, run 2026-09-09 | **$8.62 actual** (estimate was $5.00; output ran 1,057 tokens/solution against an assumed 600) |
-| ⏳ `gen_backdoor_api.py` — Sonnet 5 attack class, **edit** arm, 1,112 requests | in flight, ~$8 est. |
-| ⏳ `gen_backdoor_api.py --independent` — Sonnet 5 attack class, **independent** arm, 600 requests | in flight, $2.40 est. |
-| **Spend to date** | **$8.62** (both attack arms still in flight; projected total ~$19) |
+| ✅ `gen_backdoor_api.py` — Sonnet 5 attack class, **edit** arm, 1,112/1,112 | **$5.01 actual** (est. ~$8) |
+| ✅ `gen_backdoor_api.py --independent` — **independent** arm, 600/600. *The arm the title routes on* | **$3.01 actual** (est. $2.40) |
+| **Spend to date** | **$13.63** of the $100 ceiling |
 
 > **Why a second attack arm was added 2026-09-10.** The edit arm shows the model its own honest
 > solution, so its pairs are near-copies, while the stored benchmark's pairs are largely independent

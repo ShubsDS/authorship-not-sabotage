@@ -75,9 +75,12 @@ produced it.
 >    needs editorial cuts, not tightening — see [`paper/README.md`](paper/README.md).
 > 2. **§1 Introduction is not written.** §2–§5 are drafted; the introduction and the Gate S result
 >    paragraph are what remain.
-> 3. **Gate S is live but unsettled.** Arm 1 is **confounded** (ρ = 1.234 — regenerating one half of
->    a pair swaps the authorship gap rather than removing it, which is itself a result). The
->    same-generator arm is mid-flight. `PLAN.md` §6 route 4 remains a complete paper.
+> 3. **Gate S: all generation done, S is the last number.** Arm 1 is **confounded** (ρ = 1.234 —
+>    regenerating one half of a pair swaps the authorship gap rather than removing it, which is
+>    itself a result). The same-generator arms are all generated and the pair-similarity check has
+>    justified running two of them; verification is running and **S is the only thing outstanding**.
+>    `PLAN.md` §6 route 4 remains a complete paper, and under it the arm-1 null and the similarity
+>    result both survive as findings.
 
 | Piece | State |
 |---|---|
@@ -87,7 +90,8 @@ produced it.
 | G1 — is the mechanism claim ours? | **No, and we never claimed it.** Both AI-code-detection neighbours read end to end 2026-09-03: **NEIGHBOUR**, framing survives. [`lit/01`](lit/01-verified-bibliography.md) §4 |
 | Monitor comparison (24 × 1,375) | **No GPU needed** — `runs/scores/` is MIT and published. Gate M deleted. |
 | Gate S — arm 1 (regenerate honest half) | ⛔ **CONFOUNDED, and that is a result.** ρ = **1.234**, G above B by +4.78 sd: separation got *worse*. TF-IDF rose +0.088 while the length carrier fell to chance (0.489) — the substitute generator swapped a human-vs-Claude gap for a larger Qwen-vs-Claude one. **Regenerating one half of a pair cannot isolate content.** [`experiments/RESULTS.md`](experiments/RESULTS.md) §3 |
-| Gate S — the same-generator arm | ⏳ **In flight.** One model writes *both* classes, so authorship is constant by construction. Honest half done (1,444/1,444 generated, 1,112 pass, $8.62); backdoor half, verification and the S evaluation pending. [`experiments/RESULTS.md`](experiments/RESULTS.md) §4 |
+| Gate S — the same-generator arm | ⏳ **Generation complete; S pending.** One model writes *both* classes, so authorship is constant by construction. Honest class 1,444/1,444 (1,112 pass); **two** attack arms, both 100% — an **edit** arm and an **independent** arm. Verification running, S is the last number. [`experiments/RESULTS.md`](experiments/RESULTS.md) §4 |
+| **Why two attack arms** | ✅ **The check justified it.** An attack class built by editing its own honest solution changes pair *similarity* as well as authorship: its pairs run **0.924** mean similarity (68.7% above 0.95) against the stored benchmark's **0.469** (2.5%). A low S from it could not distinguish *the benchmark measured authorship* from *we made the classes the same text*. The **independent** arm sits at 0.415, in the benchmark's own regime — **the title routes on that one.** §4.8–4.9 |
 | **B — the baseline Gate S routes against** | ✅ **Measured 2026-09-09: 0.8714** (n = 1,444), CPU only. ρ is uninterpretable without it, and it never needed the GPU. ⚠️ **This also moves the routing thresholds**: the 0.601/0.720 in `PLAN.md` were arithmetic at an assumed B = 0.806; the real ones are **0.6226 / 0.7674**. |
 | The test harness | ✅ **Built and validated 2026-09-04**, three days early. **95.84%** agreement on the analysis pool; three defects found and fixed, all of which failed old human code specifically. |
 | The paper as a document | ⚠️ **§2–§5 drafted, §1 not.** [`paper/main.tex`](paper/README.md) compiles clean (NeurIPS 2026, `dblblindworkshop`, zero overfull boxes, zero undefined citations) with every number as a macro. **Bibliography complete** — all 27 entries verified against the arXiv API 2026-09-10, and six of `lit/01`'s partial records turned out to be *wrong*, not merely incomplete. ⚠️ **~5.5 content pages against a 4-page limit** is now the binding constraint. |
@@ -115,10 +119,14 @@ produced it.
 ## Standing constraints
 
 Public datasets only · no experiments involving real people · nothing person-specific reported ·
-local open-weight models, no paid API. **Cost as run to date: $0** — the one GPU experiment runs as
-cluster A100 batch jobs, and everything else, B included, is laptop CPU.
+local open-weight models, **plus a metered same-vendor API arm, disclosed in the paper**.
 
-⚠️ **One open decision could change the last clause.** `experiments/apps/gen_honest_api.py` is a
-~$17 Claude Sonnet 5 arm — the only *same-vendor* control available, which no Qwen arm can be — and
-it breaks the no-paid-API constraint. It has not been run and the call has not been made
+**Spend to date: $13.63 against a $100 ceiling.** Everything else — every CPU number, B included —
+is laptop work or a published MIT artifact. The spend is the Sonnet 5 same-generator control, which
+is the one thing no open-weight arm can be.
+
+⚠️ The last clause of the constraint was **amended 2026-09-10** (it read *"no paid API"*), and it
+was amended *after* the arm had already run. The justification is empirical rather than convenient —
+arm 1 showed that regenerating only the honest half makes separation worse, so isolating content
+needs one model on both sides — but the sequence is itself worth remembering
 ([`notes/05`](notes/05-permissibility.md)).
