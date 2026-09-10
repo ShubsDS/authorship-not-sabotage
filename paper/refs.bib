@@ -1,82 +1,97 @@
 % Bibliography for "What Survives the Filter?" / "Authorship, Not Sabotage"
-% Built 2026-09-09 from lit/01-verified-bibliography.md. NOTHING here was written from memory.
 %
-% ============================ READ THIS BEFORE CITING ============================
-% lit/01's rule R1: a fabricated reference is a desk-reject, and a citation described
-% from a search snippet has been wrong twice in this project. Every entry below carries
-% only what lit/01 recorded as VERIFIED (a page actually fetched and read).
+% ============================== PROVENANCE ==============================
+% Every entry was completed on 2026-09-10 from the arXiv API (a single id_list
+% query, HTTP 200, 40 KB, 16/16 entries returned - not a throttled stub, per R3).
+% NOTHING below was written from memory. R1: a fabricated reference is a desk-reject.
 %
-% Entries preceded by  INCOMPLETE:  have a partial author list in lit/01 - it recorded the
-% work by short title or "et al." because that was all the citation needed to do there.
-% They are safe to cite in a draft but MUST be completed from the arXiv abs page before
-% submission.  Worklist:   grep -n "INCOMPLETE" refs.bib
+% This replaces a draft in which 18 of 28 entries carried partial author lists
+% copied from lit/01. lit/01 recorded those works by short title or surname
+% because that was all a research note needed. SIX turned out to be wrong rather
+% than merely incomplete - see "CORRECTIONS TO lit/01" below. Anything taken on
+% trust from a note is worth re-fetching before it reaches a PDF.
 %
-% NOTE ON SYNTAX: "%" is NOT a comment character inside a BibTeX entry - it only works
-% between entries. Every note below therefore sits ABOVE its entry, not inside it.
-% Also: never write an at-sign in a comment here; BibTeX reads it as an entry start.
-% ================================================================================
+% SYNTAX: "%" is not a comment character inside a BibTeX entry, only between
+% entries - so every note sits above its entry. Never write an at-sign in a
+% comment here; BibTeX reads it as the start of an entry.
+%
+% ======================= CORRECTIONS TO lit/01 =========================
+% 1. 2506.05296 "Control Tax" -> full title is "Control Tax: The Price of Keeping
+%    AI in Check", and it is a 2025 paper. lit/01 and the draft both said 2026.
+% 2. 2608.16190 "Decorrelation Is Not Complementarity" -> the title continues
+%    ": Skill, Not Lineage, Governs Trusted-Monitor Ensembles".
+% 3. 2607.09786 -> author is Bryce Little. lit/01 recorded NO author for the
+%    paper we credit with owning the scratchpad-regex instrument.
+% 4. 2602.10153 -> authors are Sreevatsa, Prasanna and Rushing. lit/01 had none.
+% 5. 2602.02079 (AICD) -> lit/01's "Paul" and "Wang" are not surnames. They are
+%    Indraneil Paul and Yuxia Wang. Citing "Paul et al." would have been wrong.
+% 6. 2607.06596 (Pinto) -> has a venue lit/01 did not record: accepted at the
+%    COLM 2026 AI Measurement Science workshop. First name is Lucas.
+% Also: 2510.09462's preprint is 2025 (ICLR 2026 is the venue), and 1808.04926's
+% title - guessed in the draft and marked CHECK BEFORE CITING - is confirmed.
+% =======================================================================
 
 % ---------------------------------------------------------------- 1. Paragraph one
 % The six mandatory first-paragraph citations (PLAN.md section 4, "Never cut").
 
-% INCOMPLETE: lit/01 records surnames only for authors 2-5. Complete from the abs page.
 @article{koran2026ensemble,
   title  = {Ensemble Monitoring for {AI} Control: Diverse Signals Outweigh More Compute},
-  author = {Koran, Eugene and Yun and Tetef and Arnav and Bernabeu-P{\'e}rez},
+  author = {Koran, Eugene and Yun, Yejun and Tetef, Samantha and Arnav, Benjamin and
+            Bernabeu-P{\'e}rez, Pablo},
   year   = {2026},
-  note   = {arXiv:2605.15377v2, 18 May 2026},
+  note   = {arXiv:2605.15377v2},
   eprint = {2605.15377},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: first name inferred from the GitHub handle anik-jha; verify on the abs page.
 @article{jha2026decorrelation,
-  title  = {Decorrelation Is Not Complementarity},
+  title  = {Decorrelation Is Not Complementarity: Skill, Not Lineage, Governs
+            Trusted-Monitor Ensembles},
   author = {Jha, Anik},
   year   = {2026},
-  note   = {arXiv:2608.16190. Code: github.com/anik-jha/challenger-panels (MIT)},
+  note   = {arXiv:2608.16190. Code: \url{https://github.com/anik-jha/challenger-panels} (MIT)},
   eprint = {2608.16190},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: surnames only; the full title may be longer than "Control Tax".
-@article{terekhov2026controltax,
-  title  = {Control Tax},
-  author = {Terekhov, Mikhail and Liu and Gulcehre, Caglar and Albanie, Samuel},
-  year   = {2026},
-  note   = {arXiv:2506.05296},
+@article{terekhov2025controltax,
+  title  = {Control Tax: The Price of Keeping {AI} in Check},
+  author = {Terekhov, Mikhail and Liu, Zhen Ning David and Gulcehre, Caglar and
+            Albanie, Samuel},
+  year   = {2025},
+  note   = {arXiv:2506.05296v3},
   eprint = {2506.05296},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: lit/01 records NO authors for this one. Must be filled before submission.
-@article{legibility2026,
+@article{sreevatsa2026legibility,
   title  = {Basic Legibility Protocols Improve Trusted Monitoring},
+  author = {Sreevatsa, Ashwin and Prasanna, Sebastian and Rushing, Cody},
   year   = {2026},
   note   = {arXiv:2602.10153},
   eprint = {2602.10153},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: surnames only.
 @article{gewang2026attackselection,
   title  = {Attack Selection in Agentic {AI} Control Evaluations Meaningfully
             Decreases Safety},
-  author = {Ge-Wang and Crosse and Hadad and Schaeffer and Potham and Tracy},
+  author = {Ge-Wang, Catherine and Crosse, Tyler and Hadad, Benjamin and
+            Schaeffer, Joachim and Potham, Ram and Tracy, Tyler},
   year   = {2026},
-  note   = {arXiv:2606.06529, 3 June 2026},
+  note   = {arXiv:2606.06529},
   eprint = {2606.06529},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: several surnames only.
 @inproceedings{terekhov2026adaptive,
   title     = {Adaptive Attacks on Trusted Monitors Subvert {AI} Control Protocols},
-  author    = {Terekhov, Mikhail and Panfilov and Dzenhaliou and Gulcehre, Caglar and
-               Andriushchenko, Maksym and Prabhu and Geiping, Jonas},
+  author    = {Terekhov, Mikhail and Panfilov, Alexander and Dzenhaliou, Daniil and
+               Gulcehre, Caglar and Andriushchenko, Maksym and Prabhu, Ameya and
+               Geiping, Jonas},
   booktitle = {International Conference on Learning Representations (ICLR)},
   year      = {2026},
-  note      = {arXiv:2510.09462},
+  note      = {arXiv:2510.09462v2},
   eprint    = {2510.09462},
   archivePrefix = {arXiv}
 }
@@ -95,23 +110,22 @@
 
 % ------------------------------------------------- 2. Nearest in-field neighbours
 
-% INCOMPLETE: surname only.
-@article{pinto2026calibration,
-  title  = {Calibration-Family Overfit: Why Trusted Sabotage Monitors Don't Transfer
-            Across Lineages},
-  author = {Pinto},
-  year   = {2026},
-  note   = {arXiv:2607.06596, 6 July 2026},
-  eprint = {2607.06596},
+@inproceedings{pinto2026calibration,
+  title     = {Calibration-Family Overfit: Why Trusted Sabotage Monitors Don't
+               Transfer Across Lineages},
+  author    = {Pinto, Lucas},
+  booktitle = {{COLM} 2026 Workshop on {AI} Measurement Science},
+  year      = {2026},
+  note      = {arXiv:2607.06596v3},
+  eprint    = {2607.06596},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: lit/01 records NO authors. This paper OWNS the scratchpad-regex instrument
-% and we credit it explicitly, so citing it wrongly is worse than usual. Fill first.
-@article{lengthpenalties2026,
-  title  = {Length Penalties Make {CoT} Less Monitorable},
+@article{little2026length,
+  title  = {Length Penalties Make Chain-of-Thought Less Monitorable},
+  author = {Little, Bryce},
   year   = {2026},
-  note   = {arXiv:2607.09786},
+  note   = {arXiv:2607.09786v3},
   eprint = {2607.09786},
   archivePrefix = {arXiv}
 }
@@ -125,21 +139,22 @@
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: lit/01 elides middle authors ("Kutasov ... Shlegeris, Benton") and gives a
-% short title. Context citation only.
 @article{kutasov2025shadearena,
-  title  = {{SHADE}-Arena},
-  author = {Kutasov and Shlegeris, Buck and Benton},
+  title  = {{SHADE}-Arena: Evaluating Sabotage and Monitoring in {LLM} Agents},
+  author = {Kutasov, Jonathan and Sun, Yuqi and Colognese, Paul and
+            van der Weij, Teun and Petrini, Linda and Zhang, Chen Bo Calvin and
+            Hughes, John and Deng, Xiang and Sleight, Henry and Tracy, Tyler and
+            Shlegeris, Buck and Benton, Joe},
   year   = {2025},
-  note   = {arXiv:2506.15740},
+  note   = {arXiv:2506.15740v2},
   eprint = {2506.15740},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: authors elided in lit/01, short title. Context citation only.
 @article{bhatt2025ctrlz,
-  title  = {Ctrl-Z},
-  author = {Bhatt and Shlegeris, Buck},
+  title  = {Ctrl-{Z}: Controlling {AI} Agents via Resampling},
+  author = {Bhatt, Aryan and Rushing, Cody and Kaufman, Adam and Tracy, Tyler and
+            Georgiev, Vasil and Matolcsi, David and Khan, Akbir and Shlegeris, Buck},
   year   = {2025},
   note   = {arXiv:2504.10374},
   eprint = {2504.10374},
@@ -159,8 +174,6 @@
   archivePrefix = {arXiv}
 }
 
-% NOTE: lit/01 records this as "Gururangan et al." The author list below is the standard
-% one for this well-known paper but was NOT itself verified in lit/01. Worth 10 seconds.
 @inproceedings{gururangan2018annotation,
   title     = {Annotation Artifacts in Natural Language Inference Data},
   author    = {Gururangan, Suchin and Swayamdipta, Swabha and Levy, Omer and
@@ -191,93 +204,106 @@
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: lit/01 records author surnames only and NO title. The title below is the
-% standard one for this arXiv id but was NOT verified in lit/01. CHECK BEFORE CITING.
-@article{kaushik2018howmuch,
-  title  = {How Much Reading Does Reading Comprehension Require? A Critical
-            Investigation of Popular Benchmarks},
-  author = {Kaushik, Divyansh and Lipton, Zachary C.},
-  year   = {2018},
-  note   = {arXiv:1808.04926},
-  eprint = {1808.04926},
+@inproceedings{kaushik2018howmuch,
+  title     = {How Much Reading Does Reading Comprehension Require? A Critical
+               Investigation of Popular Benchmarks},
+  author    = {Kaushik, Divyansh and Lipton, Zachary C.},
+  booktitle = {Proceedings of EMNLP},
+  year      = {2018},
+  note      = {arXiv:1808.04926v2},
+  eprint    = {1808.04926},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: no authors and a short title in lit/01. Fill before submission.
-@article{swebenchplus2024,
-  title  = {{SWE}-Bench+},
+@article{aleithan2024swebenchplus,
+  title  = {{SWE}-Bench+: Enhanced Coding Benchmark for {LLMs}},
+  author = {Aleithan, Reem and Xue, Haoran and Mohajer, Mohammad Mahdi and
+            Nnorom, Elijah and Uddin, Gias and Wang, Song},
   year   = {2024},
-  note   = {arXiv:2410.06992},
+  note   = {arXiv:2410.06992v2},
   eprint = {2410.06992},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: two surnames only. Cite v2, not v1 - lit/01 is explicit about this.
+% Cite v2, not v1 - lit/01 is explicit, and v2 carries the ACM DOI.
 @article{wang2025solvedissues,
   title  = {Are ``Solved Issues'' in {SWE}-bench Really Solved Correctly?
             An Empirical Study},
-  author = {Wang and Pradel, Michael and Liu},
+  author = {Wang, You and Pradel, Michael and Liu, Zhongxin},
   year   = {2025},
-  note   = {arXiv:2503.15223v2, 9 September 2025},
+  note   = {arXiv:2503.15223v2},
   doi    = {10.1145/3744916.3764576},
   eprint = {2503.15223},
   archivePrefix = {arXiv}
 }
 
-% WARNING (lit/01 section 4): its headline is that leakage is MINIMAL on average - 4.8%
-% Python, 2.8% Java, 0.7% C/C++. Do NOT pair with SWE-Bench+ as though both report heavy
-% leakage. It supports "measure leakage per benchmark", not "leakage is pervasive".
+% WARNING (lit/01 section 4): its headline is that leakage is MINIMAL on average -
+% 4.8% Python, 2.8% Java, 0.7% C/C++. Do NOT pair with SWE-Bench+ as though both
+% report heavy leakage. It supports "measure leakage per benchmark", not
+% "leakage is pervasive".
 @article{zhou2025lessleak,
   title  = {{LessLeak}-Bench: A First Investigation of Data Leakage in {LLMs} Across
             83 Software Engineering Benchmarks},
-  author = {Zhou, Xin and Weyssow, Martin and Widyasari, Ratnadira and Zhang and
-            He and Lyu and Chang and Zhang and Huang and Lo, David},
+  author = {Zhou, Xin and Weyssow, Martin and Widyasari, Ratnadira and Zhang, Ting and
+            He, Junda and Lyu, Yunbo and Chang, Jianming and Zhang, Beiqi and
+            Huang, Dan and Lo, David},
   year   = {2025},
-  note   = {arXiv:2502.06215, 10 February 2025},
+  note   = {arXiv:2502.06215},
   eprint = {2502.06215},
   archivePrefix = {arXiv}
 }
 
 % ------------------------------------- 4. AI-code detection: the borrowed mechanism
 
-% INCOMPLETE: two surnames only.
-% lit/01 WITHDREW an earlier "EACL 2026" attribution as unsourced - the abs page states no
-% venue at all. Do NOT reinstate it.
+% lit/01 WITHDREW an earlier "EACL 2026" attribution as unsourced - the abs page
+% states no venue at all. Do NOT reinstate it.
 @article{orel2026aicd,
   title  = {{AICD} Bench: A Challenging Benchmark for {AI}-Generated Code Detection},
-  author = {Orel, Daniil and Azizov, Dilshod and Paul and Wang and
+  author = {Orel, Daniil and Azizov, Dilshod and Paul, Indraneil and Wang, Yuxia and
             Gurevych, Iryna and Nakov, Preslav},
   year   = {2026},
-  note   = {arXiv:2602.02079v1, 2 February 2026. No venue stated on the abs page.},
+  note   = {arXiv:2602.02079v1. No venue stated on the abs page.},
   eprint = {2602.02079},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: surnames only.
 @article{guo2025codemirage,
   title  = {{CodeMirage}: A Multi-Lingual Benchmark for Detecting {AI}-Generated and
             Paraphrased Source Code from Production-Level {LLMs}},
-  author = {Guo and Cheng and Zhang and Shen and Zhang},
+  author = {Guo, Hanxi and Cheng, Siyuan and Zhang, Kaiyuan and Shen, Guangyu and
+            Zhang, Xiangyu},
   year   = {2025},
-  note   = {arXiv:2506.11059v1, 27 May 2025. No venue stated.},
+  note   = {arXiv:2506.11059v1. No venue stated.},
   eprint = {2506.11059},
   archivePrefix = {arXiv}
 }
 
-% INCOMPLETE: surnames only.
 % The missing space in "Models,Prompts" is in the official arXiv title - do not "fix" it.
 @article{demirok2025multiaigcd,
   title  = {{MultiAIGCD}: A Comprehensive dataset for {AI} Generated Code Detection
             Covering Multiple Languages, Models,Prompts, and Scenarios},
-  author = {Demirok and Kutlu and Mergen},
+  author = {Demirok, Basak and Kutlu, Mucahid and Mergen, Selin},
   year   = {2025},
-  note   = {arXiv:2507.21693v1, 29 July 2025},
+  note   = {arXiv:2507.21693v1},
   eprint = {2507.21693},
   archivePrefix = {arXiv}
 }
 
 % ------------------------------------------------------------------- 5. Artifacts
 % Cited as datasets/software, not papers. ControlArena itself has no paper (lit/01 S2).
+
+@inproceedings{hendrycks2021apps,
+  title     = {Measuring Coding Challenge Competence With {APPS}},
+  author    = {Hendrycks, Dan and Basart, Steven and Kadavath, Saurav and
+               Mazeika, Mantas and Arora, Akul and Guo, Ethan and Burns, Collin and
+               Puranik, Samir and He, Horace and Song, Dawn and Steinhardt, Jacob},
+  booktitle = {NeurIPS Datasets and Benchmarks Track},
+  year      = {2021},
+  note      = {arXiv:2105.09938. The upstream source of the human-written honest class,
+               distributed as the HuggingFace dataset \texttt{codeparrot/apps}.},
+  eprint    = {2105.09938},
+  archivePrefix = {arXiv}
+}
 
 @misc{inglis2025appscontrolarena,
   title        = {apps-control-arena},
@@ -304,18 +330,10 @@
                   \textbf{No licence declared.} 1{,}500 rows each.}
 }
 
-% INCOMPLETE: confirm the canonical repo URL and owner before submission.
+% URL verified 2026-09-10: HTTP 200. The underscore variant is a 404.
 @misc{controlarena,
   title        = {{ControlArena}},
   author       = {{UK AI Security Institute}},
   howpublished = {\url{https://github.com/UKGovernmentBEIS/control-arena}},
   note         = {Software; no accompanying paper (lit/01 section 2).}
-}
-
-% INCOMPLETE: the APPS benchmark has a canonical paper (Hendrycks et al.), but lit/01 does
-% not record it as verified, so it is deliberately NOT asserted here. Verify and add.
-@misc{codeparrotapps,
-  title        = {{APPS}},
-  howpublished = {HuggingFace dataset \texttt{codeparrot/apps}},
-  note         = {The upstream source of the human-written honest class.}
 }
