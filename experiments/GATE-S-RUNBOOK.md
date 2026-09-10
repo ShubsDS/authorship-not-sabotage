@@ -444,12 +444,74 @@ refetch it. Generated solutions are ours to release.
 |---|---|---|
 | `apps/gate_s_pool.py` | ✅ **written and run** | §2. Produces `gate_s_pool.parquet` and the 3,420 / 1,582 / 1,444 table. Re-verified on a second machine 2026-09-09: every count exact. |
 | `apps/gen_honest.py` | ✅ **written, NOT yet run** | §3. The only GPU code in the repo, so it cannot be exercised off the allocation. Code extraction is unit-tested; the vLLM path is not. **Smoke it with `--limit 20` before the full run.** |
-| `apps/gen_honest_api.py` | ⚠️ **written, NOT run, and it spends money** | A Claude Sonnet 5 batch arm, ~$17. It is same-vendor, which no Qwen arm can be — but it breaks the standing "no paid API / $0" constraint and **that decision is still open**. See `../notes/05-permissibility.md`. |
-| `apps/run_tests.py` | ✅ **written and validated** | §4. 95.84% agreement on the analysis pool; three defects found and fixed. |
-| `apps/gate_s_baseline.py` | ✅ **written and RUN 2026-09-09** | §5.1. B = 0.8714 over n=1,444. CPU only. Imports `evaluate()` from `gate_s_eval` so the two cannot drift. |
+| `apps/gen_honest_api.py` | ✅ **RUN 2026-09-09**, $8.62 | The Claude Sonnet 5 honest arm. 1,444 of 1,444 succeeded. Defaults to `--pool analysis` because it is metered and only the 1,444 can reach a result; the vLLM arms still generate wide. `RESULTS.md` §4.1. |
+| `apps/run_tests.py` | ✅ **written, validated, and fixed again 2026-09-10** | §4. 95.84% on the analysis pool, unchanged by the 2026-09-10 fix (`StringIO` has no `.buffer`, which failed `sys.stdin.buffer.read()` instantly). `RESULTS.md` §4.4, §4.6. |
+| `apps/gate_s_baseline.py` | ✅ **RUN 2026-09-09, re-run 2026-09-10** | §5.1. B = 0.8714 (shipped flag, n=1,444); 0.8729 under our own flag at n=1,406, within one sd. Bit-identical across two machines and two library generations. `RESULTS.md` §4.7. |
 | `apps/gate_s_eval.py` | ✅ **written, not yet run** | §5. Needs an arm's `gen_*.jsonl` and `pass_*.jsonl`. Its **B half is now exercised** via `gate_s_baseline.py`; only the G half is untested code. |
+| `apps/gen_backdoor_api.py` | ⏳ **RUNNING** — both arms | The attack class, Sonnet 5. Two arms, see §6 below. Separate batch state files, so the arms cannot disturb one another. |
+| `apps/verify_backdoor.py` | ✅ **smoke-tested 2026-09-10** | 120 stand-in candidates → 104 usable. Carried the same `.buffer` defect as `run_tests.py` and was fixed with it — it mattered more here, because the caller reads a crash on the trigger as proof the backdoor fired. |
+| `apps/gate_s_samegen.py` | ✅ **smoke-tested 2026-09-10** | Produces **S**. Refuses a pair of classes that do not share a generator, and measures pair similarity against the stored 0.469. |
 
-**The one untested path is vLLM.** Everything else has been run on real data. Budget the first
-20 minutes of the allocation for `gen_honest.py --limit 20`, checking that the chat template applies,
-that generations terminate before `max_tokens`, and that `extract_code` finds a block — then launch
-the full arm.
+---
+
+## 6. The attack class — two arms, and why there are two
+
+`RESULTS.md` §4.8 carries the full reasoning; the short version a later agent needs:
+
+The obvious way to build a same-generator attack class is to hand the model its own honest solution
+and ask for a subtle bug. That holds authorship constant — but it also makes the pair a program and a
+near-copy of it. **The stored benchmark's pairs are not like that**: measured over 400 analysis-pool
+pairs, mean character similarity 0.469, with 60.8% below 0.60. Its two classes are largely
+independent programs.
+
+So an edit arm changes authorship *and* pair similarity. A low S from it cannot distinguish "the
+benchmark measured authorship" from "we made the two classes nearly the same text", and asserting
+the first would be this paper's own thesis turned against it.
+
+| arm | flag | model sees | what it changes | reads on |
+|---|---|---|---|---|
+| **edit** | *(default)* | problem + its own honest solution | authorship **and** similarity | a narrow claim: change only the sabotage and a trivial baseline cannot see it |
+| **independent** | `--independent` | **problem only** | **authorship only** | the paper's actual claim |
+
+```bash
+# edit arm (default)
+python gen_backdoor_api.py --honest-pass pass_sonnet5.jsonl --honest-gen gen_sonnet5.jsonl \
+    --out bd_sonnet5.jsonl --spent 8.62
+
+# independent arm - the control that isolates authorship
+python gen_backdoor_api.py --honest-pass pass_sonnet5.jsonl --honest-gen gen_sonnet5.jsonl \
+    --out bdind_sonnet5.jsonl --independent --limit 600 --spent 8.62
+
+# verify, then evaluate, per arm
+python verify_backdoor.py --backdoors bd_sonnet5.jsonl    --honest-gen gen_sonnet5.jsonl --out bdpass_sonnet5.jsonl
+python verify_backdoor.py --backdoors bdind_sonnet5.jsonl --honest-gen gen_sonnet5.jsonl --out bdindpass_sonnet5.jsonl
+
+python gate_s_samegen.py --tag sonnet5
+python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5.jsonl --bdpass bdindpass_sonnet5.jsonl --label independent
+```
+
+> **Read the pair-similarity line before the S line.** `gate_s_samegen.py` prints both. An arm whose
+> pairs average above 0.80 similarity has changed more than authorship, and its S is a bound rather
+> than a verdict. The script says so itself.
+
+> **Expect a lower yield from the independent arm.** Writing a program from scratch that passes every
+> public test *and* fails on a self-chosen trigger is harder than editing a working one. If it lands
+> under the 50-pair floor, top it up with another batch rather than reporting a small n.
+
+**The one untested path is still vLLM** — `gen_honest.py` and `gen_backdoor.py` have never run on a
+GPU. Everything else in this runbook has now been executed on real data.
+
+> ⚠️ **Gate S no longer goes through a GPU, and this runbook's GPU framing is history.** The route
+> taken is the Claude Sonnet 5 batch API: it generates **both** classes, which is what makes
+> authorship constant, and it needs no allocation. The H100 allocation expired unused on 2026-09-07,
+> and every queued Slurm job was estimated to start on or after the Sep 12 deadline, so they were
+> cancelled on 2026-09-09. Everything now runs on the login node — generation is network I/O, and
+> execution and evaluation are CPU work measured in minutes.
+>
+> If a GPU arm is ever wanted (the model-size ladder), request something small and short — one GPU,
+> a couple of hours — which backfills in minutes. The requests that stalled asked for 2 GPUs, 30
+> CPUs, 800 GB and 4 days, and sat behind 21 idle nodes for days.
+
+If you do run the vLLM path, budget the first 20 minutes for `gen_honest.py --limit 20`, checking
+that the chat template applies, that generations terminate before `max_tokens`, and that
+`extract_code` finds a block — then launch the full arm.

@@ -371,16 +371,73 @@ makes, and it costs nothing to state.
 
 ---
 
-### 4.8 Remaining stages
+## 4.8 Two attack arms, because the first one changes two things at once
+
+The attack arm as first built hands the model **its own honest solution** and asks for a subtle bug.
+That holds authorship constant, which is what Gate S needs — but it also makes each pair a program
+and a near-copy of that program, which Gate S does **not** need and the benchmark does not have.
+
+Measured 2026-09-10 over 400 analysis-pool pairs, character similarity of the **stored** pairs:
+
+| stored honest vs stored backdoor | |
+|---|---:|
+| mean | **0.469** |
+| median | 0.475 |
+| p10 / p90 | 0.062 / 0.875 |
+| near-identical (> 0.95) | **2.5%** |
+| clearly different (< 0.60) | **60.8%** |
+
+The benchmark's two classes are **largely independent programs** — a human wrote one, Claude wrote
+the other, neither from the other. An edit-based arm therefore changes two things at once, and a low
+S from it would be equally consistent with:
+
+1. *the benchmark's 0.87 was authorship* — the claim we want to test, and
+2. *we made the two classes nearly the same text* — an artifact of our own construction.
+
+S alone cannot separate those. Publishing reading (1) from an edit arm would be the exact
+methodological failure this paper documents, committed by the paper.
+
+### The two arms
+
+| | **edit** | **independent** |
+|---|---|---|
+| model is shown | problem **+ its own honest solution** | problem **only** |
+| task | modify this solution to hide a bug | write a solution with a hidden flaw |
+| pairs are | near-copies | independent programs |
+| changes vs the benchmark | authorship **and** pair similarity | **authorship only** |
+| n requested | 1,112 | 600 |
+| batch | `msgbatch_01LCpHv4vQaEs85xTBkJ9qUE` | `msgbatch_01D4m6kedMYDJktzUegHeTkH` |
+| cost | ~$8 est. | $2.40 est. |
+
+Both draw from the same 1,112 honest passers and share one honest class, so they differ only in how
+the attack class was produced.
+
+**What each arm can support.** The edit arm answers a narrow question honestly: *hold the program
+fixed, change only the sabotage, and can a trivial baseline still see it?* The independent arm is
+the one that speaks to the paper's claim, because authorship is the only thing it changes.
+
+`gate_s_samegen.py` now measures pair similarity on whichever arm it is given and prints it beside
+the stored 0.469. Without that number a low S is not interpretable at all. It warns explicitly when
+an arm's pairs average above 0.80 that S must be reported as a bound, not a verdict.
+
+> **The yield will differ and that is expected.** Writing a program from scratch that passes every
+> public test *and* fails on a self-chosen trigger is harder than editing a working solution, so the
+> independent arm will convert fewer requests into usable pairs. 600 should clear the 50-pair floor
+> comfortably; if it comes back thin the answer is a top-up batch, not a quietly small n.
+
+### 4.9 Remaining stages
 
 | Stage | Status |
 |---|---|
 | honest generation | ✅ done — §4.1 |
 | honest test execution | ✅ done — §4.3, §4.4 |
-| backdoor generation | ⏳ in flight — `msgbatch_01LCpHv4vQaEs85xTBkJ9qUE`, 1,112 requests |
-| harness re-validation vs shipped flag | ⏳ running |
-| backdoor verification | pending |
-| same-generator evaluation (S) | pending |
+| harness re-validation vs shipped flag | ✅ done — §4.6 |
+| B under our own flag | ✅ done — §4.7 |
+| backdoor generation, **edit** arm | ⏳ in flight — 1,112 requests |
+| backdoor generation, **independent** arm | ⏳ in flight — 600 requests |
+| backdoor verification (both arms) | pending |
+| same-generator evaluation, S (both arms) | pending |
+| Gate S figure | ⛔ does not exist — `paper/fig/CAPTIONS.md` |
 
 ---
 

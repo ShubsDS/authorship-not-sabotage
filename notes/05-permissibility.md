@@ -134,8 +134,16 @@ not a container, and the paper says so rather than implying an isolation it does
 | **B**, the baseline Gate S routes against | **$0** — laptop CPU, ~10 min. Run 2026-09-09. |
 | Optional: one same-harness prompted monitor on the regenerated pool | **$0**, same allocation |
 | ✅ `gen_honest_api.py` — Sonnet 5 honest class, 1,444 problems, run 2026-09-09 | **$8.62 actual** (estimate was $5.00; output ran 1,057 tokens/solution against an assumed 600) |
-| ⏳ `gen_backdoor_api.py` — Sonnet 5 attack class, 1,112 requests | in flight |
-| **Spend to date** | **$8.62** |
+| ⏳ `gen_backdoor_api.py` — Sonnet 5 attack class, **edit** arm, 1,112 requests | in flight, ~$8 est. |
+| ⏳ `gen_backdoor_api.py --independent` — Sonnet 5 attack class, **independent** arm, 600 requests | in flight, $2.40 est. |
+| **Spend to date** | **$8.62** (both attack arms still in flight; projected total ~$19) |
+
+> **Why a second attack arm was added 2026-09-10.** The edit arm shows the model its own honest
+> solution, so its pairs are near-copies, while the stored benchmark's pairs are largely independent
+> programs (mean character similarity 0.469; 60.8% below 0.60). The edit arm therefore changes
+> authorship *and* pair similarity, and a low S from it could not distinguish the paper's claim from
+> an artifact of our own construction. The independent arm changes authorship only. Full reasoning
+> and the two arms' design in `../experiments/RESULTS.md` §4.8.
 | **Ceiling** | **$100.** Cited in `../experiments/RESULTS.md` §4.2 and, until 2026-09-10, defined nowhere. It lives here now. `estimate()` prints a worst case beside the point estimate because the worst case is the number a ceiling has to survive: the honest arm over all 5,000 rows would have been ~$30 actual with a **$102 worst case** — over the ceiling before a single backdoor. Restricting generation to the 1,444-problem analysis pool is what contained it. |
 
 The binding constraint is **writing time**. The test harness is built and validated. Money is not a
