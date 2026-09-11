@@ -30,7 +30,6 @@ one to trust. Ceiling $135 was never approached; largest single batch $2.39.
 **Worker A total: $4.48** over one batch (`--dry-run` first: 1,112 problems, estimate $3.84, worst
 case $23.27 at `max_tokens`; hard cap $12 enforced in the script by the new `--max-cost`). The
 running total in my row is the **file-order sum of every ACTUAL COST above it** (101.60 opening +
-$18.91 of this session's other batches), which is the column the header says to trust; the
-immediately preceding row's own running-total cell (112.80) was computed against a balance that
-predates four of the rows above it, so it is not the file-order sum. New spend this session
-including mine: **$23.39** against the $33 session cap.
+$18.91 of this session's other batches), which is the column the header says to trust, and it
+agrees with the row above it (120.51 + 4.48 = 124.99). New spend this session including mine:
+**$23.39** against the $33 session cap.

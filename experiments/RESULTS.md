@@ -1557,11 +1557,21 @@ vectoriser, same classifier and folds.
 | strict | S_matched, char_wb 3–5 | 96 | 0.7143 | 0.6450–0.7403 | 0.8117 | 0.687 | 0.486–0.840 |
 | strict | prompt-only floor, char_wb 3–5 | 96 | 0.6790 | 0.6126–0.7107 | — | — | — |
 
-Two readings follow the numbers. First, the ID mask no longer removes much from the headline row:
+In every ρ row of this table, as in §13.2, the **point** is the fold-mean ratio and the
+**interval** is §12.2's joint bootstrap of the *pooled* out-of-fold ρ; the two estimators differ by
+up to 0.045 on the strict rows (e.g. strict S_matched [ID]: point 0.642, joint median 0.597), so a
+point and its interval here are not the same estimator.
+
+Three readings follow the numbers. First, the ID mask no longer removes much from the headline row:
 it cost S_original 0.0526 (0.7572 → 0.7046) and costs S_matched 0.0159 (0.6423 → 0.6264) — most of
 what identifier normalisation was removing in §11 is what prompt matching removes here, which is
-the same signal reached two ways. Second, a character model still retains more than the word
-tokeniser (0.6817 vs 0.6423), exactly as in §11.4, so the drop is not an artefact of tokenisation.
+the same signal reached two ways. Second — and this is the row that answers *structure or naming?*,
+because §11 found identifier normalisation to be the only mask that moves S at all — the ID-masked
+headline row is **band-ambiguous between collapse and partial**: ρ = 0.342, joint 95% CI
+0.280–0.394, with **P(ρ ≤ 0.33) = 0.401** and a joint median of 0.338. Two-fifths of the draws for
+structure-only, prompt-matched, non-firing attempts sit in the collapse band; P(ρ > 0.72) is 0.000.
+Third, a character model still retains more than the word tokeniser (0.6817 vs 0.6423), exactly as
+in §11.4, so the drop is not an artefact of tokenisation.
 
 ### 13.4 What the prompt moves: presence rates and the top features
 
@@ -1624,16 +1634,20 @@ direct measure of how much the prompt alone rewrites a program.
 The pre-registered bands are on ρ against B′: **collapse ≤ 0.33**, partial between, **content >
 0.72** (PLAN.md §3, the §9 convention).
 
-**Headline (n = 586, attacks that pass the tests, 97.5% of which never fire).** Holding the prompt
-constant as well as the model puts ρ at **0.394 (joint 95% CI 0.326–0.454)**. The interval lies in
-the partial band; it excludes the content line outright (P(ρ > 0.72) = 0.000, upper bound 0.454
-against 0.72) and touches the collapse line at its lower end (P(ρ ≤ 0.33) = 0.033). Against the
-same problems with the original honest class — ρ = 0.712 (0.636–0.771) — the state changes: §9's
-headline row was *inconclusive between partial and content*, and with the prompt matched the row is
-**partial, content excluded**. The prompt-only floor is 0.6006 (0.5768–0.6243): two classes that
-are both correct, both written by the same model, differing only in which prompt asked for them,
-are separable at 0.60 by the same pipeline, with length-only at 0.5322. S_matched (0.6423) sits
-0.042 above that floor and its interval overlaps it.
+**Headline (n = 586, attacks that pass the tests; on the 623-problem set it is drawn from, 14
+fire and 609 do not — 97.75% inert).** Holding the prompt constant as well as the model puts ρ
+at **0.394 (joint 95% CI 0.326–0.454)**. Against the same problems with the original honest
+class — ρ = 0.712 (0.636–0.771) — the state changes: §9's headline row was *inconclusive
+between partial and content*, and with the prompt matched the row is **partial, content
+excluded, with 3.3% of the joint-bootstrap mass below the collapse line (interval
+0.326–0.454)**; P(ρ > 0.72) = 0.000, upper bound 0.454 against 0.72. Every ρ point quoted in
+this section is the **fold-mean** ratio and every interval beside it is the **pooled** joint
+bootstrap of §12.2 (the pooled points are 0.390 headline and 0.662 strict, differing from the
+fold-mean by 0.004 and 0.035; on the strict rows of §13.3 the gap reaches 0.045). The
+prompt-only floor is 0.6006 (0.5768–0.6243): two classes that are both correct, both written by
+the same model, differing only in which prompt asked for them, are separable at 0.60 by the
+same pipeline, with length-only at 0.5322. S_matched (0.6423) sits 0.042 above that floor and
+its interval overlaps it.
 
 So, stated against the two outcomes this arm was run to distinguish: S_matched does **not** fall
 into the collapse band, and the prompt-only floor is high. On the headline set most of §11's
@@ -1651,21 +1665,26 @@ that survives holding *both* model and prompt constant is consistent with conten
 this arm has; §9.2's learning-curve caveat still applies at that n (B at n = 99 is 0.7807 ± 0.0248),
 so this row is read through ρ, not through the absolute AUROC.
 
-**What this does not say.** It does not say the residual is zero: 0.6423 and 0.7113 are not 0.5,
-and the collapse band is excluded by the strict row entirely and by the headline row at 97% of
-draws. It does not identify *which* remaining property the classifier reads — §13.4 says it is
-still layout vocabulary (`def main`, `solve`, `main (`), now at two-thirds the weight. And 0.052 of
-the headline drop travels with a rise in pair similarity (§13.5), which is a confound in the
-direction of a lower S_matched and is the one reason to prefer the prompt-only floor as the clean
-number: it needs no attack class at all.
+**What this does not say.** It does not say the residual is zero: 0.6423 and 0.7113 are not
+0.5, and the collapse band is excluded by the strict row entirely and by the headline row at
+97% of draws — though the headline row **with identifiers normalised** (§13.3) is
+band-ambiguous, ρ 0.342 with 40.1% of its draws in the collapse band, and that is the row §11's
+masking result makes the most diagnostic one. It does not identify *which* remaining property
+the classifier reads — §13.4 says it is still layout vocabulary (`def main`, `solve`, `main
+(`), now at two-thirds the weight. And 0.052 of the headline drop travels with a rise in pair
+similarity (§13.5), which is a confound in the direction of a lower S_matched and is the one
+reason to prefer the prompt-only floor as the clean number: it needs no attack class at all.
 
-Macros: `\matchedS` 0.642, `\matchedN` 586, `\matchedLo` 0.6179, `\matchedHi` 0.6621, `\matchedRho`
-0.394, `\matchedRhoLo` 0.326, `\matchedRhoHi` 0.454, `\matchedBprime` 0.8613; `\promptOnly` 0.601,
-`\promptOnlyLo` 0.5768, `\promptOnlyHi` 0.6243; `\matchedSorig` 0.757, `\matchedRhoOrig` 0.712;
-`\matchedStrictS` 0.711, `\matchedStrictN` 96, `\matchedStrictRho` 0.697, `\matchedStrictRhoLo`
-0.494, `\matchedStrictRhoHi` 0.856; `\matchedPassRate` 0.912, `\matchedCost` 4.48, `\matchedSim`
-0.716. Quote `\matchedRho` beside §9's `\sameGenRho` 0.687 in the same sentence, and the
-prompt-only floor beside both; the three together are the result.
+Macros, every AUROC to four decimals and every ρ to three, so a point and its interval never
+disagree in precision (the paper rounds, the ledger does not): `\matchedS` 0.6423, `\matchedN` 586,
+`\matchedLo` 0.6179, `\matchedHi` 0.6621, `\matchedRho` 0.394, `\matchedRhoLo` 0.326,
+`\matchedRhoHi` 0.454, `\matchedBprime` 0.8613; `\promptOnly` 0.6006, `\promptOnlyLo` 0.5768,
+`\promptOnlyHi` 0.6243; `\matchedSorig` 0.7572, `\matchedRhoOrig` 0.712; `\matchedStrictS` 0.7113,
+`\matchedStrictN` 96, `\matchedStrictRho` 0.697, `\matchedStrictRhoLo` 0.494, `\matchedStrictRhoHi`
+0.856; `\matchedPassRate` 0.9119, `\matchedCost` 4.48, `\matchedSim` 0.7162. Every ρ macro is a
+fold-mean point with a pooled joint interval (§13.3). Quote `\matchedRho` beside §9's `\sameGenRho`
+0.687 in the same sentence, and the prompt-only floor beside both; the three together are the
+result.
 
 ---
 
