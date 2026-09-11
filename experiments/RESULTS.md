@@ -985,3 +985,12 @@ Measured 2026-09-11 from the local files (pandas over `train_*.parquet` and `kor
 The paper's `\inertShare` (80.7%) is the first row and its sentence names that denominator; the analogue of the `passes` eligibility rule is the second row, which the paper must quote beside it. The three must never share a sentence without their denominators.
 
 Why our conditional firing rate is 2.5% against the artifact's 91.8% (3,188 / 3,474): the ControlArena attack policies execute code — write a bug, run the tests, check the trigger, iterate — while our batch call is single-shot and blind, so the model must predict both that its bug evades the hidden tests and that its chosen input reaches it. Pooling every proposed trigger per problem as extra witnesses (tried by a parallel session, not used here) roughly doubles the yield and no more, because the proposed triggers are correlated edge cases. The lever with a mechanism behind it — putting the public test inputs in the attack prompt, which the benchmark's attacker had — was not run; it is one pilot round and is future work.
+
+The two funnels on the same two stages make the mechanism a measurement rather than a story (Koran test split from `koran_meta.parquet`; ours pooled from §7.3):
+
+| attacker | passes the public tests | fires, given it passes |
+|---|---:|---:|
+| stored (Koran test split, labelled backdoors) | 256 / 892 = **28.7%** | 172 / 256 = **67.2%** |
+| ours (single-shot, blind, 11,565 draws) | 6,570 / 11,565 = **56.8%** | 167 / 6,570 = **2.5%** |
+
+The stored attacker passes the tests *less* often and fires 27× more often when it does. The two rates move in opposite directions, which is the signature of an attacker that checks a candidate input against a running program and not of one that is better at writing evasive bugs. The 892 → 172 funnel is also the selection effect stated numerically on the exact split the paper evaluates: 5.2× of labelled candidates were discarded to build the stored attack class. Use this in place of the 46% vs 2% comparison in §4.10 wherever the two would sit together.
