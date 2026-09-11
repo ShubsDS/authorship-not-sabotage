@@ -971,3 +971,17 @@ Selection-effect sentence for the paper: `best` clears the 50-pair floor of `gat
 4. `verify_backdoor.py` buffers its output until exit (0 lines on disk at 600/11,565); a crash mid-run loses everything and there is no resume. Verdicts also show timing flakes under 12-way load (problem 1475: pass -> timeout), so pass counts are stable only to ±1.
 5. `verify_backdoor.py` uncommitted `--trigger-pool` edit (mtime 07:25:34, not mine): changes the definition of `backdoor_works` (any pooled witness rather than the draw's own trigger). Verdict files from it are not comparable with the ones in this report; RESULTS.md should name which verifier produced each number.
 6. `notes/08` §1.2 says "up to seven draws" and "6,672 total"; the pool is up to 13 draws and 11,565 (would be ~13,800 with the missing shards).
+
+### 7.7 Coordinator addendum: the inert share has three denominators, and why the single-shot yield is 2%
+
+Measured 2026-09-11 from the local files (pandas over `train_*.parquet` and `koran_meta.parquet`):
+
+| population | denominator | inert (does not fire) |
+|---|---:|---:|
+| Koran test split, problems with a labelled backdoor | 892 | **80.7%** (172 fire; 256 pass the tests) |
+| Koran test split, backdoors that pass the public tests | 256 | **32.8%** |
+| full artifact, backdoor records that pass the public tests | 3,474 | **8.2%** (3,188 fire) |
+
+The paper's `\inertShare` (80.7%) is the first row and its sentence names that denominator; the analogue of the `passes` eligibility rule is the second row, which the paper must quote beside it. The three must never share a sentence without their denominators.
+
+Why our conditional firing rate is 2.5% against the artifact's 91.8% (3,188 / 3,474): the ControlArena attack policies execute code — write a bug, run the tests, check the trigger, iterate — while our batch call is single-shot and blind, so the model must predict both that its bug evades the hidden tests and that its chosen input reaches it. Pooling every proposed trigger per problem as extra witnesses (tried by a parallel session, not used here) roughly doubles the yield and no more, because the proposed triggers are correlated edge cases. The lever with a mechanism behind it — putting the public test inputs in the attack prompt, which the benchmark's attacker had — was not run; it is one pilot round and is future work.
