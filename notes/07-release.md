@@ -10,9 +10,28 @@ both upstream artifacts this work builds on most — `RoganInglis/apps-control-a
 
 ```bash
 cd experiments/apps
-python release_split.py --out release            # add --keep best ONLY if the retry pool is in
-python release_split.py --check release          # run this from the directory holding train_*.parquet
+# headline build (proposed 2026-09-11; the coordinator sends the go with the final --keep):
+# the outcome-blind `first` selection of the independent-arm retry pool, one draw per problem
+python3 release_split.py --out release --keep first \
+    --bd-independent bdind_sonnet5_first.jsonl --bdpass-independent bdindpass_sonnet5_first.jsonl \
+    --card-out ../RELEASE-CARD.md
+python3 release_split.py --check release         # run this from the directory holding train_*.parquet
 ```
+
+`--keep` and the retry pool (`RESULTS.md` §7), checked in memory on 2026-09-11 without writing
+anything: fed the full pool (`bdind_sonnet5_retry.jsonl` + `bdindpass_sonnet5_retry.jsonl`, 11,565
+draws, aligned line for line), `--keep first` and `--keep best` select exactly the draws
+`merge_draws.py select` wrote to `bdind_sonnet5_{first,best}.jsonl` (1,112 each; `first` gives 623
+passing / 14 usable independent pairs, `best` 1,046 / 106, ten of the 106 being crash-on-trigger
+survivors). Feeding the pre-selected `_first` files, as above, is the same build and skips the
+dedupe warning. `--keep best` (or the `_best` files) is the strict-S build and must ship with the
+selection-effect sentence; note that the 99-problem crash-excluded reading is **not** recoverable
+from the released schema, which carries `backdoor_works` but no crash flag. The script cannot ship
+the pool itself as it stands: it always reduces to one draw per problem, its file set is fixed, and
+`--check` rejects unlisted files. Shipping the pool needs a small addition (a `--pool-independent`
+pair of flags writing `attacks_independent_pool.jsonl` with `draw`/`source`/`round` and a crash
+flag, an `--also-select best` writing `pairs_*_best.csv` keyed by `draw`, and the matching manifest
+and `--check` entries); it is written up in the Worker G report and is not made until the go.
 
 The build refuses to write on any anonymity hit (local path, username, `msgbatch_…`, `sk-ant-…`,
 repo URL, dollar figure) and refuses to mix generators. `--check` re-verifies counts, SHA-256s,
@@ -71,7 +90,9 @@ Replace "Ours accompany this paper." with:
 > eligibility rules shipped as separate pair lists), the generation, execution and verification
 > scripts, and a manifest of row counts and checksums, released under the MIT licence.
 
-Fill the two counts from `MANIFEST.json`; if the macros are not wanted, write the numbers.
+Fill the two counts from `MANIFEST.json`; if the macros are not wanted, write the numbers. If the
+retry pool ships (§1), add after "pair lists": "together with every draw of the independent arm's
+retry pool and the two selections made from it".
 
 ## 5. Still open, and not a blocker
 
@@ -80,4 +101,4 @@ object hash, and only GitHub Support can force the garbage collection. **That ti
 open.** It does not block this release: nothing in `release/` derives from that corpus, and the
 bundle carries no upstream content at all. It does block the sentence "this repo is evidence that
 we redistribute nothing" — until Support confirms, the paper's claim must stay the precise one:
-*we redistribute one 8 KB MIT-licensed file, with its notice.*
+*we redistribute one MIT-licensed file of 5,797 bytes (`monitor-summary.json`), with its notice.*

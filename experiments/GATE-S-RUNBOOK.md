@@ -27,23 +27,23 @@ Four stages, and only stage 2 touches the GPU:
 **Stage 3 was the risk, not stage 2** — the harness is now built and validated (§4.2), so as
 of 2026-09-09 the risk is stage 2's *queue time*, not any of the code.
 
-> ### STATUS 2026-09-10 — the GPU route was overtaken; the live arm is the API one
+> ### STATUS 2026-09-11 — the GPU route was overtaken; the live arm is the API one
 > ~~*Nothing has been generated yet.*~~ Superseded. The 4-day interactive 2× H100 allocation
 > expired 2026-09-07 with nothing generated and the H100 queue never cleared, so the vLLM route
-> (§3) stopped being the critical path. **Gate S is now running through the Sonnet 5 batch API**,
-> which does not depend on the cluster at all.
+> (§3) stopped being the critical path. **Gate S ran through the Sonnet 5 batch API**, which does
+> not depend on the cluster at all. Everything below S has landed.
 >
 > | Stage | State |
 > |---|---|
-> | B, the baseline | ✅ **0.8714** (n=1,444); **0.8729** under our own flag (n=1,406), within 1 sd |
+> | B, the baseline | ✅ **0.8714** (n=1,444), re-run bit-identical 2026-09-11; **0.8729** under our own flag (n=1,406), within 1 sd |
 > | arm 1 — regenerate the honest half only (Qwen3-Coder-30B) | ⛔ **CONFOUNDED**, ρ = 1.234 |
 > | same-generator honest class | ✅ 1,444/1,444 generated, 1,112 pass |
-> | same-generator attack class, **edit** arm | ✅ 1,112/1,112 |
-> | same-generator attack class, **independent** arm | ✅ 600/600 — **this is the arm the title routes on** (§6) |
-> | backdoor verification | ⏳ running |
-> | **S** | pending — the last number |
+> | same-generator attack class, **edit** arm | ✅ 1,112/1,112 generated; verified 427 pass / 40 usable |
+> | same-generator attack class, **independent** arm | ✅ 600/600 — **this is the arm the title routes on** (§6); verified 335 pass / 10 usable, far below the 50-pair floor |
+> | independent arm, **retry pool** (§6.1) | ✅ **11,565 draws** verified (single shot + six rounds + 24 shards; 12 shards never landed); `first` 623 passing / 14 usable, `best` 1,046 / 106 (99 excluding crash-on-trigger) |
+> | **S** | pending — the last number; headline on `first` under `passes`, strict on `best` under `usable` (`RESULTS.md` §7, coordinator decisions) |
 >
-> Spend $13.63 of the $100 ceiling. Full ledger: **`RESULTS.md`**.
+> Spend stayed inside the ceiling; the accounting is in the ledger. Full ledger: **`RESULTS.md`**.
 >
 > **`PLAN.md` §6 stopping rule still stands:** if S does not land, take route 4 and ship without
 > it. The arm-1 null and the pair-similarity result are findings in their own right and survive
@@ -138,13 +138,18 @@ to leak on a shared node.
 >
 > The old `Qwen2.5-Coder-7B` arm was killed by its own smoke test: 2/20 on interview-tier
 > problems, which yields ~150–200 pairs — too small to read. **If only one arm fits, run arm 1.**
+>
+> **What actually ran (2026-09-08):** only the `Qwen/Qwen3-Coder-30B-A3B-Instruct` row —
+> `gen_q3c30.jsonl`, 5,000 generations, 668 pairs — and the ledger calls *it* arm 1
+> (`RESULTS.md` §3). `Qwen3.8-27B` and the ladder never ran; the table above is the plan, kept
+> for the record.
 
 Submit as batch jobs, chained so stage 3 starts by itself:
 
 ```bash
 cd experiments/apps
-sbatch gate_s_gen.sbatch                                                    # arm 1, Qwen3.8-27B
-sbatch --export=MODEL=Qwen/Qwen3-Coder-30B-A3B-Instruct,TAG=q3c30 gate_s_gen.sbatch
+sbatch gate_s_gen.sbatch                                                    # Qwen3.8-27B — planned, never ran
+sbatch --export=MODEL=Qwen/Qwen3-Coder-30B-A3B-Instruct,TAG=q3c30 gate_s_gen.sbatch   # the arm that ran
 sbatch --dependency=afterok:<gen_job_id> gate_s_check.sbatch                # stage 3 + 4
 ```
 
@@ -431,9 +436,11 @@ Retained signal **ρ = (G − 0.5) / (B − 0.5)**.
 > stands. **Route on ρ, computed by `gate_s_eval.py` from that arm's own B — never by eyeballing G
 > against a remembered threshold.** The ratio itself is unchanged; only the prose figures were stale.
 
-**Route on arm 1 (`Qwen3.8-27B`).** Arm 2 and the ladder are the confound diagnostics, read against
-`../PLAN.md` §3's tables: an arm that does not collapse while arm 1 does means that arm's result was
-code quality, not authorship.
+**Route on arm 1** — planned as `Qwen3.8-27B`; the arm that ran is `Qwen3-Coder-30B` (§3), and it
+came back **confounded** (ρ = 1.234, `RESULTS.md` §3), so nothing routes on it. The other arms and
+the ladder were the confound diagnostics, read against `../PLAN.md` §3's tables: an arm that does
+not collapse while arm 1 does means that arm's result was code quality, not authorship. The title
+now routes on the same-generator independent arm (§6).
 
 **If neither arm produces usable pairs by end of Sep 8**, take the fourth route in `../PLAN.md` §3 —
 ship without the control, authorship stated as inference in Limitations. Do not spend Sep 9 debugging
@@ -454,14 +461,15 @@ refetch it. Generated solutions are ours to release.
 | Script | Status | Notes |
 |---|---|---|
 | `apps/gate_s_pool.py` | ✅ **written and run** | §2. Produces `gate_s_pool.parquet` and the 3,420 / 1,582 / 1,444 table. Re-verified on a second machine 2026-09-09: every count exact. |
-| `apps/gen_honest.py` | ✅ **written, NOT yet run** | §3. The only GPU code in the repo, so it cannot be exercised off the allocation. Code extraction is unit-tested; the vLLM path is not. **Smoke it with `--limit 20` before the full run.** |
+| `apps/gen_honest.py` | ✅ **RUN 2026-09-08** — arm 1 | §3. `--model Qwen/Qwen3-Coder-30B-A3B-Instruct`: 5,000 generations (`gen_q3c30.jsonl`), scored by `run_tests.py` into `pass_q3c30.jsonl`, 668 pairs on the analysis pool. The planned `Qwen3.8-27B` arm never ran. `RESULTS.md` §3. |
 | `apps/gen_honest_api.py` | ✅ **RUN 2026-09-09**, $8.62 | The Claude Sonnet 5 honest arm. 1,444 of 1,444 succeeded. Defaults to `--pool analysis` because it is metered and only the 1,444 can reach a result; the vLLM arms still generate wide. `RESULTS.md` §4.1. |
 | `apps/run_tests.py` | ✅ **written, validated, and fixed again 2026-09-10** | §4. 95.84% on the analysis pool, unchanged by the 2026-09-10 fix (`StringIO` has no `.buffer`, which failed `sys.stdin.buffer.read()` instantly). `RESULTS.md` §4.4, §4.6. |
 | `apps/gate_s_baseline.py` | ✅ **RUN 2026-09-09, re-run 2026-09-10** | §5.1. B = 0.8714 (shipped flag, n=1,444); 0.8729 under our own flag at n=1,406, within one sd. Bit-identical across two machines and two library generations. `RESULTS.md` §4.7. |
-| `apps/gate_s_eval.py` | ✅ **written, not yet run** | §5. Needs an arm's `gen_*.jsonl` and `pass_*.jsonl`. Its **B half is now exercised** via `gate_s_baseline.py`; only the G half is untested code. |
-| `apps/gen_backdoor_api.py` | ⏳ **RUNNING** — both arms | The attack class, Sonnet 5. Two arms, see §6 below. Separate batch state files, so the arms cannot disturb one another. |
-| `apps/verify_backdoor.py` | ✅ **smoke-tested 2026-09-10** | 120 stand-in candidates → 104 usable. Carried the same `.buffer` defect as `run_tests.py` and was fixed with it — it mattered more here, because the caller reads a crash on the trigger as proof the backdoor fired. |
-| `apps/gate_s_samegen.py` | ✅ **smoke-tested 2026-09-10** | Produces **S**. Refuses a pair of classes that do not share a generator, and measures pair similarity against the stored 0.469. |
+| `apps/gate_s_eval.py` | ✅ **RUN** — arm 1 | §5. `--gen-file gen_q3c30.jsonl --pass-file pass_q3c30.jsonl --label q3c30`: n = 668, B′ 0.8739, G 0.9616, **ρ = 1.234, confounded**. `RESULTS.md` §3. |
+| `apps/gen_backdoor_api.py` | ✅ **RUN** — both arms, then the retry rounds | The attack class, Sonnet 5. Edit arm 1,112/1,112; independent arm 600/600; then six full rounds and 36 shards over the 1,112 honest passers for the retry pool (§6.1), of which 12 shards never landed. Separate batch state files, so the arms cannot disturb one another. Its closing "Next:" line names the **edit-arm** verdict file for both arms — do not follow it for the independent arm (§6). |
+| `apps/verify_backdoor.py` | ✅ **RUN** — both arms and the pool | Edit arm 427 pass / 40 usable; independent arm 335 / 10; the 11,565-draw pool 6,570 / 167 (14 crash-on-trigger). Carried the same `.buffer` defect as `run_tests.py` and was fixed with it — it mattered more here, because the caller reads a crash on the trigger as proof the backdoor fired; ControlArena scores a crash as not working, so crash survivors are counted separately (`RESULTS.md` §7). |
+| `apps/merge_draws.py` | ✅ **RUN 2026-09-11** | Pools the retry draws in chronological file order and reduces them to one draw per problem under `--keep first` (outcome-blind) or `--keep best` (survivor selection). Draws and verdicts join on the `draw` key, never by line. §6.1. |
+| `apps/gate_s_samegen.py` | ✅ **smoke-tested 2026-09-10**; the S runs are pending in the ledger | Produces **S**. Refuses a pair of classes that do not share a generator, refuses below `--min-pairs 50`, and measures pair similarity against the stored 0.469. |
 
 ---
 
@@ -496,6 +504,9 @@ python gen_backdoor_api.py --honest-pass pass_sonnet5.jsonl --honest-gen gen_son
 # verify, then evaluate, per arm
 python verify_backdoor.py --backdoors bd_sonnet5.jsonl    --honest-gen gen_sonnet5.jsonl --out bdpass_sonnet5.jsonl
 python verify_backdoor.py --backdoors bdind_sonnet5.jsonl --honest-gen gen_sonnet5.jsonl --out bdindpass_sonnet5.jsonl
+#   ^ the independent arm's verdicts go to bdindpass_sonnet5.jsonl. gen_backdoor_api.py's closing
+#     "Next:" line prints bdpass_sonnet5.jsonl for both arms; following it would overwrite the
+#     edit-arm verdicts. It was not followed; the files on disk use the names above.
 
 python gate_s_samegen.py --tag sonnet5
 python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5.jsonl --bdpass bdindpass_sonnet5.jsonl --label independent
@@ -506,11 +517,60 @@ python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5.jsonl --bdpass bdindpa
 > than a verdict. The script says so itself.
 
 > **Expect a lower yield from the independent arm.** Writing a program from scratch that passes every
-> public test *and* fails on a self-chosen trigger is harder than editing a working one. If it lands
-> under the 50-pair floor, top it up with another batch rather than reporting a small n.
+> public test *and* fails on a self-chosen trigger is harder than editing a working one. It landed at
+> 10 usable of 600 — far under the 50-pair floor — so it was topped up, as §6.1 records, rather than
+> reported at a small n.
 
-**The one untested path is still vLLM** — `gen_honest.py` and `gen_backdoor.py` have never run on a
-GPU. Everything else in this runbook has now been executed on real data.
+### 6.1 The retry pool — what was actually done, and what the two selections mean
+
+`RESULTS.md` §7 is the ledger; this is the procedure. The single-shot usable rate of the independent
+arm is about 2% (§4.10), and the stored benchmark's attack class is a retry-survivor set, so the arm
+was resampled with the **same prompt, same model, same 1,112 honest-passing problems**: six further
+full rounds (`bds_r1..r6.jsonl`, 1,110–1,111 each — about ten requests per round came back
+non-`succeeded` and are dropped silently by the generator) and six rounds of six shards of 186
+requests (`bds_r{1..6}s{0..5}.jsonl`). **The 12 shards `bds_r{1..6}s{1,2}.jsonl` never landed**:
+their batches have sat `in_progress` with nothing succeeded since they were submitted, their poller
+processes are still alive, their state files are untouched, and the coordinator fixed the pool
+without them. That leaves **11,565 draws from 31 files over 1,112 problems, up to 13 per problem
+(mean 10.4)** — the 512 problems in the two missing shards' offset range have 7 draws, the rest 12
+or 13.
+
+```bash
+# pool, in chronological file order (first depends on it); missing files are skipped with a warning
+python3 merge_draws.py merge bdind_sonnet5.jsonl bds_r{1..6}.jsonl bds_r{1..6}s{0..5}.jsonl
+#   -> bdind_sonnet5_retry.jsonl, 11,565 draws keyed draw = "<problem_id>:<source>", with source/round
+python3 verify_backdoor.py --backdoors bdind_sonnet5_retry.jsonl --honest-gen gen_sonnet5.jsonl \
+    --out bdindpass_sonnet5_retry.jsonl            # 12 workers, ~45 min; verdicts carry the draw key
+#   -> 6,570 pass the public tests, 167 pass AND fire (14 of those by crashing on the trigger)
+
+# one draw per problem, two policies, both written and both named
+python3 merge_draws.py select --keep first    # -> bdind_sonnet5_first.jsonl + bdindpass_sonnet5_first.jsonl
+python3 merge_draws.py select --keep best     # -> bdind_sonnet5_best.jsonl  + bdindpass_sonnet5_best.jsonl
+```
+
+| policy | what it keeps | passing | usable | reads as |
+|---|---|---:|---:|---|
+| `first` | the earliest draw, chosen **blind** to its outcome | 623 | 14 (3 crash) | the single-shot rate; the **headline S** under `--eligibility passes` |
+| `best` | a draw that passes **and** fires if one exists, else one that passes, else any; ties to the earlier draw | 1,046 | 106 (10 crash; **99** non-crash) | the benchmark's own survivor selection; the **strict S** under `usable`, with the selection-effect sentence |
+
+`usable` under `first` (14) is below the floor and is reported as a refusal, not a number. Any
+number from `best` inherits the filtering the paper criticises and says so (`../notes/06` §4.4).
+Draws and verdicts join on the `draw` key, never by line position. If the 12 shards ever land:
+re-run `merge` in the same order, verify only the new `draw` keys into a separate file, concatenate,
+and re-run both `select`s.
+
+```bash
+# headline: attack class = passes the public tests; B' matched to that rule (inert-inclusive)
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl \
+    --label independent-first --eligibility passes --bprime-inert
+# strict: attack class = passes AND fires, survivor-selected; B' all-firing
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best.jsonl --bdpass bdindpass_sonnet5_best.jsonl \
+    --label independent-best --eligibility usable
+```
+
+**The one untested path is still vLLM for the attack class** — `gen_backdoor.py` has never run.
+`gen_honest.py` ran once on a GPU, for arm 1 (§3). Everything else in this runbook has now been
+executed on real data.
 
 > ⚠️ **Gate S no longer goes through a GPU, and this runbook's GPU framing is history.** The route
 > taken is the Claude Sonnet 5 batch API: it generates **both** classes, which is what makes

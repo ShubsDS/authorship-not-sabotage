@@ -18,7 +18,7 @@ there is an answer.
 | A2 | Scoop resistance | **3** | Tracy, Redwood/UK AISI and Jha are all active here, and Jha already owns the instrument. This is the weakest acceptance dimension and it does not improve by waiting. |
 | A3 | Outcome robustness | **5** | Realised *inside one table*, not argued: bash 0.504 clean vs agentdojo 0.802 leaky; `solution_passes_tests` 0.500 on the filtered split (the field's fix works) vs metadata 0.772 (it does not reach the problem side). **The paper cannot come out "no result."** |
 | A4 | Venue fit | **5** | *"Benchmarks and Governance: continuously evolving safety benchmarks… coverage metrics"* names the object. |
-| A5 | Executability | **5** | Every CPU number exists today. One GPU control remains, on a held allocation at **$0**; the only unbuilt piece is the test harness. |
+| A5 | Executability | **5** | Every CPU number exists today. Gate S has run: arm 1 on the GPU (confounded, a result in itself) and the same-generator control through a **paid batch API**, disclosed in the paper (`notes/05`); the test harness is built and validated (95.84% agreement). S itself is the one number outstanding (`experiments/RESULTS.md` §7). |
 | A6 | Claim discipline | **4** | Every abstract sentence has a number behind it, once Gate S returns. |
 
 ## B — relevance to general AI safety: **20 / 25**
@@ -80,6 +80,7 @@ not "our monitor is better": the label is recoverable from features that cannot 
 A second **task setting** (done — five agentic settings), an **adversarial arm** (not applicable —
 there is no adversary in a validity audit), and **confidence intervals** (permutation nulls beside
 every floor, 5×5 CV — done). **Breadth buys nothing here.** More points on an existing curve is
-padding; the binding constraints are the test harness and writing time. The GPU allocation is free and
-held for days, so the honest use of the surplus is **re-running Gate S** if the first pass is
-ambiguous — not adding a corpus.
+padding; the binding constraints are the test harness and writing time. The GPU allocation expired
+unused on 2026-09-07; the same-generator arm went through a paid API instead, and the honest use of
+the surplus was **re-running Gate S** — the independent arm's retry pool (`experiments/RESULTS.md`
+§7) — not adding a corpus.

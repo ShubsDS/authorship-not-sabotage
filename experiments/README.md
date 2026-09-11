@@ -1,7 +1,8 @@
 # experiments/ — every number in the paper, and the script that produced it
 
-All of it runs on a **laptop CPU in minutes**. The only GPU anywhere in this paper is Gate S, and it
-has its own step-by-step execution guide: [`GATE-S-RUNBOOK.md`](GATE-S-RUNBOOK.md).
+All of it runs on a **laptop CPU in minutes**. The one experiment that left the CPU is Gate S — arm 1
+on a GPU, the same-generator arm through a paid batch API — and it has its own step-by-step execution
+guide: [`GATE-S-RUNBOOK.md`](GATE-S-RUNBOOK.md); what came back is in [`RESULTS.md`](RESULTS.md).
 
 ```
 uv venv && uv pip install pandas pyarrow scikit-learn requests huggingface_hub matplotlib
@@ -22,10 +23,12 @@ redistributed — the scripts fetch public HuggingFace datasets and one MIT GitH
 and `.gitignore` keeps the parquets and the derived `.pkl` caches out.
 
 ⚠️ **Two exceptions, both stated rather than implied.** `gen_honest.py` downloads open-weight
-models (Gate S, GPU). `gen_honest_api.py` **does** contact a paid API — a ~$17 Claude Sonnet 5 arm
-whose approval is an open decision (`../notes/05-permissibility.md`); it has not been run. And the
-two `.pkl` caches were **tracked in this repo until 2026-09-09**, one of them holding 24 MB of code
-from a corpus that declares no licence; they are untracked now, but they remain in git history.
+models (Gate S arm 1, GPU; it ran once, with Qwen3-Coder-30B). `gen_honest_api.py` and
+`gen_backdoor_api.py` **do** contact a paid API — the Claude Sonnet 5 same-generator arm, approved
+and run 2026-09-09 to 2026-09-11 and disclosed in the paper (`../notes/05-permissibility.md`; no
+open-weight model can write both classes of a same-vendor control). And the two `.pkl` caches were
+**tracked in this repo until 2026-09-09**, one of them holding 24 MB of code from a corpus that
+declares no licence; they are untracked now, but they remain in git history.
 
 ---
 
@@ -51,7 +54,9 @@ subset of the first, which is what K1 established).
 | `token_test.py` | The AICD App. D.1 token-level confirmation, with a permutation null. **Negative** — see `../TOKEN-TEST.md`. |
 | `gate_s_pool.py`, `gen_honest.py`, `run_tests.py`, `gate_s_eval.py` | Gate S: pool, generation (the only GPU code here), test execution, and the routing decision. See `../GATE-S-RUNBOOK.md`. |
 | `gate_s_baseline.py` | **B, the human-honest baseline Gate S routes against — CPU, ~10 min.** `gate_s_eval.py` computes B and G together and requires an arm's generation file, so B was unreachable until a GPU job landed, for no reason. This runs that half alone and **imports `evaluate()` from `gate_s_eval`** rather than reimplementing it, so the two cannot drift. **Run 2026-09-09: B = 0.8714, n = 1,444** (`gate_s_baseline.json`). |
-| `gen_honest_api.py` | ⚠️ A Claude Sonnet 5 batch arm, **~$17 — it breaks the `$0` / no-paid-API constraint and that decision is open.** Not run. See `../notes/05-permissibility.md`. |
+| `gen_honest_api.py` | The Claude Sonnet 5 honest class through the batch API — a **paid** arm, disclosed in the paper (`../notes/05-permissibility.md`). **Run 2026-09-09: 1,444 of 1,444, 1,112 pass our harness.** `RESULTS.md` §4.1–4.3. |
+| `gen_backdoor_api.py`, `verify_backdoor.py`, `merge_draws.py`, `gate_s_samegen.py` | The same-generator attack class (an **edit** arm, 1,112, and an **independent** arm, 600, then resampled into a **retry pool of 11,565 draws**, up to 13 per problem), its verification, the `first` / `best` selections, and **S**. `RESULTS.md` §4.8–4.10 and §7; S is pending. |
+| `strip_recheck.py`, `headline_ci.py`, `release_split.py` | The comment-stripped re-check of the authorship legs (`RESULTS.md` §6), the bootstrap and permutation intervals on the headline floors with the paired comparison against the 24 monitors (§8, `headline_ci.json`), and the anonymised release build (`../notes/07-release.md`, `RELEASE-CARD.md`). |
 
 **The headline rows** (full detail in `RECOMPUTE.md`; caveats in `../lit/01`):
 
