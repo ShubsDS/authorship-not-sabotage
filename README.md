@@ -25,7 +25,7 @@ On the field's own filtered, comment-stripped split, a bag-of-words classifier t
 backdoor reaches **AUROC 0.806 — above 20 of the 24 monitors ranked there** (median 0.609), a
 classifier that reads **no code at all** reaches **0.772**, above 20 (0.7163 on a single held-out
 slice, above 18 — state the protocol with the count), and the bag-of-words signal is
-as strong on **inert** backdoors (0.954 pairwise) as on working ones (0.979). A monitor validated on
+as strong on **inert** backdoors (0.879 pairwise, comments stripped) as on working ones (0.935). A monitor validated on
 that corpus has been validated on a discrimination it will never face in deployment, where the
 untrusted model writes both classes.
 
@@ -77,8 +77,9 @@ control (§10)**.
 >
 > 1. **S landed: collapse excluded, partial to content.** Headline S = **0.7512** (95% CI
 >    0.7295–0.7713, n = 623, outcome-blind draw, attack = passes the tests) against B′ = 0.8658 on
->    the same problems, **ρ = 0.687 (0.627–0.742)**; strict S = 0.7652 (0.7016–0.8000, n = 99,
->    survivor-selected, passes and fires) against B′ = 0.7877, ρ = 0.921 (0.700–1.043). Both exclude
+>    the same problems, **ρ = 0.687 (0.625–0.755, joint bootstrap)**; strict S = 0.7652 (0.7016–0.8000, n = 99,
+>    survivor-selected, passes and fires) against B′ = 0.7877, ρ = 0.921 — 0.861 on the pooled
+>    score, the convention the interval 0.662–1.089 is built on. Both exclude
 >    the pre-registered collapse band and span the content line. Holding authorship constant removes
 >    about a third of the separability; length falls to chance while TF-IDF holds; B at n = 623 is
 >    0.8521, so it is not sample size; the survivor check (0.62) says it is not retention. The
@@ -86,7 +87,14 @@ control (§10)**.
 >    **confounded** (ρ = 1.234), which is itself a result. Title unchanged.
 > 2. **Paper: four content pages exactly**, §1 written, `\TODO` a no-op, every headline number with
 >    its interval, Gate S paragraph on the measured values, release sentence true. Tracked PDF
->    beside the source.
+>    beside the source. The reviewer audit of 2026-09-11
+>    ([`notes/09-review-audit.md`](notes/09-review-audit.md)) has been applied in full except for
+>    what depends on numbers that do not exist yet.
+> 2a. **Three arms are running and the paper's second pass is pending them:** the prompt-matched
+>    honest class (RESULTS.md §13), the monitors on the stored pairs (§14) and the Haiku 4.5
+>    same-generator replication (§15). `paper/main.tex` carries their macros as reserved
+>    placeholders that render a red TBD and are used nowhere in the prose; the body ends on page 4
+>    with about fourteen free lines, which is what the three new sentences cost.
 > 3. **Left for a human:** read the abstract, §1 and the Gate S paragraph; attach the release zip as
 >    supplementary; decide the 12 stuck generation batches (cancel) and the one uncommitted
 >    verifier variant from a parallel session (not used; leave or branch).
@@ -99,7 +107,7 @@ control (§10)**.
 | G1 — is the mechanism claim ours? | **No, and we never claimed it.** Both AI-code-detection neighbours read end to end 2026-09-03: **NEIGHBOUR**, framing survives. [`lit/01`](lit/01-verified-bibliography.md) §4 |
 | Monitor comparison (24 × 1,375) | **No GPU needed** — `runs/scores/` is MIT and published. Gate M deleted. |
 | Gate S — arm 1 (regenerate honest half) | ⛔ **CONFOUNDED, and that is a result.** ρ = **1.234**, G above B by +4.78 sd: separation got *worse*. TF-IDF rose +0.088 while the length carrier fell to chance (0.489) — the substitute generator swapped a human-vs-Claude gap for a larger Qwen-vs-Claude one. **Regenerating one half of a pair cannot isolate content.** [`experiments/RESULTS.md`](experiments/RESULTS.md) §3 |
-| Gate S — the same-generator arm | ✅ **Measured 2026-09-11: collapse excluded, partial to content.** One model writes *both* classes. Headline (independent arm, outcome-blind draw, attack = passes the tests): **S = 0.7512** (0.7295–0.7713, n = 623) vs B′ = 0.8658, **ρ = 0.687** (0.627–0.742). Strict (survivor selection, passes and fires, no crash): S = 0.7652 (0.7016–0.8000, n = 99) vs B′ = 0.7877, ρ = 0.921 (0.700–1.043). Learning curve: B at n = 623 is 0.8521. Survivor check 0.62; S with non-firing attempts on the same problems 0.7595 vs 0.7687. Edit arm a bound (S = 0.6266, similarity 0.928). Pool: 11,565 verified draws, `first` 623 / 14, `best` 1,046 / 106 (99 non-crash). [`experiments/RESULTS.md`](experiments/RESULTS.md) §7, §9 |
+| Gate S — the same-generator arm | ✅ **Measured 2026-09-11: collapse excluded, partial to content.** One model writes *both* classes. Headline (independent arm, outcome-blind draw, attack = passes the tests): **S = 0.7512** (0.7295–0.7713, n = 623) vs B′ = 0.8658, **ρ = 0.687** (0.625–0.755, joint bootstrap over problems; RESULTS.md §12.2). Strict (survivor selection, passes and fires, no crash): S = 0.7652 (0.7016–0.8000, n = 99) vs B′ = 0.7877, ρ = 0.921 fold-mean / 0.861 pooled (joint CI 0.662–1.089); five fold seeds move it 0.85–0.92. Learning curve: B at n = 623 is 0.8521. Survivor check 0.62; S with non-firing attempts on the same problems 0.7595 vs 0.7687. Edit arm a bound (S = 0.6266, similarity 0.928). Pool: 11,565 verified draws, `first` 623 / 14, `best` 1,046 / 106 (99 non-crash). [`experiments/RESULTS.md`](experiments/RESULTS.md) §7, §9 |
 | Gate S — LLM-monitor positive control | ✅ **Run 2026-09-11 on the same pairs.** Zero-shot trusted-monitor prompt to the model that wrote both classes (disclosed): **0.5662** (0.5507–0.5833) on the 623 headline pairs where TF-IDF holds 0.7512 — the residual is a lexical trace of the attack instruction, not a backdoor the monitor reads; **0.8182** (0.7630–0.8686) on the 99 firing attacks, within the baseline's interval (0.7652). [`experiments/RESULTS.md`](experiments/RESULTS.md) §10 |
 | Comment-stripped re-check of the authorship legs | ✅ **Run 2026-09-11; weakened but standing** (coordinator's band). The unstripped column reproduces `REPRODUCED.md` to the last decimal; stripped, transfer 0.994 → **0.969**, pairwise working 0.979 → **0.935**, inert 0.955 → **0.879**, surface-7 0.830 → **0.726**. The paper reports the stripped values. [`experiments/RESULTS.md`](experiments/RESULTS.md) §6 |
 | Headline intervals and the paired monitor comparison | ✅ **Run 2026-09-11.** TF-IDF 0.8063, 95% CI 0.770–0.841, permutation p < 0.005 (0 of 200), above 20 of 24 by point and **18 by a paired-bootstrap CI excluding zero**; no-code CV 0.7715 ± 0.0389 (pooled-OOF CI 0.732–0.801), 20 / **17**; no-code held-out 0.7163 (CI 0.648–0.780, p = 0.030), 18 / **12**. [`experiments/RESULTS.md`](experiments/RESULTS.md) §8 |
@@ -107,11 +115,11 @@ control (§10)**.
 | **Why two attack arms** | ✅ **The check justified it.** An attack class built by editing its own honest solution changes pair *similarity* as well as authorship: its pairs run **0.928** mean similarity (64.2% above 0.95) against the stored benchmark's **0.606** on the same problems (3.4%). A low S from it could not distinguish *the benchmark measured authorship* from *we made the classes the same text*. The **independent** arm sits at 0.659, in the benchmark's own regime — **the title routes on that one.** (Re-measured with `autojunk=False`; the earlier 0.924 / 0.469 / 0.415 used difflib's junk heuristic.) §4.8–4.9, §9.1 |
 | **B — the baseline Gate S routes against** | ✅ **Measured 2026-09-09: 0.8714** (n = 1,444), CPU only; re-run 2026-09-11 bit-identical, pool counts 5,000 / 3,420 / 1,582 / 1,444 re-verified ([`RESULTS.md`](experiments/RESULTS.md) §7.1). ρ is uninterpretable without it, and it never needed the GPU. ⚠️ **This also moves the routing thresholds**: the 0.601/0.720 in `PLAN.md` were arithmetic at an assumed B = 0.806; the real ones are **0.6226 / 0.7674**. |
 | The test harness | ✅ **Built and validated 2026-09-04**, three days early. **95.84%** agreement on the analysis pool; three defects found and fixed, all of which failed old human code specifically. |
-| The paper as a document | ⚠️ **§2–§5 drafted, §1 not.** [`paper/main.tex`](paper/README.md) compiles clean (NeurIPS 2026, `dblblindworkshop`, zero overfull boxes, zero undefined citations) with every number as a macro. **Bibliography complete** — all 28 entries (`grep -c '^@' paper/refs.bib`) verified against the arXiv API 2026-09-10, and six of `lit/01`'s partial records turned out to be *wrong*, not merely incomplete. ⚠️ **~5.5 content pages against a 4-page limit** is now the binding constraint. |
+| The paper as a document | ✅ **§1–§5 written; four content pages with slack.** [`paper/main.tex`](paper/README.md) compiles clean (NeurIPS 2026, `dblblindworkshop`, zero overfull boxes, zero undefined citations) with every number as a macro. **Bibliography complete** — all 28 entries (`grep -c '^@' paper/refs.bib`) verified against the arXiv API 2026-09-10, and six of `lit/01`'s partial records turned out to be *wrong*, not merely incomplete. The reviewer audit ([`notes/09`](notes/09-review-audit.md)) is applied: the false negative-class sentence rewritten, both intervals attached to the estimate they are intervals of, the cuts taken, the release made true. The body ends on page 4 with ~14 free lines and References begins there. |
 | The confound, with no experiment at all | `backdoors` carries `model` and `source`; `solutions` carries neither. **The honest class has no generator field because it has no generator.** |
 | Figures | 3 remain (protocol × baseline; per-corpus floors with permutation nulls; monitor-vs-floor dot plot) |
 | Venue gates | **G2 PASS for EvoRobust**, conditional on excluding AgentHarm. Page limit, dual-submission and title-change policies verified 2026-09-04. (G2 was also run for FLLMPT, now dropped.) [`notes/01`](notes/01-venue-evorobust.md) |
-| Prose | 4 pages, Sep 10–11. **The larger of the two remaining risks**, the other being the harness. |
+| Prose | 4 pages, Sep 10–11, audit applied 2026-09-11. **What is left is the second pass**: paste §13–§15 into the reserved placeholder macros and write the three sentences they pay for. |
 
 ## Layout
 
@@ -136,7 +144,9 @@ control (§10)**.
 Public datasets only · no experiments involving real people · nothing person-specific reported ·
 local open-weight models, **plus a metered same-vendor API arm, disclosed in the paper**.
 
-**Spend stayed inside the project ceiling; accounting in the ledger.** Everything else — every CPU number, B included —
+**Spend stayed inside the project ceiling. The accounting — the ceiling, the log sum and every
+run's cost — lives in [`experiments/apps/SPEND.md`](experiments/apps/SPEND.md) and nowhere else;
+no dollar figure belongs in this README, in the paper, or in the release bundle.** Everything else — every CPU number, B included —
 is laptop work or a published MIT artifact. The spend is the Sonnet 5 same-generator control, which
 is the one thing no open-weight arm can be.
 

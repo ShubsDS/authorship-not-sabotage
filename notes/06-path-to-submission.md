@@ -37,6 +37,17 @@ real data because the shards could not be fetched from the sandbox:
    route 4). If the retry batch lands and the corrected reading in §4 comes back as collapse, the
    stronger title can go on at camera-ready, which allows five pages.
 
+   > **Settled 2026-09-11, after the retry pool landed (`RESULTS.md` §7, §9, §12).** The title is
+   > unchanged and stays *"What Survives the Filter?"* — the item above still holds, and more
+   > sharply: S = 0.7512 over 623 pairs, ρ = 0.687 (0.625–0.755, joint bootstrap), so authorship is
+   > **about a third** of the separability and "Authorship, Not Sabotage" would overclaim by two
+   > thirds. What replaced it in the paper is the §3 paragraph heading **"The signal is not
+   > sabotage"**, which is true under every row measured (inert ≈ working, transfer across
+   > generators, the zero-shot monitor at 0.566 on the headline pairs); the earlier heading
+   > "The signal is authorship, not sabotage" was the pre-Gate-S sentence and is dead
+   > (`notes/09-review-audit.md` objection 6). The Limitations sentence this item asked for is not
+   > needed in that form: the measurement, not the inference, is now in §3.
+
 3. **Two of the three legs the authorship reading stands on were measured on unstripped code.**
    `matched.py`, `exact.py` and `transfer.py` never call `strip_comments` (verified: zero
    occurrences in each). So the working-vs-inert contrast (0.979 vs 0.955), the cross-generator
