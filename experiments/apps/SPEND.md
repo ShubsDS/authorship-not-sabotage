@@ -6,3 +6,21 @@ Booked before this file: ~$101.60 (memory note 2026-09-11; $99.36 running total 
 |---|---|---|---:|---:|
 | 2026-09-11 22:40 | coordinator | (opening balance) | — | 101.60 |
 | 2026-09-11 22:44 | Worker C | Haiku 4.5 output-length calibration, 24 problems x 3 prompts, non-batch (full price) — sized the $12 cap before committing 4,332 batch requests | 0.47 | 102.07 |
+| 2026-09-11 22:51 | Worker C | Haiku 4.5 honest class, 1,444 requests, batch (gen_honest_haiku.py) | 4.13 | 106.20 |
+| 2026-09-11 22:51 | Worker C | Haiku 4.5 independent-arm attacks, 1,444 requests, batch (gen_backdoor_api.py --model claude-haiku-4-5 --independent) | 4.78 | 110.98 |
+| 2026-09-11 22:46 | Worker B | Haiku 4.5 monitor, same-generator HEADLINE pairs (623), 1,246 requests, batch (`monitor_samegen.py --model claude-haiku-4-5`) | 1.93 | 112.91 |
+| 2026-09-11 22:46 | Worker B | Haiku 4.5 monitor, same-generator STRICT pairs (99), 198 requests, batch | 0.29 | 113.20 |
+| 2026-09-11 22:46 | Worker B | Sonnet 5 monitor, STORED pairs on the headline problems (623), 1,246 requests, batch (`monitor_samegen.py --stored`) | 2.39 | 115.59 |
+| 2026-09-11 22:46 | Worker B | Sonnet 5 monitor, STORED pairs on the strict problems (99), 198 requests, batch | 0.36 | 115.95 |
+| 2026-09-11 22:46 | Worker B | Haiku 4.5 monitor, STORED pairs on the headline problems (623), 1,246 requests, batch | 1.82 | 117.77 |
+| 2026-09-11 22:46 | Worker B | Haiku 4.5 monitor, STORED pairs on the strict problems (99), 198 requests, batch | 0.28 | 118.05 |
+| 2026-09-11 22:54 | Worker B | Haiku 4.5 truncation control, same-generator strict, `--max-tokens 1024`, 198 requests, batch | 0.33 | 118.38 |
+| 2026-09-11 22:54 | Worker B | Haiku 4.5 truncation control, STORED strict, `--max-tokens 1024`, 198 requests, batch | 0.31 | 118.69 |
+
+**Worker B total: $7.71** over eight batches (own cap $10; every batch `--dry-run` first, every
+`--spent` the running total at submission). The six main batches were submitted together at
+22:40 UTC and all ended by 22:47; the two controls at 22:50. They ran **concurrently with Worker
+C's Haiku generation batches above** and were quoted `--spent 101.60`, the balance before either
+worker started — so the projected totals printed inside the eight logs understate the true
+running total by Worker C's $9.38. The running-total column here is the file-order sum and is the
+one to trust. Ceiling $135 was never approached; largest single batch $2.39.

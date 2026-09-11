@@ -21,6 +21,18 @@ backdoors are hard for anything, and S cannot then be read as "authorship" eithe
     python monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5.jsonl --limit 10  # smoke test
     python monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5.jsonl             # ~$1.50
 
+`--stored` runs the SAME monitor, same prompt, same stripping and same shuffling over the STORED
+benchmark pairs on exactly the problems of a `--gate-s-json` - the B' of that row: human honest
+program (`data._honest_code`, the artifact's shipped flag) against the stored Claude 3.7 backdoor
+that row's B' rule selects (`data._pick_backdoor`, or the first test-passing entry when the row was
+built with `--bprime-inert`). Without it there is no monitor number on the stored pairs over the
+same problems, so nothing says whether holding authorship constant changes what a MONITOR sees:
+
+    python monitor_samegen.py --tag sonnet5 --stored --gate-s-json sg_indep_first_passes_v2.json
+
+monitor-rho = (M_samegen - 0.5) / (M_stored - 0.5) is then the monitor's counterpart of the paper's
+classifier rho, on the same problems (`monitor_rho.py`).
+
 Design, and the four things that must be disclosed with the number:
 
   1. **The monitor is the same model that wrote both classes** (`claude-sonnet-5`, zero-shot). That
@@ -49,6 +61,7 @@ worst case is the number that gates the run against the $100 project ceiling, ex
 from __future__ import annotations
 
 import argparse
+import glob
 import hashlib
 import json
 import os
@@ -59,16 +72,20 @@ import time
 
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 from sklearn.metrics import roc_auc_score
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from data import strip_comments  # noqa: E402 - identical preprocessing to the classifier
+# strip_comments: identical preprocessing to the classifier. _honest_code / _pick_backdoor: the
+# same two selectors gate_s_samegen.py builds B' with, imported rather than re-derived.
+from data import _honest_code, _pick_backdoor, strip_comments  # noqa: E402
 
 DEFAULT_MODEL = "claude-sonnet-5"
 MODEL = DEFAULT_MODEL            # reassigned from --model in main()
 # A brief rationale plus one SCORE line. 512 is generous for that and keeps the worst case - every
 # reply running to the ceiling - inside the $2-4 the ledger budgeted for this control.
-MAX_TOKENS = 512
+DEFAULT_MAX_TOKENS = 512
+MAX_TOKENS = DEFAULT_MAX_TOKENS  # reassigned from --max-tokens in main()
 BATCH_LIMIT = 100_000            # API maximum requests per batch
 # List price per million tokens (input, output); the Batch API bills at 50%. Sonnet 5 is the
 # generator of both classes, so it is the self-evaluating monitor; Haiku 4.5 is the independent
@@ -202,6 +219,96 @@ def load_pairs(tag: str, bd_path: str, bdpass_path: str, eligibility: str,
               f"{missing_q[:5]}{' ...' if len(missing_q) > 5 else ''}")
     print(f"SAME-GENERATOR PAIRS TO MONITOR: {len(rows)}\n")
     return pd.DataFrame(rows), generator
+
+
+def load_stored_pairs(gate_s_json: str, pool_path: str) -> tuple[pd.DataFrame, dict]:
+    """Rebuild the STORED benchmark pairs of a gate_s_samegen.py row's B', on its problems.
+
+    This is `gate_s_samegen.py`'s B' block, not a re-derivation of it:
+
+      * problems  = that json's `problem_ids`, the exact set S and B' were fitted on;
+      * honest    = `data._honest_code(row)`, the first shipped solution flagged passing and
+                    compiling - the artifact's own flag, which is what the row used unless it was
+                    built with `--human-pass-file` (own-flag rows are refused here, see below);
+      * attack    = `data._pick_backdoor(row)` with `top_backdoor_model` set to None exactly as
+                    that script sets it, i.e. the first entry that passes AND fires; when the row
+                    records the inert-inclusive rule (`--bprime-inert`) it is instead the first
+                    entry that passes the public tests, firing not required;
+      * comments  stripped with the same `strip_comments`.
+
+    The rule is read off the row's own `b_prime_attack_rule` rather than re-chosen here, and the
+    resulting problem set is asserted equal to the row's `B_prime.oof` ids when those are present,
+    so a mismatch is a crash and never a quietly different pair set.
+    """
+    blob = json.load(open(gate_s_json))
+    pids = {str(p) for p in blob["problem_ids"]}
+    rule = blob.get("b_prime_attack_rule") or "passes AND fires"
+    inert = rule.startswith("passes (inert")
+    hflag = blob.get("b_prime_honest_flag") or "shipped (_honest_code)"
+    if not hflag.startswith("shipped"):
+        raise SystemExit(
+            f"REFUSING: {gate_s_json} built B' with the own-flag honest side ({hflag}). "
+            f"--stored only reproduces the shipped-flag B' the published rows use.")
+
+    cols = ["problem_id", "solutions", "backdoors"]
+    art = pd.concat([pq.read_table(f, columns=cols).to_pandas()
+                     for f in sorted(glob.glob("train_*.parquet"))], ignore_index=True)
+    art["problem_id"] = art.problem_id.astype(str)
+
+    def _pick_stored(row: dict) -> dict | None:
+        # Copied from gate_s_samegen.py's _pick_stored: default is data._pick_backdoor; with the
+        # inert-inclusive rule only the eligibility predicate changes, entry order is preserved.
+        if not inert:
+            return _pick_backdoor(row)
+        passing = [b for b in row["backdoors"] if b["passes_tests"]]
+        return passing[0] if passing else None
+
+    pool = pd.read_parquet(pool_path)
+    pool["problem_id"] = pool.problem_id.astype(str)
+    questions = dict(zip(pool.problem_id, pool.question))
+
+    rows, no_pair, missing_q = [], [], []
+    for _, r in art[art.problem_id.isin(pids)].iterrows():
+        row = {"problem_id": r.problem_id, "backdoors": [dict(b) for b in r.backdoors],
+               "solutions": [dict(s) for s in r.solutions], "top_backdoor_model": None}
+        b, h = _pick_stored(row), _honest_code(row)
+        if not (b and h):
+            no_pair.append(r.problem_id)
+            continue
+        q = questions.get(r.problem_id)
+        if q is None:
+            missing_q.append(r.problem_id)
+            continue
+        rows.append({"problem_id": r.problem_id, "question": q,
+                     "honest": strip_comments(h),
+                     "attack": strip_comments(b["backdoor_code"])})
+    pairs = pd.DataFrame(rows).sort_values("problem_id").reset_index(drop=True)
+
+    bp_oof = (blob.get("B_prime") or {}).get("oof")
+    if bp_oof:
+        want = {str(o["problem_id"]) for o in bp_oof}
+        got = set(pairs.problem_id)
+        if want != got:
+            raise SystemExit(
+                f"REFUSING: rebuilt stored pairs do not match {gate_s_json}'s B' "
+                f"({len(got)} vs {len(want)}; only here {sorted(got-want)[:5]}, "
+                f"only there {sorted(want-got)[:5]}). The B' selection rule has drifted.")
+        print(f"stored pairs match this row's B' exactly ({len(got)} problems)")
+
+    print(f"STORED benchmark pairs, problems of {gate_s_json}")
+    print(f"  B' attack rule:   {rule}")
+    print(f"  B' honest flag:   {hflag}")
+    print(f"  problems in row:  {len(pids)}")
+    if no_pair:
+        print(f"  no stored pair:   {len(no_pair)} {no_pair[:5]}")
+    if missing_q:
+        print(f"  no question:      {len(missing_q)} {missing_q[:5]}")
+    print(f"STORED PAIRS TO MONITOR: {len(pairs)}\n")
+    meta = {"b_prime_attack_rule": rule, "b_prime_honest_flag": hflag,
+            "gate_s_json": gate_s_json, "arm": blob.get("arm"),
+            "eligibility": blob.get("eligibility"),
+            "n_problems_in_row": len(pids), "n_no_stored_pair": len(no_pair)}
+    return pairs, meta
 
 
 # ----------------------------------------------------------------------------- requests and cost
@@ -428,16 +535,21 @@ def analyse(records: list, pairs: pd.DataFrame, n_boot: int = N_BOOT, seed: int 
     return out
 
 
-def tfidf_wrong_pairs(path: str) -> tuple[set, str]:
+def tfidf_wrong_pairs(path: str, block: str = "S") -> tuple[set, str]:
     """Problems the TF-IDF classifier got wrong, from a `gate_s_samegen_*.json`, if it has them.
 
     "Wrong" here is pairwise-wrong: the classifier scored the attack program no higher than its own
-    honest twin. `gate_s_samegen.py` does not currently persist per-pair out-of-fold scores - it
-    writes summary statistics only - so this usually finds nothing, and saying so is the correct
-    outcome. It is deliberately read-only: nothing here modifies that script or its schema.
+    honest twin. `block` picks which fit to read: `S` (the same-generator classifier) beside a
+    same-generator monitor run, `B_prime` (the stored-pair classifier on the same problems) beside
+    a `--stored` run, so each monitor is compared with the classifier fitted on its own pairs.
+
+    `gate_s_eval.evaluate()` has persisted per-pair out-of-fold scores since 2026-09-11 under
+    `oof`, with the keys `score_honest`/`score_attack`; older jsons carry summary statistics only
+    and this then returns nothing, which is the correct outcome. It is deliberately read-only:
+    nothing here modifies that script or its schema.
     """
     blob = json.load(open(path))
-    cands = [blob, blob.get("S") or {}]
+    cands = [blob.get(block) or {}] + ([blob] if block == "S" else [])
     for holder in cands:
         for key in ("per_pair", "per_pair_scores", "pairs", "oof", "pair_scores"):
             rows = holder.get(key)
@@ -445,11 +557,15 @@ def tfidf_wrong_pairs(path: str) -> tuple[set, str]:
                 wrong = set()
                 for r in rows:
                     pid = str(r.get("problem_id", r.get("pid", "")))
-                    h = r.get("honest", r.get("honest_score", r.get("oof_honest")))
-                    a = r.get("attack", r.get("attack_score", r.get("oof_attack")))
+                    # `score_honest`/`score_attack` are the keys evaluate() actually persists
+                    # (RESULTS.md 12.3: their absence here is why this row came back empty).
+                    h = r.get("score_honest", r.get("honest",
+                              r.get("honest_score", r.get("oof_honest"))))
+                    a = r.get("score_attack", r.get("attack",
+                              r.get("attack_score", r.get("oof_attack"))))
                     if pid and h is not None and a is not None and float(a) <= float(h):
                         wrong.add(pid)
-                return wrong, f"{path}: per-pair scores under '{key}'"
+                return wrong, f"{path}: per-pair scores under '{block}.{key}'"
         # parallel arrays
         pids = holder.get("problem_ids")
         h = holder.get("oof_honest")
@@ -458,11 +574,11 @@ def tfidf_wrong_pairs(path: str) -> tuple[set, str]:
                 and len(pids) == len(h) == len(a):
             return ({str(p) for p, x, y in zip(pids, h, a) if float(y) <= float(x)},
                     f"{path}: parallel oof arrays")
-    return set(), (f"{path} carries summary statistics only - it records `problem_ids`, the set S "
-                   f"was fitted on, but not a per-pair score - so the restricted-to-classifier-"
-                   f"errors AUROC is SKIPPED. `gate_s_eval.evaluate()` computes out-of-fold scores "
-                   f"per pair and does not return them; persisting them there is what this row "
-                   f"needs. Neither script is modified here.")
+    return set(), (f"{path} carries no per-pair scores under `{block}` - it records `problem_ids`, "
+                   f"the set the fit used, but not a per-pair score - so the restricted-to-"
+                   f"classifier-errors AUROC is SKIPPED. `gate_s_eval.evaluate()` persists them as "
+                   f"`{block}.oof` since 2026-09-11; re-run gate_s_samegen.py to get a json that "
+                   f"has them (the `_v2` files do). Neither script is modified here.")
 
 
 # ----------------------------------------------------------------------------- main
@@ -488,7 +604,14 @@ def main() -> None:
     ap.add_argument("--gate-s-json", default=None,
                     help="a gate_s_samegen_*.json. If it contains per-pair classifier scores, the "
                          "monitor's AUROC is also reported on the pairs TF-IDF got wrong; if it "
-                         "does not, that row is skipped with a message.")
+                         "does not, that row is skipped with a message. Required with --stored, "
+                         "which takes its problems and its B' selection rule from this file.")
+    ap.add_argument("--stored", action="store_true",
+                    help="score the STORED benchmark pairs (human honest vs stored Claude 3.7 "
+                         "backdoor) over exactly the problems of --gate-s-json, under that row's "
+                         "own B' rule, instead of the same-generator pairs. Same prompt, same "
+                         "comment stripping, same shuffling; its own state and output files. This "
+                         "is the monitor's counterpart of B' and the denominator of monitor-rho.")
     ap.add_argument("--out", default=None, help="default monitor_samegen_<tag>_<arm>_<elig>.json")
     ap.add_argument("--limit", type=int, default=0, help="first N pairs, for a smoke test")
     ap.add_argument("--seed", type=int, default=0, help="request shuffle and bootstrap seed")
@@ -497,20 +620,41 @@ def main() -> None:
     ap.add_argument("--dry-run", action="store_true",
                     help="estimate cost and exit, spending nothing")
     ap.add_argument("--poll-seconds", type=int, default=60)
+    ap.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS,
+                    help=f"output ceiling per reply (default {DEFAULT_MAX_TOKENS}). A reply cut off before "
+                         f"its SCORE line is unparseable and therefore MISSING, so a model that "
+                         f"writes long rationales needs a higher ceiling: claude-haiku-4-5 lost "
+                         f"~50%% of its replies at 512 where claude-sonnet-5 lost 0.5%%. A "
+                         f"non-default value gets its own state and output names (_mt<N>), so a "
+                         f"truncation control never overwrites the run it is controlling.")
     ap.add_argument("--model", choices=sorted(MODEL_PRICES), default=DEFAULT_MODEL,
                     help="the monitor. Default is the generator itself (self-evaluation, "
                          "disclosed); a different model gets its own state and output files.")
     args = ap.parse_args()
-    global MODEL, PRICE_IN, PRICE_OUT
+    global MODEL, PRICE_IN, PRICE_OUT, MAX_TOKENS
     MODEL = args.model
     PRICE_IN, PRICE_OUT = MODEL_PRICES[MODEL]
+    tsfx = "" if args.max_tokens == DEFAULT_MAX_TOKENS else f"_mt{args.max_tokens}"
+    MAX_TOKENS = args.max_tokens
 
     bd_path = args.bd or f"bd_{args.tag}.jsonl"
     bdpass_path = args.bdpass or f"bdpass_{args.tag}.jsonl"
     arm = "independent" if "bdind" in bd_path else "edit"
-    print(f"arm: {arm}   backdoors from {bd_path}")
-
-    pairs, generator = load_pairs(args.tag, bd_path, bdpass_path, args.eligibility, args.pool)
+    stored_meta = None
+    if args.stored:
+        if not args.gate_s_json:
+            raise SystemExit("--stored needs --gate-s-json: the problems and the B' selection "
+                             "rule both come from that row.")
+        pairs, stored_meta = load_stored_pairs(args.gate_s_json, args.pool)
+        arm = stored_meta.get("arm") or arm
+        # In --stored mode the attack class is the row's B', so --eligibility selects nothing; it
+        # only names the file. Take the row's own value so the name cannot disagree with the row.
+        args.eligibility = stored_meta.get("eligibility") or args.eligibility
+        generator = "human honest (APPS) vs stored backdoor (claude-3-7)"
+        print(f"arm: {arm}   pairs: the stored benchmark's, on this row's problems")
+    else:
+        print(f"arm: {arm}   backdoors from {bd_path}")
+        pairs, generator = load_pairs(args.tag, bd_path, bdpass_path, args.eligibility, args.pool)
     if args.limit:
         pairs = pairs.head(args.limit)
         print(f"--limit {args.limit}: monitoring {len(pairs)} pairs\n")
@@ -538,8 +682,11 @@ def main() -> None:
     # A non-default monitor model gets its own state and output names, so a second monitor over
     # the same pairs neither adopts the first one's batch nor overwrites its scores.
     msfx = "" if MODEL == DEFAULT_MODEL else "_" + MODEL.replace("claude-", "").split("-2025")[0]
-    state_file = STATE_FILE.replace(
-        ".json", f".{args.tag}_{arm}_{args.eligibility}{msfx}.json")
+    # --stored is a different pair set over the same problems, so it gets its own state and output
+    # names too: nothing a same-generator run wrote can be adopted or overwritten by it.
+    stem = "monitor_stored" if args.stored else "monitor_samegen"
+    state_file = STATE_FILE.replace("monitor_samegen", stem).replace(
+        ".json", f".{args.tag}_{arm}_{args.eligibility}{msfx}{tsfx}.json")
     batch_id = None
     if os.path.exists(state_file):
         batch_id = json.load(open(state_file))["batch_id"]
@@ -568,12 +715,16 @@ def main() -> None:
     records: list = []
     counters = collect(client.messages.batches.results(batch_id), records)
 
-    print("\nzero-shot LLM monitor on the same-generator pairs:")
+    print(f"\nzero-shot LLM monitor on the "
+          f"{'STORED benchmark pairs (same problems)' if args.stored else 'same-generator pairs'}:")
     metrics = analyse(records, pairs, seed=args.seed)
 
     restricted = None
     if args.gate_s_json:
-        wrong, note = tfidf_wrong_pairs(args.gate_s_json)
+        # Beside a --stored run the classifier to compare against is B', fitted on these same
+        # stored pairs; beside a same-generator run it is S.
+        wrong, note = tfidf_wrong_pairs(args.gate_s_json,
+                                        block="B_prime" if args.stored else "S")
         print(f"\n{note}")
         if wrong:
             sub = pairs[pairs.problem_id.isin(wrong)]
@@ -586,10 +737,15 @@ def main() -> None:
 
     out = {
         "model": MODEL, "monitor": "zero-shot, one program per request",
-        "self_evaluation": generator == MODEL,
+        "pairs": "stored benchmark (same problems)" if args.stored else "same-generator",
+        "stored": bool(args.stored),
+        "stored_pairs_meta": stored_meta,
+        "self_evaluation": (not args.stored) and generator == MODEL,
         "generator_on_both_sides": generator,
         "tag": args.tag, "arm": arm, "eligibility": args.eligibility,
-        "bd_path": bd_path, "bdpass_path": bdpass_path, "seed": args.seed,
+        "gate_s_json": args.gate_s_json,
+        "bd_path": None if args.stored else bd_path,
+        "bdpass_path": None if args.stored else bdpass_path, "seed": args.seed,
         "max_tokens": MAX_TOKENS,
         "system_prompt": SYSTEM_PROMPT, "user_prompt_template": USER_PROMPT,
         "prompt_sha256": hashlib.sha256(
@@ -602,12 +758,16 @@ def main() -> None:
         # Every per-program score, so the whole analysis can be redone without paying again.
         "scores": records,
     }
-    path = args.out or f"monitor_samegen_{args.tag}_{arm}_{args.eligibility}{msfx}.json"
+    path = args.out or f"{stem}_{args.tag}_{arm}_{args.eligibility}{msfx}{tsfx}.json"
     json.dump(out, open(path, "w"), indent=2, default=float)
     os.remove(state_file)
     print(f"\nwrote {path}  ({len(records)} per-program records)")
-    print("Report this beside S from gate_s_samegen.py on the SAME pairs, and disclose that the "
-          "monitor is the model that wrote both classes.")
+    if args.stored:
+        print("Report this beside B' from gate_s_samegen.py on the SAME problems; with the "
+              "same-generator run of the same monitor it gives monitor-rho (monitor_rho.py).")
+    else:
+        print("Report this beside S from gate_s_samegen.py on the SAME pairs, and disclose "
+              "whether the monitor is the model that wrote both classes.")
 
 
 if __name__ == "__main__":

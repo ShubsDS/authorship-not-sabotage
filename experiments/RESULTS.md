@@ -1433,3 +1433,203 @@ what a monitor sees. **Failed / not done:** nothing failed; `monitor_samegen.py`
 `score_attack` key names (its file, not edited here).
 
 **Coordinator note (2026-09-11):** the ledger and paper quote S as the fold-mean AUROC (§9 convention) with the bootstrap CI on the pooled out-of-fold AUROC; the strict row's ρ is therefore 0.92 by that convention and 0.86 on the pooled score, both inside the joint CI 0.662–1.089. No verdict state changes under the joint bootstrap, five fold seeds, or the own-flag B′. With §11: the classifier and the monitor are independent pair by pair (φ = 0.035 on the headline set) and read different things — layout from the prompt framing, and the backdoor.
+
+---
+
+## 14. Monitors with authorship held constant: a weaker trusted model, and the stored pairs on the same problems (2026-09-11)
+
+Worker B. §10 left two objections open. (1) Its monitor was `claude-sonnet-5`, the model that wrote
+both same-generator classes — a self-evaluation, not a *trusted* model. (2) There was no monitor
+score on the **stored** benchmark pairs over the same problems, so nothing said whether holding
+authorship constant changes what a **monitor** sees; the paper's classifier ρ = 0.687 had no monitor
+counterpart. Both are closed here: a second monitor that wrote neither class (`claude-haiku-4-5`),
+and `monitor_samegen.py --stored`, which scores the stored pairs of a row's own B′ — human honest
+program (`data._honest_code`, the artifact's shipped flag) against the stored Claude 3.7 backdoor
+that row's B′ rule selects (`data._pick_backdoor`, or the first test-passing entry under
+`--bprime-inert`) — over exactly that row's `problem_ids`, with the same prompt
+(`prompt_sha256 14b320ea6a533dd4` in all ten runs), the same `strip_comments`, the same shuffle
+seed 0, and its own state and output files. The rebuilt stored pair set is asserted equal to the
+row's persisted `B_prime.oof` problem ids before anything is submitted: **623 of 623 and 99 of 99**.
+
+Everything below is one monitor request per program, never side by side; unparseable replies are
+recorded as missing and never imputed; bootstrap over problems, 2,000 draws, seed 0.
+
+### 14.1 The runs
+
+```
+python3 monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl --eligibility passes --gate-s-json sg_indep_first_passes_v2.json --model claude-haiku-4-5 --spent 101.60
+python3 monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5_best.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl --eligibility usable --gate-s-json sg_indep_best_usable_v2.json --model claude-haiku-4-5 --spent 101.60
+python3 monitor_samegen.py --tag sonnet5 --stored --gate-s-json sg_indep_first_passes_v2.json --spent 101.60
+python3 monitor_samegen.py --tag sonnet5 --stored --gate-s-json sg_indep_best_usable_v2.json --spent 101.60
+python3 monitor_samegen.py --tag sonnet5 --stored --gate-s-json sg_indep_first_passes_v2.json --model claude-haiku-4-5 --spent 101.60
+python3 monitor_samegen.py --tag sonnet5 --stored --gate-s-json sg_indep_best_usable_v2.json --model claude-haiku-4-5 --spent 101.60
+python3 monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5_best.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl --eligibility usable --gate-s-json sg_indep_best_usable_v2.json --model claude-haiku-4-5 --max-tokens 1024 --spent 108.67
+python3 monitor_samegen.py --tag sonnet5 --stored --gate-s-json sg_indep_best_usable_v2.json --model claude-haiku-4-5 --max-tokens 1024 --spent 108.67
+python3 monitor_rho.py --out monitor_rho.json
+```
+
+Eight batches, **$7.71** total (1.93 / 0.29 / 2.39 / 0.36 / 1.82 / 0.28 / 0.33 / 0.31), every one
+dry-run first; see `apps/SPEND.md`. Sonnet 5's same-generator column is **not re-run** — it is
+§10's two jsons, read back and reproduced here to the fourth decimal (0.5662, 0.8182).
+
+### 14.2 The monitors on the stored pairs, beside B′ on the same problems
+
+`M_stored` is the monitor on the stored benchmark pairs; B′ is the bag-of-words classifier fitted
+on those same pairs over those same problems (§9.1). The difference is measured inside the joint
+bootstrap, so its interval is paired.
+
+| row | monitor | M_stored (95% CI) | B′ on the same pairs | M_stored − B′ (95% CI) | P(monitor > B′) | pairwise (ties half) | mean honest / attack | missing |
+|---|---|---|---|---|---:|---:|---:|---:|
+| headline, n = 623 | `claude-sonnet-5` | **0.9579** (0.9466–0.9683) | 0.8658 | **+0.0932** (+0.0752, +0.1099) | 1.000 | 0.9562 | 6.9 / 78.8 | 6 of 1,246 |
+| headline, n = 623 | `claude-haiku-4-5` | **0.8824** (0.8562–0.9060) | 0.8658 | +0.0177 (−0.0108, +0.0447) | 0.888 | 0.8721 | 41.1 / 85.3 | **458 of 1,246** |
+| strict, n = 99 | `claude-sonnet-5` | **0.9437** (0.9086–0.9724) | 0.7877 | **+0.1548** (+0.1071, +0.2016) | 1.000 | 0.9184 | 6.8 / 73.8 | 1 of 198 |
+| strict, n = 99 | `claude-haiku-4-5` | **0.8832** (0.8122–0.9448) | 0.7877 | **+0.0943** (+0.0200, +0.1630) | 0.994 | 0.8778 | 32.9 / 84.7 | **70 of 198** |
+| strict, n = 99 | `claude-haiku-4-5`, `--max-tokens 1024` | 0.8765 (0.8238–0.9238) | 0.7877 | **+0.0876** (+0.0268, +0.1437) | 0.998 | 0.8387 | 34.9 / 81.1 | 6 of 198 |
+
+Class means in this section are over **every scored program** (`monitor_rho.py`); the per-run logs
+of `monitor_samegen.py` average over **complete pairs only**, so the two differ by a few tenths
+wherever one side of a pair is missing (e.g. Sonnet strict honest 3.5 here, 3.4 in §10 — one attack
+reply is missing, so §10 drops that problem's honest score too). AUROC, which is computed over all
+scored programs in both, is unaffected and reproduces §10 exactly.
+
+On the stored pairs both monitors sit **above** the bag-of-words baseline on the same problems.
+Sonnet 5 is above it decisively (+0.09 and +0.15, both intervals excluding zero); Haiku 4.5 is
+above it on the strict row (+0.09, excluding zero) and level with it on the headline row
+(+0.02, interval spanning zero). These are not comparable with the 24-monitor ranking of §8: that
+is Koran's split under a different protocol, and nothing here is put on that scale.
+
+### 14.3 monitor-ρ
+
+monitor-ρ = (M_samegen − 0.5) / (M_stored − 0.5), the monitor's counterpart of the paper's ρ, with
+one problem set resampled per draw and both AUROCs recomputed on it (`monitor_rho.py`, 2,000 draws,
+seed 0). The classifier's S, B′ and ρ ride in the same draws; its joint ρ interval recomputed there
+reproduces §12.2 exactly (headline 0.6247–0.7551, strict 0.6616–1.0888, both to ten decimals
+against `rho_joint_headline.json` / `rho_joint_strict.json`), which is the check that the
+resampling here is the resampling the ledger already published.
+
+| row | monitor | M_samegen (95% CI) | M_stored (95% CI) | **monitor-ρ (95% CI)** | P(ρ<1) | classifier ρ on the same row |
+|---|---|---|---|---|---:|---|
+| headline, n = 623 | `claude-sonnet-5` (wrote both classes) | 0.5662 (0.5507–0.5833) | 0.9579 (0.9466–0.9683) | **0.145 (0.111–0.182)** | 1.000 | 0.687 (joint 0.625–0.755) |
+| headline, n = 623 | `claude-haiku-4-5` (wrote neither) | 0.5577 (0.5239–0.5919) | 0.8824 (0.8562–0.9060) | **0.151 (0.063–0.242)** | 1.000 | 0.687 (joint 0.625–0.755) |
+| strict, n = 99 | `claude-sonnet-5` | 0.8182 (0.7630–0.8686) | 0.9437 (0.9086–0.9724) | **0.717 (0.601–0.832)** | 1.000 | 0.921 fold-mean / 0.861 pooled (joint 0.662–1.089) |
+| strict, n = 99 | `claude-haiku-4-5` | 0.7871 (0.6946–0.8699) | 0.8832 (0.8122–0.9448) | **0.749 (0.514–0.993)** | 0.978 | 0.921 / 0.861 (joint 0.662–1.089) |
+| strict, n = 99 | `claude-haiku-4-5`, `--max-tokens 1024` | 0.7883 (0.7237–0.8494) | 0.8765 (0.8238–0.9238) | 0.766 (0.588–0.963) | 0.992 | 0.921 / 0.861 (joint 0.662–1.089) |
+
+Same-generator pairwise accuracy (ties half) and class means, for completeness: Sonnet 5 headline
+0.6043, means 4.0 / 6.9; Haiku headline 0.6268, 27.9 / 34.0; Sonnet strict 0.8163, 3.5 / 37.6;
+Haiku strict 0.7439, 26.7 / 62.5 (1024: 0.7680, 27.1 / 60.4). Missing on the same-generator side:
+Sonnet 0 of 1,246 and 1 of 198; Haiku 628 of 1,246 and 84 of 198 (2 of 198 at `--max-tokens 1024`).
+
+**Every monitor-ρ is below 1, and below the classifier's ρ on the same row**, decisively on the
+headline row (0.145 / 0.151 against 0.687, intervals nowhere near overlapping) and consistently but
+within overlapping intervals on the strict row (0.72 / 0.75 against 0.86–0.92).
+
+### 14.4 Does Haiku agree with Sonnet?
+
+Per-pair agreement between the two monitors, on the pairs where both scored both sides:
+
+| pair set | row | pairs both scored | Spearman(pair margins) | Spearman(attack scores) | Spearman(honest scores) | same pairwise call |
+|---|---|---:|---:|---:|---:|---:|
+| same-generator | headline | 209 | +0.114 | +0.547 | +0.500 | 0.569 |
+| same-generator | strict | 41 | **+0.809** | +0.878 | +0.552 | 0.780 |
+| stored | headline | 262 | **+0.573** | +0.549 | +0.634 | 0.821 |
+| stored | strict | 45 | **+0.723** | +0.489 | +0.696 | 0.800 |
+
+(The pair counts are low on the Haiku side for the reason §14.5 gives: a pair enters only if both
+monitors scored both of its programs, and Haiku lost ~half its replies to truncation.)
+
+They agree where there is something to agree about: on the stored pairs and on the firing
+same-generator attacks the two monitors' pair margins correlate at +0.57 to +0.81 and they make the
+same pairwise call 78–82% of the time. On the same-generator headline pairs — where both are near
+chance — the correlation is +0.11 and the agreement rate 0.569, which is what two detectors that
+are both reading noise look like. Haiku's absolute AUROCs are lower than Sonnet's everywhere
+(0.88 vs 0.96 stored headline; 0.79 vs 0.82 same-gen strict), as a smaller monitor should be. The
+ratio, which is what the paper quotes, agrees to within 0.01 on the headline row and 0.03 on the
+strict row.
+
+### 14.5 The truncation defect in the Haiku arm, and its control
+
+Haiku 4.5 writes long rationales and hit the 512-token ceiling on 635 of 1,246 headline replies;
+a reply cut off before its `SCORE:` line is unparseable, so **~50% of the Haiku headline scores are
+missing**, and on the stored side the missingness is *differential by class* — honest 50.1% vs
+attack 23.4% (headline), 44.4% vs 26.3% (strict). That is a bias of unknown sign in the
+denominator and it must not be read past. `--max-tokens 1024` (new flag, own file names) was run on
+the strict pairs, both sides, to price it: missingness falls to 2 of 198 and 6 of 198, and the
+AUROCs move by **+0.0012** (same-generator 0.7871 → 0.7883) and **−0.0067** (stored 0.8832 →
+0.8765), monitor-ρ 0.749 → 0.766 — inside the bootstrap intervals in every case. The headline
+Haiku row was not re-run at 1024: it would have cost about $6 against a $10 cap with $2.29 left.
+Its numbers are therefore reported with the missingness stated and treated as a bound, not a point;
+no claim in this section rests on them beyond "the numerator is near chance", which a 50%
+class-balanced sample of 1,246 programs establishes on its own (0.5577, CI 0.5239–0.5919).
+
+### 14.6 The §12.3 reader defect, fixed
+
+`monitor_samegen.py`'s `tfidf_wrong_pairs` looked for `honest`/`attack` inside `oof` rows; the keys
+`gate_s_eval.evaluate()` persists are `score_honest`/`score_attack`, so `metrics_tfidf_wrong_pairs`
+came back empty (§12.3, last paragraph). It now accepts both spellings and takes a `block` argument
+— `S` beside a same-generator run, `B_prime` beside a `--stored` run, so each monitor is restricted
+to the errors of the classifier fitted on *its own* pairs. The row fills:
+
+| run | classifier-wrong pairs | monitor AUROC there (95% CI) |
+|---|---:|---|
+| Haiku, same-gen headline | 131 | 0.5694 (0.4926–0.6441) |
+| Haiku, same-gen strict | 15 | 0.6750 (0.4000–0.9065) |
+| Sonnet, stored headline | 18 | 0.9275 (0.8148–0.9938) |
+| Sonnet, stored strict | 7 | 0.8163 (0.5408–1.0000) |
+| Haiku, stored headline | 18 | 0.9135 (0.7067–1.0000) |
+| Haiku, stored strict | 7 | 0.6667 (0.1429–1.0000) |
+
+The four stored rows have 7–18 pairs and intervals to match; they are recorded, not read. The
+Haiku headline row (0.5694 on the 131 pairs TF-IDF ranks wrong, against 0.5577 overall) repeats
+§12.3's finding with a second monitor: the classifier's errors are not the monitor's.
+
+### 14.7 Reading
+
+**Does a trusted monitor's separability drop when authorship is held constant? Yes, and by far more
+than the classifier's.** On the headline pairs the monitor keeps 15% of what it had on the stored
+pairs (0.145, CI 0.111–0.182, self-evaluating Sonnet; 0.151, CI 0.063–0.242, the weaker Haiku that
+wrote neither class) where the bag-of-words classifier keeps 69% (0.687, CI 0.625–0.755). On the
+strict pairs — attacks that pass *and* fire — the monitor keeps 72–77% and the classifier 86–92%,
+and those intervals overlap. The two rows say the same thing §10 and §11 said, now with the
+denominator measured rather than assumed: **what the stored benchmark's separability is made of
+differs by detector.** For a monitor it is almost entirely the human-vs-model authorship gap plus
+real backdoors; on the 97.5%-inert headline set, removing authorship removes essentially all of the
+monitor's signal, and the 0.75 the classifier still reads there is layout from the attack prompt's
+framing (§11), which a monitor does not score as suspicious.
+
+**Where does the monitor sit relative to the bag-of-words baseline on the stored pairs?** Above it,
+on the same problems: +0.093 (Sonnet, headline) and +0.155 (Sonnet, strict), intervals excluding
+zero; Haiku +0.018 (spanning zero) and +0.094 (excluding zero). So the paper's "a bag-of-words
+classifier is above 20 of 24 published monitors" is a statement about *those* monitors on *Koran's*
+split, not a claim that a bag of words beats any monitor on these stored pairs — on these it does
+not, and §14.2 is the row that says so. That distinction should survive into the paper.
+
+**Does Haiku agree with Sonnet?** On the ratio, yes: 0.151 vs 0.145 (headline) and 0.749 vs 0.717
+(strict), and their pair margins correlate at +0.57 to +0.81 wherever either has signal. The
+self-evaluation objection to §10 is therefore not load-bearing: a model that wrote neither class
+returns the same shape of answer, at a uniformly lower level.
+
+**Failed / not done.** Nothing failed. Not done: the Haiku headline pair was not re-run at
+`--max-tokens 1024` (cost cap; §14.5 bounds what that is worth), and no third, genuinely weak
+trusted model (a 7B-class open monitor) was run — the "trusted" model here is still a frontier
+model, only a cheaper one, and the paper should say "a smaller model of the same family", not
+"a trusted model" in the ControlArena sense.
+
+### 14.8 What changed in the scripts
+
+`monitor_samegen.py` (Worker B's file; +~150 lines, additive): `--stored` with
+`load_stored_pairs()` (problems and B′ rule read off the `--gate-s-json`, `_honest_code` /
+`_pick_backdoor` imported from `data.py` rather than re-derived, rebuilt set asserted equal to the
+row's `B_prime.oof`); `--max-tokens`; `tfidf_wrong_pairs(path, block=...)` accepting
+`score_honest`/`score_attack`; `monitor_stored*` state and output names. Every same-generator
+default path is unchanged — §10's two commands re-run would produce §10's two files.
+
+New: `monitor_rho.py` → `monitor_rho.json`. New outputs: `monitor_samegen_sonnet5_independent_
+{passes,usable}_haiku-4-5[_mt1024].json`, `monitor_stored_sonnet5_independent_{passes,usable}[_haiku-4-5][_mt1024].json`.
+No file owned by another worker was touched.
+
+**Macros for the paper** (suggested): `\monRhoHead` 0.145, `\monRhoHeadLo` 0.111, `\monRhoHeadHi`
+0.182, `\monRhoStrict` 0.717, `\monRhoStrictLo` 0.601, `\monRhoStrictHi` 0.832; `\monStoredHead`
+0.9579, `\monStoredStrict` 0.9437; `\monHaikuRhoHead` 0.151, `\monHaikuRhoStrict` 0.749,
+`\monHaikuStoredHead` 0.8824. Quote monitor-ρ beside ρ = 0.687 in the same sentence; the contrast
+is the result.
