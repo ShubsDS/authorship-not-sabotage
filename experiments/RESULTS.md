@@ -1846,8 +1846,8 @@ and those intervals overlap. The two rows say the same thing §10 and §11 said,
 denominator measured rather than assumed: **what the stored benchmark's separability is made of
 differs by detector.** For a monitor it is almost entirely the human-vs-model authorship gap plus
 real backdoors; on the 97.75%-inert headline set (14 of 623 fire), removing authorship removes essentially all of the
-monitor's signal, and the 0.75 the classifier still reads there is layout from the attack prompt's
-framing (§11), which a monitor does not score as suspicious.
+monitor's signal, and the 0.75 the classifier still reads there is largely layout from the attack prompt's
+framing (§11, measured at 44.7% of the above-chance signal in §13), which a monitor does not score as suspicious.
 
 **Where does the monitor sit relative to the bag-of-words baseline on the stored pairs?** Above it,
 on the same problems: +0.093 (Sonnet, headline) and +0.155 (Sonnet, strict), intervals excluding
