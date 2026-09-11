@@ -13,8 +13,13 @@ Read with it, in this order: `notes/06-path-to-submission.md` (the audit and the
 intervals, the `runs/scores/` format and its stated assumptions), `paper/README.md` (the LaTeX
 build and its traps). Each script's `--help` is authoritative where a doc and a flag disagree.
 
-The wall: **Sep 12 AoE = Sep 13 11:59 UTC.** Budget: **$86.37** left of a $100 ceiling; spent
-$13.63. Every run below is CPU and free except the positive control (about $1.55, worst case $2.60).
+The wall: **Sep 12 AoE = Sep 13 11:59 UTC.** Budget, corrected locally 2026-09-11: the $13.63
+above was honest + edit arm only. Summing every `ACTUAL COST` line in `experiments/apps/*.log`
+gives **$57.30 before the retry rounds, $31.27 for six full 1,112-request rounds** (submitted
+23:00 EDT Sep 10, cancelled at 00:41 after 1,110–1,111 of each had already succeeded; results
+downloaded to `bds_r1..r6.jsonl`), plus ~$11 for the 36 sharded rounds — **about $99**. The owner
+cleared further spend the same night; `BUDGET_CEILING` in both API scripts is now $110. Every run
+below is CPU and free except the positive control (about $1.55, worst case $2.60).
 
 ---
 

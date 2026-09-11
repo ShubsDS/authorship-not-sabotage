@@ -71,8 +71,11 @@ MAX_TOKENS = 512
 BATCH_LIMIT = 100_000            # API maximum requests per batch
 # Sonnet 5 list price per million tokens; the Batch API bills at 50%.
 PRICE_IN, PRICE_OUT, BATCH_DISCOUNT = 2.00, 10.00, 0.5
-BUDGET_CEILING = 100.0           # hard stop: total spend on this project must stay under $100
-SPENT_SO_FAR = 13.63             # dollars booked against the ceiling as of 2026-09-11
+BUDGET_CEILING = 110.0           # hard stop. Was $100; raised 2026-09-11 with the owner's go once
+                                 # the retry rounds (six full + 36 sharded batches) reached ~$99
+SPENT_SO_FAR = 99.0              # dollars booked as of 2026-09-11: $57.30 logged before the retry
+                                 # rounds, $31.27 for the six full rounds, ~$11 for the shards.
+                                 # Pass --spent with the exact log sum at run time.
 STATE_FILE = "monitor_samegen.batch.json"
 N_BOOT = 2000                    # bootstrap draws over PROBLEMS, matching gate_s_eval.evaluate()
 
