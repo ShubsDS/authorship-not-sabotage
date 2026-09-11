@@ -1136,3 +1136,122 @@ python3 monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5_best.jsonl --bdpass 
 Outputs `monitor_samegen_sonnet5_independent_passes.json`, `monitor_samegen_sonnet5_independent_usable.json` (every per-program score and raw reply). Spend after this run: about $101.6 against the $110 ceiling.
 
 **Coordinator reading.** The two rows split the headline S in two. On attacks that fire, the monitor (0.82) and the bag-of-words baseline (0.77) sit within each other's intervals: real backdoors from the same author carry surface signal, and it is the signal a monitor also reads. On the headline set — attempts that pass the tests but almost never fire — the monitor is near chance (0.57) while TF-IDF holds 0.75: what survives there with authorship held constant is a lexical trace of the attack *instruction* (the `==`-with-a-magic-constant idiom the survivor check also found), not a backdoor a monitor recognises. So the residual ρ = 0.69 is content in the classifier's sense and not sabotage in the monitor's, which is the distinction the paper's title asks about. The monitor is the same model that wrote both classes; that is disclosed, and it makes the 0.57 a conservative reading of "not detectable" only in the sense that this monitor had every advantage.
+
+---
+
+## 11. What the residual signal is made of (2026-09-11)
+
+Worker H, `lexical_probe.py`. §10's reading — that the headline S (0.7512, n = 623, attacks pass the
+tests and 97.5% never fire, monitor 0.566) is a lexical trace of the trigger idiom the survivor check
+found (`==` against a magic constant, ≥3-digit numerals; §9.3 (c)) — was a reading, not a
+measurement. This section measures it three ways on the pairs of §9 rows 1 and 2, always fitting S
+and the stored B′ over the same problems so every row carries both numbers. Pairs rebuilt exactly as
+`gate_s_samegen.py` builds them (loader copied, problem ids asserted equal to the stored json's);
+`evaluate()` unchanged (problem-disjoint 5-fold, comments stripped, bootstrap over problems, 2,000
+draws). Masking is token-exact via the `tokenize` module, replacing whole tokens in place by
+(row, col) so nothing else in the source moves; 0 tokenize failures on the four classes.
+ρ = (S − 0.5)/(B′ − 0.5) with the interval from S's bootstrap CI, as in §9.
+
+```
+cd experiments/apps && python3 lexical_probe.py --out lexical_probe.json     # CPU, ~4 min
+```
+
+### 11.1 Control: the unmasked row reproduces §9
+
+| set | S | 95% CI | B′ | 95% CI | ρ | |
+|---|---:|---|---:|---|---:|---|
+| headline (623; `first`, passes; B′ inert-inclusive) | **0.7512** | 0.7295–0.7713 | **0.8658** | 0.8480–0.8812 | 0.687 (0.627–0.742) | ✅ = §9.1 row 1 |
+| strict (99; `best` no-crash, passes AND fires; B′ all-firing) | **0.7652** | 0.7016–0.8000 | **0.7877** | 0.7427–0.8367 | 0.921 (0.700–1.043) | ✅ = §9.1 row 2 |
+
+The script stops if either differs at the fourth decimal; neither did.
+
+### 11.2 Masking ablations
+
+NUM: every NUMBER token → `NUM`. CMP: `== != <= >= < >` → `CMP`. "deleted": the NUM and CMP tokens
+removed outright (collapsing keeps the `CMP NUM` bigram, i.e. the idiom's *presence*; deleting
+removes it). ID: every NAME token that is not a keyword or builtin → `ID` (structure only).
+
+| set | mask | S | 95% CI | B′ | 95% CI | ρ (95% CI) | ΔS / ΔB′ vs control |
+|---|---|---:|---|---:|---|---|---|
+| headline | none | 0.7512 | 0.7295–0.7713 | 0.8658 | 0.8480–0.8812 | 0.687 (0.627–0.742) | — |
+| headline | NUM | 0.7525 | 0.7311–0.7732 | 0.8719 | 0.8527–0.8863 | 0.679 (0.621–0.734) | +0.0013 / +0.0061 |
+| headline | CMP | 0.7503 | 0.7290–0.7712 | 0.8695 | 0.8526–0.8853 | 0.677 (0.620–0.734) | −0.0009 / +0.0037 |
+| headline | NUM+CMP | 0.7519 | 0.7313–0.7735 | 0.8831 | 0.8660–0.8973 | 0.657 (0.604–0.714) | +0.0007 / +0.0173 |
+| headline | NUM+CMP deleted | 0.7506 | 0.7301–0.7723 | 0.8523 | 0.8338–0.8679 | 0.711 (0.653–0.773) | −0.0006 / −0.0135 |
+| headline | **ID (structure only)** | **0.6997** | **0.6785–0.7205** | 0.8722 | 0.8546–0.8876 | **0.537 (0.480–0.592)** | **−0.0515** / +0.0064 |
+| strict | none | 0.7652 | 0.7016–0.8000 | 0.7877 | 0.7427–0.8367 | 0.921 (0.700–1.043) | — |
+| strict | NUM | 0.7696 | 0.7091–0.8063 | 0.7945 | 0.7486–0.8429 | 0.916 (0.710–1.040) | +0.0044 / +0.0068 |
+| strict | CMP | 0.7737 | 0.7108–0.8073 | 0.8027 | 0.7544–0.8466 | 0.904 (0.697–1.015) | +0.0085 / +0.0150 |
+| strict | NUM+CMP | 0.7841 | 0.7216–0.8171 | 0.8048 | 0.7619–0.8521 | 0.932 (0.727–1.040) | +0.0189 / +0.0171 |
+
+Every NUM/CMP row on both sets sits inside the control's interval; the only mask that moves S is
+identifier normalisation, and it moves S alone (S's CI 0.6785–0.7205 lies wholly below the
+control's 0.7295–0.7713; B′'s 0.8546–0.8876 overlaps its control's 0.8480–0.8812). Deleting the
+idiom's tokens costs B′ 0.0135 (0.8523, CI 0.8338–0.8679, still overlapping) and S nothing.
+Length-only and surface-7 carriers are in the json; surface-7 on B′ falls under CMP (0.7783 →
+0.7375) because its `==` count is zeroed, which is the expected mechanical effect and is the only
+place the idiom shows up in an ablation.
+
+### 11.3 Feature attribution (one fit of the identical pipeline on all pairs; top 10 by weight, full 25 in `lexical_probe.json`)
+
+Headline, S (4,515 features), → attack: `main (` +2.26, `main` +2.26, `data` +1.82, `: n` +1.67,
+`data [` +1.56, `def` +1.55, `) main` +1.37, `def main` +1.34, `total` +1.31, `solve` +1.15.
+→ honest: `input_data` −1.12, `input_data [` −0.95, `: import` −0.93, `res` −0.90, `input` −0.82,
+`input (` −0.75, `( input_data` −0.73, `c` −0.69, `) print` −0.67, `" if` −0.66.
+
+Headline, B′ (4,261 features), → attack: `and` +4.20, `= =` +3.56, `if` +1.93, `1 and` +1.60,
+`) if` +1.57, `if n` +1.50, `>` +1.39, `0 and` +1.38, `= 3` +1.30, `%` +1.29.
+→ honest: `(` −1.25, `)` −1.25, `) print` −1.07, `i in` −1.05, `for i` −0.97, `i` −0.89, `while`
+−0.81, `in input` −0.80, `input` −0.78, `;` −0.76.
+
+Strict, S (1,316 features), → attack: `data` +0.95, `: print` +0.83, `data [` +0.83, `( data` +0.69,
+`total` +0.63, `) if` +0.62, `:` +0.56, `result` +0.50, `if` +0.49, `: data` +0.48.
+→ honest: `input` −0.63, `input_data` −0.63, `input (` −0.61, `input_data [` −0.57, `) print` −0.56,
+`) )` −0.50, `s` −0.49, `( input` −0.49, `, input` −0.43, `( input_data` −0.40.
+
+Strict, B′ (1,206 features), → attack: `and` +1.20, `= =` +1.02, `result` +0.54, `if` +0.53, `%`
++0.52, `>` +0.49, `n >` +0.44, `) if` +0.43, `1 and` +0.43, `0 and` +0.40.
+→ honest: `)` −0.44, `(` −0.44, `' '` −0.43, `;` −0.42, `) print` −0.39, `' ,` −0.35, `i in` −0.31,
+`'` −0.31, `a [` −0.30, `k` −0.29.
+
+Presence per class (fraction of programs, regex on the comment-stripped code; scratch check, not in
+the json): headline `def main` S honest 0.385 / S attack **0.669**, B′ 0.061 / 0.125; `data[` 0.136 /
+**0.377**, B′ 0.006 / 0.032; any `def` 0.567 / **0.872**, B′ 0.270 / 0.339; `sys.stdin` 0.454 /
+0.623; `input_data` **0.246** / 0.188 (B′ 0 / 0). `==`: S 0.493 / 0.559 against B′ 0.470 / **0.873**;
+≥3-digit numeral: S 0.088 / 0.100 against B′ 0.177 / 0.226. Strict is the same picture (`def main`
+0.394 / 0.646; `data[` 0.121 / 0.444; `==` 0.545 / 0.727 vs B′ 0.485 / 0.879).
+
+### 11.4 Char n-gram robustness row (headline; `analyzer="char_wb"`, 3–5-grams, same `min_df`, `max_features`, `sublinear_tf`, classifier and folds)
+
+| vectoriser | S | 95% CI | B′ | 95% CI | ρ (95% CI) |
+|---|---:|---|---:|---|---|
+| word TF-IDF 1–2 (control) | 0.7512 | 0.7295–0.7713 | 0.8658 | 0.8480–0.8812 | 0.687 (0.627–0.742) |
+| char_wb 3–5 | 0.7786 | 0.7585–0.7985 | 0.8713 | 0.8542–0.8867 | 0.750 (0.696–0.804) |
+
+The residual is not an artefact of the word tokeniser; a character model retains slightly more of it.
+
+### 11.5 Reading
+
+With authorship held constant, what the classifier separates on the headline pairs is not the
+trigger idiom: masking or deleting numerals and comparison operators leaves S where it was
+(0.7512 → 0.7525 NUM, 0.7503 CMP, 0.7519 both, 0.7506 deleted; every interval contains the control),
+while those same tokens (`and`, `= =`, `if n`, `1 and`, `> `, `%`) head B′'s weight list on the stored
+benchmark, where `==` appears in 87% of attacks against 47% of honest — the idiom is in the stored
+benchmark and is not what survives in S. What survives is program layout: the same-generator attack
+draws wrap the solution in `def main()` / `solve()` and read `data = sys.stdin` (top S features
+`main (`, `data [`, `def main`, `solve`, `total`; `def main` in 67% of attacks vs 39% of honest)
+where the honest draws use `input_data` / `input()`, and identifier normalisation — the only mask
+that touches S — cuts it to 0.6997 (0.6785–0.7205; ρ 0.537, 0.480–0.592) while B′ holds at 0.8722
+(0.8546–0.8876). §10's sentence should therefore read that the residual is a lexical trace of the
+attack *prompt's framing* (a structured, function-wrapped program) rather than of the trigger idiom
+itself, which still supports "not sabotage a monitor recognises" (monitor 0.566) and still leaves
+0.70 after the identifiers are gone — the layout signal is partly structural (`def`, `:`, `) if`),
+so the "structure only" row is a floor on it, not its removal.
+
+**What this changes upstream.** The survivor-check p-values (§9.3 (c): numerals 0.0024, `==` 0.0025)
+were survivors vs non-survivors *within* the attack class; they do not carry over to honest-vs-attack
+separability, and this section shows they do not. The coordinator reading of §10 ("the `==`-with-a-
+magic-constant idiom the survivor check also found") needs rewording; the classifier-vs-monitor
+distinction it draws stands.
+
+**Coordinator correction to §10 (2026-09-11):** the §10 reading named the trigger idiom (`==` with a magic constant) as what survives on the headline set. §11 tests that directly and it is wrong: masking numerals and comparison operators leaves S at 0.752 (CI overlapping the control), and the idiom heads B′'s feature list, not S's. What survives is program layout — the attack prompt's framing returns function-wrapped programs (`def main` 66.9% of attacks vs 38.5% of honest; `data[` 37.7% vs 13.6%); identifier normalisation is the only mask that moves S (0.7512 → 0.6997, ρ 0.687 → 0.537) and it leaves B′ untouched. Consequence: the same-generator arm held the *model* constant but not the *prompt*, so ρ = 0.687 is an upper bound on content and part of it is prompt framing; the structure-only S of 0.70 is a floor on the layout signal, not its removal. The classifier-vs-monitor split (0.75 vs 0.566) stands, and the strict set is unaffected by masking (0.765 → 0.784). The paper's Gate S paragraph is corrected accordingly.
