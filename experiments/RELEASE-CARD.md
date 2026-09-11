@@ -23,7 +23,7 @@ provenance.
 | `pairs_passes.csv` | 1,050 | problem ids forming a pair under the *passes-tests* rule, by arm |
 | `pairs_usable.csv` | 54 | problem ids forming a pair under the *passes-and-fires* rule, by arm |
 | `MANIFEST.json` | --- | row counts, SHA-256 of every file, generator, build date, harness agreement |
-| `scripts/` | 19 | the scripts behind the paper's numbers, at the revision that produced them |
+| `scripts/` | 24 | the scripts behind the paper's numbers, at the revision that produced them |
 | `LICENSE` | --- | MIT, covering this bundle |
 | `attacks_independent_pool.jsonl` | 11,565 | **every** draw of the independent arm, 1,112 problems, up to 13 draws each, with `draw` / `source` / `round` |
 | `pairs_passes_best.csv` | 1,046 | survivor selection from the pool under the *passes-tests* rule, keyed by `draw` |

@@ -227,7 +227,8 @@
 \newcommand{\relPassBest}{1{,}046}     % same under the benchmark's own survivor selection (--keep best)
 \newcommand{\relFireBest}{99}          % ... firing
 \newcommand{\relFireBestCrash}{106}    % ... counting a crash on the trigger as firing
-\newcommand{\relScripts}{19}           % scripts/ in the bundle (release_split.py SCRIPT_FILES)
+\newcommand{\relScripts}{24}           % scripts/ in the bundle (release_split.py SCRIPT_FILES,
+                                       % rebuilt 2026-09-11 with the RESULTS.md 13-15 scripts)
 
 % --- Same-generator S: MEASURED (these are no longer placeholders) --------------------
 % Same-generator S, RESULTS.md §9 (2026-09-11). All comment-stripped, problem-disjoint 5-fold,
@@ -894,10 +895,11 @@ plus every one of the \relRetryDraws{} draws of the independent arm's retry pool
 eligibility rules as pair lists under an outcome-blind selection (\relPassFirst{} passing
 and \relFireFirst{} firing independent-arm pairs) and under the benchmark's own survivor
 selection (\relPassBest{} and \relFireBest{}, or \relFireBestCrash{} counting a crash on
-the trigger as firing), the \relScripts{} scripts that produced every number in this paper ---
-generation, the test harness, the trigger verifier, the selection rules, and each measurement
-script --- a dataset card, and a manifest of row counts and checksums. The licence, MIT, is a
-file inside the bundle and covers the data and the scripts alike.
+the trigger as firing), the \relScripts{} scripts behind the measurements ---
+generation for both generators, the test harness, the trigger verifier, the selection rules, the
+prompt-matched arm, the monitor rows and each remaining measurement script --- a dataset card,
+and a manifest of row counts and checksums. The licence, MIT, is a file inside the bundle and
+covers the data and the scripts alike.
 
 \paragraph{The test harness and the pass flag.}
 \label{app:harness}
