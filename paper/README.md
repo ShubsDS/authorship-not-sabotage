@@ -1,10 +1,11 @@
 # paper/ — the submission
 
-Built and verified 2026-09-11, after the reviewer audit
-([`notes/09-review-audit.md`](../notes/09-review-audit.md)) was applied. `main.tex` compiles clean: **exit 0, no undefined
-citations, zero overfull boxes, four content pages with slack** — the body ends on page 4 with
-**13.5 free body lines**, References begins on page 4 below it, and the appendix follows the
-references. Nothing of the body reaches page 5.
+Built and verified 2026-09-12, after the second pass (`notes/11-pass2-brief.md`) was applied on
+top of the reviewer audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
+`main.tex` compiles clean: **exit 0, no undefined citations, zero overfull boxes, four content
+pages** — the body now fills page 4 to the bottom of the text block with **3 free body lines**,
+References begins on page 5, and the appendix follows the references. Nothing of the body reaches
+page 5.
 
 ```bash
 cd paper && pdflatex -interaction=nonstopmode main && bibtex main \
@@ -51,7 +52,7 @@ before the style file. Numeric is NeurIPS house style, it is far tighter than au
 at 4 pages, and it stops the two entries whose authors `lit/01` never recorded from
 rendering inline as "leg [2026]" and "len [2026]".
 
-**3. THE PAGE BUDGET: four pages, and 13.5 free lines held for the second pass.**
+**3. THE PAGE BUDGET: four pages, and three free lines left after the second pass.**
 The `notes/06` §5.1 cut plan was applied 2026-09-11 (F1, F2, the schema and similarity tables,
 the token test and the scratchpad channel to the appendix; §1 written; F3 at `0.70\linewidth`
 is the one body float). That still left four lines of §5 above References, so the audit's cuts
@@ -65,15 +66,25 @@ block, in 10.9pt lines. `pdftotext -bbox-layout` is the only reliable way — th
 style prints a line number beside every line and a folio under the block, and both come back
 as `<line>` elements that will flatter your count if you leave them in.
 
+**Since the second pass the body fills page 4, so that measurement reads 0.0 and is no longer
+the one to use.** The style file sets `\flushbottom`, so once no References line shares page 4
+the last body baseline is stretched onto the block's bottom edge whatever the true slack is.
+Probe instead: append N one-word body lines (`\noindent PROBELINE\\`) just before
+`\bibliographystyle`, rebuild, and find the largest N that keeps every probe line on page 4.
+On 2026-09-12 that is **N = 3**; the fourth spills.
+
 **F3's float anchor is load-bearing.** A `[t]` float lands at the top of the page *after* the
 page its definition falls on, so with the definition sitting in §3 a four-word edit anywhere
 earlier flipped it between pages 3 and 4 and swung the end of the body by a page. It is now
 defined inside §2, a page from either boundary. Leave it there. If a float-only page ever
 appears, check that F3 is still the only float in the body.
 
-**The three arms still to land are already paid for.** Their macros are in the reserved block
-(red TBD, used nowhere), and the three sentences of `notes/09` §4 cost about the slack now
-held. Re-measure after pasting them.
+**The three arms landed on 2026-09-12 and spent that slack.** The reserved block is gone:
+`\matched*`, `\promptOnly*`, `\mon*` and `\haiku*` carry measured values from `RESULTS.md`
+§13–§15, each with its protocol, its n and its ledger section in the comment; `\TBDRED` is
+deleted and `grep -n TBD main.tex` is empty. The sentences of `notes/09` §4 (branch 1) and the
+Haiku clause cost the 13.5 lines almost exactly, so cut C1's "five fold seeds" parenthetical was
+taken as well and its number moved to `app:robust`. Three free lines remain by the probe above.
 
 ### Both tables are width-constrained; do not "tidy" the column specs
 
@@ -117,18 +128,20 @@ impossible to cross by accident:
       The §3 outcome paragraph states the pre-registered ruling: inconclusive between partial and
       content, collapse excluded. The old `\TBD` is deleted; `\TBDRED` and the arm A/B/C
       placeholders are the only `TBD` in the source, and `grep -c TBD` on the **PDF text** stays 0.
-- [ ] **Second pass, pending `RESULTS.md` §13–§15.** Set the reserved placeholders, then write the
-      three sentences of `notes/09-review-audit.md` §4 and take the branch that section names for
-      the abstract's third clause (it is deliberately branch-neutral until §13 lands: "surface
-      *form* of the attack class --- partly the program layout its prompt elicits").
+- [x] ~~**Second pass, pending `RESULTS.md` §13–§15.**~~ **Done 2026-09-12.** The reserved
+      placeholders carry measured values; `notes/09-review-audit.md` §4's **branch 1** was taken
+      (S_matched collapses, so the residue is the attack prompt's framing), and the abstract's
+      third clause now states two generators and two bands — a third (Sonnet 5) to nine-tenths
+      (Haiku 4.5) — which are never averaged. Cut C1's "five fold seeds" parenthetical was taken
+      to hold a three-line margin; its number moved to `app:robust`, so no number left the paper.
 - [x] ~~Complete the bibliography.~~ **Done 2026-09-10.** All 28 entries verified against the arXiv
       API in one query (HTTP 200, every arXiv-hosted entry returned — not a throttled stub, per R3). **Six of `lit/01`'s
       partial records were wrong, not merely incomplete**; see the CORRECTIONS block atop `refs.bib`.
       Control Tax is a *2025* paper with a longer title; `2607.09786`'s author is Bryce Little, where
       `lit/01` recorded none — for the paper we credit with owning the scratchpad-regex instrument;
       and AICD's "Paul" and "Wang" are first names, so "Paul et al." would have been wrong.
-- [ ] Confirm the content body is within 4 pages (it is exactly 4 as of 2026-09-11; re-check
-      after every edit to §1–§5).
+- [ ] Confirm the content body is within 4 pages (it is exactly 4 as of 2026-09-12, with three
+      free lines by the probe above; re-check after every edit to §1–§5).
 - [x] Release sentence in §4 item 4 names what the bundle holds without the counts, which now
       live once, in appendix paragraph `app:release`, with the crash-as-firing count and the
       `\relScripts{}` scripts. The bundle really does carry them as of schema 3 — `release/scripts/`
