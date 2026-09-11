@@ -559,3 +559,126 @@ to collapse an inconclusive interval into a verdict:
 - authorship if the interval's **upper** bound < 0.60
 - content if its **lower** bound > 0.75
 - otherwise state the interval, do not round it
+
+---
+
+## 6. Comment-stripped re-check of the authorship legs (2026-09-11)
+
+`matched.py` and `transfer.py` never call `strip_comments`, so every matched-protocol and transfer number
+in `REPRODUCED.md` was measured on code with comments in, while the paper introduces them beside
+"comment-stripped". `strip_recheck.py` re-runs both scripts line for line with `data.strip_comments`
+(Jha's port of the anchor's stripper) applied to **both** classes, and repeats the problem-disjoint 30%
+split over five seeds. The only intended differences from `matched.py` / `transfer.py` are the stripper
+and the seed loop.
+
+```
+cd experiments/apps && python3 strip_recheck.py --seeds 5     # CPU, about three minutes
+```
+
+Python 3.12.11, scikit-learn 1.7.1, pandas 2.3.1, numpy 2.3.5. Corpus: 8,813 control_tax pairs over
+2,368 problems; 2,160 apps-source (GPT-4-era) pairs. Seed 0 is the split on record.
+
+### 6.1 Self-check: the unstripped column reproduces `REPRODUCED.md`
+
+Read before the stripped column, per handoff rule 0.2. Seed 0, unstripped, against the 2026-09-04 re-run:
+
+| Quantity | `REPRODUCED.md` | seed 0, unstripped, this run | |
+|---|---:|---:|---|
+| TF-IDF AUROC, matched | 0.9425 | **0.9425** | ✅ |
+| pairwise, all | 0.9625 (0.9621 RECOMPUTE; one pair of slack) | **0.9625** | ✅ |
+| pairwise, working backdoors | 0.9787 (n = 847) | **0.9787** (n = 847) | ✅ |
+| pairwise, inert backdoors | 0.9548 (n = 1,794) | **0.9548** (n = 1,794) | ✅ |
+| surface-7 AUROC | 0.8302 | **0.8302** | ✅ |
+| length within-pair / length AUROC | 0.821 / 0.674 | **0.8205 / 0.6740** | ✅ |
+| transfer control_tax → apps GPT-4 | 0.9935 | **0.9935** (n 8,179 / 2,160) | ✅ |
+| o3-mini → claude-3-7-sonnet | 0.9756 | **0.9756** (n 2,256 / 82) | ✅ |
+| claude-3-7-sonnet → o3-mini | 0.8130 | **0.8130** (n 1,846 / 492) | ✅ |
+| o1-mini → gemini-2.0-flash | 0.8283 | **0.8283** (n 1,248 / 233) | ✅ |
+| pairs / problems / seed-0 test pairs | 8,813 / 2,368 / 2,641 | **8,813 / 2,368 / 2,641** | ✅ |
+
+**Every quantity reproduces to the last printed decimal**, including the two pairwise rows that moved by
+one pair between machines on 2026-09-04 (this machine agrees with the 09-04 re-run, not with RECOMPUTE).
+So the reimplementation is the original protocol, and the stripped column below differs from it by the
+comment stripper alone. No change was made to `strip_recheck.py`.
+
+### 6.2 The seven quantities, unstripped vs stripped
+
+Mean ± sd over seeds 0–4 (sd is the script's `np.std`, population form, ddof = 0). Test pairs per seed
+2,641 / 2,634 / 2,654 / 2,637 / 2,627, of which working 847 / 864 / 818 / 878 / 813 and inert
+1,794 / 1,770 / 1,836 / 1,759 / 1,814; training pairs are the remaining ~6,170 (problem-disjoint).
+Pairwise accuracies to three decimals (resolution 1/n ≈ 0.0004), AUROCs to four.
+
+| Quantity | unstripped, 5 seeds | **stripped, 5 seeds** | delta (mean) | seed 0: unstripped → stripped |
+|---|---:|---:|---:|---:|
+| TF-IDF AUROC, matched | 0.9467 ± 0.0031 | **0.8560 ± 0.0051** | −0.0907 | 0.9425 → 0.8484 |
+| pairwise, all | 0.962 ± 0.005 | **0.897 ± 0.006** | −0.065 | 0.962 → 0.896 |
+| pairwise, working backdoors | 0.979 ± 0.005 | **0.935 ± 0.008** | −0.043 | 0.979 → 0.926 |
+| pairwise, inert backdoors | 0.955 ± 0.006 | **0.879 ± 0.007** | −0.075 | 0.955 → 0.882 |
+| working − inert gap | 0.024 | **0.056** | +0.032 | 0.024 → 0.044 |
+| surface-7 AUROC | 0.8306 ± 0.0020 | **0.7259 ± 0.0056** | −0.1048 | 0.8302 → 0.7211 |
+| length within-pair (attack longer) | 0.825 ± 0.006 | **0.774 ± 0.006** | −0.051 | 0.821 → 0.772 |
+| length-only AUROC | 0.6742 ± 0.0035 | **0.6117 ± 0.0030** | −0.0626 | 0.6740 → 0.6108 |
+
+Transfer rows are a single fixed split each (train and test are model- or source-defined, no seed):
+
+| Transfer (pairwise accuracy) | n train / n test | unstripped | **stripped** | delta |
+|---|---:|---:|---:|---:|
+| control_tax → apps GPT-4-era backdoors | 8,179 / 2,160 | 0.994 | **0.969** | −0.024 |
+| o3-mini → claude-3-7-sonnet | 2,256 / 82 | 0.976 | **0.866** | −0.110 |
+| claude-3-7-sonnet → o3-mini | 1,846 / 492 | 0.813 | **0.844** | +0.031 |
+| o1-mini → gemini-2.0-flash | 1,248 / 233 | 0.828 | **0.764** | −0.064 |
+
+(Four-decimal script output for the macros, stripped: 0.9694 / 0.8659 / 0.8435 / 0.7639. The
+o3-mini → claude row has 82 test pairs, so its resolution is 0.012 and its drop is nine pairs.)
+
+Style markers on the control_tax pairs, mean per class (attack / honest): `has_hash` 0.685 / 0.176
+before stripping, 0.007 / 0.008 after; `has_main` 0.116 / 0.000 in both. The residual `#` after
+stripping is inside string literals (every control_tax program tokenizes, see 6.4), so the comment
+channel is fully closed, and the `__main__` marker is untouched by the stripper.
+
+### 6.3 Reading, and the band recommendation
+
+Under handoff §3.1 the three bands are: **hold** = stripped transfer ≥ 0.95 and stripped inert within
+0.03 of stripped working; **weakened but standing** = transfer in 0.85–0.95, or inert 0.03–0.08 below
+working; **fail** = transfer < 0.85, or inert collapses toward 0.5 while working does not.
+
+- Transfer leg: 0.969 stripped (≥ 0.95). **Holds on its own.** The three cross-model rows stay in
+  0.76–0.87; none collapses, one rises.
+- Working-vs-inert leg: working 0.935, inert 0.879, gap 0.056 over five seeds (0.044 at seed 0; the
+  per-seed gap ranges 0.041–0.071). The unstripped gap was 0.024. Inert stays far above 0.5 — a
+  classifier that never saw the backdoor fire still ranks the attack above its honest twin 88% of
+  the time — but the gap is now inside the 0.03–0.08 band.
+
+**Recommendation: weakened but standing** (coordinator decides). The transfer leg clears the hold
+threshold, but the inert-working gap widens from 0.024 to 0.056 under stripping, which is the
+middle band by the pre-stated rule; the authorship reading survives because inert pairs stay at
+0.879, not 0.5, while every unstripped number was inflated by the comment channel and must move to
+an appendix row labelled as such. Per handoff §4.2 the paper's `\transfer`, `\pairWorking`,
+`\pairInert`, `\surfaceSeven` macros become 0.969, 0.935, 0.879, 0.7259, with a sentence that all
+matched-protocol numbers are comment-stripped.
+
+For cross-reference: stripped TF-IDF on the matched protocol (0.8560 ± 0.0051; 0.8484 at seed 0) now
+sits beside B = 0.8714 (human honest vs working backdoors, stripped, §2) and the stripped Koran-split
+headline 0.8063, all three on stripped code.
+
+### 6.4 `strip_comments` fall-through, per class (notes/06 §3.4)
+
+`data.strip_comments` returns the source untouched when `tokenize` raises. Counted on the corpus of
+this section by re-running the tokenizer on every program (`scratchpad/driver_B.py`):
+
+| Class | fall-through |
+|---|---:|
+| control_tax honest (8,813 pairs; 8,713 unique programs) | **0** |
+| control_tax attack (8,813 pairs; 8,808 unique) | **0** |
+| apps-source honest (2,160) | 1 (`TokenError`; it contains a `#`) |
+| apps-source attack (2,160) | **0** |
+
+On this corpus the class-asymmetric leak is one program in 22,000 and does not touch the
+control_tax numbers at all. This does **not** cover B's human class (the 1,444-problem pool and
+`pass_human_fixed.jsonl`, where the Python-2-era concern was raised); that count is a separate,
+equally cheap check for whoever owns §2.
+
+---
+
+
+**Coordinator decision (2026-09-11):** weakened but standing, per `notes/08` §3.1. The transfer leg clears the hold line (0.969 ≥ 0.95); the working − inert gap widens from 0.024 to 0.056, inside the 0.03–0.08 band, and inert stays at 0.879. The paper reports the stripped values everywhere; the unstripped ones move to an appendix row labelled as inflated by the comment channel. Macros: `\transfer` 0.969, `\pairWorking` 0.935, `\pairInert` 0.879, `\surfaceSeven` 0.7259.
