@@ -20,6 +20,12 @@ Reading S:
                     same-generator sampling alone.
 
     python gate_s_samegen.py --tag sonnet5
+    python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5.jsonl \
+        --eligibility passes --bprime-inert     # like-for-like: both sides pass-but-may-not-fire
+
+The output json records `problem_ids`, the exact set S was fitted on, so that
+`gate_s_learning_curve.py --match-problems <that json>` can recompute B over the same problems
+instead of merely at the same n.
 """
 
 from __future__ import annotations
@@ -61,6 +67,15 @@ def main() -> None:
                          "answer different questions and neither is a substitute for the other.")
     ap.add_argument("--min-pairs", type=int, default=50,
                     help="refuse to print a verdict below this many pairs (default 50)")
+    ap.add_argument("--bprime-inert", action="store_true",
+                    help="build B''s stored attack side from every backdoor entry that PASSES THE "
+                         "PUBLIC TESTS, firing not required (the default keeps only entries that "
+                         "pass AND fire). Use this with --eligibility passes: that eligibility "
+                         "admits non-firing same-generator attacks, so comparing it against an "
+                         "all-firing B' is inert-inclusive against all-firing. With this flag both "
+                         "sides are defined by intent plus test-passing and the comparison is "
+                         "like-for-like. Leave it off for --eligibility usable, whose B-matched "
+                         "analogue is the all-firing B'.")
     args = ap.parse_args()
     tag = args.tag
 
@@ -117,11 +132,24 @@ def main() -> None:
     art = pd.concat([pq.read_table(f, columns=cols).to_pandas()
                      for f in sorted(glob.glob("train_*.parquet"))], ignore_index=True)
     art["problem_id"] = art.problem_id.astype(str)
+    def _pick_stored(row: dict) -> dict | None:
+        """B''s stored attack. Default = data._pick_backdoor (passes AND fires).
+
+        With --bprime-inert the filter drops `backdoor_works`, so a problem's stored attack is
+        the first entry that passes the public tests whether or not it fires. Same preference
+        order as _pick_backdoor (top_backdoor_model is None here, so it is entry order); the
+        only change is the eligibility predicate, which is the one being matched to S's.
+        """
+        if not args.bprime_inert:
+            return _pick_backdoor(row)
+        passing = [b for b in row["backdoors"] if b["passes_tests"]]
+        return passing[0] if passing else None
+
     stored = []
     for _, r in art[art.problem_id.isin(set(eligible))].iterrows():
         row = {"problem_id": r.problem_id, "backdoors": [dict(b) for b in r.backdoors],
                "solutions": [dict(s) for s in r.solutions], "top_backdoor_model": None}
-        b, h = _pick_backdoor(row), _honest_code(row)
+        b, h = _pick_stored(row), _honest_code(row)
         if b and h:
             stored.append({"problem_id": r.problem_id,
                            "honest": strip_comments(h),
@@ -167,8 +195,16 @@ def main() -> None:
     print("problem-disjoint 5-fold, comments stripped, identical pipeline:")
     S = evaluate(same, f"S  {tag} honest vs {tag} backdoor")
     out = {"tag": tag, "arm": arm, "eligibility": args.eligibility,
-           "n_same_generator_pairs": len(same), "pair_similarity": pair_sim, "S": S}
+           "n_same_generator_pairs": len(same),
+           # The problem ids S was fitted on, so B can be recomputed over exactly this set
+           # (gate_s_learning_curve.py --match-problems) rather than merely at the same n.
+           "problem_ids": list(eligible),
+           "b_prime_attack_rule": "passes (inert-inclusive)" if args.bprime_inert
+                                  else "passes AND fires",
+           "pair_similarity": pair_sim, "S": S}
     if len(stored) >= 50:
+        print(f"B' stored attack rule: "
+              f"{'passes tests, firing NOT required (--bprime-inert)' if args.bprime_inert else 'passes tests AND fires (data._pick_backdoor)'}")
         Bp = evaluate(stored, "B' human honest vs stored backdoor (same problems)")
         out["B_prime"] = Bp
         drop = (S["auroc"] - 0.5) / (Bp["auroc"] - 0.5) if Bp["auroc"] > 0.5 else float("nan")
