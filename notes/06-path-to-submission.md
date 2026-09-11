@@ -515,7 +515,31 @@ abstract loses one sentence and §3 loses one paragraph, and the schedule does n
 
 ---
 
-## 9. After the workshop
+## 9. Raising the acceptance probability above 0.55
+
+Added 2026-09-11, after the question was put directly. More corpora, more pairs and more prose
+do not move the number. Three things do, and two more reduce variance. Each is a script on this
+branch plus a run on a machine with the data; gains are judgment, not measurement, and assume the
+stripped rerun in §3.1 comes back clean.
+
+| # | Lever | Why it moves the number | Gain | Cost | Script |
+|---|---|---|---|---|---|
+| 1 | **Make the same-generator control the spine, not a missing number.** Compute S on the test-passing independent arm (n = 335) with the bootstrap CI, and the matched-n learning curve of B so a low S cannot be dismissed as underfitting. | Converts "an audit that infers authorship" into "a demonstrated confound with a demonstrated fix", the shape of every strong paper in this genre. If S collapses with a tight interval the title is earned. | +0.10 to +0.15 | ~2 h CPU, $0 | `gate_s_samegen.py --eligibility passes`, `gate_s_learning_curve.py --match-problems`, guide in `experiments/GATE-S-READING.md` |
+| 2 | **Add the positive control that makes a collapse believable.** Run a real LLM monitor (Sonnet 5, zero-shot, disclosed as the same model that wrote both classes) over the same pairs. | Pre-empts the one lethal objection to a collapse, "your pairs contain no detectable backdoor". A monitor at 0.75 beside TF-IDF at 0.55 shows the sabotage is there and only the authorship signal was lost. | +0.05, and removes the worst-case rebuttal | ~1 h + batch wall-clock, ~$3 | `monitor_samegen.py` |
+| 3 | **Ship the artifact.** MIT `LICENSE`, an anonymised release bundle of the same-generator split (honest generations, both attack arms with verifier flags, pair lists under both eligibility rules, manifest, dataset card), attached as supplementary and optionally on an anonymous HuggingFace repo. | Every exemplar in this genre released something others could use; the venue has a "Benchmarks and Governance" track; the paper currently promises a release it does not back. | +0.03 to +0.05 | ~2 h, $0 | `release_split.py`, `notes/07-release.md` |
+| 4 | **Proper uncertainty on the headline.** Bootstrap-over-problems CI and a permutation null on 0.806 and on both no-code protocols; a paired bootstrap against each of the 24 monitors on identical items using the published per-item scores. | Turns "above 20 of 24 point estimates" into "above k of 24 with a CI excluding zero". Bean et al. report only 16% of benchmarks carry a statistical test; this puts the paper above the corpus it audits. | +0.03, mostly variance reduction | ~1 h, $0 | `headline_ci.py`, `experiments/HEADLINE-CI.md` |
+| 5 | **A clean four pages with one figure, opening in the robustness and data-quality register.** | The committee is not AI-control native and has four days; the first paragraph decides the read. | variance reduction | in the §8 schedule | §5 |
+
+With all five done cleanly the honest estimate is about 0.70 to 0.75, the residual being an
+unlucky reviewer in a four-day window. The ceiling for this cycle is set by §3.1: if the transfer
+and inert results do not survive comment stripping, lever 1 becomes the only leg the authorship
+claim stands on, which is one more reason to run it first.
+
+Not worth doing before the wall: a second stored-pair benchmark family (November), re-ranking the
+24 monitors on a clean split end to end (expensive; recommend it, do not promise it), the $81
+top-up to 400 pairs (§4.1).
+
+## 10. After the workshop
 
 Camera-ready allows five pages: that is where S under both eligibilities, the learning curve, the
 survivor check and the Gate S table go. The November version (FAccT, ARR, or the AAAI workshops
