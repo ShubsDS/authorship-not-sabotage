@@ -433,9 +433,7 @@ pairs. ControlArena's live evaluations generate both classes and are not implica
 \paragraph{The confound is legible in the schema.}
 The canonical stored-pair artifact for APPS-based control evaluations
 \cite{inglis2025appscontrolarena} records \texttt{model} and \texttt{source} on every
-backdoor and no generator field on any honest solution (Table~\ref{tab:schema}, appendix):
-the honest class is taken from APPS \cite{hendrycks2021apps} and names no model; every
-backdoor is model-written.
+backdoor and no generator field on any honest solution (Table~\ref{tab:schema}, appendix).
 
 \paragraph{Artifacts and provenance.}
 We use seven public corpora; their per-class provenance is the object of study: in the
@@ -450,8 +448,7 @@ Our headline protocol is the filtered, comment-stripped split of \cite{koran2026
 \splitTrain{} train and \splitTest{} test items (\splitAttack{} attack, \splitHonest{}
 honest), labelled by \texttt{backdoor\_works}, reconstructed with the released code of
 \cite{jha2026decorrelation}. It is the surface on which \monN{}
-open-weight monitors have published per-item scores. Five populations (the raw artifact, this split, pooled, matched pairs, within-task) and
-two metrics appear below; every comparison names its split, metric and preprocessing. Generated code is scored by our own runner, which
+open-weight monitors have published per-item scores. Every comparison below names its split, metric and preprocessing. Generated code is scored by our own runner, which
 agrees with the artifact's \texttt{solution\_passes\_tests} on \harnessAgreement{} of the
 analysis pool and is applied to both classes (appendix~\ref{app:harness}).
 
@@ -487,10 +484,8 @@ should be much harder, and they are not. Third, the residual carrier is stylisti
 than semantic: \texttt{\_\_main\_\_} appears in 0.116 of attack samples against
 \textbf{0.000} of honest ones, replicated on the train split (152 versus 1 of
 \splitTrain{}) and untouched by the stripper. None of these is a property of a
-backdoor. A fourth, token-level test \cite{orel2026aicd} does not replicate here
-(separation \tokenSep{}, permutation $p = \tokenP{}$; appendix~\ref{app:token}), a
-register effect; and one authorship leak, author bylines inside string literals, survives
-the field's own comment stripper (appendix~\ref{app:stripped}).
+backdoor. A token-level test \cite{orel2026aicd} does not replicate, and one authorship leak
+survives the stripper (appendices~\ref{app:token},~\ref{app:stripped}).
 
 \paragraph{Regenerating one half of a pair does not isolate content.}
 Under the identical pipeline the human-honest baseline is $B = \baselineB$ over
@@ -498,8 +493,8 @@ $n = \baselineBn{}$ pairs, and the routing rule and its bands were fixed before 
 ran: retained signal $\rho = (G - 0.5)/(B - 0.5)$, with $\rho \le \rhoCollapse{}$ reading as
 authorship and $\rho > \rhoContent{}$ as content. With an open-weight model writing the
 honest class against the same backdoors ($n = \armOneN{}$, $B' = \armOneBprime{}$ on those
-problems), separation \emph{rises} to $G = \armOneG{}$, $\rho = \armOneRho{}$; TF-IDF gains \armOneTfidfDelta{} while the
-length carrier collapses to \armOneLenG{}. Substituting the honest author replaced one authorship confound with a larger one.
+problems), separation \emph{rises} to $G = \armOneG{}$, $\rho = \armOneRho{}$: substituting the
+honest author replaced one authorship confound with a larger one.
 
 \paragraph{Holding authorship constant needs care about what else changes.}
 We generate the attack class twice from one honest class: an \textbf{edit} arm shown its
@@ -513,34 +508,30 @@ the rest.} With one model writing both classes --- one outcome-blind draw per pr
 attack class defined, as in the benchmark, by intent plus passing the public tests, and
 $B'$ inert-inclusive over the same problems --- $S = \sameGenS{}$ (95\% CI
 \sameGenLo{}--\sameGenHi{}; $n = \sameGenN{}$ problem-disjoint pairs) against
-$B' = \sameGenBprime{}$, so $\rho = \sameGenRho{}$ (\sameGenRhoLo{}--\sameGenRhoHi{}). The
+$B' = \sameGenBprime{}$, so $\rho = \sameGenRho{}$ (\sameGenRhoLo{}--\sameGenRhoHi{}, joint bootstrap over
+problems). The
 interval excludes the collapse band and spans the content line, so the pre-registered rule
-returns \emph{inconclusive between partial and content}. Authorship accounts for roughly a third of the separability, and what survives is lexical: length-only falls to
-\sameGenLen{} while TF-IDF holds. It is not the trigger: masking numerals and comparison
+returns \emph{inconclusive between partial and content}. What survives is lexical:
+length-only falls to \sameGenLen{} while TF-IDF holds. It is not the trigger: masking numerals and comparison
 operators leaves $S$ unchanged, while normalising identifiers takes it to \sameGenSid{}
 ($\rho = \sameGenRhoId{}$) with $B'$ untouched, and the top attack-side features are
 \texttt{def main} and \texttt{data[} (\defMainAttack{} vs \defMainHonest{} of pair sides) --- the
 layout the attack prompt elicits. The arm holds the model constant, not the prompt, so
-$\rho$ is an upper bound on content. The pairs are independent programs (similarity
-\sameGenSim{}; stored pairs on the same problems \sameGenSimStored{}), and at
+$\rho$ is an upper bound on content. The pairs are independent programs (Table~\ref{tab:similarity}), and at
 $n = \sameGenN{}$ $B$ under the identical pipeline is $\curveHeadline{} \pm
 \curveHeadlineSd{}$, so the drop is not sample size. The strict row --- attacks that pass
 \emph{and} fire, kept by the benchmark's own retry-and-keep procedure, the filtering this
 paper criticises, inherited deliberately --- agrees: $\rho = \strictRho{}$
 (\strictRhoLo{}--\strictRhoHi{} on the pooled-score \strictRhoPooled{}) from $S = \strictS{}$ (\strictLo{}--\strictHi{};
 $n = \strictN{}$) against its own $B' = \strictBprime{}$, read through $\rho$ alone because
-$B$ at that $n$ is $\curveStrict{} \pm \curveStrictSd{}$. Retention is not the artifact:
-survivors and non-survivors separate at only \survivorAuroc{}, and $S$ with non-firing
-attempts on the same problems is \survivorSwapS{} against \survivorSwapSref{}. The edit arm bounds $S$ under near-copies
-(similarity \editSim{}): \editS{}, $\rho = \editRho{}$. A trusted-monitor prompt to the
+$B$ at that $n$ is $\curveStrict{} \pm \curveStrictSd{}$; retention is not the artifact,
+and the edit arm bounds $S$ under near-copies (appendix~\ref{app:robust}). A trusted-monitor prompt to the
 same model --- the one that wrote both classes --- scores \monitorStrict{}
 (\monitorStrictLo{}--\monitorStrictHi{}) on the strict pairs, within the baseline's
 interval, but \monitorS{} (\monitorSLo{}--\monitorSHi{}) on the headline set, where TF-IDF
 holds \sameGenS{}; the two are independent pair by pair ($\phi = \monitorClfPhi{}$) and read
 different things --- the layout, and the backdoor. Our single-shot attacks fire given a pass at \fireGivenPassOurs{} against the stored
-attacker's \fireGivenPassStored{}, which executes and iterates: the stored attack class is
-a survivor set. Intervals are bootstraps over problems, resampling $S$ and $B'$ jointly for
-$\rho$; this replaced a $\pm2$ fold-sd rule before the retry pool was read.
+attacker's \fireGivenPassStored{}: the stored attack class is a survivor set.
 
 % --- F3: the monitor comparison (the only body float) ----------------------------------
 \begin{figure}[t]\centering
@@ -553,9 +544,8 @@ split.} All values are AUROC on Koran et al.'s \splitTest{}-item test split
 \emph{trained} on the benchmark's own paired train split --- this is a statement about
 what the corpus makes recoverable, in the sense of \cite{gururangan2018annotation}, not a
 claim that bag-of-words is a better monitor. (ii)~The no-code floor is fitted \emph{within}
-the test split by $5\times5$ cross-validation, because the released train/val split is
-paired and therefore metadata-balanced, so its permutation null shuffles labels for fitting
-and scoring alike; on a single held-out slice of the same items it is \nocodeHeldout{}
+the test split by $5\times5$ cross-validation (appendix~\ref{app:protocol}); on a single
+held-out slice of the same items it is \nocodeHeldout{}
 (CI \nocodeHeldoutLo{}--\nocodeHeldoutHi{}; $p = \nocodeHeldoutP{}$ against its own null),
 above \nocodeHeldoutCount{} of \monN{}, \nocodeHeldoutPairedCount{} with a paired interval
 excluding zero.}
@@ -577,8 +567,8 @@ comes from.
 \paragraph{The negative control comes free.}
 In five same-generator agentic settings the same three models write both classes, so no
 authorship confound is possible and any surviving floor is structural
-(Figure~\ref{fig:corpora}, appendix). \texttt{bash} sits on its
-permutation null at \bashFloor{} while \texttt{agentdojo} reaches \agentdojoFloor{} from character count alone. A
+(Figure~\ref{fig:corpora}, appendix): floors run from \bashFloor{} (\texttt{bash}, on its
+null) to \agentdojoFloor{} (\texttt{agentdojo}) from character count alone. A
 per-benchmark floor therefore separates corpora where the label is trivially recoverable
 from those where it is not.
 
@@ -598,13 +588,10 @@ Following \citet{kapoor2022leakage}, who treat leakage as a checklist rather tha
 \item \textbf{Do not define the negative class by attack failure.} Drop the problems
       whose attacks failed, or sample the negative class independently of attack success.
 \item \textbf{State the split, the metric and the preprocessing} whenever monitors are
-      compared, and \textbf{release the split and the scripts}. Ours accompany this paper as supplementary material under MIT: the
-      same-generator split (\relHonest{} honest, \relEdit{} edit-arm and \relIndep{}
-      independent-arm programs from one model, plus all \relRetryDraws{} retry-pool draws),
-      pair lists under both selection rules --- outcome-blind (\relPassFirst{} passing,
-      \relFireFirst{} firing independent-arm pairs) and the benchmark's own survivor
-      selection (\relPassBest{} and \relFireBest{}) --- a dataset card and a manifest
-      (appendix~\ref{app:release}).
+      compared, and \textbf{release the split and the scripts}. Ours accompany this paper as
+      supplementary material under MIT: the same-generator split, both selection rules as
+      pair lists, every retry-pool draw, the scripts that produced the numbers, a dataset
+      card and a manifest (appendix~\ref{app:release}).
 \end{enumerate}
 
 % =====================================================================================
@@ -675,6 +662,10 @@ struct & sub-fields \\
 \end{table}
 
 \paragraph{The protocol $\times$ baseline table.}
+\label{app:protocol}
+The no-code floor is cross-validated \emph{within} the test split because the released
+train/val split is paired and therefore metadata-balanced; its permutation null shuffles
+labels for fitting and scoring alike.
 Table~\ref{tab:protocol-baseline} is the full measurement behind \S\ref{sec:results}. Rows
 are not comparable across protocols; the preprocessing column says whether comments were
 stripped before the baseline read the code. Pairwise accuracies are given to three decimals
@@ -732,6 +723,17 @@ edit (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & au
 \bottomrule
 \end{tabular}
 \end{table}
+
+\paragraph{Robustness of the same-generator rows.}
+\label{app:robust}
+Intervals in the Gate S paragraph of \S\ref{sec:results} are bootstraps over problems,
+resampling $S$ and $B'$ jointly for $\rho$; this replaced a $\pm2$ fold-sd rule before the
+retry pool was read. Retention is not the artifact: survivors and non-survivors separate at
+only \survivorAuroc{}, and $S$ with non-firing attempts on the same problems is
+\survivorSwapS{} against \survivorSwapSref{}. The edit arm bounds $S$ under near-copies
+(similarity \editSim{}, Table~\ref{tab:similarity}): \editS{} over \editN{} pairs,
+$\rho = \editRho{}$. In arm 1, where only the honest half was regenerated, TF-IDF gains
+\armOneTfidfDelta{} while the length carrier collapses to \armOneLenG{}.
 
 \paragraph{The five same-generator agentic settings.}
 Figure~\ref{fig:corpora} shows each setting's content-blind floor against its own
