@@ -64,13 +64,18 @@ from sklearn.metrics import roc_auc_score
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from data import strip_comments  # noqa: E402 - identical preprocessing to the classifier
 
-MODEL = "claude-sonnet-5"
+DEFAULT_MODEL = "claude-sonnet-5"
+MODEL = DEFAULT_MODEL            # reassigned from --model in main()
 # A brief rationale plus one SCORE line. 512 is generous for that and keeps the worst case - every
 # reply running to the ceiling - inside the $2-4 the ledger budgeted for this control.
 MAX_TOKENS = 512
 BATCH_LIMIT = 100_000            # API maximum requests per batch
-# Sonnet 5 list price per million tokens; the Batch API bills at 50%.
-PRICE_IN, PRICE_OUT, BATCH_DISCOUNT = 2.00, 10.00, 0.5
+# List price per million tokens (input, output); the Batch API bills at 50%. Sonnet 5 is the
+# generator of both classes, so it is the self-evaluating monitor; Haiku 4.5 is the independent
+# second monitor the paper needs beside it (a model that wrote neither class).
+MODEL_PRICES = {"claude-sonnet-5": (2.00, 10.00), "claude-haiku-4-5": (1.00, 5.00)}
+PRICE_IN, PRICE_OUT = MODEL_PRICES[MODEL]
+BATCH_DISCOUNT = 0.5
 BUDGET_CEILING = 110.0           # hard stop. Was $100; raised 2026-09-11 with the owner's go once
                                  # the retry rounds (six full + 36 sharded batches) reached ~$99
 SPENT_SO_FAR = 99.0              # dollars booked as of 2026-09-11: $57.30 logged before the retry
@@ -492,7 +497,13 @@ def main() -> None:
     ap.add_argument("--dry-run", action="store_true",
                     help="estimate cost and exit, spending nothing")
     ap.add_argument("--poll-seconds", type=int, default=60)
+    ap.add_argument("--model", choices=sorted(MODEL_PRICES), default=DEFAULT_MODEL,
+                    help="the monitor. Default is the generator itself (self-evaluation, "
+                         "disclosed); a different model gets its own state and output files.")
     args = ap.parse_args()
+    global MODEL, PRICE_IN, PRICE_OUT
+    MODEL = args.model
+    PRICE_IN, PRICE_OUT = MODEL_PRICES[MODEL]
 
     bd_path = args.bd or f"bd_{args.tag}.jsonl"
     bdpass_path = args.bdpass or f"bdpass_{args.tag}.jsonl"
@@ -524,8 +535,11 @@ def main() -> None:
 
     # Resume an in-flight batch rather than paying for it twice. One state file per
     # arm/eligibility, so two concurrent controls cannot adopt each other's batch.
+    # A non-default monitor model gets its own state and output names, so a second monitor over
+    # the same pairs neither adopts the first one's batch nor overwrites its scores.
+    msfx = "" if MODEL == DEFAULT_MODEL else "_" + MODEL.replace("claude-", "").split("-2025")[0]
     state_file = STATE_FILE.replace(
-        ".json", f".{args.tag}_{arm}_{args.eligibility}.json")
+        ".json", f".{args.tag}_{arm}_{args.eligibility}{msfx}.json")
     batch_id = None
     if os.path.exists(state_file):
         batch_id = json.load(open(state_file))["batch_id"]
@@ -588,7 +602,7 @@ def main() -> None:
         # Every per-program score, so the whole analysis can be redone without paying again.
         "scores": records,
     }
-    path = args.out or f"monitor_samegen_{args.tag}_{arm}_{args.eligibility}.json"
+    path = args.out or f"monitor_samegen_{args.tag}_{arm}_{args.eligibility}{msfx}.json"
     json.dump(out, open(path, "w"), indent=2, default=float)
     os.remove(state_file)
     print(f"\nwrote {path}  ({len(records)} per-program records)")
