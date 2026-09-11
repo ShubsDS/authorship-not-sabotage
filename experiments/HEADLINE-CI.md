@@ -26,10 +26,10 @@ destroys the evaluation, not the hypothesis: it sits at 0.5 by construction what
 corpus held. So `y_train` is permuted, the classifier refit, the untouched test labels scored. The
 vectorizer is not refit — vocabulary, `min_df` and IDF depend on X alone.
 
-**The bootstrap unit is the problem.** Two samples from one APPS problem share a question, a
-difficulty and a test suite, so resampling items would understate the interval. Koran's test split is
-one item per problem (172 attack / 1,203 honest, unpaired), so grouping is a no-op here — but the
-script groups anyway, asserts it, and prints the group-size histogram.
+**The bootstrap unit is the problem.** Samples from one APPS problem share a question, a difficulty
+and a test suite, so resampling items would understate the interval. Koran's test split is one item
+per problem (172 attack / 1,203 honest, unpaired), so grouping is a no-op here — but the script
+groups anyway, asserts it, and prints the group-size histogram.
 
 **Paired bootstrap, not DeLong.** DeLong leans on asymptotic normality of the placement values; with
 172 positives and heavily tied scores (as few as 193 distinct values over 1,857 samples, several
@@ -48,10 +48,10 @@ https://raw.githubusercontent.com/anik-jha/challenger-panels/main/runs/scores/Qw
 Keys: `repo, lineage, params_b, ok, n, seconds, sample_ids, scores, test_auroc, test_auroc_ci,
 test_pauc10, n_distinct, degenerate`. `sample_ids[i]` is `"<split>/<problem_id>/<attack|honest>"`
 over **val + test = 482 + 1,375 = 1,857** entries; only the `test/` prefix is kept. `scores[i]` is a
-raw suspicion score, **higher = more suspicious**; the rank-AUROC of that subset reproduces the
+raw suspicion score, **higher = more suspicious**; its rank-AUROC over that subset reproduces the
 file's own `test_auroc` to 4dp, asserted on load. `internlm/internlm3-8b-instruct` has a file too,
-but it is `ok: false` with no scores and absent from `monitor-summary.json` — **the 24 monitors are
-exactly that file's entries**. Nothing is redistributed; `runs/` is gitignored.
+but it is `ok: false` and absent from `monitor-summary.json` — **the 24 monitors are exactly that
+file's entries**. Nothing is redistributed; `runs/` is gitignored.
 
 ## Running it
 
@@ -73,10 +73,10 @@ backdoor_works, difficulty, num_tests, q_len, top_backdoor_model` (`fetch_cols.p
 `monitor-summary.json` → a list of `repo, test_auroc, ci`.
 
 The CV block's **CI and paired tests use the pooled out-of-fold score vector** (bootstrapping the CV
-itself would put duplicated items on both sides of a fold and inflate it); its headline value stays
-the fold mean. The held-out block's **raw** count uses the monitors' published full-split
-`test_auroc` — the paper's 18 of 24 — while its **paired** column recomputes each monitor on those
-413 items, so the two need not agree and must never be swapped.
+itself would duplicate items across a fold and inflate it); its headline value stays the fold mean.
+The held-out block's **raw** count uses the monitors' published full-split `test_auroc` — the paper's
+18 of 24 — while its **paired** column recomputes each monitor on those 413 items, so the two need
+not agree and must never be swapped.
 
 ## The sentences
 
@@ -86,6 +86,6 @@ One shape, three fills — take each whole:
 > ⟨k₂⟩ of them with a paired-bootstrap CI excluding zero.**
 
 ⟨FLOOR⟩ is `TF-IDF`, `No-code floor (5×5 CV within the test split)` or `No-code floor (413-item
-held-out slice)`. The CV fill alone carries `⟨X⟩ ± ⟨sd⟩` and names its interval *"bootstrap-over-
+held-out slice)`. The CV fill alone carries `⟨X⟩ ± ⟨sd⟩` and calls its interval *"bootstrap-over-
 problems 95% CI of the pooled out-of-fold AUROC"*. The last two are different protocols on the same
-items; their numbers do not interchange — the "never write 0.772 above 18" rule, in code.
+items and do not interchange — the "never write 0.772 above 18" rule, in code.
