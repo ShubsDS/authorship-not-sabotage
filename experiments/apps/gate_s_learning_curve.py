@@ -28,7 +28,9 @@ Outputs `gate_s_learning_curve.json` and a table, and ends with the one sentence
     At n = <S's n>, B under the identical pipeline is X +/- Y, so a collapse to S
     is / is not attributable to sample size.
 
-Cost: CPU only. The grid below at 30 draws is ~250 fits; minutes, not hours, on the real pool.
+Cost: CPU only, but not instant. The default grid at 30 draws is ~180 refits, each carrying
+evaluate()'s 2,000-resample bootstrap: 12 min on a 625-pair synthetic pool, so budget 20-45 min on
+the real 1,444-pair one. `--boot 500` cuts most of that and moves only the reported CI width.
 Every draw is seeded (`--seed`), so the table is reproducible.
 
 ⚠️ Read the curve, not just its endpoint. If B at S's n is still near 0.85, a low S is a real

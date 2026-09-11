@@ -23,9 +23,9 @@ python gate_s_learning_curve.py --human-pass-file human_verify.jsonl \
     --match-problems sg_indep_usable.json --out lc_usable.json
 ```
 
-Always pass `--out`: the default filename keys on tag/arm/eligibility only, so the `passes` run
-with and without `--bprime-inert` would overwrite each other. `--eligibility all` is a sanity row,
-not a result. The edit arm (`--bd bd_<tag>.jsonl`) is a **bound**, never a verdict: its pairs are
+The curve takes 20-45 min (`--boot 500` if pressed); everything else is minutes. Always pass
+`--out`: the default samegen filename keys on tag/arm/eligibility only, so the `passes` run with
+and without `--bprime-inert` would overwrite each other. `--eligibility all` is a sanity row. The edit arm (`--bd bd_<tag>.jsonl`) is a **bound**, never a verdict: its pairs are
 near-copies (mean similarity 0.924, 68.7% above 0.95, against 0.469 in the benchmark).
 
 `gate_s_samegen.py` refuses to run if the two jsonl files disagree on `model` — with different
