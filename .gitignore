@@ -23,11 +23,18 @@ paper/*.out
 paper/*.bbl
 paper/*.blg
 paper/*.pdf
+!paper/main.pdf
 paper/*.fls
 paper/*.fdb_latexmk
 paper/*.synctex.gz
-# NOTE: paper/*.pdf ignores the built main.pdf only - paper/fig/*.pdf (F2, F3) is a
+# NOTE: paper/*.pdf ignores LaTeX's intermediate output - paper/fig/*.pdf (F2, F3) is a
 # different path and stays tracked, which is intended.
+#
+# main.pdf is EXEMPTED as of 2026-09-11, one day out: the built paper is the artifact
+# being submitted, and having the exact bytes in the repo beside the source that made them
+# is worth more now than keeping the tree free of build products. Consequence to know
+# about: it is tracked, so every rebuild shows as a diff even when only the PDF timestamp
+# moved. Rebuild deliberately before committing, not incidentally.
 
 # Gate S run products — regenerable, and the generations are large
 *.jsonl
