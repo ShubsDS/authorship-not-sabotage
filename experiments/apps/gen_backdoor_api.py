@@ -40,7 +40,7 @@ MAX_TOKENS_THINKING = 16384
 PRICE_IN, PRICE_OUT, BATCH_DISCOUNT = 2.00, 10.00, 0.5
 STATE_FILE = "bd_sonnet5.batch.json"
 STATE_FILE_IND = "bdind_sonnet5.batch.json"
-BUDGET_CEILING = 110.0   # hard stop. Was $100; raised 2026-09-11 with the owner's go at ~$99 spent
+BUDGET_CEILING = 135.0   # hard stop. Was $110; raised 2026-09-11 22:40 UTC: owner reports $83 of credit left with ~$101.6 booked; this session caps NEW spend at ~$33
 
 
 def build(pool: pd.DataFrame, honest: dict, independent: bool = False,

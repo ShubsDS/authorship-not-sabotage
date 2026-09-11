@@ -76,7 +76,7 @@ BATCH_LIMIT = 100_000            # API maximum requests per batch
 MODEL_PRICES = {"claude-sonnet-5": (2.00, 10.00), "claude-haiku-4-5": (1.00, 5.00)}
 PRICE_IN, PRICE_OUT = MODEL_PRICES[MODEL]
 BATCH_DISCOUNT = 0.5
-BUDGET_CEILING = 110.0           # hard stop. Was $100; raised 2026-09-11 with the owner's go once
+BUDGET_CEILING = 135.0   # hard stop. Was $110; raised 2026-09-11 22:40 UTC: owner reports $83 of credit left with ~$101.6 booked; this session caps NEW spend at ~$33
                                  # the retry rounds (six full + 36 sharded batches) reached ~$99
 SPENT_SO_FAR = 99.0              # dollars booked as of 2026-09-11: $57.30 logged before the retry
                                  # rounds, $31.27 for the six full rounds, ~$11 for the shards.
