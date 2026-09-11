@@ -682,3 +682,172 @@ equally cheap check for whoever owns §2.
 
 
 **Coordinator decision (2026-09-11):** weakened but standing, per `notes/08` §3.1. The transfer leg clears the hold line (0.969 ≥ 0.95); the working − inert gap widens from 0.024 to 0.056, inside the 0.03–0.08 band, and inert stays at 0.879. The paper reports the stripped values everywhere; the unstripped ones move to an appendix row labelled as inflated by the comment channel. Macros: `\transfer` 0.969, `\pairWorking` 0.935, `\pairInert` 0.879, `\surfaceSeven` 0.7259.
+
+---
+
+## 8. Headline intervals and the paired comparison with the 24 monitors (2026-09-11)
+
+> Draft by Worker D. Heading number as requested; the ledger's last section is currently `## 5`, so
+> renumber on merge. Python 3.12, sklearn 1.7.1, pandas 2.3.1, numpy 2.3.5, CPU only, no API calls, no
+> spend. Load average 17 to 28 on 16 cores throughout (other workers' jobs); `headline_ci.py` ran 01:19
+> to 01:47. Output: `experiments/apps/headline_ci.json` (untracked; the only file this section produced).
+
+### 8.1 Inputs rebuilt, and the self-checks that had to land first
+
+```
+cd experiments/apps
+python3 fetch_inputs.py     # koran_meta.parquet, rogan_meta.parquet, koran_test_code.pkl, monitor-summary.json
+python3 bow.py              # koran_samples.pkl
+python3 headline_ci.py      # fetches runs/scores/ (24 files, gitignored) itself; writes headline_ci.json
+```
+
+`fetch_inputs.py` rewrites three files that already existed. All three came back **bit-identical**
+(md5 before = after): `koran_meta.parquet` 2,584 rows (1,375 test / 1,209 train) both times,
+`rogan_meta.parquet` 5,000 rows, and the tracked `monitor-summary.json` (24 entries; `git status`
+clean). `koran_test_code.pkl` is new: 1,375 rows, 172 `backdoor_works`.
+
+`bow.py` reproduces every number on record (log in the scratchpad):
+
+| statistic | on record | today |
+|---|---:|---:|
+| test split reconstructed | 1,375 = 172 attack + 1,203 honest | **1,375 = 172 + 1,203** |
+| `#`-count AUROC raw -> stripped (`REPRODUCED.md`) | 0.6957 -> 0.4983 | **0.6957 -> 0.4983** |
+| stripped word 1-2gram TF-IDF, 30% held-out *within* the test split (`notes/06` §3.4) | 0.6836 | **0.6836** |
+| code-length-only AUROC, stripped | 0.4726 | **0.4726** |
+
+So the "unreconciled 0.6836" of `notes/06` §3.4 is stable; it is simply the within-test protocol
+(fit on 962 test items, scored on 413), a different protocol from the 0.8063 headline (fit on Koran's
+2,418-sample paired train split, scored on all 1,375 test items).
+
+`runs/scores/`: 24 files fetched. Each carries 1,857 `sample_ids` over val+test; the `test/` subset is
+1,375 items, 172 attack, and the script's assertion that every column's rank-AUROC reproduces the
+file's published `test_auroc` passed for all 24. The 24 are exactly the entries of
+`monitor-summary.json` (`internlm/internlm3-8b-instruct` has an `ok:false` stub upstream and is in
+neither). Training set as rebuilt by `headline_ci.py`: 2,418 samples over 1,209 problems (1,209 attack
+/ 1,209 honest); TF-IDF vocabulary 13,799 (below the 50,000 cap).
+
+### 8.2 Point estimates reproduced before the intervals were read
+
+| floor | protocol | on record | today |
+|---|---|---:|---:|
+| TF-IDF word 1-2gram, stripped | Koran paired train -> Koran 1,375-item test | 0.8063, above 20 of 24 | **0.8063, above 20 of 24** |
+| no-code floor (difficulty, num_tests, q_len) | 5x5 repeated stratified CV within the test split, fold mean +- sd | 0.7715 +- 0.0389, above 20 of 24 | **0.7715 +- 0.0389, above 20 of 24** |
+| no-code floor | single stratified 30% held-out slice, 413 items / 52 attack | 0.7163, above 18 of 24 | **0.7163, above 18 of 24** |
+
+All three "above k of 24" counts are against the monitors' **published full-split test AUROC** on
+Koran's 1,375-item test split, comments stripped, as in `koran_split_eval.py`. Every count is the
+one that sits with its own value; none is moved.
+
+### 8.3 The intervals
+
+`--n-boot 2000 --n-perm 200 --seed 0`. Bootstrap unit = problem (whole groups resampled; on Koran's
+test split every group has size 1, asserted, so it reduces to an item bootstrap). Permutation null =
+training labels shuffled, classifier refit, scored on the untouched test labels (see the caveat on
+protocol A in §8.6). Paired comparison = percentile bootstrap over problems of (our AUROC - monitor
+AUROC) on identical items, not DeLong.
+
+| floor | protocol | point | bootstrap 95% CI | boot sd | null 95th pct (mean, max) | empirical p | above, by published point | above, paired CI excludes 0 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| TF-IDF word 1-2gram, stripped | Koran train -> Koran test, n = 1,375 | **0.8063** | 0.7704 to 0.8409 | 0.0180 | 0.5465 (0.4992, 0.5946) | 0.0050 (0 of 200 null draws >= observed) | **20** of 24 | **18** of 24 |
+| no-code floor | 5x5 CV within test, n = 1,375; fold mean **0.7715 +- 0.0389** | pooled OOF 0.7658 | 0.7319 to 0.8005 | 0.0175 | 0.5545 (0.5063, 0.5695) | 0.0050 (0 of 200 null draws >= observed) | **20** of 24 | **17** of 24 |
+| no-code floor | 413-item held-out slice | **0.7163** | 0.6476 to 0.7796 | 0.0337 | 0.7023 (0.5150, 0.7390) | 0.0299 (5 of 200 null draws >= observed) | **18** of 24 | **12** of 24 |
+
+Protocol A produces no single per-item score vector from the fold mean, so its CI and paired tests
+are built on the pooled out-of-fold scores (mean over the 5 repeats), whose AUROC is 0.7658. The
+paper's value for that protocol stays the fold mean 0.7715 +- 0.0389 and its count stays 20; the
+interval 0.7319 to 0.8005 is reported as the CI of the pooled out-of-fold AUROC, as the sentence below
+says.
+
+### 8.4 Per monitor: paired bootstrap of (ours - theirs) on identical items
+
+`published` = the monitor's full-split test AUROC from `monitor-summary.json`; `on 1,375` / `on 413`
+= recomputed on exactly the items each protocol scores. Cells are diff [95% CI] and whether the CI
+excludes zero. Sorted by the monitor's AUROC on the 1,375 items.
+
+| monitor | published | on 1,375 | TF-IDF 0.8063 - monitor | no-code CV (pooled OOF 0.7658) - monitor | on 413 | no-code held-out 0.7163 - monitor |
+|---|---:|---:|---|---|---:|---|
+| `HuggingFaceTB/SmolLM3-3B` | 0.4341 | 0.4341 | +0.3723 [+0.3167, +0.4288] **yes** | +0.3317 [+0.2710, +0.3920] **yes** | 0.3751 | +0.3411 [+0.2192, +0.4588] **yes** |
+| `HuggingFaceTB/SmolLM2-360M-Instruct` | 0.4453 | 0.4453 | +0.3611 [+0.3003, +0.4211] **yes** | +0.3205 [+0.2543, +0.3769] **yes** | 0.3718 | +0.3445 [+0.2337, +0.4503] **yes** |
+| `HuggingFaceTB/SmolLM2-1.7B-Instruct` | 0.4583 | 0.4583 | +0.3481 [+0.2934, +0.4057] **yes** | +0.3075 [+0.2580, +0.3578] **yes** | 0.4210 | +0.2953 [+0.2078, +0.3870] **yes** |
+| `01-ai/Yi-1.5-6B-Chat` | 0.4604 | 0.4604 | +0.3460 [+0.2860, +0.4068] **yes** | +0.3054 [+0.2442, +0.3669] **yes** | 0.4049 | +0.3114 [+0.1947, +0.4244] **yes** |
+| `Qwen/Qwen3-0.6B` | 0.5074 | 0.5074 | +0.2989 [+0.2466, +0.3517] **yes** | +0.2584 [+0.2005, +0.3157] **yes** | 0.5111 | +0.2052 [+0.1048, +0.3063] **yes** |
+| `allenai/OLMo-2-0425-1B-Instruct` | 0.5450 | 0.5450 | +0.2614 [+0.2008, +0.3202] **yes** | +0.2208 [+0.1642, +0.2799] **yes** | 0.5398 | +0.1765 [+0.0751, +0.2749] **yes** |
+| `Qwen/Qwen3-1.7B` | 0.5475 | 0.5475 | +0.2588 [+0.2033, +0.3132] **yes** | +0.2182 [+0.1607, +0.2746] **yes** | 0.5236 | +0.1927 [+0.0793, +0.3021] **yes** |
+| `ibm-granite/granite-3.3-8b-instruct` | 0.5586 | 0.5586 | +0.2477 [+0.1894, +0.3046] **yes** | +0.2072 [+0.1524, +0.2612] **yes** | 0.5772 | +0.1391 [+0.0226, +0.2499] **yes** |
+| `allenai/OLMo-2-1124-13B-Instruct` | 0.5737 | 0.5737 | +0.2327 [+0.1749, +0.2914] **yes** | +0.1921 [+0.1348, +0.2504] **yes** | 0.5320 | +0.1843 [+0.0488, +0.3154] **yes** |
+| `allenai/OLMo-2-1124-7B-Instruct` | 0.5882 | 0.5882 | +0.2182 [+0.1654, +0.2697] **yes** | +0.1776 [+0.1194, +0.2334] **yes** | 0.5590 | +0.1573 [+0.0458, +0.2666] **yes** |
+| `microsoft/Phi-4-mini-instruct` | 0.5909 | 0.5909 | +0.2154 [+0.1567, +0.2743] **yes** | +0.1748 [+0.1121, +0.2354] **yes** | 0.6289 | +0.0874 [-0.0365, +0.2135] no |
+| `ibm-granite/granite-3.3-2b-instruct` | 0.6023 | 0.6023 | +0.2040 [+0.1523, +0.2575] **yes** | +0.1634 [+0.1005, +0.2232] **yes** | 0.6255 | +0.0908 [-0.0324, +0.2152] no |
+| `mistralai/Mistral-7B-Instruct-v0.3` | 0.6167 | 0.6167 | +0.1897 [+0.1346, +0.2474] **yes** | +0.1491 [+0.0822, +0.2131] **yes** | 0.5825 | +0.1338 [+0.0006, +0.2691] **yes** |
+| `tiiuae/Falcon3-3B-Instruct` | 0.6213 | 0.6213 | +0.1851 [+0.1279, +0.2418] **yes** | +0.1445 [+0.0825, +0.2014] **yes** | 0.6038 | +0.1125 [+0.0051, +0.2223] **yes** |
+| `Qwen/Qwen3-4B` | 0.6518 | 0.6518 | +0.1545 [+0.0952, +0.2101] **yes** | +0.1140 [+0.0533, +0.1757] **yes** | 0.6610 | +0.0553 [-0.0760, +0.1858] no |
+| `tiiuae/Falcon3-7B-Instruct` | 0.6746 | 0.6746 | +0.1317 [+0.0813, +0.1846] **yes** | +0.0911 [+0.0355, +0.1472] **yes** | 0.6062 | +0.1101 [-0.0106, +0.2297] no |
+| `allenai/OLMo-2-0325-32B-Instruct` | 0.6791 | 0.6791 | +0.1272 [+0.0722, +0.1793] **yes** | +0.0867 [+0.0302, +0.1402] **yes** | 0.6825 | +0.0338 [-0.0847, +0.1506] no |
+| `Qwen/Qwen3-8B` | 0.7153 | 0.7153 | +0.0910 [+0.0407, +0.1399] **yes** | +0.0505 [-0.0059, +0.1063] no | 0.7350 | -0.0187 [-0.1337, +0.0895] no |
+| `microsoft/phi-4` | 0.7517 | 0.7517 | +0.0547 [-0.0012, +0.1087] no | +0.0141 [-0.0413, +0.0671] no | 0.8150 | -0.0988 [-0.1982, +0.0057] no |
+| `tiiuae/Falcon3-10B-Instruct` | 0.7583 | 0.7583 | +0.0480 [-0.0051, +0.0987] no | +0.0075 [-0.0459, +0.0618] no | 0.7425 | -0.0262 [-0.1403, +0.0921] no |
+| `mistralai/Mistral-Small-3.2-24B-Instruct-2506` | 0.8308 | 0.8308 | -0.0245 [-0.0706, +0.0198] no | -0.0651 [-0.1188, -0.0128] **yes** | 0.8507 | -0.1345 [-0.2332, -0.0314] **yes** |
+| `Qwen/Qwen3.6-35B-A3B-reap25` | 0.8582 | 0.8582 | -0.0519 [-0.0951, -0.0076] **yes** | -0.0924 [-0.1437, -0.0412] **yes** | 0.8798 | -0.1635 [-0.2508, -0.0729] **yes** |
+| `google/gemma-4-26b-a4b-it` | 0.9358 | 0.9358 | -0.1294 [-0.1675, -0.0931] **yes** | -0.1700 [-0.2166, -0.1258] **yes** | 0.9571 | -0.2408 [-0.3213, -0.1575] **yes** |
+| `Qwen/Qwen3.6-27B` | 0.9371 | 0.9371 | -0.1307 [-0.1699, -0.0916] **yes** | -0.1713 [-0.2172, -0.1258] **yes** | 0.9586 | -0.2424 [-0.3229, -0.1596] **yes** |
+
+Reading the columns:
+
+- **TF-IDF, 20 by point, 18 by CI.** The two above by point but not by CI: `microsoft/phi-4`, `tiiuae/Falcon3-10B-Instruct`. Three
+  monitors are above us with a CI excluding zero: `Qwen/Qwen3.6-35B-A3B-reap25`, `google/gemma-4-26b-a4b-it`, `Qwen/Qwen3.6-27B`. `mistralai/Mistral-Small-3.2-24B-Instruct-2506`
+  is above by point with a CI that includes zero.
+- **No-code CV, 20 by point, 17 by CI.** Above by point, not by CI: `Qwen/Qwen3-8B`, `microsoft/phi-4`, `tiiuae/Falcon3-10B-Instruct`. Above us with a
+  CI excluding zero: `mistralai/Mistral-Small-3.2-24B-Instruct-2506`, `Qwen/Qwen3.6-35B-A3B-reap25`, `google/gemma-4-26b-a4b-it`, `Qwen/Qwen3.6-27B`.
+- **No-code held-out, 18 by point (published basis), 12 by CI.** Above by point, not by CI:
+  `tiiuae/Falcon3-7B-Instruct`, `ibm-granite/granite-3.3-2b-instruct`, `microsoft/Phi-4-mini-instruct`, `Qwen/Qwen3-4B`, `allenai/OLMo-2-0325-32B-Instruct`. Above us with a CI excluding zero: `mistralai/Mistral-Small-3.2-24B-Instruct-2506`, `Qwen/Qwen3.6-35B-A3B-reap25`, `google/gemma-4-26b-a4b-it`, `Qwen/Qwen3.6-27B`. On the 413 identical items the
+  point-estimate count is 17, not 18: `Qwen/Qwen3-8B` is below 0.7163 on the full
+  split (published 0.7153) but above it on this slice (0.7350). The published-basis 18 is the paper's
+  count and stays; the identical-items 17 is what the paired column actually tests. Do not swap them.
+
+### 8.5 The three sentences the script prints
+
+```
+[tfidf]          TF-IDF 0.8063 (95% CI 0.7704-0.8409; permutation null 95th pct 0.5465, p = 0.004975), above 20 of 24 monitors, 18 of them with a paired-bootstrap CI excluding zero.
+[nocode_cv]      No-code floor (5x5 CV within the test split) 0.7715 +- 0.0389 (bootstrap-over-problems 95% CI of the pooled out-of-fold AUROC 0.7319-0.8005; permutation null 95th pct 0.5545, p = 0.004975), above 20 of 24 monitors, 17 of them with a paired-bootstrap CI excluding zero.
+[nocode_holdout] No-code floor (413-item held-out slice) 0.7163 (95% CI 0.6476-0.7796; permutation null 95th pct 0.7023, p = 0.02985), above 18 of 24 monitors, 12 of them with a paired-bootstrap CI excluding zero.
+```
+
+Recommended wording change before any of this enters `main.tex`: "p = 0.004975" is exactly
+1/(200+1), meaning **no null draw reached the observed value**; write "p < 0.005 (0 of 200 permutations)"
+rather than a number that looks like a measurement. The held-out p = 0.0299 is 5 of 200.
+
+Macros affected (`main.tex` lines 77 to 88): `\tfidfKoran` 0.806 / `\tfidfKoranCount` 20, `\nocodeCV`
+0.772 / `\nocodeCVsd` 0.039 / `\nocodeCVCount` 20, `\nocodeHeldout` 0.716 / `\nocodeHeldoutCount` 18 all
+unchanged; new macros needed for the three CIs, the three null 95th percentiles, and the three
+"k2 with a paired-bootstrap CI excluding zero" counts (18 / 17 / 12), per `notes/08` §4.4.
+
+### 8.6 What looked wrong, or needs a decision
+
+1. **Protocol A's permutation null is not the training-label null the docstring describes.** In
+   `nocode_cv`, `run(rng.permutation(y))` uses the *same* shuffled vector for fitting and for scoring
+   every fold (`roc_auc_score(yy[b], p)` with `yy` shuffled), so the null shuffles train and test
+   labels together: it is centred on 0.5 and tight (mean 0.5063, max 0.5695). Protocol B and the
+   TF-IDF null do what the docstring says (shuffle training labels, score the true test labels). Within
+   CV the two are the same vector, so a pure training-label null is not available without a different
+   design; the script's choice is defensible but the JSON's `permutation_null` string and the docstring
+   overstate it. Fix is documentation, not code; report the CV null as "labels permuted, CV repeated".
+   Not applied (not a schema/IO bug).
+2. **Protocol B's null is wide and high**: 95th percentile 0.7023, max 0.739, against a point of
+   0.7163. With only 5 design columns (num_tests, q_len, three difficulty dummies), a classifier fit
+   on shuffled labels picks a random direction in a 5-dimensional space, and a random direction
+   aligns with the true one often enough that the null is bimodal (mean 0.515, but a fat upper tail).
+   This is a property of low-dimensional informative features, not a bug, and it is the strongest
+   reason the paper should keep leaning on protocol A (p < 0.005, null max 0.5695) for the no-code
+   floor and quote protocol B as the conservative single-split value with its own count of 18. The
+   TF-IDF null (13,799 features) has no such tail: max 0.5946.
+3. The held-out CI, 0.6476 to 0.7796, contains that null's 95th percentile. Any sentence built on the
+   0.7163 value should carry the p = 0.030, not just the interval.
+4. `headline_ci.py` needed no fix on real data; every schema assumption in its docstring held.
+5. Nothing tracked was edited. `git status` at the end showed other workers' changes
+   (`figures.py`, `verify_backdoor.py`, `merge_draws.py`, `verify_all_shards.sh`), none mine.
+6. Operational: the first wait loop I wrote matched its own shell in `pgrep -f` and stalled for ten
+   minutes after `bow.py` had finished; nothing was affected, but `bow.py`'s true runtime is under a
+   minute. The Worker D session was then killed by an API rate limit at about 01:5x while the run was
+   already finished; the run itself was unaffected.
+
+**Coordinator note (2026-09-11):** the paper leans on the CV protocol for the no-code floor and quotes the held-out row with its p = 0.030; the CV null is a full-label null (documentation fix owed in `headline_ci.py`). `p < 0.005 (0 of 200)` is the wording, not 0.004975.

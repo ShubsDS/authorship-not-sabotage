@@ -1,0 +1,1399 @@
+{
+  "generated_by": "experiments/apps/headline_ci.py",
+  "n_boot": 2000,
+  "n_perm": 200,
+  "seed": 0,
+  "bootstrap_unit": "problem_id (whole groups resampled with replacement)",
+  "permutation_null": "training labels shuffled and the classifier refit; test labels untouched",
+  "interval_method": "paired percentile bootstrap over problems (NOT DeLong: unstable at 172 positives with heavily tied, partly degenerate monitor scores)",
+  "monitor_scores": {
+    "source": "https://raw.githubusercontent.com/anik-jha/challenger-panels/main/runs/scores/",
+    "licence": "MIT (Copyright (c) 2026 Anik Jha), github.com/anik-jha/challenger-panels",
+    "n_monitors": 24,
+    "n_items": 1375
+  },
+  "floors": [
+    {
+      "name": "TF-IDF word 1-2gram (stripped)",
+      "protocol": "Koran train -> Koran test",
+      "auroc": 0.8063,
+      "ci95": [
+        0.7704,
+        0.8409
+      ],
+      "bootstrap_sd": 0.018,
+      "n_items": 1375,
+      "n_problems": 1375,
+      "bootstrap_group_sizes": {
+        "1": 1375
+      },
+      "perm_null_p95": 0.5465,
+      "perm_null_mean": 0.4992,
+      "perm_null_max": 0.5946,
+      "perm_p": 0.004975124378109453,
+      "n_perm": 200,
+      "above_n_of_24_point_estimates": 20,
+      "above_n_of_24_ci_excludes_zero": 18,
+      "raw_count_basis": "published",
+      "per_monitor": [
+        {
+          "repo": "HuggingFaceTB/SmolLM3-3B",
+          "monitor_auroc_on_these_items": 0.4341,
+          "monitor_published_test_auroc": 0.4341,
+          "monitor_published_ci": [
+            0.3882,
+            0.4791
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.3723,
+          "diff_ci": [
+            0.3167,
+            0.4288
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "HuggingFaceTB/SmolLM2-360M-Instruct",
+          "monitor_auroc_on_these_items": 0.4453,
+          "monitor_published_test_auroc": 0.4453,
+          "monitor_published_ci": [
+            0.3992,
+            0.4915
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.3611,
+          "diff_ci": [
+            0.3003,
+            0.4211
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+          "monitor_auroc_on_these_items": 0.4583,
+          "monitor_published_test_auroc": 0.4583,
+          "monitor_published_ci": [
+            0.4136,
+            0.5037
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.3481,
+          "diff_ci": [
+            0.2934,
+            0.4057
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "01-ai/Yi-1.5-6B-Chat",
+          "monitor_auroc_on_these_items": 0.4604,
+          "monitor_published_test_auroc": 0.4604,
+          "monitor_published_ci": [
+            0.4158,
+            0.5075
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.346,
+          "diff_ci": [
+            0.286,
+            0.4068
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "Qwen/Qwen3-0.6B",
+          "monitor_auroc_on_these_items": 0.5074,
+          "monitor_published_test_auroc": 0.5074,
+          "monitor_published_ci": [
+            0.4593,
+            0.5529
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.2989,
+          "diff_ci": [
+            0.2466,
+            0.3517
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-0425-1B-Instruct",
+          "monitor_auroc_on_these_items": 0.545,
+          "monitor_published_test_auroc": 0.545,
+          "monitor_published_ci": [
+            0.5023,
+            0.5904
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.2614,
+          "diff_ci": [
+            0.2008,
+            0.3202
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "Qwen/Qwen3-1.7B",
+          "monitor_auroc_on_these_items": 0.5475,
+          "monitor_published_test_auroc": 0.5475,
+          "monitor_published_ci": [
+            0.5044,
+            0.5906
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.2588,
+          "diff_ci": [
+            0.2033,
+            0.3132
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "ibm-granite/granite-3.3-8b-instruct",
+          "monitor_auroc_on_these_items": 0.5586,
+          "monitor_published_test_auroc": 0.5586,
+          "monitor_published_ci": [
+            0.5139,
+            0.6039
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.2477,
+          "diff_ci": [
+            0.1894,
+            0.3046
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-1124-13B-Instruct",
+          "monitor_auroc_on_these_items": 0.5737,
+          "monitor_published_test_auroc": 0.5737,
+          "monitor_published_ci": [
+            0.5266,
+            0.6194
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.2327,
+          "diff_ci": [
+            0.1749,
+            0.2914
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-1124-7B-Instruct",
+          "monitor_auroc_on_these_items": 0.5882,
+          "monitor_published_test_auroc": 0.5882,
+          "monitor_published_ci": [
+            0.5444,
+            0.6313
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.2182,
+          "diff_ci": [
+            0.1654,
+            0.2697
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "microsoft/Phi-4-mini-instruct",
+          "monitor_auroc_on_these_items": 0.5909,
+          "monitor_published_test_auroc": 0.5909,
+          "monitor_published_ci": [
+            0.5463,
+            0.6397
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.2154,
+          "diff_ci": [
+            0.1567,
+            0.2743
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "ibm-granite/granite-3.3-2b-instruct",
+          "monitor_auroc_on_these_items": 0.6023,
+          "monitor_published_test_auroc": 0.6023,
+          "monitor_published_ci": [
+            0.5583,
+            0.6487
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.204,
+          "diff_ci": [
+            0.1523,
+            0.2575
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "mistralai/Mistral-7B-Instruct-v0.3",
+          "monitor_auroc_on_these_items": 0.6167,
+          "monitor_published_test_auroc": 0.6167,
+          "monitor_published_ci": [
+            0.5696,
+            0.6632
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.1897,
+          "diff_ci": [
+            0.1346,
+            0.2474
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "tiiuae/Falcon3-3B-Instruct",
+          "monitor_auroc_on_these_items": 0.6213,
+          "monitor_published_test_auroc": 0.6213,
+          "monitor_published_ci": [
+            0.5798,
+            0.6662
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.1851,
+          "diff_ci": [
+            0.1279,
+            0.2418
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "Qwen/Qwen3-4B",
+          "monitor_auroc_on_these_items": 0.6518,
+          "monitor_published_test_auroc": 0.6518,
+          "monitor_published_ci": [
+            0.6052,
+            0.699
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.1545,
+          "diff_ci": [
+            0.0952,
+            0.2101
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "tiiuae/Falcon3-7B-Instruct",
+          "monitor_auroc_on_these_items": 0.6746,
+          "monitor_published_test_auroc": 0.6746,
+          "monitor_published_ci": [
+            0.6352,
+            0.7176
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.1317,
+          "diff_ci": [
+            0.0813,
+            0.1846
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-0325-32B-Instruct",
+          "monitor_auroc_on_these_items": 0.6791,
+          "monitor_published_test_auroc": 0.6791,
+          "monitor_published_ci": [
+            0.6364,
+            0.7192
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.1272,
+          "diff_ci": [
+            0.0722,
+            0.1793
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "Qwen/Qwen3-8B",
+          "monitor_auroc_on_these_items": 0.7153,
+          "monitor_published_test_auroc": 0.7153,
+          "monitor_published_ci": [
+            0.6761,
+            0.7567
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.091,
+          "diff_ci": [
+            0.0407,
+            0.1399
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "microsoft/phi-4",
+          "monitor_auroc_on_these_items": 0.7517,
+          "monitor_published_test_auroc": 0.7517,
+          "monitor_published_ci": [
+            0.7058,
+            0.7976
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.0547,
+          "diff_ci": [
+            -0.0012,
+            0.1087
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "tiiuae/Falcon3-10B-Instruct",
+          "monitor_auroc_on_these_items": 0.7583,
+          "monitor_published_test_auroc": 0.7583,
+          "monitor_published_ci": [
+            0.7174,
+            0.7998
+          ],
+          "our_auroc": 0.8063,
+          "diff": 0.048,
+          "diff_ci": [
+            -0.0051,
+            0.0987
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+          "monitor_auroc_on_these_items": 0.8308,
+          "monitor_published_test_auroc": 0.8308,
+          "monitor_published_ci": [
+            0.7949,
+            0.866
+          ],
+          "our_auroc": 0.8063,
+          "diff": -0.0245,
+          "diff_ci": [
+            -0.0706,
+            0.0198
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "Qwen/Qwen3.6-35B-A3B-reap25",
+          "monitor_auroc_on_these_items": 0.8582,
+          "monitor_published_test_auroc": 0.8582,
+          "monitor_published_ci": [
+            0.8248,
+            0.8909
+          ],
+          "our_auroc": 0.8063,
+          "diff": -0.0519,
+          "diff_ci": [
+            -0.0951,
+            -0.0076
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "google/gemma-4-26b-a4b-it",
+          "monitor_auroc_on_these_items": 0.9358,
+          "monitor_published_test_auroc": 0.9358,
+          "monitor_published_ci": [
+            0.9134,
+            0.9575
+          ],
+          "our_auroc": 0.8063,
+          "diff": -0.1294,
+          "diff_ci": [
+            -0.1675,
+            -0.0931
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "Qwen/Qwen3.6-27B",
+          "monitor_auroc_on_these_items": 0.9371,
+          "monitor_published_test_auroc": 0.9371,
+          "monitor_published_ci": [
+            0.911,
+            0.9607
+          ],
+          "our_auroc": 0.8063,
+          "diff": -0.1307,
+          "diff_ci": [
+            -0.1699,
+            -0.0916
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        }
+      ],
+      "train_samples": 2418,
+      "vocabulary": 13799
+    },
+    {
+      "name": "no-code floor (metadata only)",
+      "protocol": "5x5 CV within test",
+      "auroc": 0.7658,
+      "ci95": [
+        0.7319,
+        0.8005
+      ],
+      "bootstrap_sd": 0.0175,
+      "n_items": 1375,
+      "n_problems": 1375,
+      "bootstrap_group_sizes": {
+        "1": 1375
+      },
+      "perm_null_p95": 0.5545,
+      "perm_null_mean": 0.5063,
+      "perm_null_max": 0.5695,
+      "perm_p": 0.004975124378109453,
+      "n_perm": 200,
+      "above_n_of_24_point_estimates": 20,
+      "above_n_of_24_ci_excludes_zero": 17,
+      "raw_count_basis": "published",
+      "per_monitor": [
+        {
+          "repo": "HuggingFaceTB/SmolLM3-3B",
+          "monitor_auroc_on_these_items": 0.4341,
+          "monitor_published_test_auroc": 0.4341,
+          "monitor_published_ci": [
+            0.3882,
+            0.4791
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.3317,
+          "diff_ci": [
+            0.271,
+            0.392
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "HuggingFaceTB/SmolLM2-360M-Instruct",
+          "monitor_auroc_on_these_items": 0.4453,
+          "monitor_published_test_auroc": 0.4453,
+          "monitor_published_ci": [
+            0.3992,
+            0.4915
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.3205,
+          "diff_ci": [
+            0.2543,
+            0.3769
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+          "monitor_auroc_on_these_items": 0.4583,
+          "monitor_published_test_auroc": 0.4583,
+          "monitor_published_ci": [
+            0.4136,
+            0.5037
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.3075,
+          "diff_ci": [
+            0.258,
+            0.3578
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "01-ai/Yi-1.5-6B-Chat",
+          "monitor_auroc_on_these_items": 0.4604,
+          "monitor_published_test_auroc": 0.4604,
+          "monitor_published_ci": [
+            0.4158,
+            0.5075
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.3054,
+          "diff_ci": [
+            0.2442,
+            0.3669
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "Qwen/Qwen3-0.6B",
+          "monitor_auroc_on_these_items": 0.5074,
+          "monitor_published_test_auroc": 0.5074,
+          "monitor_published_ci": [
+            0.4593,
+            0.5529
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.2584,
+          "diff_ci": [
+            0.2005,
+            0.3157
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-0425-1B-Instruct",
+          "monitor_auroc_on_these_items": 0.545,
+          "monitor_published_test_auroc": 0.545,
+          "monitor_published_ci": [
+            0.5023,
+            0.5904
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.2208,
+          "diff_ci": [
+            0.1642,
+            0.2799
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "Qwen/Qwen3-1.7B",
+          "monitor_auroc_on_these_items": 0.5475,
+          "monitor_published_test_auroc": 0.5475,
+          "monitor_published_ci": [
+            0.5044,
+            0.5906
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.2182,
+          "diff_ci": [
+            0.1607,
+            0.2746
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "ibm-granite/granite-3.3-8b-instruct",
+          "monitor_auroc_on_these_items": 0.5586,
+          "monitor_published_test_auroc": 0.5586,
+          "monitor_published_ci": [
+            0.5139,
+            0.6039
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.2072,
+          "diff_ci": [
+            0.1524,
+            0.2612
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-1124-13B-Instruct",
+          "monitor_auroc_on_these_items": 0.5737,
+          "monitor_published_test_auroc": 0.5737,
+          "monitor_published_ci": [
+            0.5266,
+            0.6194
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.1921,
+          "diff_ci": [
+            0.1348,
+            0.2504
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-1124-7B-Instruct",
+          "monitor_auroc_on_these_items": 0.5882,
+          "monitor_published_test_auroc": 0.5882,
+          "monitor_published_ci": [
+            0.5444,
+            0.6313
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.1776,
+          "diff_ci": [
+            0.1194,
+            0.2334
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "microsoft/Phi-4-mini-instruct",
+          "monitor_auroc_on_these_items": 0.5909,
+          "monitor_published_test_auroc": 0.5909,
+          "monitor_published_ci": [
+            0.5463,
+            0.6397
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.1748,
+          "diff_ci": [
+            0.1121,
+            0.2354
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "ibm-granite/granite-3.3-2b-instruct",
+          "monitor_auroc_on_these_items": 0.6023,
+          "monitor_published_test_auroc": 0.6023,
+          "monitor_published_ci": [
+            0.5583,
+            0.6487
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.1634,
+          "diff_ci": [
+            0.1005,
+            0.2232
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "mistralai/Mistral-7B-Instruct-v0.3",
+          "monitor_auroc_on_these_items": 0.6167,
+          "monitor_published_test_auroc": 0.6167,
+          "monitor_published_ci": [
+            0.5696,
+            0.6632
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.1491,
+          "diff_ci": [
+            0.0822,
+            0.2131
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "tiiuae/Falcon3-3B-Instruct",
+          "monitor_auroc_on_these_items": 0.6213,
+          "monitor_published_test_auroc": 0.6213,
+          "monitor_published_ci": [
+            0.5798,
+            0.6662
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.1445,
+          "diff_ci": [
+            0.0825,
+            0.2014
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "Qwen/Qwen3-4B",
+          "monitor_auroc_on_these_items": 0.6518,
+          "monitor_published_test_auroc": 0.6518,
+          "monitor_published_ci": [
+            0.6052,
+            0.699
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.114,
+          "diff_ci": [
+            0.0533,
+            0.1757
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "tiiuae/Falcon3-7B-Instruct",
+          "monitor_auroc_on_these_items": 0.6746,
+          "monitor_published_test_auroc": 0.6746,
+          "monitor_published_ci": [
+            0.6352,
+            0.7176
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.0911,
+          "diff_ci": [
+            0.0355,
+            0.1472
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-0325-32B-Instruct",
+          "monitor_auroc_on_these_items": 0.6791,
+          "monitor_published_test_auroc": 0.6791,
+          "monitor_published_ci": [
+            0.6364,
+            0.7192
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.0867,
+          "diff_ci": [
+            0.0302,
+            0.1402
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "Qwen/Qwen3-8B",
+          "monitor_auroc_on_these_items": 0.7153,
+          "monitor_published_test_auroc": 0.7153,
+          "monitor_published_ci": [
+            0.6761,
+            0.7567
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.0505,
+          "diff_ci": [
+            -0.0059,
+            0.1063
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "microsoft/phi-4",
+          "monitor_auroc_on_these_items": 0.7517,
+          "monitor_published_test_auroc": 0.7517,
+          "monitor_published_ci": [
+            0.7058,
+            0.7976
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.0141,
+          "diff_ci": [
+            -0.0413,
+            0.0671
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "tiiuae/Falcon3-10B-Instruct",
+          "monitor_auroc_on_these_items": 0.7583,
+          "monitor_published_test_auroc": 0.7583,
+          "monitor_published_ci": [
+            0.7174,
+            0.7998
+          ],
+          "our_auroc": 0.7658,
+          "diff": 0.0075,
+          "diff_ci": [
+            -0.0459,
+            0.0618
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+          "monitor_auroc_on_these_items": 0.8308,
+          "monitor_published_test_auroc": 0.8308,
+          "monitor_published_ci": [
+            0.7949,
+            0.866
+          ],
+          "our_auroc": 0.7658,
+          "diff": -0.0651,
+          "diff_ci": [
+            -0.1188,
+            -0.0128
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "Qwen/Qwen3.6-35B-A3B-reap25",
+          "monitor_auroc_on_these_items": 0.8582,
+          "monitor_published_test_auroc": 0.8582,
+          "monitor_published_ci": [
+            0.8248,
+            0.8909
+          ],
+          "our_auroc": 0.7658,
+          "diff": -0.0924,
+          "diff_ci": [
+            -0.1437,
+            -0.0412
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "google/gemma-4-26b-a4b-it",
+          "monitor_auroc_on_these_items": 0.9358,
+          "monitor_published_test_auroc": 0.9358,
+          "monitor_published_ci": [
+            0.9134,
+            0.9575
+          ],
+          "our_auroc": 0.7658,
+          "diff": -0.17,
+          "diff_ci": [
+            -0.2166,
+            -0.1258
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "Qwen/Qwen3.6-27B",
+          "monitor_auroc_on_these_items": 0.9371,
+          "monitor_published_test_auroc": 0.9371,
+          "monitor_published_ci": [
+            0.911,
+            0.9607
+          ],
+          "our_auroc": 0.7658,
+          "diff": -0.1713,
+          "diff_ci": [
+            -0.2172,
+            -0.1258
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        }
+      ],
+      "headline_fold_mean": 0.7715,
+      "headline_fold_sd": 0.0389,
+      "note": "The paper's value for this protocol is the fold mean 0.7715 +- 0.0389 and its count is 20 of 24. The CI and the paired tests are computed on the pooled out-of-fold score vector, the only per-item statistic this protocol produces. Never pair this value with the held-out protocol's count of 18."
+    },
+    {
+      "name": "no-code floor (metadata only)",
+      "protocol": "413-item held-out slice",
+      "auroc": 0.7163,
+      "ci95": [
+        0.6476,
+        0.7796
+      ],
+      "bootstrap_sd": 0.0337,
+      "n_items": 413,
+      "n_problems": 413,
+      "bootstrap_group_sizes": {
+        "1": 413
+      },
+      "perm_null_p95": 0.7023,
+      "perm_null_mean": 0.515,
+      "perm_null_max": 0.739,
+      "perm_p": 0.029850746268656716,
+      "n_perm": 200,
+      "above_n_of_24_point_estimates": 18,
+      "above_n_of_24_ci_excludes_zero": 12,
+      "raw_count_basis": "published",
+      "per_monitor": [
+        {
+          "repo": "HuggingFaceTB/SmolLM2-360M-Instruct",
+          "monitor_auroc_on_these_items": 0.3718,
+          "monitor_published_test_auroc": 0.4453,
+          "monitor_published_ci": [
+            0.3992,
+            0.4915
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.3445,
+          "diff_ci": [
+            0.2337,
+            0.4503
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "HuggingFaceTB/SmolLM3-3B",
+          "monitor_auroc_on_these_items": 0.3751,
+          "monitor_published_test_auroc": 0.4341,
+          "monitor_published_ci": [
+            0.3882,
+            0.4791
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.3411,
+          "diff_ci": [
+            0.2192,
+            0.4588
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "01-ai/Yi-1.5-6B-Chat",
+          "monitor_auroc_on_these_items": 0.4049,
+          "monitor_published_test_auroc": 0.4604,
+          "monitor_published_ci": [
+            0.4158,
+            0.5075
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.3114,
+          "diff_ci": [
+            0.1947,
+            0.4244
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+          "monitor_auroc_on_these_items": 0.421,
+          "monitor_published_test_auroc": 0.4583,
+          "monitor_published_ci": [
+            0.4136,
+            0.5037
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.2953,
+          "diff_ci": [
+            0.2078,
+            0.387
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "Qwen/Qwen3-0.6B",
+          "monitor_auroc_on_these_items": 0.5111,
+          "monitor_published_test_auroc": 0.5074,
+          "monitor_published_ci": [
+            0.4593,
+            0.5529
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.2052,
+          "diff_ci": [
+            0.1048,
+            0.3063
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "Qwen/Qwen3-1.7B",
+          "monitor_auroc_on_these_items": 0.5236,
+          "monitor_published_test_auroc": 0.5475,
+          "monitor_published_ci": [
+            0.5044,
+            0.5906
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.1927,
+          "diff_ci": [
+            0.0793,
+            0.3021
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-1124-13B-Instruct",
+          "monitor_auroc_on_these_items": 0.532,
+          "monitor_published_test_auroc": 0.5737,
+          "monitor_published_ci": [
+            0.5266,
+            0.6194
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.1843,
+          "diff_ci": [
+            0.0488,
+            0.3154
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-0425-1B-Instruct",
+          "monitor_auroc_on_these_items": 0.5398,
+          "monitor_published_test_auroc": 0.545,
+          "monitor_published_ci": [
+            0.5023,
+            0.5904
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.1765,
+          "diff_ci": [
+            0.0751,
+            0.2749
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "allenai/OLMo-2-1124-7B-Instruct",
+          "monitor_auroc_on_these_items": 0.559,
+          "monitor_published_test_auroc": 0.5882,
+          "monitor_published_ci": [
+            0.5444,
+            0.6313
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.1573,
+          "diff_ci": [
+            0.0458,
+            0.2666
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "ibm-granite/granite-3.3-8b-instruct",
+          "monitor_auroc_on_these_items": 0.5772,
+          "monitor_published_test_auroc": 0.5586,
+          "monitor_published_ci": [
+            0.5139,
+            0.6039
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.1391,
+          "diff_ci": [
+            0.0226,
+            0.2499
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "mistralai/Mistral-7B-Instruct-v0.3",
+          "monitor_auroc_on_these_items": 0.5825,
+          "monitor_published_test_auroc": 0.6167,
+          "monitor_published_ci": [
+            0.5696,
+            0.6632
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.1338,
+          "diff_ci": [
+            0.0006,
+            0.2691
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "tiiuae/Falcon3-3B-Instruct",
+          "monitor_auroc_on_these_items": 0.6038,
+          "monitor_published_test_auroc": 0.6213,
+          "monitor_published_ci": [
+            0.5798,
+            0.6662
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.1125,
+          "diff_ci": [
+            0.0051,
+            0.2223
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": true
+        },
+        {
+          "repo": "tiiuae/Falcon3-7B-Instruct",
+          "monitor_auroc_on_these_items": 0.6062,
+          "monitor_published_test_auroc": 0.6746,
+          "monitor_published_ci": [
+            0.6352,
+            0.7176
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.1101,
+          "diff_ci": [
+            -0.0106,
+            0.2297
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "ibm-granite/granite-3.3-2b-instruct",
+          "monitor_auroc_on_these_items": 0.6255,
+          "monitor_published_test_auroc": 0.6023,
+          "monitor_published_ci": [
+            0.5583,
+            0.6487
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.0908,
+          "diff_ci": [
+            -0.0324,
+            0.2152
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "microsoft/Phi-4-mini-instruct",
+          "monitor_auroc_on_these_items": 0.6289,
+          "monitor_published_test_auroc": 0.5909,
+          "monitor_published_ci": [
+            0.5463,
+            0.6397
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.0874,
+          "diff_ci": [
+            -0.0365,
+            0.2135
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "Qwen/Qwen3-4B",
+          "monitor_auroc_on_these_items": 0.661,
+          "monitor_published_test_auroc": 0.6518,
+          "monitor_published_ci": [
+            0.6052,
+            0.699
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.0553,
+          "diff_ci": [
+            -0.076,
+            0.1858
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "allenai/OLMo-2-0325-32B-Instruct",
+          "monitor_auroc_on_these_items": 0.6825,
+          "monitor_published_test_auroc": 0.6791,
+          "monitor_published_ci": [
+            0.6364,
+            0.7192
+          ],
+          "our_auroc": 0.7163,
+          "diff": 0.0338,
+          "diff_ci": [
+            -0.0847,
+            0.1506
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": true,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "Qwen/Qwen3-8B",
+          "monitor_auroc_on_these_items": 0.735,
+          "monitor_published_test_auroc": 0.7153,
+          "monitor_published_ci": [
+            0.6761,
+            0.7567
+          ],
+          "our_auroc": 0.7163,
+          "diff": -0.0187,
+          "diff_ci": [
+            -0.1337,
+            0.0895
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "tiiuae/Falcon3-10B-Instruct",
+          "monitor_auroc_on_these_items": 0.7425,
+          "monitor_published_test_auroc": 0.7583,
+          "monitor_published_ci": [
+            0.7174,
+            0.7998
+          ],
+          "our_auroc": 0.7163,
+          "diff": -0.0262,
+          "diff_ci": [
+            -0.1403,
+            0.0921
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "microsoft/phi-4",
+          "monitor_auroc_on_these_items": 0.815,
+          "monitor_published_test_auroc": 0.7517,
+          "monitor_published_ci": [
+            0.7058,
+            0.7976
+          ],
+          "our_auroc": 0.7163,
+          "diff": -0.0988,
+          "diff_ci": [
+            -0.1982,
+            0.0057
+          ],
+          "ci_excludes_zero": false,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+          "monitor_auroc_on_these_items": 0.8507,
+          "monitor_published_test_auroc": 0.8308,
+          "monitor_published_ci": [
+            0.7949,
+            0.866
+          ],
+          "our_auroc": 0.7163,
+          "diff": -0.1345,
+          "diff_ci": [
+            -0.2332,
+            -0.0314
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "Qwen/Qwen3.6-35B-A3B-reap25",
+          "monitor_auroc_on_these_items": 0.8798,
+          "monitor_published_test_auroc": 0.8582,
+          "monitor_published_ci": [
+            0.8248,
+            0.8909
+          ],
+          "our_auroc": 0.7163,
+          "diff": -0.1635,
+          "diff_ci": [
+            -0.2508,
+            -0.0729
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "google/gemma-4-26b-a4b-it",
+          "monitor_auroc_on_these_items": 0.9571,
+          "monitor_published_test_auroc": 0.9358,
+          "monitor_published_ci": [
+            0.9134,
+            0.9575
+          ],
+          "our_auroc": 0.7163,
+          "diff": -0.2408,
+          "diff_ci": [
+            -0.3213,
+            -0.1575
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        },
+        {
+          "repo": "Qwen/Qwen3.6-27B",
+          "monitor_auroc_on_these_items": 0.9586,
+          "monitor_published_test_auroc": 0.9371,
+          "monitor_published_ci": [
+            0.911,
+            0.9607
+          ],
+          "our_auroc": 0.7163,
+          "diff": -0.2424,
+          "diff_ci": [
+            -0.3229,
+            -0.1596
+          ],
+          "ci_excludes_zero": true,
+          "we_are_higher": false,
+          "higher_and_ci_excludes_zero": false
+        }
+      ],
+      "note": "The paper's count for this protocol is 18 of 24, taken against the monitors' published full-split test_auroc. The paired column beside it recomputes each monitor's AUROC on the SAME held-out items, which is the only comparison a paired bootstrap can make; the two counts are therefore not required to agree and must not be swapped. Never pair this count with the 5x5 CV value."
+    }
+  ],
+  "paper_sentences": {
+    "tfidf": "TF-IDF 0.8063 (95% CI 0.7704-0.8409; permutation null 95th pct 0.5465, p = 0.004975), above 20 of 24 monitors, 18 of them with a paired-bootstrap CI excluding zero.",
+    "nocode_cv": "No-code floor (5x5 CV within the test split) 0.7715 +- 0.0389 (bootstrap-over-problems 95% CI of the pooled out-of-fold AUROC 0.7319-0.8005; permutation null 95th pct 0.5545, p = 0.004975), above 20 of 24 monitors, 17 of them with a paired-bootstrap CI excluding zero.",
+    "nocode_holdout": "No-code floor (413-item held-out slice) 0.7163 (95% CI 0.6476-0.7796; permutation null 95th pct 0.7023, p = 0.02985), above 18 of 24 monitors, 12 of them with a paired-bootstrap CI excluding zero."
+  }
+}
