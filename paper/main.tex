@@ -250,8 +250,8 @@
 \newcommand{\sameGenHi}{0.7713}
 \newcommand{\sameGenBprime}{0.8658}    % CI 0.8480-0.8812
 \newcommand{\sameGenRho}{0.687}
-\newcommand{\sameGenRhoLo}{0.627}
-\newcommand{\sameGenRhoHi}{0.742}
+\newcommand{\sameGenRhoLo}{0.625}       % joint bootstrap over problems (S and B' resampled together; RESULTS.md 12)
+\newcommand{\sameGenRhoHi}{0.755}
 \newcommand{\sameGenPairwise}{0.790}
 \newcommand{\sameGenLen}{0.5851}       % length-only carrier: to chance
 \newcommand{\sameGenSurface}{0.6087}
@@ -267,8 +267,8 @@
 \newcommand{\strictN}{99}
 \newcommand{\strictBprime}{0.7877}     % CI 0.7427-0.8367
 \newcommand{\strictRho}{0.921}
-\newcommand{\strictRhoLo}{0.700}
-\newcommand{\strictRhoHi}{1.043}
+\newcommand{\strictRhoLo}{0.662}        % joint bootstrap (RESULTS.md 12)
+\newcommand{\strictRhoHi}{1.089}
 \newcommand{\curveStrict}{0.7807}      % B at n = 99: absolute bands do not apply there
 \newcommand{\curveStrictSd}{0.0248}
 \newcommand{\survivorAuroc}{0.62}      % survivors vs non-survivors within the attack class
@@ -295,6 +295,12 @@
 \newcommand{\monitorStrictLo}{0.7630}
 \newcommand{\monitorStrictHi}{0.8686}
 \newcommand{\monitorStrictPairwise}{0.816}
+% RESULTS.md 11-12: the residual is layout from the attack prompt's framing, not the trigger idiom
+\newcommand{\sameGenSid}{0.700}         % S with identifiers normalised (the only mask that moves it)
+\newcommand{\sameGenRhoId}{0.54}
+\newcommand{\defMainAttack}{67\%}        % `def main` present, attack side of the headline pairs
+\newcommand{\defMainHonest}{39\%}        % honest side
+\newcommand{\monitorClfPhi}{0.04}        % pair-level phi between monitor and classifier correctness
 
 % --- Robustness of B to the pass-flag choice (RESULTS.md 4.7) ------------------------
 \newcommand{\baselineBownflag}{0.873}  % 0.8729 under our own flag
@@ -498,9 +504,13 @@ $B'$ inert-inclusive over the same problems --- $S = \sameGenS{}$ (95\% CI
 \sameGenLo{}--\sameGenHi{}; $n = \sameGenN{}$ problem-disjoint pairs) against
 $B' = \sameGenBprime{}$, so $\rho = \sameGenRho{}$ (\sameGenRhoLo{}--\sameGenRhoHi{}). The
 interval excludes the collapse band and spans the content line, so the pre-registered rule
-returns \emph{inconclusive between partial and content}. Authorship accounts for roughly a third of the separability and surface content
-of the attack class for the rest, and what survives is lexical: length-only falls to
-\sameGenLen{} while TF-IDF holds. The pairs are independent programs (similarity
+returns \emph{inconclusive between partial and content}. Authorship accounts for roughly a third of the separability, and what survives is lexical: length-only falls to
+\sameGenLen{} while TF-IDF holds. It is not the trigger: masking numerals and comparison
+operators leaves $S$ unchanged, while normalising identifiers takes it to \sameGenSid{}
+($\rho = \sameGenRhoId{}$) with $B'$ untouched, and the top attack-side features are
+\texttt{def main} and \texttt{data[} (\defMainAttack{} vs \defMainHonest{} of pair sides) --- the
+layout the attack prompt elicits. The arm holds the model constant, not the prompt, so
+$\rho$ is an upper bound on content. The pairs are independent programs (similarity
 \sameGenSim{}; stored pairs on the same problems \sameGenSimStored{}), and at
 $n = \sameGenN{}$ $B$ under the identical pipeline is $\curveHeadline{} \pm
 \curveHeadlineSd{}$, so the drop is not sample size. The strict row --- attacks that pass
@@ -515,12 +525,11 @@ attempts on the same problems is \survivorSwapS{} against \survivorSwapSref{}. T
 same model --- the one that wrote both classes --- scores \monitorStrict{}
 (\monitorStrictLo{}--\monitorStrictHi{}) on the strict pairs, within the baseline's
 interval, but \monitorS{} (\monitorSLo{}--\monitorSHi{}) on the headline set, where TF-IDF
-holds \sameGenS{}: what survives there with authorship held constant is a lexical trace of
-the attack instruction, not a backdoor a monitor recognises. Our single-shot attacks fire given a pass at \fireGivenPassOurs{} against the stored
+holds \sameGenS{}; the two are independent pair by pair ($\phi = \monitorClfPhi{}$) and read
+different things --- the layout, and the backdoor. Our single-shot attacks fire given a pass at \fireGivenPassOurs{} against the stored
 attacker's \fireGivenPassStored{}, which executes and iterates: the stored attack class is
-a survivor set. The interval rule was changed before the retry pool was read, and we say
-so: the $\pm2$ fold-sd interval first coded is far wider than a 95\% interval over
-problems, so $S$ routes on a bootstrap over problems.
+a survivor set. Intervals are bootstraps over problems, resampling $S$ and $B'$ jointly for
+$\rho$; this replaced a $\pm2$ fold-sd rule before the retry pool was read.
 
 % --- F3: the monitor comparison (the only body float) ----------------------------------
 \begin{figure}[t]\centering
