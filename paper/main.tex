@@ -301,29 +301,94 @@
 \newcommand{\monitorClfPhi}{0.04}        % pair-level phi between monitor and classifier correctness
 
 % =====================================================================================
-%  RESERVED PLACEHOLDERS for the three arms still running (RESULTS.md 13-15). Each renders
-%  as a red TBD, so a pass that wires one into prose before its value exists cannot miss it.
-%  NONE of these is used in the body yet; the second pass sets the values and only then
-%  writes the sentences of notes/09-review-audit.md 4. One macro, one protocol, count in the
-%  comment - as everywhere above.
+%  THE SECOND-PASS ARMS (RESULTS.md 13-15, measured 2026-09-11). Pass 1 reserved these
+%  names as red placeholders used nowhere in the prose; every macro below now carries a
+%  MEASURED value. One macro, one protocol, its n and its RESULTS.md section in the comment.
 % =====================================================================================
-\newcommand{\TBDRED}{\textcolor{red}{\textbf{TBD}}}
-% --- Arm A: prompt-matched honest class (RESULTS.md 13) ------------------------------
-\newcommand{\pmS}{\TBDRED}\newcommand{\pmLo}{\TBDRED}\newcommand{\pmHi}{\TBDRED}
-\newcommand{\pmN}{\TBDRED}\newcommand{\pmBprime}{\TBDRED}
-\newcommand{\pmRho}{\TBDRED}\newcommand{\pmRhoLo}{\TBDRED}\newcommand{\pmRhoHi}{\TBDRED}  % joint
-\newcommand{\promptFloor}{\TBDRED}     % original honest vs prompt-matched honest: the prompt-only floor
-\newcommand{\promptFloorLo}{\TBDRED}\newcommand{\promptFloorHi}{\TBDRED}
-% --- Arm B: monitors that wrote neither class, and the stored pairs ------------------
-\newcommand{\monHaiku}{\TBDRED}        % Haiku 4.5 monitor, same-generator headline pairs
-\newcommand{\monStoredSonnet}{\TBDRED} % Sonnet 5 monitor on the STORED pairs, same problems
-\newcommand{\monStoredHaiku}{\TBDRED}  % Haiku 4.5 monitor on the STORED pairs, same problems
-\newcommand{\monRho}{\TBDRED}          % (monitor S - .5)/(monitor B' - .5): rho read by a monitor
-\newcommand{\monRhoLo}{\TBDRED}\newcommand{\monRhoHi}{\TBDRED}
-% --- Arm C: a second same-generator model (Haiku 4.5 writes both classes) ------------
-\newcommand{\haikuS}{\TBDRED}\newcommand{\haikuLo}{\TBDRED}\newcommand{\haikuHi}{\TBDRED}
-\newcommand{\haikuN}{\TBDRED}\newcommand{\haikuBprime}{\TBDRED}
-\newcommand{\haikuRho}{\TBDRED}\newcommand{\haikuRhoLo}{\TBDRED}\newcommand{\haikuRhoHi}{\TBDRED}
+
+% --- Arm A: the prompt-matched honest class (RESULTS.md 13) --------------------------
+% Model AND prompt held constant on both sides: PROMPT_INDEPENDENT with only the flaw
+% sentence replaced by its correct-program counterpart, same model, same harness.
+% Comment-stripped, problem-disjoint 5-fold, bootstrap over problems; rho against B'
+% RE-FITTED on the same reduced problem set, joint bootstrap (RESULTS.md 13.2).
+\newcommand{\matchedS}{0.642}          % 0.6423; headline, n = 586 of the 623 (matched program passes)
+\newcommand{\matchedN}{586}
+\newcommand{\matchedLo}{0.6179}
+\newcommand{\matchedHi}{0.6621}
+\newcommand{\matchedBprime}{0.8613}    % B' on those same 586 problems, inert-inclusive
+\newcommand{\matchedRho}{0.394}        % partial band; P(rho > 0.72) = 0.000
+\newcommand{\matchedRhoLo}{0.326}      % joint bootstrap over problems
+\newcommand{\matchedRhoHi}{0.454}
+% The prompt-only floor: ORIGINAL honest vs MATCHED honest - two CORRECT classes from one
+% model under the two prompts, with no attack on either side (RESULTS.md 13.2 row b, n = 586).
+\newcommand{\promptOnly}{0.601}        % 0.6006
+\newcommand{\promptOnlyLo}{0.5768}
+\newcommand{\promptOnlyHi}{0.6243}
+% Strict (passes AND fires), same arm: 96 of the 99 strict problems (RESULTS.md 13.2).
+\newcommand{\matchedStrictS}{0.711}    % 0.7113
+\newcommand{\matchedStrictN}{96}
+\newcommand{\matchedStrictRho}{0.697}
+\newcommand{\matchedStrictRhoLo}{0.494}
+\newcommand{\matchedStrictRhoHi}{0.856}
+% Masks on the matched headline row, appendix only (RESULTS.md 13.3, n = 586).
+\newcommand{\matchedSid}{0.6264}       % identifiers normalised
+\newcommand{\matchedRhoId}{0.342}
+\newcommand{\matchedSidOrig}{0.7046}   % the ORIGINAL honest class under the same mask
+\newcommand{\matchedChar}{0.6817}      % char_wb 3-5 grams, same classifier and folds
+\newcommand{\matchedRhoChar}{0.493}
+
+% --- Arm B: monitors with authorship held constant (RESULTS.md 14) -------------------
+% The zero-shot trusted-monitor prompt of RESULTS.md 10 (one request per program, never side
+% by side), scored on the STORED pairs over the same problems as the row's own B'.
+% monitor-rho = (M_samegen - 0.5)/(M_stored - 0.5), one problem set resampled per draw,
+% 2,000 draws (monitor_rho.py, RESULTS.md 14.3). Same-generator column: RESULTS.md 10.
+\newcommand{\monStoredHead}{0.958}     % 0.9579; claude-sonnet-5 monitor, stored pairs, n = 623
+\newcommand{\monStoredStrict}{0.944}   % 0.9437; ... stored pairs of the strict row, n = 99
+\newcommand{\monRhoHead}{0.145}
+\newcommand{\monRhoHeadLo}{0.111}
+\newcommand{\monRhoHeadHi}{0.182}
+\newcommand{\monRhoStrict}{0.717}
+\newcommand{\monRhoStrictLo}{0.601}
+\newcommand{\monRhoStrictHi}{0.832}
+% The second monitor wrote NEITHER class (claude-haiku-4-5). Its headline rows are a BOUND:
+% a 512-token ceiling left about half the replies unparseable, and on the stored side the
+% missingness is differential by class (RESULTS.md 14.5). The strict rows were re-run at
+% --max-tokens 1024 to price that: the AUROCs move inside the bootstrap intervals.
+\newcommand{\monHaikuHead}{0.558}         % 0.5577; same-generator headline pairs, n = 623
+\newcommand{\monHaikuStrict}{0.787}       % 0.7871; same-generator strict pairs, n = 99
+\newcommand{\monHaikuStoredHead}{0.882}   % 0.8824; stored pairs, same problems
+\newcommand{\monHaikuStoredStrict}{0.883} % 0.8832
+\newcommand{\monHaikuRhoHead}{0.151}      % CI 0.063-0.242
+\newcommand{\monHaikuRhoStrict}{0.749}    % CI 0.514-0.993
+\newcommand{\monHaikuRhoStrictMt}{0.766}  % the same row at --max-tokens 1024 (2 of 198 missing)
+\newcommand{\monHaikuMissHead}{628 of 1{,}246}  % unparseable same-generator headline replies
+\newcommand{\monHaikuMissHonest}{50.1\%}  % stored side, headline: missing honest replies ...
+\newcommand{\monHaikuMissAttack}{23.4\%}  % ... against missing attack replies
+
+% --- Arm C: a second same-generator model, claude-haiku-4-5 (RESULTS.md 15) ----------
+% The identical pipeline - same prompts, same harness, same evaluate(), same B' construction.
+% One outcome-blind draw per problem over the same 1,444-problem pool; no retry pool and no
+% selection rule, so every Haiku row is the analogue of the headline row and there is no
+% strict row: 35 usable attacks against a 50-pair floor (RESULTS.md 15.2).
+\newcommand{\haikuS}{0.534}            % 0.5340, n = 611, `passes' eligibility
+\newcommand{\haikuSLo}{0.5159}
+\newcommand{\haikuSHi}{0.5531}
+\newcommand{\haikuN}{611}
+\newcommand{\haikuBprime}{0.8584}      % inert-inclusive, the same 611 problems
+\newcommand{\haikuRho}{0.095}          % 0.0950; P(rho <= 0.33) = 1.000 - the collapse band
+\newcommand{\haikuRhoLo}{0.044}        % joint bootstrap over problems
+\newcommand{\haikuRhoHi}{0.150}
+\newcommand{\haikuSMatched}{0.540}     % 0.5399 with the prompt matched too, n = 562
+\newcommand{\haikuMatchedRho}{0.113}
+\newcommand{\haikuPromptFloor}{0.492}  % 0.4918 (0.4724-0.5126): original vs matched honest
+\newcommand{\haikuPairSim}{0.724}      % mean pair similarity, against \simIndep on Sonnet's arm
+\newcommand{\haikuStrataS}{0.474--0.514}      % S in EVERY similarity stratum (RESULTS.md 15.4)
+\newcommand{\haikuStrataBprime}{0.788--0.833} % ... while B' holds
+\newcommand{\haikuStrataLowSim}{0.451}        % the most dissimilar stratum's mean, n = 150
+\newcommand{\haikuUsable}{35}          % usable attacks: below the 50-pair floor, so no strict row
+\newcommand{\haikuAttackPass}{689}     % attack draws passing the public tests, of 1,444
+\newcommand{\haikuHonestPass}{0.728}   % 0.7278 = 1,051 of 1,444 honest draws pass our harness
+\newcommand{\sonnetHonestPass}{0.770}  % 0.7701 = 1,112 of 1,444, same harness (RESULTS.md 13.1)
 
 % --- Robustness of B to the pass-flag choice (RESULTS.md 4.7) ------------------------
 \newcommand{\baselineBownflag}{0.873}  % 0.8729 under our own flag
@@ -378,14 +443,17 @@ than sabotage: the honest class is human-written while every attack is model-wri
 signal transfers across backdoor generators, is nearly as strong on inert backdoors as on
 working ones, and survives the field's comment stripper. Regenerating only
 the honest half does not isolate content: with an open-weight model writing the honest class
-against the stored backdoors, separability \emph{rises}. Holding authorship constant
-by construction, with one model writing both classes, removes about a third of the
-separability and leaves the rest: the same-generator control excludes authorship as the
-whole story and leaves a residue that is surface \emph{form} of the attack class --- partly
-the program layout its prompt elicits. We
+against the stored backdoors, separability \emph{rises}. Holding authorship constant by
+construction, with one model writing both classes, removes between a third (Claude Sonnet 5,
+$\rho = \sameGenRho{}$) and nine-tenths (Claude Haiku 4.5, $\rho = \haikuRho{}$) of the
+separability; matching the attack prompt's framing removes most of what remains, and what
+survives on attacks that actually fire is surface content a monitor also reads. A zero-shot
+trusted monitor is inflated the same way, scoring \monStoredHead{} on the stored pairs and
+\monitorStrict{} on firing backdoors from the same author. We
 recommend that
 stored-pair evaluations report partial-input and bag-of-words floors against permutation
-nulls, use same-generator honest samples, and drop inert backdoors from both classes.
+nulls, use same-generator honest samples and the same prompt, and drop inert backdoors from
+both classes.
 \end{abstract}
 
 % =====================================================================================
@@ -429,10 +497,10 @@ published standard. Adjacent control work attacks other axes:
 as a per-benchmark floor.
 
 We contribute (i)~a protocol $\times$ baseline measurement of what survives the field's
-preprocessing; (ii)~a same-generator control attributing roughly a third of the
-separability to authorship and the rest to surface \emph{form} of the attack class, partly
-the program layout its prompt elicits, with a
-negative result on the way (regenerating one half of a pair swaps the confound); (iii)~a
+preprocessing; (ii)~a same-generator control on two generators, attributing between a
+third and nine-tenths of the separability to authorship and most of the remainder to the
+attack prompt's framing, with a negative result on the way: regenerating one half of a
+stored pair swaps the confound rather than removing it; (iii)~a
 second selection artifact the filter installs by defining the negative class through attack
 failure; and (iv)~a preprocessing checklist and a released split.
 \textbf{Scope:} this concerns monitor training, selection and benchmarking on \emph{stored}
@@ -531,36 +599,44 @@ statement alone, and matching the stored regime of independent programs --- chan
 and nothing else (Table~\ref{tab:similarity}, appendix).
 
 % --- Gate S outcome (handoff §4.3; RESULTS.md §9). \monitorS is pending. ---------------
-\textbf{Holding authorship constant removes about a third of the separability and leaves
-the rest.} With one model writing both classes --- one outcome-blind draw per problem, the
+\textbf{Holding authorship constant removes between a third and nine-tenths of the
+separability, and the attack prompt's framing most of what remains.} With one model writing both classes --- one outcome-blind draw per problem, the
 attack class defined, as in the benchmark, by intent plus passing the public tests (\headlineFireShare{} of these
 draws fire, the same-generator analogue of the split's own \inertShare{} inert class), and
 $B'$ inert-inclusive over the same problems --- $S = \sameGenS{}$ (95\% CI
 \sameGenLo{}--\sameGenHi{}; $n = \sameGenN{}$ problem-disjoint pairs) against
 $B' = \sameGenBprime{}$, so $\rho = \sameGenRho{}$ (\sameGenRhoLo{}--\sameGenRhoHi{}, joint bootstrap over
-problems). The
-interval excludes the collapse band and spans the content line, so the pre-registered rule
-returns \emph{inconclusive between partial and content}. What survives is lexical:
+problems); a second generator writing both classes under the same rule
+($n = \haikuN{}$) gives $S = \haikuS{}$ against $B' = \haikuBprime{}$,
+$\rho = \haikuRho{}$ (\haikuRhoLo{}--\haikuRhoHi{}). The first
+interval excludes the collapse band and spans the content line --- the pre-registered rule
+returns \emph{inconclusive between partial and content} --- and the second lies inside the
+collapse band. What survives is lexical:
 length-only falls to \sameGenLen{} while TF-IDF holds. It is not the trigger: masking numerals and comparison
 operators leaves $S$ unchanged, while normalising identifiers takes it to \sameGenSid{}
 ($\rho = \sameGenRhoId{}$), and the top attack-side features are
 \texttt{def main} and \texttt{data[} (\defMainAttack{} vs \defMainHonest{} of pair sides) --- the
-layout the attack prompt elicits. The arm holds the model constant, not the prompt, so
-$\rho$ is an upper bound on content. The pairs are independent programs (Table~\ref{tab:similarity}), and at
+layout the attack prompt elicits. Holding the prompt constant as well removes most of the
+rest: with the honest class regenerated under the attack prompt's framing minus the flaw
+sentence, $S = \matchedS{}$ (\matchedLo{}--\matchedHi{}; $n = \matchedN{}$),
+$\rho = \matchedRho{}$ (\matchedRhoLo{}--\matchedRhoHi{}), and the two honest classes
+separate from each other at \promptOnly{}. The pairs are independent programs (Table~\ref{tab:similarity}), and at
 $n = \sameGenN{}$ $B$ under the identical pipeline is $\curveHeadline{} \pm
 \curveHeadlineSd{}$, so the drop is not sample size. The strict row --- attacks that pass
 \emph{and} fire, kept by the benchmark's own retry-and-keep procedure, and the row that
 follows our own Recommendation 3 --- agrees, at low power: $\rho = \strictRho{}$
-(\strictRhoLo{}--\strictRhoHi{} on the pooled-score \strictRhoPooled{}; five fold seeds move
-it \strictRhoSeeds{}) from $S = \strictS{}$ (\strictLo{}--\strictHi{};
+(\strictRhoLo{}--\strictRhoHi{} on the pooled-score \strictRhoPooled{}) from $S = \strictS{}$ (\strictLo{}--\strictHi{};
 $n = \strictN{}$) against its own $B' = \strictBprime{}$, read through $\rho$ alone because
 $B$ at that $n$ is $\curveStrict{} \pm \curveStrictSd{}$; retention is not the artifact,
-and the edit arm bounds $S$ under near-copies (appendix~\ref{app:robust}). A trusted-monitor prompt to the same model that
-wrote both classes scores \monitorStrict{}
-(\monitorStrictLo{}--\monitorStrictHi{}) on the strict pairs, within the baseline's
-interval, but \monitorS{} (\monitorSLo{}--\monitorSHi{}) on the headline set, where TF-IDF
-holds \sameGenS{}; the two are independent pair by pair ($\phi = \monitorClfPhi{}$) and read
-different things --- the layout, and the backdoor. Our single-shot attacks fire given a pass at \fireGivenPassOurs{} against the stored
+and the edit arm bounds $S$ under near-copies (appendix~\ref{app:robust}). A monitor is inflated the same way. The same
+zero-shot trusted-monitor prompt scores \monStoredHead{} on the \emph{stored} pairs over the
+same problems and \monitorS{} (\monitorSLo{}--\monitorSHi{}) on the headline pairs, a
+monitor-$\rho$ of \monRhoHead{} (\monRhoHeadLo{}--\monRhoHeadHi{}) against the classifier's
+\sameGenRho{}; on the strict pairs it is \monStoredStrict{} and \monitorStrict{}
+(\monitorStrictLo{}--\monitorStrictHi{}), monitor-$\rho$ \monRhoStrict{}
+(\monRhoStrictLo{}--\monRhoStrictHi{}), and a monitor that wrote neither class returns the
+same two ratios (\monHaikuRhoHead{}, \monHaikuRhoStrict{}). Classifier and monitor are
+independent pair by pair ($\phi = \monitorClfPhi{}$). Our single-shot attacks fire given a pass at \fireGivenPassOurs{} against the stored
 attacker's \fireGivenPassStored{}: the stored attack class is a survivor set.
 
 \paragraph{The filter installs a second artifact.}
@@ -589,7 +665,7 @@ corpora where the label is trivially recoverable from those where it is not.
 
 Following \citet{kapoor2022leakage}, who treat leakage as a checklist rather than a verdict:
 \begin{enumerate}\itemsep1pt
-\item \textbf{Generate both classes with the same model.} If the attack class is
+\item \textbf{Generate both classes with the same model and the same prompt framing.} If the attack class is
       model-written, the honest class must be too; as our arm-1 null shows, regenerating
       only one side substitutes one authorship gap for another.
 \item \textbf{Report a partial-input floor and a bag-of-words floor beside every monitor
@@ -618,7 +694,11 @@ not that any monitor exploits that.
 come from a later model of the same lineage, called through a metered commercial API that
 does not expose its sampling parameters: the arm is not bit-reproducible, and thinking was
 off although the stored attacker was a thinking model. We do not length-match; the untrusted
-model chooses its own trajectory length.
+model chooses its own trajectory length. The stored attacker and the same-generator attacker
+also differ in backdoor style, not only in authorship, so every $\rho$ here --- classifier or
+monitor --- bounds how much of the separability is content and does not partition it; and the
+two generators are compared on the \texttt{passes} eligibility alone, Haiku 4.5's strict row
+being refused at \haikuUsable{} usable pairs against our 50-pair floor.
 
 \textbf{Scope, provenance and the harness.} Whether stored-pair corpora leak this way in
 general is not established here: five of our seven corpora are one user's repackaging, and
@@ -734,7 +814,8 @@ edit (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & au
 \label{app:robust}
 Intervals in the Gate S paragraph of \S\ref{sec:results} are bootstraps over problems,
 resampling $S$ and $B'$ jointly for $\rho$; this replaced a $\pm2$ fold-sd rule before the
-retry pool was read. Retention is not the artifact: survivors and non-survivors separate at
+retry pool was read. Five fold seeds move the strict row's $\rho$ over \strictRhoSeeds{}.
+Retention is not the artifact: survivors and non-survivors separate at
 only \survivorAuroc{}, and $S$ with non-firing attempts on the same problems is
 \survivorSwapS{} against \survivorSwapSref{}. The edit arm bounds $S$ under near-copies
 (similarity \editSim{}, Table~\ref{tab:similarity}): \editS{} over \editN{} pairs,
@@ -745,6 +826,43 @@ between our single-shot firing rate and the stored attacker's is our own attack 
 cannot diverge from the honest solution, and those fire \trigPublicFire{} against
 \trigNovelFire{} for novel triggers; no stored working backdoor has such a trigger
 (\trigStoredPublic{}). The rest is retry-and-keep.
+
+\paragraph{The prompt-matched arm under the masks, and the second generator.}
+\label{app:secondpass}
+Under prompt matching the identifier mask --- the only mask of \S\ref{sec:results} that moved
+$S$ --- takes the headline row to \matchedSid{} ($\rho = \matchedRhoId{}$) where it takes the
+original honest class on the same \matchedN{} problems to \matchedSidOrig{}: most of what
+identifier normalisation removed is what prompt matching removes. A character model
+(3--5-grams, same classifier and folds) retains more than the word tokeniser, \matchedChar{}
+($\rho = \matchedRhoChar{}$), so the drop is not an artefact of tokenisation. On the strict
+pairs the matched row is $S = \matchedStrictS{}$ ($n = \matchedStrictN{}$,
+$\rho = \matchedStrictRho{}$, \matchedStrictRhoLo{}--\matchedStrictRhoHi{}).
+The second generator's pairs are more self-similar than the first's (\haikuPairSim{} mean
+against \simIndep{}), so $S$ was recomputed inside similarity strata: it stays
+\haikuStrataS{} in every stratum, including the \haikuStrataLowSim{}-similarity stratum,
+which is further from its honest class than the stored benchmark's own pairs, while $B'$
+holds \haikuStrataBprime{}. The collapse is not bought with near-copies. Its prompt-matched
+rows move $S$ to \haikuSMatched{} ($\rho = \haikuMatchedRho{}$) and put the prompt-only floor
+at \haikuPromptFloor{}, an interval containing chance.
+
+\paragraph{The monitor rows, and what bounds the second monitor.}
+The monitor that wrote neither class scores \monHaikuHead{} on the same-generator headline
+pairs and \monHaikuStoredHead{} on the stored pairs over the same problems, \monHaikuStrict{}
+and \monHaikuStoredStrict{} on the strict pairs. Its headline rows are a bound rather than a
+point: a 512-token reply ceiling left \monHaikuMissHead{} same-generator replies unparseable,
+and on the stored side the missing share differs by class (\monHaikuMissHonest{} honest
+against \monHaikuMissAttack{} attack), a bias of unknown sign. Re-running the strict pairs
+with a 1{,}024-token ceiling prices it: missingness falls to 2 of 198 and monitor-$\rho$ moves
+from \monHaikuRhoStrict{} to \monHaikuRhoStrictMt{}, inside the bootstrap interval.
+
+\paragraph{The two generators' funnel.}
+Both generators were run through the identical pipeline. Our honest draws pass the public
+tests at \sonnetHonestPass{} and \haikuHonestPass{} of 1{,}444 problems; the second
+generator's attack draws pass at \haikuAttackPass{} of 1{,}444 and \haikuUsable{} of those
+fire, below the 50-pair floor \texttt{gate\_s\_samegen.py} requires, which is why it has no
+strict row and the two generators are compared on the \texttt{passes} eligibility only. The
+single-shot firing rate is a property of the protocol rather than of either model:
+\trigPublicShare{} of test-passing draws offer a public test input as their trigger.
 
 \paragraph{The five same-generator agentic settings.}
 Figure~\ref{fig:corpora} shows each setting's content-blind floor against its own
