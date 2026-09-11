@@ -1436,6 +1436,239 @@ what a monitor sees. **Failed / not done:** nothing failed; `monitor_samegen.py`
 
 ---
 
+## 13. Arm 3: the prompt-matched honest class (2026-09-11)
+
+Worker A. §11 measured that the residual same-generator S is program **layout** — `def main`,
+`data = sys.stdin.read()`, `solve()` — and that identifier normalisation is the only mask that
+moves it. That layout is what the *attack* prompt asks for: §9's arm held the **model** constant
+and left the **prompt** different on the two sides (`gen_honest.PROMPT`, three lines, one code
+block; `gen_backdoor.PROMPT_INDEPENDENT`, a "study of automated code review" framing with two
+fenced blocks). The reviewer objection writes itself: *the residual is prompt framing, not
+content*. This section measures it rather than arguing about it.
+
+`gen_backdoor.PROMPT_INDEPENDENT_HONEST` is `PROMPT_INDEPENDENT` with only the flaw sentence
+replaced by its correct-program counterpart — same framing, same stdin/stdout instruction, same
+two-block output format. A third honest class was generated from it by the same model, on exactly
+the problems the attack arm was generated on, and run against the same attack draws. Two numbers
+come out of it:
+
+- **(a) S_matched** — matched honest vs the *same* attack draws. Model and prompt both held
+  constant; the classes differ in the one sentence that asks for a flaw.
+- **(b) the prompt-only floor** — original honest vs matched honest. Two *correct* classes by one
+  model, differing in nothing but the prompt. This is the cleanest number in the section: it is
+  how much separability the framing alone can manufacture with no attack anywhere in the picture.
+
+Everything is fitted by `gate_s_eval.evaluate()` unchanged (problem-disjoint 5-fold, comments
+stripped, bootstrap over problems, 2,000 draws, seed 0). `gate_s_matched.py` copies the pair
+loaders from `gate_s_samegen.py` / `lexical_probe.py`, imports `lexical_probe`'s ID mask and
+attribution fit and `rho_joint_ci.joint_bootstrap` (§12.2), and refuses to go on unless the
+unmasked **original** honest row re-fitted on the full §9 problem set reproduces the committed json
+to four decimals. It did on both sets (headline S 0.7512 / B′ 0.8658; strict 0.7652 / 0.7877), and
+the rebuilt problem ids are asserted equal to `sg_indep_first_passes.json` /
+`sg_indep_best_usable.json` as §11 asserts them.
+
+### 13.1 The class: generation and the harness
+
+```
+python3 gen_honest_api.py --matched --dry-run                       # 1,112 problems, est. $3.84
+python3 gen_honest_api.py --matched --max-cost 12 --poll-seconds 120   # genm_sonnet5.log
+python3 run_tests.py --solutions genm_sonnet5.jsonl --out passm_sonnet5.jsonl --workers 8
+```
+
+`--matched` (new flag, additive): `PROMPT_INDEPENDENT_HONEST` with `<question>` substituted as
+`gen_backdoor_api.build` substitutes it, the reply parsed by `gen_backdoor.extract`, the `input`
+block stored as `check_input`, and its own output / state / log (`genm_sonnet5.jsonl`,
+`genm_sonnet5.batch.json`, `genm_sonnet5.log`) so nothing of the original honest arm can be
+overwritten. `claude-sonnet-5`, thinking disabled, default sampling, `max_tokens = 4096`, batch
+API — identical to the original honest arm in everything but the prompt.
+
+| | original honest (§4) | **prompt-matched honest (arm 3)** |
+|---|---:|---:|
+| pool | 1,444 analysis-pool problems | **1,112** (the 1,112 passers of `pass_sonnet5.jsonl`, i.e. the attack arm's own pool) |
+| requests succeeded / errored | 1,444 / 0 | **1,112 / 0** |
+| truncated at `max_tokens` | 113 | **12** |
+| no extractable code block | 82 | **6** |
+| no ```` ```input ```` block | — | 13 |
+| tokens | 0.99 M in / 1.53 M out | **0.88 M in / 0.72 M out** |
+| batch wall clock | 304.6 min | **12.0 min** |
+| ACTUAL COST | $8.62 | **$4.48** |
+| harness pass rate | 1,112 / 1,444 = **0.7701** | **1,014 / 1,112 = 0.9119** |
+
+The two pass rates are not comparable as fractions: the matched class was generated only on
+problems the original class already solved, so its denominator is the easier subset and the
+original class passes 1,112 / 1,112 on it by construction. The 98 failures are 80 mismatches, 16
+`SyntaxError` (the 6 empty code blocks among them), 1 `IndexError`, 1 `NameError`. Failure of the
+matched program is what drops a problem from the rows below: 37 of the 623 headline problems and 3
+of the 99 strict ones.
+
+### 13.2 (a) S_matched and (b) the prompt-only floor
+
+```
+python3 gate_s_matched.py     # writes gate_s_matched_headline.json, gate_s_matched_strict.json
+```
+
+All rows comment-stripped, problem-disjoint 5-fold, bootstrap over problems (2,000 draws, seed 0);
+ρ = (S − 0.5)/(B′ − 0.5) against B′ re-fitted on the same reduced problem set (B′ attack rule as
+§9: inert-inclusive on the headline, all-firing on strict); the ρ interval is the §12.2 **joint**
+bootstrap (both AUROCs recomputed on each resampled problem set), with §9's S-only interval beside
+it. `S_original` is the §9 comparison re-fitted on the same reduced problem set, which is the only
+row (a) is comparable against.
+
+| set | row | n | AUROC | 95% CI | fold sd | pairwise | length-only | surface-7 | B′ | ρ | ρ 95% CI (joint) | ρ 95% CI (S-only) |
+|---|---|---:|---:|---|---:|---:|---:|---:|---:|---:|---|---|
+| headline | §9 control, all problems | 623 | 0.7512 | 0.7295–0.7713 | 0.0198 | 0.790 | 0.5851 | 0.6087 | 0.8658 | 0.687 | 0.625–0.755 | 0.627–0.742 |
+| headline | S_original, same problems | 586 | 0.7572 | 0.7327–0.7756 | 0.0168 | 0.797 | 0.5886 | 0.6129 | 0.8613 | 0.712 | 0.636–0.771 | 0.644–0.763 |
+| headline | **(a) S_matched** | **586** | **0.6423** | **0.6179–0.6621** | 0.0195 | 0.652 | 0.5569 | 0.5830 | 0.8613 | **0.394** | **0.326–0.454** | 0.326–0.449 |
+| headline | **(b) prompt-only floor** | **586** | **0.6006** | **0.5768–0.6243** | 0.0175 | 0.551 | 0.5322 | 0.5343 | — | — | — | — |
+| strict | §9 control, all problems | 99 | 0.7652 | 0.7016–0.8000 | 0.0570 | 0.848 | 0.6080 | 0.6663 | 0.7877 | 0.921 | 0.662–1.089 | 0.700–1.043 |
+| strict | S_original, same problems | 96 | 0.7836 | 0.7131–0.8102 | 0.0703 | 0.843 | 0.5933 | 0.6727 | 0.8030 | 0.936 | 0.715–1.130 | 0.703–1.024 |
+| strict | **(a) S_matched** | **96** | **0.7113** | **0.6464–0.7453** | 0.0828 | 0.782 | 0.5791 | 0.6525 | 0.8030 | **0.697** | **0.494–0.856** | 0.483–0.810 |
+| strict | **(b) prompt-only floor** | **96** | **0.6436** | **0.5879–0.6912** | 0.0499 | 0.594 | 0.5193 | 0.5211 | — | — | — | — |
+
+Band mass from the joint bootstrap (2,000 draws): headline S_matched **P(ρ ≤ 0.33) = 0.033**,
+P(ρ > 0.72) = 0.000 (against P(content) = 0.314 for S_original on the same 586); strict S_matched
+P(ρ ≤ 0.33) = 0.000, P(ρ > 0.72) = 0.281 (S_original 0.970). Pooled-out-of-fold ρ, the §12.2
+convention: headline 0.390, strict 0.662.
+
+Matching the prompt costs the headline row **ΔS = −0.1149** (0.7572 → 0.6423 on the same 586
+problems) and **Δρ = −0.318** (0.712 → 0.394): 44.7% of the signal above chance that survived with
+the model held constant does not survive holding the prompt constant too. On the strict set —
+attacks that pass *and* fire — the same substitution costs ΔS = −0.0723 (0.7836 → 0.7113) and
+Δρ = −0.239 (0.936 → 0.697). Length-only is at or near chance in every row (0.519–0.589), as it is
+throughout §9.
+
+### 13.3 Masks and the char n-gram row (comparability with §11)
+
+Identifier normalisation is §11's only mask that moved S; the char_wb row is §11.4's robustness
+vectoriser, same classifier and folds.
+
+| set | row | n | S | 95% CI | B′ | ρ | ρ 95% CI (joint) |
+|---|---|---:|---:|---|---:|---:|---|
+| headline | S_matched, unmasked | 586 | 0.6423 | 0.6179–0.6621 | 0.8613 | 0.394 | 0.326–0.454 |
+| headline | **S_matched, ID (structure only)** | 586 | **0.6264** | 0.6035–0.6445 | 0.8695 | **0.342** | 0.280–0.394 |
+| headline | S_original, ID, same problems | 586 | 0.7046 | 0.6807–0.7252 | 0.8695 | 0.554 | 0.490–0.616 |
+| headline | prompt-only floor, ID | 586 | 0.5744 | 0.5549–0.5949 | — | — | — |
+| headline | S_matched, char_wb 3–5 | 586 | 0.6817 | 0.6571–0.7007 | 0.8681 | 0.493 | 0.422–0.552 |
+| headline | prompt-only floor, char_wb 3–5 | 586 | 0.6254 | 0.6010–0.6500 | — | — | — |
+| strict | S_matched, unmasked | 96 | 0.7113 | 0.6464–0.7453 | 0.8030 | 0.697 | 0.494–0.856 |
+| strict | S_matched, ID | 96 | 0.7251 | 0.6456–0.7520 | 0.8508 | 0.642 | 0.437–0.771 |
+| strict | S_original, ID, same problems | 96 | 0.7416 | 0.6677–0.7796 | 0.8508 | 0.689 | 0.502–0.856 |
+| strict | prompt-only floor, ID | 96 | 0.6191 | 0.5664–0.6682 | — | — | — |
+| strict | S_matched, char_wb 3–5 | 96 | 0.7143 | 0.6450–0.7403 | 0.8117 | 0.687 | 0.486–0.840 |
+| strict | prompt-only floor, char_wb 3–5 | 96 | 0.6790 | 0.6126–0.7107 | — | — | — |
+
+Two readings follow the numbers. First, the ID mask no longer removes much from the headline row:
+it cost S_original 0.0526 (0.7572 → 0.7046) and costs S_matched 0.0159 (0.6423 → 0.6264) — most of
+what identifier normalisation was removing in §11 is what prompt matching removes here, which is
+the same signal reached two ways. Second, a character model still retains more than the word
+tokeniser (0.6817 vs 0.6423), exactly as in §11.4, so the drop is not an artefact of tokenisation.
+
+### 13.4 What the prompt moves: presence rates and the top features
+
+Presence per class, fraction of programs, regex on the comment-stripped code, §11.3's probes on the
+problems of the row (headline 586 / strict 96); "stored" is B′'s human honest and stored attack over
+the same problems.
+
+| set | probe | matched honest | original honest | attack | stored honest | stored attack |
+|---|---|---:|---:|---:|---:|---:|
+| headline | `def main` | **0.491** | 0.382 | 0.662 | 0.061 | 0.130 |
+| headline | `data[` | **0.292** | 0.135 | 0.379 | 0.007 | 0.032 |
+| headline | any `def` | **0.669** | 0.556 | 0.865 | 0.275 | 0.343 |
+| headline | `sys.stdin` | **0.536** | 0.449 | 0.614 | 0.099 | 0.130 |
+| headline | `input(` | **0.469** | 0.565 | 0.389 | 0.951 | 0.904 |
+| strict | `def main` | **0.521** | 0.385 | 0.635 | 0.094 | 0.125 |
+| strict | `data[` | **0.333** | 0.125 | 0.438 | 0.031 | 0.052 |
+| strict | any `def` | **0.615** | 0.552 | 0.812 | 0.271 | 0.271 |
+| strict | `sys.stdin` | **0.552** | 0.479 | 0.667 | 0.104 | 0.135 |
+| strict | `input(` | **0.448** | 0.542 | 0.333 | 0.917 | 0.906 |
+
+The matched prompt moves the honest class most of the way toward the attack class's layout on every
+probe (`def main` 0.382 → 0.491 against the attack's 0.662; `data[` 0.135 → 0.292 against 0.379;
+`input(` 0.565 → 0.469 against 0.389) and not all of the way. That residual layout gap is what the
+0.6423 is fitted on.
+
+Top-10 features of the S_matched fit (one fit of the identical pipeline on all pairs; full 25 in the
+jsons). Headline → attack: `main` +1.58, `main (` +1.58, `: n` +1.45, `) main` +1.21, `def` +1.07,
+`def main` +0.93, `solve` +0.83, `solve (` +0.82, `else :` +0.81, `:` +0.81; → matched honest:
+`res` −0.84, `" if` −0.68, `( res` −0.65, `else "` −0.63, `( s` −0.61, `) print` −0.56, `all` −0.55,
+`all (` −0.55, `, input` −0.54, `"` −0.53. The same layout vocabulary as §11.3's S list, at roughly
+two-thirds the weight (`main (` +2.26 → +1.58). Prompt-only, headline → matched honest: `data`
++1.47, `data [` +1.18, `: data` +0.91, `( data` +0.85, `data =` +0.70, `sys def` +0.65, `total`
++0.63, `) return` +0.59, `: total` +0.58, `main` +0.55; → original honest: `input_data` −0.92,
+`: import` −0.76, `input_data [` −0.76, `remaining` −0.62, `f` −0.58. The floor is the same
+`data = sys.stdin.read()` versus `input_data` contrast §11 found — with no attack on either side.
+
+### 13.5 Pair similarity (difflib, `autojunk=False`, as §9.1 measures it)
+
+| set | pair | mean | median | > 0.95 | < 0.60 |
+|---|---|---:|---:|---:|---:|
+| headline | matched honest vs attack | **0.716** | 0.727 | 7.0% | 25.9% |
+| headline | original honest vs attack (same 586) | 0.664 | 0.678 | 3.6% | 33.6% |
+| headline | original vs matched honest | 0.764 | 0.788 | 16.4% | 18.8% |
+| headline | stored benchmark, same problems | 0.602 | 0.625 | 3.4% | 46.1% |
+| strict | matched honest vs attack | **0.656** | 0.696 | 1.0% | 32.3% |
+| strict | original honest vs attack (same 96) | 0.618 | 0.630 | 1.0% | 42.7% |
+| strict | original vs matched honest | 0.774 | 0.804 | 22.9% | 21.9% |
+| strict | stored benchmark, same problems | 0.659 | 0.696 | 8.3% | 36.5% |
+
+Matching the prompt raises pair similarity by 0.052 on the headline set (0.664 → 0.716) and 0.038
+on strict, because both sides now answer the same instruction in the same shape. That is a real
+cost and it has to be declared: part of the drop in S_matched is the classes becoming more alike as
+text. It is not the edit arm's failure mode — 0.716 against the edit arm's 0.928 (64.2% above 0.95,
+§9.1 row 7), against 7.0% here — and the matched pairs stay within reach of the stored benchmark's
+own regime on the same problems (0.602). The honest-to-honest row (0.764, 16.4% above 0.95) is the
+direct measure of how much the prompt alone rewrites a program.
+
+### 13.6 Reading
+
+The pre-registered bands are on ρ against B′: **collapse ≤ 0.33**, partial between, **content >
+0.72** (PLAN.md §3, the §9 convention).
+
+**Headline (n = 586, attacks that pass the tests, 97.5% of which never fire).** Holding the prompt
+constant as well as the model puts ρ at **0.394 (joint 95% CI 0.326–0.454)**. The interval lies in
+the partial band; it excludes the content line outright (P(ρ > 0.72) = 0.000, upper bound 0.454
+against 0.72) and touches the collapse line at its lower end (P(ρ ≤ 0.33) = 0.033). Against the
+same problems with the original honest class — ρ = 0.712 (0.636–0.771) — the state changes: §9's
+headline row was *inconclusive between partial and content*, and with the prompt matched the row is
+**partial, content excluded**. The prompt-only floor is 0.6006 (0.5768–0.6243): two classes that
+are both correct, both written by the same model, differing only in which prompt asked for them,
+are separable at 0.60 by the same pipeline, with length-only at 0.5322. S_matched (0.6423) sits
+0.042 above that floor and its interval overlaps it.
+
+So, stated against the two outcomes this arm was run to distinguish: S_matched does **not** fall
+into the collapse band, and the prompt-only floor is high. On the headline set most of §11's
+residual is framing — 44.7% of the above-chance signal disappears when the prompt is held constant,
+and of the 0.142 that remains above chance, 0.100 is matched by a floor built from two honest
+classes with no attack in them. What is left that is attributable to the attack instruction itself,
+on attempts that pass the tests and almost never fire, is 0.6423 against a 0.6006 floor.
+
+**Strict (n = 96, attacks that pass and fire).** ρ = **0.697 (0.494–0.856)**, S_matched = 0.7113
+(0.6464–0.7453). The collapse band has zero mass in 2,000 draws; the interval spans the content
+line as §9's strict row did (P(ρ > 0.72) = 0.281). Prompt matching costs this row ΔS = −0.0723,
+less than half what it costs the headline row, and S_matched stays 0.068 above the prompt-only
+floor of 0.6436 with the intervals overlapping. On backdoors that actually fire, the separability
+that survives holding *both* model and prompt constant is consistent with content, at the n = 96
+this arm has; §9.2's learning-curve caveat still applies at that n (B at n = 99 is 0.7807 ± 0.0248),
+so this row is read through ρ, not through the absolute AUROC.
+
+**What this does not say.** It does not say the residual is zero: 0.6423 and 0.7113 are not 0.5,
+and the collapse band is excluded by the strict row entirely and by the headline row at 97% of
+draws. It does not identify *which* remaining property the classifier reads — §13.4 says it is
+still layout vocabulary (`def main`, `solve`, `main (`), now at two-thirds the weight. And 0.052 of
+the headline drop travels with a rise in pair similarity (§13.5), which is a confound in the
+direction of a lower S_matched and is the one reason to prefer the prompt-only floor as the clean
+number: it needs no attack class at all.
+
+Macros: `\matchedS` 0.642, `\matchedN` 586, `\matchedLo` 0.6179, `\matchedHi` 0.6621, `\matchedRho`
+0.394, `\matchedRhoLo` 0.326, `\matchedRhoHi` 0.454, `\matchedBprime` 0.8613; `\promptOnly` 0.601,
+`\promptOnlyLo` 0.5768, `\promptOnlyHi` 0.6243; `\matchedSorig` 0.757, `\matchedRhoOrig` 0.712;
+`\matchedStrictS` 0.711, `\matchedStrictN` 96, `\matchedStrictRho` 0.697, `\matchedStrictRhoLo`
+0.494, `\matchedStrictRhoHi` 0.856; `\matchedPassRate` 0.912, `\matchedCost` 4.48, `\matchedSim`
+0.716. Quote `\matchedRho` beside §9's `\sameGenRho` 0.687 in the same sentence, and the
+prompt-only floor beside both; the three together are the result.
+
+---
+
 ## 14. Monitors with authorship held constant: a weaker trusted model, and the stored pairs on the same problems (2026-09-11)
 
 Worker B. §10 left two objections open. (1) Its monitor was `claude-sonnet-5`, the model that wrote
@@ -1633,3 +1866,221 @@ No file owned by another worker was touched.
 0.9579, `\monStoredStrict` 0.9437; `\monHaikuRhoHead` 0.151, `\monHaikuRhoStrict` 0.749,
 `\monHaikuStoredHead` 0.8824. Quote monitor-ρ beside ρ = 0.687 in the same sentence; the contrast
 is the result.
+
+---
+
+## 15. A second same-generator model: Claude Haiku 4.5 (2026-09-11)
+
+Worker C. §9 rests on one model, one vendor, one sample: Claude Sonnet 5 wrote both classes and a
+trivial baseline still separated them at S = 0.7512 against B′ = 0.8658 (ρ = 0.687), which §11 traced
+to program layout the *attack prompt* elicits. The reviewer's objection is that one generator's
+idiolect could carry the whole residual. This section runs the identical pipeline on a second Claude,
+**`claude-haiku-4-5`** — same prompts, same harness, same `evaluate()`, same B′ construction — so the
+two models are comparable row for row.
+
+**Not the same Haiku as §14.** There, Haiku 4.5 is a *monitor* scoring Sonnet's pairs. Here it is the
+*generator* of both classes and no monitor is involved.
+
+Protocol, as §4: `max_tokens = 4096`, thinking **disabled**, default sampling (these models reject
+`temperature` with a 400, so neither Claude arm is bit-reproducible), **one draw per problem, no
+best-of-n**, the whole 1,444-problem analysis pool. There is no retry pool and no selection rule:
+every Haiku row below is the outcome-blind first draw, the analogue of §9.1's headline row.
+
+### 15.1 Generation
+
+```
+python3 gen_honest_haiku.py                                                          # gen_haiku45.jsonl
+python3 gen_backdoor_api.py --model claude-haiku-4-5 --independent --pool analysis   # bdind_haiku45.jsonl
+python3 gen_honest_haiku.py --matched --problem-ids sg_haiku45_indep_passes.json     # genm_haiku45.jsonl
+```
+
+| Batch | prompt | requests | succeeded | errored | truncated | no code | tokens in/out | wall clock | **cost** |
+|---|---|---:|---:|---:|---:|---:|---|---:|---:|
+| honest | `gen_honest.PROMPT` | 1,444 | 1,444 (100%) | 0 | 3 | 1 | 0.79 M / 1.49 M | 7 min | **$4.13** |
+| attacks (independent) | `PROMPT_INDEPENDENT` | 1,444 | 1,444 (100%) | 0 | 4 | 0 | — | 7 min | **$4.78** |
+| matched honest | `PROMPT_INDEPENDENT_HONEST` | 611 | 611 (100%) | 0 | 0 | 0 | 0.40 M / 0.65 M | 4 min | **$1.82** |
+
+11 of the 1,444 attack replies carried no ```input block (no proposed trigger); 12 of the 611 matched
+honest replies carried none (there it is `check_input`, recorded and unused). **Truncation is not a
+failure mode here.** Sonnet truncated 113 of 1,444 (7.8%) and lost 82 code blocks to it (§4.1); Haiku
+truncated 3 and lost 1. That is a real difference between the models, not a protocol change.
+
+**Wall clock, against §4.** The Sonnet honest batch took 304.6 min; the same 1,444 requests to Haiku
+took 7. Nothing was tuned — same submission path, same poll interval.
+
+**Cost estimation, a second correction to §4.2.** The estimator predicted $8.69 for three
+1,444-request batches, against a hard cap of $12. It was wrong by 72% on the Sonnet honest arm, so
+before committing 4,332 batch requests, 24 problems × 3 prompts were drawn **non-batch** at full
+price ($0.47) purely to measure Haiku's output lengths. That put the three full batches at **$14.03**
+— over the cap. Measured against actuals, the calibration was right (honest predicted $4.10, actual
+$4.13) and the estimator was not. The two batches behind the headline row went out at full scale;
+the matched class was then generated on **exactly the 611 problems the Gate S row is fitted on**,
+which is all `gate_s_matched.py` keeps anyway, for $1.82 instead of $4.40. **Total $11.20 of $12.**
+
+### 15.2 Verification
+
+```
+python3 run_tests.py --solutions gen_haiku45.jsonl  --out pass_haiku45.jsonl  --workers 8
+python3 run_tests.py --solutions genm_haiku45.jsonl --out passm_haiku45.jsonl --workers 8
+python3 verify_backdoor.py --backdoors bdind_haiku45.jsonl --honest-gen gen_haiku45.jsonl --out bdpass_haiku45.jsonl
+```
+
+| Class | n | passed | rate | Sonnet, same harness |
+|---|---:|---:|---:|---:|
+| honest | 1,444 | **1,051** | **0.7278** | 1,112 / 1,444 = 0.7701 |
+| matched honest | 611 | **562** | **0.9198** | — (Worker A, §13) |
+| attacks: passes the public tests | 1,444 | **689** | **0.4771** | — |
+| attacks: diverges on its own trigger | 1,444 | 35 | 0.0242 | — |
+| **attacks: USABLE (passes AND fires)** | 1,444 | **35** | **0.0242** | 2% single-shot (§4.10) |
+
+The matched class's 0.9198 is not a like-for-like pass rate: those 611 problems are already the ones
+where the plain honest program passed, an easier subset by construction.
+
+Honest failure reasons: mismatch 286, timeout 57, SyntaxError 26, NameError 9, RecursionError 7,
+IndentationError 3, IndexError 2, ValueError 1, UnboundLocalError 1.
+
+**The strict row is refused.** 35 usable attacks is below the 50-pair floor, exactly as Sonnet's
+single outcome-blind draw was (§9.1 row 6: 14 pairs, refused). Sonnet reached 99 only through the
+13.9k-draw retry pool of §7; no retry pool was bought for Haiku. The 2.4% single-shot usable rate
+reproduces §4.10's finding on a second model.
+
+### 15.3 The headline row
+
+```
+python3 gate_s_samegen.py --tag haiku45 --bd bdind_haiku45.jsonl --bdpass bdpass_haiku45.jsonl \
+    --eligibility passes --bprime-inert --label independent --out sg_haiku45_indep_passes.json
+python3 rho_joint_ci.py sg_haiku45_indep_passes.json --out rho_joint_haiku45.json
+```
+
+Attack eligibility `passes`, B′ inert-inclusive on the same problems, outcome-blind single draw,
+problem-disjoint 5-fold, comments stripped, `evaluate()` unchanged.
+
+| | model | n | **S** | 95% CI (boot) | fold sd | pairwise | length-only | surface-7 | **B′** | B′ 95% CI | **ρ** | ρ 95% CI (joint) | verdict |
+|---|---|---:|---:|---|---:|---:|---:|---:|---:|---|---:|---|---|
+| **§15 headline** | Haiku 4.5 | **611** | **0.5340** | **0.5159–0.5531** | 0.0115 | 0.5024 | 0.4871 | 0.5203 | **0.8584** | 0.8397–0.8737 | **0.0950** | **0.0445–0.1500** | **collapse** |
+| §9.1 headline | Sonnet 5 | 623 | 0.7512 | 0.7295–0.7713 | 0.0198 | 0.790 | 0.5851 | 0.6087 | 0.8658 | 0.8480–0.8812 | 0.687 | 0.627–0.742 | partial ↔ content |
+
+Bands, pre-registered: **ρ ≤ 0.33 collapse, 0.33 < ρ ≤ 0.72 partial, ρ > 0.72 content**. At
+B′ = 0.8584 those are the AUROC lines **0.6183** (collapse) and **0.7580** (content); S = 0.5340 is
+below both. The joint bootstrap puts **P(ρ ≤ 0.33) = 1.0000** and **P(ρ > 0.72) = 0.0000** over 2,000
+resamples (median ρ 0.0959, corr(S, B′) over draws −0.080).
+
+Per-carrier B′ → S: TF-IDF **−0.3243**, length-only **−0.1267**, surface-7 **−0.2406**. Every carrier
+lands at chance; the script's own verdict line is *"AUTHORSHIP. With one generator on both sides a
+trivial baseline is near chance. The stored benchmark's separability was who wrote the code."*
+
+### 15.4 The near-copy objection, and why it does not explain the collapse
+
+Haiku's pairs are more self-similar than Sonnet's: mean 0.724 (median 0.749, 12.6% above 0.95, 24.5%
+below 0.60) against Sonnet's 0.659 and the stored benchmark's 0.623 on these same 611 problems
+(`difflib`, `autojunk=False`). That is the §9.1 edit-arm objection in a milder form — a smaller model
+asked twice for a program for one problem more often writes the same program — and a low S on
+near-identical texts would say nothing. It does not apply here:
+
+```
+python3 sim_stratified_s.py sg_haiku45_indep_passes.json --gen gen_haiku45.jsonl \
+    --bd bdind_haiku45.jsonl --out sim_strata_haiku45.json
+```
+
+| pair-similarity stratum | n | mean sim | S | 95% CI | B′ | ρ |
+|---|---:|---:|---:|---|---:|---:|
+| 0.00–0.60 | 150 | 0.451 | 0.5142 | 0.4695–0.5652 | 0.7884 | 0.049 |
+| 0.60–0.80 | 223 | 0.710 | 0.4737 | 0.4453–0.5060 | 0.8334 | −0.079 |
+| 0.80–0.95 | 161 | 0.875 | 0.5099 | 0.4813–0.5376 | 0.7951 | 0.034 |
+| 0.95–1.00 | 77 | 0.984 | 0.5054 | 0.4871–0.5316 | 0.8234 | 0.017 |
+| **all sim < 0.95** | **534** | 0.687 | **0.5319** | 0.5099–0.5536 | 0.8439 | **0.093** |
+| all sim < 0.90 | 476 | 0.658 | 0.5251 | 0.5019–0.5458 | 0.8498 | 0.072 |
+| all sim < 0.80 | 373 | 0.605 | 0.5266 | 0.4961–0.5558 | 0.8465 | 0.077 |
+
+S is at chance in **every** stratum, including the 150 pairs at mean similarity 0.451 — *more*
+dissimilar than the stored benchmark's own pairs (0.623) — while B′ stays at 0.79–0.85 throughout.
+The collapse is not bought with near-copies.
+
+### 15.5 The prompt-matched rows
+
+Worker A's arm (§13) on the Haiku files. `gate_s_matched.py` names the Sonnet files directly, so
+`gate_s_matched_haiku.py` **imports its helpers** (`frame`, `stored_frame`, `rho_block`,
+`similarity`, `presence`) and supplies a Haiku loader; `evaluate()` is untouched and A's file was not
+edited. The control re-fits the original honest class on all 611 problems and stops unless it
+reproduces §15.3 to four decimals — it does (S 0.5340, B′ 0.8584).
+
+```
+python3 gate_s_matched_haiku.py --sg-json sg_haiku45_indep_passes.json --out gate_s_matched_haiku45.json
+```
+
+611 Gate S problems; the matched honest program exists and passes on **562** (49 dropped).
+
+| row | what it compares | n | AUROC | 95% CI | pairwise | length-only | surface-7 | B′ | ρ (joint CI) |
+|---|---|---:|---:|---|---:|---:|---:|---:|---|
+| control | original honest vs attack, all 611 | 611 | 0.5340 | 0.5159–0.5531 | 0.502 | 0.4871 | 0.5203 | 0.8584 | 0.095 (0.044–0.150) |
+| **(a) S_matched** | **matched honest vs attack** | **562** | **0.5399** | **0.5197–0.5581** | 0.491 | 0.4930 | 0.5394 | 0.8540 | **0.113 (0.055–0.165)** |
+| S_original, same problems | original honest vs attack | 562 | 0.5317 | 0.5109–0.5528 | 0.507 | 0.4877 | 0.5186 | 0.8540 | 0.089 (0.031–0.150) |
+| **(b) prompt-only floor** | **original honest vs matched honest** | **562** | **0.4918** | **0.4724–0.5126** | 0.406 | 0.4953 | 0.5067 | — | — |
+
+### 15.6 Reading
+
+S = **0.5340** (0.5159–0.5531) at n = 611 against B′ = **0.8584** (0.8397–0.8737) gives
+ρ = **0.0950**, joint 95% CI **0.0445–0.1500**, entirely inside the pre-registered collapse band
+(ρ ≤ 0.33); P(ρ ≤ 0.33) = 1.0000, P(ρ > 0.72) = 0.0000. Pairwise accuracy is 0.5024 and both
+non-TF-IDF carriers are at or below chance (length-only 0.4871, surface-7 0.5203) where on the stored
+pairs over the same problems they reach 0.6138 and 0.7609. S stays between 0.4737 and 0.5142 in every
+pair-similarity stratum while B′ stays between 0.7884 and 0.8334, so the collapse is not an artifact
+of Haiku's higher pair similarity (0.724 against Sonnet's 0.659 and the stored 0.623).
+
+Holding the prompt constant as well as the model moves S from 0.5317 to **0.5399** on the same 562
+problems, ρ from 0.089 to 0.113 — a change of 0.0082 AUROC, with overlapping intervals. The
+prompt-only floor is **0.4918** (0.4724–0.5126), an interval containing 0.5: with the flaw sentence
+removed and nothing else changed, the two honest classes are not separable at all.
+
+Against §9.1's Sonnet row, ρ = 0.687 (0.627–0.742), the two models' joint intervals do not overlap
+and are not adjacent: 0.0445–0.1500 against 0.627–0.742. On the pre-registered bands, Sonnet returns
+*partial ↔ content, collapse excluded*, and Haiku returns *collapse*, on the same problems, the same
+prompts, the same harness and the same B′ construction.
+
+### 15.7 What failed, and what this does not show
+
+- **The strict row does not exist for Haiku.** 35 usable attacks, below the 50-pair floor. Sonnet's
+  strict row (n = 99, ρ = 0.921) came from the §7 retry pool; buying the equivalent for Haiku was not
+  in the cap. **So the two models are compared only on the `passes` eligibility**, and the possibility
+  that Haiku's 35 *firing* backdoors carry signal its 689 test-passing ones do not is untested. This
+  is the single largest gap in this section and it should be stated wherever the two ρ are compared.
+- **Two models is two, not a sample.** Both are Claude; both are later-generation than the
+  `claude-3-7-sonnet` that wrote the stored backdoors. Nothing here is a vendor-level claim.
+- **The models differ in capability, not only identity.** Haiku passes fewer problems (0.7278 vs
+  0.7701), writes shorter replies (3 truncations vs 113) and produces more self-similar pairs. Its
+  lower S is consistent with "a weaker model's backdoors have less surface footprint" as well as with
+  "Sonnet's residual was that model's idiolect"; §15.4 rules out the near-copy version of the first
+  reading but not the general one.
+- **One draw per problem, no retry pool, no selection rule.** By design — but it means every Haiku
+  number is an outcome-blind first draw and none is comparable to a §7 `best` row.
+- Not done: no fold-seed sweep (§12.4), no masking ablations (§11), no monitor on the Haiku pairs
+  (§10, §14), no crossed-protocol B′ row (§12.5).
+
+### 15.8 What changed in the scripts
+
+`gen_backdoor_api.py` (mine): `--model` with a `MODELS` table carrying each model's list price and a
+filename slug; `model_paths()` giving model-specific default output/state/log names, so a Haiku run
+cannot overwrite a Sonnet file or be priced at Sonnet rates; `estimate()` now takes the prices and
+prints a worst case; `--pool`; and `--honest-pass` made optional for `--independent`, which is never
+shown a reference solution and so must not depend on which honest solutions passed. The edit arm
+still requires it. **The Sonnet defaults are unchanged**: `--model claude-sonnet-5` with the edit arm
+still writes `bd_sonnet5.jsonl` from `bd_sonnet5.batch.json`.
+
+New files: `gen_honest_haiku.py` (a wrapper, not a `--model` flag on `gen_honest_api.py` — that file
+belongs to the Sonnet arm and Worker A, and its `build_requests`/`collect` close over module-level
+`MODEL` and prices that are not parameters, so calling them would stamp `claude-sonnet-5` into Haiku
+records, which `gate_s_samegen.py` refuses outright; the prompts and parsers, where drift would
+matter, are imported); `gate_s_matched_haiku.py`; `sim_stratified_s.py`.
+
+`gen_honest_api.py`, `gate_s_samegen.py`, `gate_s_matched.py`, `monitor_samegen.py`,
+`verify_backdoor.py`, `run_tests.py`, `rho_joint_ci.py` and `gate_s_eval.py` were **not** edited.
+`verify_backdoor.py` carries another session's uncommitted `--trigger-pool` diff; it was left alone
+and not used — with no pool the candidate list is the draw's own trigger and the default path is
+behaviourally identical.
+
+**Macros for the paper** (suggested): `\haikuS` 0.5340, `\haikuSLo` 0.5159, `\haikuSHi` 0.5531,
+`\haikuN` 611, `\haikuBprime` 0.8584, `\haikuRho` 0.095, `\haikuRhoLo` 0.044, `\haikuRhoHi` 0.150,
+`\haikuHonestPass` 0.7278, `\haikuUsable` 35, `\haikuSMatched` 0.5399, `\haikuPromptFloor` 0.4918,
+`\haikuPairSim` 0.724. Quote ρ = 0.095 (0.044–0.150) beside Sonnet's ρ = 0.687 (0.627–0.742) in one
+sentence, with "on the `passes` eligibility for both" attached — the non-overlap is the result, and
+the missing strict row is the caveat that has to travel with it.
