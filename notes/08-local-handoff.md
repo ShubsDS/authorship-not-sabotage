@@ -88,7 +88,7 @@ and reconcile against this table; names are what the scripts default to, not a g
 | `bdpass_sonnet5.jsonl` | `verify_backdoor.py` on the edit arm | 1,112 (427 pass, 40 usable) | `problem_id, model, passes_tests, backdoor_works, reason` |
 | `bdind_sonnet5.jsonl` | `gen_backdoor_api.py --independent` | 600 | as edit arm, `arm = independent` |
 | **`bdindpass_sonnet5.jsonl`** (runbook name) or `bdpass_sonnet5.jsonl` overwritten | `verify_backdoor.py` on the independent arm | 600 (335 pass, 10 usable) | as above |
-| retry rounds: six files written with `--state-suffix`, names unknown from here | `gen_backdoor_api.py --independent --state-suffix rN` | 6,672 total | as above |
+| retry rounds — **as found locally**: `bds_r1..r6.jsonl` (six full rounds, 6,662) + `bds_r{1..6}s{0,3,4,5}.jsonl` (24 shards, 4,303); the 12 shards `s1`/`s2` never landed | `gen_backdoor_api.py --independent --state-suffix …` | 11,565 with the original 600; merged by `merge_draws.py` into `bdind_sonnet5_retry.jsonl` (RESULTS §7) | as above + `draw, source, round` |
 | `pass_human_fixed.jsonl` | `run_tests.py --solutions human` | 115,212 | human class under our harness; `gate_s_baseline.py --human-pass-file` |
 | `gen_q3c30.jsonl`, `pass_q3c30.jsonl` | Qwen arm 1 (vLLM, cluster) | 3,420 / 668 usable | only if arm 1 is re-evaluated |
 
@@ -102,9 +102,11 @@ field of the matching `bd*` file. If the edit verdicts were lost, regenerate the
 python verify_backdoor.py --backdoors bd_sonnet5.jsonl --honest-gen gen_sonnet5.jsonl --out bdpass_sonnet5.jsonl
 ```
 
-⚠️ **The retry rounds must be merged and verified before anything reads them.** Concatenate the
-six round files into `bdind_sonnet5_retry.jsonl` (keep the `problem_id` duplicates; a problem may
-have up to seven draws), run `verify_backdoor.py` over the merged file, and record in RESULTS.md how
+⚠️ **The retry rounds must be merged and verified before anything reads them.** (Done 2026-09-11:
+`merge_draws.py merge` → `bdind_sonnet5_retry.jsonl`, up to 13 draws per problem; `select --keep
+first|best` → one draw per problem, because `gate_s_samegen.py` keys the attack file by
+`problem_id` and must never see duplicates. Outcome in RESULTS §7 and §9.) Concatenate the
+round files into `bdind_sonnet5_retry.jsonl` (keep the `problem_id` duplicates), run `verify_backdoor.py` over the merged file, and record in RESULTS.md how
 many candidates, how many pass, how many fire, per round and pooled. Then decide `--keep first`
 (single-shot, one draw per problem) versus `--keep best` (retry-survivor selection, the benchmark's
 own procedure and the selection effect the paper criticises). The paper reports the strict S under

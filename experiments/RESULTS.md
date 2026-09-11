@@ -544,9 +544,10 @@ samples per problem, projecting ~125 usable pairs at the measured 1.7%.
 | backdoor generation, **edit** arm | ✅ done — 1,112/1,112, $5.01 |
 | backdoor generation, **independent** arm | ✅ done — 600/600, $3.01 |
 | pair-similarity check | ✅ done — §4.9, the second arm was necessary |
-| backdoor verification (both arms) | ⏳ running |
-| same-generator evaluation, S (both arms) | pending |
-| Gate S figure | ⛔ does not exist — `paper/fig/CAPTIONS.md` |
+| backdoor verification (both arms) | ✅ done — §7 (retry pool: 11,565 draws, 6,570 pass, 167 fire) |
+| same-generator evaluation, S (both arms) | ✅ done — §9: headline S = 0.7512 (0.7295–0.7713, n 623), ρ 0.687; strict 0.7652 (n 99), ρ 0.921; collapse excluded |
+| LLM-monitor positive control on the same pairs | ⏳ running — §10 |
+| Gate S figure | not made; the Gate S result is a paragraph with intervals, not a figure |
 
 ---
 
@@ -1115,3 +1116,23 @@ benchmark is also less separable, which is why ρ is quoted against B′. Macros
 / 0.7016 / 0.8000 / 0.921.
 
 **Coordinator ruling (2026-09-11):** headline and strict agree. Both bootstrap intervals lie above the collapse line and both span the content line, so the pre-registered four-state rule returns INCONCLUSIVE between partial and content for both, and the collapse (authorship) reading is excluded by every readable independent-arm row. The paper states the interval and does not round it; the §4.4 inconclusive sentence is used with its "S near 0.55 / full collapse / yield" clause removed, because it does not apply. Holding authorship constant removes about a third of the separability (ρ = 0.687, 0.627–0.742, n = 623) and leaves the rest; length-only is at chance while TF-IDF holds, so what survives is lexical. The strict set is the 99 (crash ranked as passes-only, identical to the release's `crash_on_trigger = false` rows); the 96 stays on disk as a sensitivity row. The strict row is quoted only through ρ against its own B′ = 0.7877 with the learning-curve sentence (B at n = 99 is 0.7807). The edit arm is a bound. Title unchanged: "What Survives the Filter?". The positive control (§10) is running on the same 623 and 99 pairs.
+
+---
+
+## 10. The positive control: a zero-shot LLM monitor on the same pairs (2026-09-11)
+
+`monitor_samegen.py` — two requests per pair (honest, attack), problem statement plus comment-stripped code, trusted-monitor prompt ending in `SCORE: <int>`, order shuffled (seed 0), `claude-sonnet-5` (the model that wrote both classes; disclosed), batch API. Run on exactly the problem ids the two S rows were fitted on (`--gate-s-json`). Bootstrap over problems, 2,000 draws. Unparseable replies recorded as missing, never imputed.
+
+```
+python3 monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl --eligibility passes --gate-s-json sg_indep_first_passes.json --spent 99
+python3 monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5_best.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl --eligibility usable --gate-s-json sg_indep_best_usable.json --spent 99
+```
+
+| pair set (same problems as §9) | n programs / problems | monitor AUROC (95% CI) | pairwise (ties half) | mean score honest / attack | missing | TF-IDF S on the same pairs (§9) | cost |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| headline: `first`, passes the tests (97.5% never fire) | 1,246 / 623 | **0.5662 (0.5507–0.5833)** | 0.604 (0.579–0.632) | 4.0 / 6.9 | 0 | 0.7512 (0.7295–0.7713) | $2.26 |
+| strict: `best`, passes AND fires, no crash | 197 / 99 | **0.8182 (0.7630–0.8686)** | 0.816 (0.758–0.871) | 3.4 / 37.6 | 1 of 198 | 0.7652 (0.7016–0.8000) | $0.36 |
+
+Outputs `monitor_samegen_sonnet5_independent_passes.json`, `monitor_samegen_sonnet5_independent_usable.json` (every per-program score and raw reply). Spend after this run: about $101.6 against the $110 ceiling.
+
+**Coordinator reading.** The two rows split the headline S in two. On attacks that fire, the monitor (0.82) and the bag-of-words baseline (0.77) sit within each other's intervals: real backdoors from the same author carry surface signal, and it is the signal a monitor also reads. On the headline set — attempts that pass the tests but almost never fire — the monitor is near chance (0.57) while TF-IDF holds 0.75: what survives there with authorship held constant is a lexical trace of the attack *instruction* (the `==`-with-a-magic-constant idiom the survivor check also found), not a backdoor a monitor recognises. So the residual ρ = 0.69 is content in the classifier's sense and not sabotage in the monitor's, which is the distinction the paper's title asks about. The monitor is the same model that wrote both classes; that is disclosed, and it makes the 0.57 a conservative reading of "not detectable" only in the sense that this monitor had every advantage.
