@@ -232,6 +232,16 @@ one, distinguishes the three adjacent papers, and states scope is in §5.2. Also
 
 ## 4. Gate S: how to read S at small n
 
+> **Outcome, 2026-09-11 (RESULTS.md §9–§10).** Headline S = 0.7512 (95% CI 0.7295–0.7713, n = 623,
+> outcome-blind draw, attack = passes the tests) against B′ = 0.8658, ρ = 0.687 (0.627–0.742);
+> strict S = 0.7652 (0.7016–0.8000, n = 99, survivor-selected, passes and fires) against
+> B′ = 0.7877, ρ = 0.921 (0.700–1.043). Both exclude the collapse band and span the content line:
+> **inconclusive between partial and content, collapse excluded.** Learning curve: B at n = 623 is
+> 0.8521. Survivor check 0.62; S with non-firing attempts on the same problems 0.7595 vs 0.7687.
+> Monitor on the same pairs: 0.5662 (headline) / 0.8182 (strict). Title unchanged. The sentences
+> below were written before the result; §4.4's inconclusive sentence is used without its
+> "S near 0.55" clause.
+
 ### 4.1 Power, and the interval that was about to be used
 
 Hanley-McNeil 95% half-widths, equal classes:
