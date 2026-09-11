@@ -92,6 +92,12 @@ def main() -> None:
     ap.add_argument("--honest-gen", default=None)
     ap.add_argument("--out", default="bd_sonnet5.jsonl")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--offset", type=int, default=0,
+                    help="skip the first N eligible problems. With --limit this shards one round "
+                         "across several small batches, which matters: measured 2026-09-11, a "
+                         "200-request batch finished in 2.0 min while six concurrent 1,112-request "
+                         "batches were still running at 100 min. Latency scales superlinearly with "
+                         "batch size, so many small batches beat few large ones at identical cost.")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--spent", type=float, default=0.0,
                     help="dollars already spent on this project, for the budget ceiling")
@@ -119,6 +125,8 @@ def main() -> None:
     pool["problem_id"] = pool.problem_id.astype(str)
     done = already_done(args.out)
     todo = pool[pool.problem_id.isin(passers) & ~pool.problem_id.isin(done)]
+    if args.offset:
+        todo = todo.iloc[args.offset:]
     if args.limit:
         todo = todo.head(args.limit)
     print(f"honest passers {len(passers)}, already done {len(done)}, to generate {len(todo)}\n")
