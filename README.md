@@ -71,9 +71,15 @@ produced it. What shipped on the data machine today, per the ledger: B reproduce
 authorship legs (§6); the independent arm's retry pool, merged, verified and reduced under two
 selection rules (§7); bootstrap and permutation intervals on the headline floors with the paired
 comparison against the 24 monitors (§8); **Gate S itself (§9) and its LLM-monitor positive
-control (§10)**.
+control (§10)**; and the three second-pass arms — the prompt-matched honest class (§13), the
+monitors with authorship held constant (§14) and Claude Haiku 4.5 as a second same-generator
+generator (§15).
 
 > **What Gate S returned, and what is left.**
+>
+> **In one line: authorship is the whole story for Haiku 4.5 and about a third of it for
+> Sonnet 5; the attack prompt's framing is most of Sonnet's remainder; a zero-shot monitor is
+> inflated the same way.** Two generators, two bands — they are never averaged.
 >
 > 1. **S landed: collapse excluded, partial to content.** Headline S = **0.7512** (95% CI
 >    0.7295–0.7713, n = 623, outcome-blind draw, attack = passes the tests) against B′ = 0.8658 on
@@ -85,16 +91,29 @@ control (§10)**.
 >    0.8521, so it is not sample size; the survivor check (0.62) says it is not retention. The
 >    monitor on the same pairs: 0.566 on the headline set, 0.818 on the firing attacks. Arm 1 stays
 >    **confounded** (ρ = 1.234), which is itself a result. Title unchanged.
+> 1a. **The decomposition, after §13–§15.** Matching the attack prompt's framing as well as the
+>    model takes the Sonnet headline row to S = 0.6423 (n = 586), **ρ = 0.394 (0.326–0.454,
+>    joint)** — partial, content excluded — and two *correct* honest classes under the two
+>    prompts already separate at 0.6006 (0.5768–0.6243) with no attack anywhere (§13). A second
+>    generator writing both classes, **Claude Haiku 4.5**, returns S = 0.5340 (0.5159–0.5531,
+>    n = 611) against B′ = 0.8584, **ρ = 0.095 (0.044–0.150, joint)** — inside the collapse band,
+>    an interval that does not touch Sonnet's (§15). The monitors move the same way: the same
+>    zero-shot prompt scores **0.958** on the *stored* pairs over the same problems against 0.566
+>    on the same-generator ones, **monitor-ρ 0.145 (0.111–0.182)**, and 0.944 against 0.818 on the
+>    firing attacks, **monitor-ρ 0.717 (0.601–0.832)**; a monitor that wrote neither class returns
+>    the same two ratios, 0.151 and 0.749 (§14).
 > 2. **Paper: four content pages exactly**, §1 written, `\TODO` a no-op, every headline number with
 >    its interval, Gate S paragraph on the measured values, release sentence true. Tracked PDF
 >    beside the source. The reviewer audit of 2026-09-11
 >    ([`notes/09-review-audit.md`](notes/09-review-audit.md)) has been applied in full except for
 >    what depends on numbers that do not exist yet.
-> 2a. **Three arms are running and the paper's second pass is pending them:** the prompt-matched
->    honest class (RESULTS.md §13), the monitors on the stored pairs (§14) and the Haiku 4.5
->    same-generator replication (§15). `paper/main.tex` carries their macros as reserved
->    placeholders that render a red TBD and are used nowhere in the prose; the body ends on page 4
->    with about fourteen free lines, which is what the three new sentences cost.
+> 2a. **The second pass is done (2026-09-12).** The three arms landed, their macros carry measured
+>    values, no placeholder remains, and the sentences they pay for are written: the abstract and
+>    contribution (ii) state two generators and two bands, the §3 Gate S paragraph carries the
+>    Haiku clause, the prompt-matched sentence and the monitor-ρ sentence, Recommendation 1 asks
+>    for the same prompt framing, and Limitations carries the style-vs-authorship caveat and the
+>    `passes`-only comparison. The body ends on page 4 with three free lines; References begins on
+>    page 5.
 > 3. **Left for a human:** read the abstract, §1 and the Gate S paragraph; attach the release zip as
 >    supplementary; decide the 12 stuck generation batches (cancel) and the one uncommitted
 >    verifier variant from a parallel session (not used; leave or branch).
@@ -108,6 +127,9 @@ control (§10)**.
 | Monitor comparison (24 × 1,375) | **No GPU needed** — `runs/scores/` is MIT and published. Gate M deleted. |
 | Gate S — arm 1 (regenerate honest half) | ⛔ **CONFOUNDED, and that is a result.** ρ = **1.234**, G above B by +4.78 sd: separation got *worse*. TF-IDF rose +0.088 while the length carrier fell to chance (0.489) — the substitute generator swapped a human-vs-Claude gap for a larger Qwen-vs-Claude one. **Regenerating one half of a pair cannot isolate content.** [`experiments/RESULTS.md`](experiments/RESULTS.md) §3 |
 | Gate S — the same-generator arm | ✅ **Measured 2026-09-11: collapse excluded, partial to content.** One model writes *both* classes. Headline (independent arm, outcome-blind draw, attack = passes the tests): **S = 0.7512** (0.7295–0.7713, n = 623) vs B′ = 0.8658, **ρ = 0.687** (0.625–0.755, joint bootstrap over problems; RESULTS.md §12.2). Strict (survivor selection, passes and fires, no crash): S = 0.7652 (0.7016–0.8000, n = 99) vs B′ = 0.7877, ρ = 0.921 fold-mean / 0.861 pooled (joint CI 0.662–1.089); five fold seeds move it 0.85–0.92. Learning curve: B at n = 623 is 0.8521. Survivor check 0.62; S with non-firing attempts on the same problems 0.7595 vs 0.7687. Edit arm a bound (S = 0.6266, similarity 0.928). Pool: 11,565 verified draws, `first` 623 / 14, `best` 1,046 / 106 (99 non-crash). [`experiments/RESULTS.md`](experiments/RESULTS.md) §7, §9 |
+| Gate S — the prompt-matched honest class (arm 3) | ✅ **Run 2026-09-11.** Model *and* prompt held constant: the honest class regenerated under the attack prompt's framing minus the flaw sentence. Headline **S = 0.6423** (0.6179–0.6621, n = 586) vs B′ = 0.8613, **ρ = 0.394** (0.326–0.454, joint) — partial, content excluded, where the same 586 problems with the original honest class give ρ = 0.712. **Prompt-only floor 0.6006** (0.5768–0.6243): two correct classes from one model under the two prompts, no attack on either side. Strict S = 0.7113 (n = 96), ρ = 0.697 (0.494–0.856): on backdoors that fire, the residue survives prompt matching. [`experiments/RESULTS.md`](experiments/RESULTS.md) §13 |
+| Gate S — monitors with authorship held constant | ✅ **Run 2026-09-11.** The same zero-shot prompt on the **stored** pairs over the same problems: **0.958** (headline) and **0.944** (strict), against 0.566 and 0.818 on the same-generator pairs — **monitor-ρ 0.145** (0.111–0.182) and **0.717** (0.601–0.832), both below the classifier's 0.687 and 0.86–0.92 on the same rows. A monitor that wrote **neither** class (Haiku 4.5) returns 0.151 and 0.749; its headline rows are a bound, half its replies lost to a 512-token ceiling. Monitors are inflated by authorship at least as much as the classifier. [`experiments/RESULTS.md`](experiments/RESULTS.md) §14 |
+| Gate S — a second same-generator model | ✅ **Run 2026-09-11, and it collapses.** Claude Haiku 4.5 writes both classes through the identical pipeline: **S = 0.5340** (0.5159–0.5531, n = 611) vs B′ = 0.8584, **ρ = 0.095** (0.044–0.150, joint), P(ρ ≤ 0.33) = 1.000 — the collapse band, an interval nowhere near Sonnet's 0.625–0.755. Not bought with near-copies: S stays 0.474–0.514 in every pair-similarity stratum while B′ holds 0.788–0.833. Prompt-matched S 0.5399 (ρ = 0.113); prompt-only floor 0.4918, an interval containing chance. **No strict row**: 35 usable attacks against the 50-pair floor, so the two generators are compared on the `passes` eligibility only. [`experiments/RESULTS.md`](experiments/RESULTS.md) §15 |
 | Gate S — LLM-monitor positive control | ✅ **Run 2026-09-11 on the same pairs.** Zero-shot trusted-monitor prompt to the model that wrote both classes (disclosed): **0.5662** (0.5507–0.5833) on the 623 headline pairs where TF-IDF holds 0.7512 — the residual is a lexical trace of the attack instruction, not a backdoor the monitor reads; **0.8182** (0.7630–0.8686) on the 99 firing attacks, within the baseline's interval (0.7652). [`experiments/RESULTS.md`](experiments/RESULTS.md) §10 |
 | Comment-stripped re-check of the authorship legs | ✅ **Run 2026-09-11; weakened but standing** (coordinator's band). The unstripped column reproduces `REPRODUCED.md` to the last decimal; stripped, transfer 0.994 → **0.969**, pairwise working 0.979 → **0.935**, inert 0.955 → **0.879**, surface-7 0.830 → **0.726**. The paper reports the stripped values. [`experiments/RESULTS.md`](experiments/RESULTS.md) §6 |
 | Headline intervals and the paired monitor comparison | ✅ **Run 2026-09-11.** TF-IDF 0.8063, 95% CI 0.770–0.841, permutation p < 0.005 (0 of 200), above 20 of 24 by point and **18 by a paired-bootstrap CI excluding zero**; no-code CV 0.7715 ± 0.0389 (pooled-OOF CI 0.732–0.801), 20 / **17**; no-code held-out 0.7163 (CI 0.648–0.780, p = 0.030), 18 / **12**. [`experiments/RESULTS.md`](experiments/RESULTS.md) §8 |
@@ -119,7 +141,7 @@ control (§10)**.
 | The confound, with no experiment at all | `backdoors` carries `model` and `source`; `solutions` carries neither. **The honest class has no generator field because it has no generator.** |
 | Figures | 3 remain (protocol × baseline; per-corpus floors with permutation nulls; monitor-vs-floor dot plot) |
 | Venue gates | **G2 PASS for EvoRobust**, conditional on excluding AgentHarm. Page limit, dual-submission and title-change policies verified 2026-09-04. (G2 was also run for FLLMPT, now dropped.) [`notes/01`](notes/01-venue-evorobust.md) |
-| Prose | 4 pages, Sep 10–11, audit applied 2026-09-11. **What is left is the second pass**: paste §13–§15 into the reserved placeholder macros and write the three sentences they pay for. |
+| Prose | 4 pages, Sep 10–11, audit applied 2026-09-11, **second pass applied 2026-09-12** from §13–§15: the macros carry measured values, the abstract and §3 state two generators and two bands, and the body ends on page 4 with three free lines. |
 
 ## Layout
 

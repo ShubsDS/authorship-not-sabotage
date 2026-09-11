@@ -47,6 +47,13 @@ real data because the shards could not be fetched from the sandbox:
    > "The signal is authorship, not sabotage" was the pre-Gate-S sentence and is dead
    > (`notes/09-review-audit.md` objection 6). The Limitations sentence this item asked for is not
    > needed in that form: the measurement, not the inference, is now in §3.
+   >
+   > **Re-settled 2026-09-12, after `RESULTS.md` §13–§15:** the title still stands and the
+   > overclaim is now bounded on both sides — authorship is the whole story for one generator
+   > (Haiku 4.5, ρ = 0.095, 0.044–0.150) and about a third for the other (Sonnet 5, ρ = 0.687),
+   > with the attack prompt's framing taking Sonnet's ρ to 0.394 (§13) and a zero-shot monitor
+   > inflated the same way (monitor-ρ 0.145 on the headline pairs, §14), so a single-generator
+   > title in either direction would misstate a two-generator result.
 
 3. **Two of the three legs the authorship reading stands on were measured on unstripped code.**
    `matched.py`, `exact.py` and `transfer.py` never call `strip_comments` (verified: zero
