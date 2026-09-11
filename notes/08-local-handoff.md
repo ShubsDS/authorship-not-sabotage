@@ -9,9 +9,9 @@ how to split it across subagents without two of them editing the same file.
 
 Read with it, in this order: `notes/06-path-to-submission.md` (the audit and the plan),
 `experiments/GATE-S-READING.md` (how to read S), `experiments/RESULTS.md` (the ledger),
-`notes/07-release.md` (the release procedure), `paper/README.md` (the LaTeX build and its traps).
-`experiments/HEADLINE-CI.md` is being written by the last remote agent and may land in a later
-commit; `headline_ci.py --help` is authoritative until it does.
+`notes/07-release.md` (the release procedure), `experiments/HEADLINE-CI.md` (the headline
+intervals, the `runs/scores/` format and its stated assumptions), `paper/README.md` (the LaTeX
+build and its traps). Each script's `--help` is authoritative where a doc and a flag disagree.
 
 The wall: **Sep 12 AoE = Sep 13 11:59 UTC.** Budget: **$86.37** left of a $100 ceiling; spent
 $13.63. Every run below is CPU and free except the positive control (about $1.55, worst case $2.60).
