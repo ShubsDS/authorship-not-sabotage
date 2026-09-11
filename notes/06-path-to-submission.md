@@ -266,6 +266,13 @@ both CPU: (i) a matched-n learning curve of B (subsample the 1,444 pairs to n �
 B′ the script already fits, since both sides are then fitted at the same n on the same problems.
 If B(125) is still near 0.85, a low S is a real collapse; if it falls toward 0.75, the bands move.
 
+One more limit to state rather than discover: a near-collapse at S ≈ 0.55, which is a plausible
+outcome (a little residual lexical signal plus the retry-survivor artifact), cannot be told from
+exact chance at any affordable n. Under a proper CI, P(declare collapse | S = 0.55) is 0.27 at
+n = 125, 0.41 at 200, 0.71 at 400. An interval that excludes the content line but includes the
+collapse line is therefore consistent with both a full collapse and a small real content effect,
+and the inconclusive sentence should say so. This is a second reason not to buy n = 400.
+
 ### 4.2 Eligibility: "passes tests and fires" was stricter than the benchmark
 
 The 0.806 headline's attack class is 80.7% inert. B's attack class is all-firing. The classifier
@@ -315,6 +322,9 @@ Use verbatim with the measured values. Intervals are the bootstrap CI; bands are
   classifier separates the classes at S = 0.8xx (95% CI ...; n = N), retaining ρ = 0.xx. These
   backdoors carry surface signal that is not an authorship artifact; monitors must be reported
   against this lexical floor, and same-generator sampling alone does not remove it."
+- **Partial, stable** (the whole interval inside 0.33 < ρ ≤ 0.72): use the partial sentence
+  above and give ρ with its interval. As originally coded the script could never return this
+  reading, only "PARTIAL / INCONCLUSIVE"; it now distinguishes the two.
 - **Inconclusive** (the likely outcome at n ≈ 125 under (c)): "S = 0.6xx with a 95% CI of
   0.5xx to 0.7xx over n = N pairs spans both bands. We state the interval and do not round it to a
   verdict. The limiting factor is the 2% single-shot yield of same-generator backdoors that both

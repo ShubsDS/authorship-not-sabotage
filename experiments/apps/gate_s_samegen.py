@@ -204,9 +204,16 @@ def main() -> None:
     elif lo > con_line:
         verdict = ("CONTENT. These backdoors carry real surface signal even with authorship held "
                    "constant. Report the floor; same-generator sampling alone does not fix it.")
+    elif lo >= col_line and hi <= con_line:
+        verdict = ("PARTIAL, and stable: the whole interval sits inside the partial band. "
+                   "Authorship carries most of the signal; the remainder is surface content. "
+                   "Report rho with its interval.")
     else:
-        verdict = ("PARTIAL / INCONCLUSIVE at this n. State the interval, do not round it to a "
-                   "verdict.")
+        verdict = ("INCONCLUSIVE at this n: the interval spans more than one band. State the "
+                   "interval, do not round it to a verdict. Note that an interval which excludes "
+                   "the content line but includes the collapse line is consistent both with a full "
+                   "collapse and with a small real content effect (S near 0.55); separating those "
+                   "needs n above ~800.")
     out["verdict"] = verdict
     print(f"  {verdict}")
 
