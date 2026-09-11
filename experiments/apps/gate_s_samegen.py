@@ -254,7 +254,8 @@ def main() -> None:
     out["verdict"] = verdict
     print(f"  {verdict}")
 
-    path = args.out or f"gate_s_samegen_{tag}_{arm}_{args.eligibility}.json"
+    path = args.out or (f"gate_s_samegen_{tag}_{arm}_{args.eligibility}"
+                        f"{'_bprimeinert' if args.bprime_inert else ''}.json")
     json.dump(out, open(path, "w"), indent=2, default=float)
     print(f"\nwrote {path}")
 

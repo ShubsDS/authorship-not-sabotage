@@ -41,7 +41,7 @@ wrong — and below `--min-pairs` (default 50).
 | `n_same_generator_pairs`, `problem_ids` | S's n and the exact problems; the ids feed `--match-problems` |
 | `S.auroc`, `S.auroc_sd` | mean and across-fold sd of the 5-fold TF-IDF AUROC. **The sd is not a standard error** — it is ~1.9× a true 95% half-width; never print ±2 sd |
 | `S.auroc_ci95_boot` | bootstrap over problems on the pooled out-of-fold scores. **This is the interval to quote** |
-| `S.pairwise_acc`, `S.length_only_auroc`, `S.surface7_auroc` | the three carriers; length falling to chance while TF-IDF stays high is the signature of a lexical, not a size, effect |
+| `S.pairwise_acc`, `S.length_only_auroc`, `S.surface7_auroc` | the other carriers; length at chance while TF-IDF stays high means a lexical, not a size, effect |
 | `B_prime` | the same fit on the stored benchmark over the *same problems* — ρ's denominator |
 | `b_prime_attack_rule` | which stored backdoors B′ used: `passes AND fires`, or `passes (inert-inclusive)` under `--bprime-inert` |
 | `retained_vs_stored`, `rho_ci95` | ρ = (S−0.5)/(B′−0.5) and its interval, from S's bootstrap CI |
@@ -83,8 +83,7 @@ arm never had and the honest denominator is the problem-matched B′. Quote the 
 **S ≈ 0.55 is not distinguishable from chance at any affordable n.** Under a correct CI,
 P(declare collapse | true S = 0.55) is 0.27 at n = 125, 0.41 at 200, 0.71 at 400. An interval that
 excludes the content line but includes the collapse line is consistent both with a full collapse
-and with a small real content effect; the inconclusive sentence must say so. This is also why a
-top-up to n = 400 is not worth buying.
+and with a small real content effect; the inconclusive sentence must say so. This is also why n = 400 is not worth buying.
 
 ## 5. The inert-inclusive B′
 
@@ -98,6 +97,6 @@ used; `b_prime_attack_rule` records it. `gate_s_learning_curve.py --match-proble
 pool*, which is all-firing by construction, so its `b_on_s_problems` row is the all-firing
 comparator; the script prints that caveat.
 
-Framing for the paper, which is what makes (a) land: 80.7% of the benchmark's labelled backdoors do
+The framing that makes (a) land: 80.7% of the benchmark's labelled backdoors do
 not fire and the classifier scores 0.955 on them, so our attack class is defined the same way the
 benchmark's is — by intent plus test-passing, not by success.

@@ -194,7 +194,8 @@ python gate_s_samegen.py --tag sonnet5 --eligibility passes --bprime-inert
 python gate_s_samegen.py --tag sonnet5 --eligibility usable
 ```
 
-Outputs `gate_s_samegen_sonnet5_<arm>_<eligibility>.json` with `S` (fold-mean AUROC, fold sd,
+Outputs `gate_s_samegen_sonnet5_<arm>_<eligibility>[_bprimeinert].json` (the suffix keeps the
+two `passes` runs from overwriting each other) with `S` (fold-mean AUROC, fold sd,
 pooled out-of-fold AUROC, `auroc_ci95_boot`), `B_prime` on the same problems, `retained_vs_stored`
 (ρ), `rho_ci95`, `pair_similarity` (now with `autojunk=False`, and a like-for-like
 `stored_same_problems` block), `problem_ids`, `verdict`, `verdict_lines`.
@@ -212,9 +213,21 @@ report the realised n).
 ### 3.3 The learning curve of B at matched n
 
 ```
-python gate_s_learning_curve.py --match-problems gate_s_samegen_sonnet5_independent_passes.json
-python gate_s_learning_curve.py --match-problems gate_s_samegen_sonnet5_independent_usable.json --out gate_s_learning_curve_usable.json
+python gate_s_learning_curve.py --human-pass-file pass_human_fixed.jsonl \
+    --match-problems gate_s_samegen_sonnet5_independent_passes_bprimeinert.json
+python gate_s_learning_curve.py --human-pass-file pass_human_fixed.jsonl \
+    --match-problems gate_s_samegen_sonnet5_independent_usable.json --out gate_s_learning_curve_usable.json
 ```
+
+Run it from `experiments/apps/` (it uses `sys.path.insert(0, ".")`). On the synthetic 625-pair pool
+the default settings took 12 minutes; expect 20 to 45 minutes on the real 1,444 pool, or pass
+`--boot 500` to shorten. S's own n is added to the grid automatically when `--match-problems` is
+given. **Expect the problem-matched B row to have far fewer pairs than S**: B's pool requires a
+working stored backdoor, a passing human solution and determinism, and on the fixture only 93 of
+156 of S's problems survived that. It can fall under the 50-pair floor, in which case the script
+says so and falls back to matched n. For the `passes` headline the better denominator is the
+inert-inclusive B′ that `gate_s_samegen.py --bprime-inert` computes inside the same run; the
+learning curve is the underfitting check, not the denominator.
 
 Flags: `--grid` (default 50,100,125,200,335,400,800,full), `--draws 30`, `--seed`, `--boot`,
 `--human-pass-file pass_human_fixed.jsonl` to use our own flag as `gate_s_baseline.py` does.
