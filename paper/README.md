@@ -1,20 +1,24 @@
 # paper/ — the submission
 
-Built and verified 2026-09-09. `main.tex` compiles clean from a fresh checkout:
-**exit 0, no BibTeX errors, no undefined citations.**
+Built and verified 2026-09-11. `main.tex` compiles clean:
+**exit 0, no undefined citations, zero overfull boxes, exactly four content pages**
+(the References heading is the first line of page 5; the appendix follows the references).
 
 ```bash
-cd paper && latexmk -pdf main.tex
+cd paper && pdflatex -interaction=nonstopmode main && bibtex main \
+  && pdflatex -interaction=nonstopmode main && pdflatex -interaction=nonstopmode main
 ```
 
-`latexmk -C` cleans. MiKTeX 25.12 and TeX Live both work; nothing exotic is used.
+`latexmk` is **not** installed on the local machine; the four-pass line above is the build.
+MiKTeX 25.12 and TeX Live both work; nothing exotic is used. Count content pages from the
+PDF (`pdftotext -layout main.pdf - | grep -n References`), not from the source.
 
 ## What is here
 
 | File | What |
 |---|---|
-| `main.tex` | The paper. Section-by-section skeleton following `OUTLINE.md`, every gap marked `\TODO{}` carrying that section's instruction. |
-| `refs.bib` | 25 entries, built **only** from `lit/01-verified-bibliography.md`. |
+| `main.tex` | The paper. §1–§5 plus F3 as the only body float; schema table, F1, similarity table, F2, the token test, the harness note, the comment-stripping companion values and the scratchpad channel are in the appendix after the references. `\TODO` is the no-op form (2026-09-11) — see "Before submitting". |
+| `refs.bib` | 28 entries, built **only** from `lit/01-verified-bibliography.md`. |
 | `neurips_2026.sty` | Official style file, from `media.neurips.cc/Conferences/NeurIPS2026/Formatting_Instructions_For_NeurIPS_2026.zip` (fetched 2026-09-09, HTTP 200). Unmodified. |
 | `checklist-reference.tex` | The template's checklist, kept for reference. **Not** `\input` by `main.tex` — workshops do not require it. |
 | `fig/` | F1 (`\input` as a table), F2 and F3 (PDFs). Regenerate with `experiments/apps/figures.py`; do not hand-edit. |
@@ -44,39 +48,36 @@ before the style file. Numeric is NeurIPS house style, it is far tighter than au
 at 4 pages, and it stops the two entries whose authors `lit/01` never recorded from
 rendering inline as "leg [2026]" and "len [2026]".
 
-**3. ⚠️ THE BINDING CONSTRAINT: ~5.5 content pages against a hard 4 — and §1 is unwritten.**
-Measured 2026-09-10 with §2–§5 drafted: 7 pages total, references starting on page 7.
-`PLAN.md` §5's cut order (CoT paragraph → character-n-gram row → fifth agentic setting)
-is worth well under half a page and **will not close this**. The gap needs editorial
-decisions, and the honest framing is that a 4-page workshop paper cannot carry a 9-page
-paper's content. The levers, largest first:
-
-| Lever | Saves | Cost |
-|---|---|---|
-| **Move F1 (Table 2, 14 rows) to supplementary** | ~0.6 pp | EvoRobust allows unlimited supplementary. F1 is a lookup table, not an argument — the two rows that matter (0.4726 → 0.806) can live in prose. **Recommended first cut.** |
-| **Fold the schema table into a sentence** | ~0.25 pp | It is the thesis in one table, but the thesis also fits in one sentence. |
-| **Drop F2 or F3** | ~0.5 pp each | Painful. F3 is the headline comparison; F2 is the negative control and the only evidence a floor is not automatic. Prefer cutting F1 twice over cutting either of these. |
-| **Cut §5 Limitations to three items** | ~0.3 pp | Already condensed once from seven to three paragraphs. |
-| **Cut the CoT paragraph** | ~0.1 pp | `PLAN.md` §5's first cut; it is now six lines, so it buys little. |
-
-Deciding this is not a formatting question and it is not mine to settle. **Do it before
-writing §1**, or §1 gets written twice.
+**3. ⚠️ THE BINDING CONSTRAINT: the body is at exactly four pages with no slack.**
+The cut plan in `notes/06` §5.1 was applied 2026-09-11 (F1, F2, the schema and similarity
+tables, the token test and the scratchpad channel moved to the appendix; §1 written; Gate S
+block, byline, harness and Limitations compressed; F3 at `0.70\linewidth` is the one body
+float). Measured after that: 8 pages total, References heading on the first line of page 5.
+**Any sentence added to §1–§5 pushes Limitations onto page 5.** When the Gate S outcome
+sentence replaces the did-not-land paragraph (handoff §4.3) or the headline intervals go in
+(§4.4), cut an equal amount elsewhere and re-measure. If a float page appears, check that
+only F3 remains as a float in the body.
 
 ### Both tables are width-constrained; do not "tidy" the column specs
 
 The first build overflowed the 5.5in text block badly — F1 by ~104pt, with the rules
-running off the page edge. `figures.py:fig1_table` now emits a 4-column table (the Metric
-column is gone; rows are grouped under *AUROC* / *Pairwise accuracy* subheadings instead)
-with `p{}` columns tuned against two hard constraints:
+running off the page edge. `figures.py:fig1_table` now emits a 5-column table (the Metric
+column is gone; rows are grouped under *AUROC* / *Pairwise accuracy* subheadings instead;
+a *Prep.* column, added 2026-09-11, says per row whether comments were stripped, kept, or
+never read) with `p{}` columns tuned against these constraints:
 
 | Column | Width | Constraint |
 |---|---|---|
-| Protocol | `0.345` | must hold "Koran's exact split, comments stripped" on one line |
+| Protocol | `0.255` | ", comments stripped" moved to the Prep. column, so "Koran's exact split" fits; longer protocol names wrap |
 | Baseline | `0.225` | must hold `solution_passes_tests`, which is unbreakable |
+| Prep. | `0.090` | holds "stripped" / "kept" / "no code" on one line |
 | Against | `0.170` | absorbs the remaining slack; wraps freely |
 
-Narrowing either of the first two reintroduces an overfull box. The schema table in
-`main.tex` has the same problem and the same fix. **Current state: zero overfull boxes.**
+Narrowing Baseline reintroduces an overfull box. The schema table in `main.tex` (now in
+the appendix) has the same problem and the same fix. **Current state: zero overfull boxes.**
+F1's pairwise rows carry the comment-stripped values from `RESULTS.md` §6 with the earlier
+comments-kept values beside them labelled "inflated by the comment channel"; pairwise
+accuracies are three decimals, AUROCs four.
 
 **3. Every load-bearing number is a macro, defined once at the top of `main.tex`.**
 Do not hardcode a number inline. This is not tidiness: this project's recurring failure is
@@ -91,16 +92,24 @@ impossible to cross by accident:
 
 ## Before submitting
 
-- [ ] Uncomment the `\renewcommand{\TODO}[1]{}` line so markers stop rendering.
+- [x] ~~Uncomment the `\renewcommand{\TODO}[1]{}` line so markers stop rendering.~~ **Done
+      2026-09-11**, after verifying by grep that the five citation keys that used to live only
+      inside `\TODO{}` blocks are cited in §1's prose. No `\TODO{}` remains in the source.
+- [ ] Gate S placeholders: `\sameGenS`, `\sameGenN`, `\sameGenLo`, `\sameGenHi`, `\sameGenRho`,
+      `\monitorS` are defined as a visible red **TBD** and are not used anywhere in the body while
+      the did-not-land paragraph (notes/06 §5.3) is the active §3 text. Either fill them and swap
+      in the outcome sentence, or leave the paragraph; never ship a TBD (grep the PDF text).
 - [x] ~~Complete the bibliography.~~ **Done 2026-09-10.** All 27 entries verified against the arXiv
       API in one query (HTTP 200, 16/16 entries — not a throttled stub, per R3). **Six of `lit/01`'s
       partial records were wrong, not merely incomplete**; see the CORRECTIONS block atop `refs.bib`.
       Control Tax is a *2025* paper with a longer title; `2607.09786`'s author is Bryce Little, where
       `lit/01` recorded none — for the paper we credit with owning the scratchpad-regex instrument;
       and AICD's "Paul" and "Wang" are first names, so "Paul et al." would have been wrong.
-- [ ] Confirm the content body is within 4 pages.
-- [ ] Gate S: either fill the Results paragraph and update `\baselineB`, or delete that
-      paragraph and take route 4 (`PLAN.md` §3) — the Limitations `\TODO` for it is
-      already written.
+- [ ] Confirm the content body is within 4 pages (it is exactly 4 as of 2026-09-11; re-check
+      after every edit to §1–§5).
+- [ ] Gate S: the did-not-land paragraph stands in §3 and Limitations says the authorship
+      reading is inference. If a readable S lands, replace per handoff §4.3 and cut elsewhere.
+- [ ] Release sentence in §4 reads "Ours will be released under MIT"; replace with the
+      sentence from `notes/07-release.md` once the bundle exists.
 - [ ] Author block stays anonymous. The style file suppresses it, but do not paste real
       names in and rely on that.

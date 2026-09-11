@@ -143,29 +143,61 @@ def fig2_corpora():
           "nulls 0.480-0.512. shade and iac rest on 5 task groups each.")
 
 
+# Columns: protocol, baseline, metric, value, preprocessing, against.
+#
+# Preprocessing is a column of its own (2026-09-11) because the paper's thesis is about the
+# comment channel and the table must say, row by row, whether that channel was open:
+#   "stripped"  comments removed before the baseline read the code (Koran/Jha protocol)
+#   "kept"      comments present. The DSPy matched pairwise rows and the raw-artifact length
+#               row were measured this way (matched.py / exact.py never call strip_comments;
+#               notes/06 §0.3, §1.2) and the table says so instead of hiding it.
+#   "no code"   the baseline never reads the program, so preprocessing is moot.
+#
+# Pairwise accuracies are THREE decimals (fig/CAPTIONS.md): resolution over 2,641 pairs is
+# 1/2,641 = 0.00038, so a fourth decimal is a single pair and moved by one pair between
+# machines (REPRODUCED.md). AUROCs keep four.
 F1_ROWS = [
-    ("Koran's exact split, comments stripped", "TF-IDF word 1--2gram", "AUROC", "0.8063",
+    ("Koran's exact split", "TF-IDF word 1--2gram", "AUROC", "0.8063", "stripped",
      "above 20 of 24"),
-    ("\\quad same, comments kept", "TF-IDF word 1--2gram", "AUROC", "0.8914", "above 22 of 24"),
+    ("\\quad same", "TF-IDF word 1--2gram", "AUROC", "0.8914", "kept", "above 22 of 24"),
     # 0.7715 is the 5x5 CV value and it clears 20, not 18. The "above 18" count belongs to
     # the 0.7163 held-out slice (see NOCODE_HELDOUT above and fig/CAPTIONS.md). Pairing them
     # is R18's companion error committed against ourselves; it shipped in this table once.
     ("\\quad same, reads no code", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
-     "0.7715 $\\pm$ 0.0389", "above 20 of 24"),
+     "0.7715 $\\pm$ 0.0389", "no code", "above 20 of 24"),
     ("\\quad same, held-out slice", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
-     "0.7163", "above 18 of 24"),
-    ("\\quad same", "code length only", "AUROC", "0.4726", "chance"),
-    ("\\quad same", "\\#-count detector", "AUROC", "0.4983", "chance (0.6957 unstripped)"),
-    ("Raw artifact, problem level", "all metadata", "AUROC", "0.8917", "---"),
-    ("\\quad same", "difficulty only", "AUROC", "0.6823", "---"),
-    ("\\quad same", "\\texttt{solution\\_passes\\_tests}", "AUROC", "0.7881", "---"),
-    ("Matched pairs (P3)", "all metadata", "AUROC", "0.5000", "exactly chance by construction"),
-    ("DSPy matched, problem-disjoint", "TF-IDF word 1--2gram", "pairwise", "0.9621",
+     "0.7163", "no code", "above 18 of 24"),
+    ("\\quad same", "code length only", "AUROC", "0.4726", "stripped", "chance"),
+    ("\\quad same", "\\#-count detector", "AUROC", "0.4983", "stripped", "chance"),
+    ("\\quad same", "\\#-count detector", "AUROC", "0.6957", "kept", "---"),
+    ("Raw artifact, problem level", "all metadata", "AUROC", "0.8917", "no code", "---"),
+    ("\\quad same", "difficulty only", "AUROC", "0.6823", "no code", "---"),
+    ("\\quad same", "\\texttt{solution\\_passes\\_tests}", "AUROC", "0.7881", "no code", "---"),
+    ("Matched pairs (P3)", "all metadata", "AUROC", "0.5000", "no code",
+     "exactly chance by construction"),
+    # RESULTS.md §6 (2026-09-11): the matched protocol re-measured with comments stripped from
+    # both classes, mean over five problem-disjoint splits. The paper reports the stripped rows;
+    # the comments-kept rows are the earlier values, kept here labelled as what they are.
+    ("DSPy matched, problem-disjoint", "TF-IDF word 1--2gram", "pairwise", "0.897", "stripped",
      "tutorial monitor 0.69--0.81"),
-    ("\\quad working backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.9787", "---"),
-    ("\\quad \\textbf{inert} backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.9543",
-     "the signal is not sabotage"),
-    ("\\quad same", "code length only", "pairwise", "0.8255", "and 0.4726 once filtered"),
+    ("\\quad working backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.935", "stripped",
+     "---"),
+    ("\\quad \\textbf{inert} backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.879",
+     "stripped", "the signal is not sabotage"),
+    ("\\quad transfer, Control Tax $\\rightarrow$ GPT-4-era set", "TF-IDF word 1--2gram",
+     "pairwise", "0.969", "stripped", "---"),
+    ("\\quad all pairs, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.962", "kept",
+     "inflated by the comment channel"),
+    ("\\quad working, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.979", "kept",
+     "inflated by the comment channel"),
+    ("\\quad inert, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.955", "kept",
+     "inflated by the comment channel"),
+    ("\\quad transfer, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.994", "kept",
+     "inflated by the comment channel"),
+    # This row used to read "0.8255 | and 0.4726 once filtered": a pairwise accuracy with an
+    # AUROC from another split in its Against cell, under the pairwise heading. The 0.4726
+    # contrast lives in the AUROC block above, where it belongs; this row stands alone.
+    ("\\quad same, raw artifact", "code length only", "pairwise", "0.826", "kept", "---"),
 ]
 
 
@@ -187,42 +219,50 @@ def fig1_table():
 
     def body(rows):
         # drop the metric cell (index 2); it is carried by the group heading now
-        return [" & ".join((r[0], r[1], r[3], r[4])) + " \\\\" for r in rows]
+        return [" & ".join((r[0], r[1], r[3], r[4], r[5])) + " \\\\" for r in rows]
 
-    # Widths tuned against the actual 5.5in block, and both constraints are tight:
-    #   col 1 must hold "Koran's exact split, comments stripped" on one line, else
-    #          "stripped" orphans onto a second;
+    # Widths tuned against the actual 5.5in block. Five columns now (preprocessing added
+    # 2026-09-11); the p{} widths still sum to 0.740\linewidth as they did with four, and
+    # the extra column pair of \tabcolsep is what the tighter Against column pays for:
+    #   col 1 no longer has to hold ", comments stripped" - that moved to the new column -
+    #          so "Koran's exact split" fits at 0.255 with room; longer protocol names wrap;
     #   col 2 must hold \texttt{solution_passes_tests}, which is unbreakable and was
-    #          7.7pt too wide at 0.205. The slack comes out of col 4, which wraps freely.
+    #          7.7pt too wide at 0.205. Do not narrow it;
+    #   col 4 (preprocessing) holds "stripped" / "kept" / "no code" on one line at 0.090;
+    #   col 5 (against) wraps freely and takes the remaining slack.
     col = ("@{}"
-           ">{\\raggedright\\arraybackslash}p{0.345\\linewidth}"
+           ">{\\raggedright\\arraybackslash}p{0.255\\linewidth}"
            ">{\\raggedright\\arraybackslash}p{0.225\\linewidth}"
            "r"
+           ">{\\raggedright\\arraybackslash}p{0.090\\linewidth}"
            ">{\\raggedright\\arraybackslash}p{0.170\\linewidth}"
            "@{}")
 
     lines = [
         "% F1 - generated by experiments/apps/figures.py, do not hand-edit",
-        "\\begin{table}[t]\\centering\\footnotesize",
+        "\\begin{table}[h]\\centering\\footnotesize",
         "\\setlength{\\tabcolsep}{4pt}",
         "\\caption{What the field's preprocessing leaves behind. Every row is measured under the "
-        "protocol named in column one; rows are not comparable across protocols.}",
+        "protocol named in column one; rows are not comparable across protocols. "
+        "\\emph{Prep.} says whether comments were stripped before the baseline read the code; "
+        "\\emph{no code} means the baseline never reads the program. Pairwise accuracies are "
+        "given to three decimals, their resolution over the pair count.}",
         "\\label{tab:protocol-baseline}",
         "\\begin{tabular}{" + col + "}",
         "\\toprule",
-        "Protocol & Baseline & Value & Against \\\\",
+        "Protocol & Baseline & Value & Prep. & Against \\\\",
         "\\midrule",
-        "\\multicolumn{4}{@{}l}{\\emph{AUROC}} \\\\",
+        "\\multicolumn{5}{@{}l}{\\emph{AUROC}} \\\\",
     ]
     lines += body(auroc)
     lines += ["\\addlinespace",
-              "\\multicolumn{4}{@{}l}{\\emph{Pairwise accuracy}} \\\\"]
+              "\\multicolumn{5}{@{}l}{\\emph{Pairwise accuracy}} \\\\"]
     lines += body(pairw)
     lines += ["\\bottomrule", "\\end{tabular}", "\\end{table}"]
     with open(f"{OUT}/f1-protocol-baseline.tex", "w") as fh:
         fh.write("\n".join(lines) + "\n")
     print(f"F1: {len(F1_ROWS)} rows ({len(auroc)} AUROC, {len(pairw)} pairwise), "
-          f"4 columns, sized to fit a 5.5in text block")
+          f"5 columns, sized to fit a 5.5in text block")
 
 
 if __name__ == "__main__":
