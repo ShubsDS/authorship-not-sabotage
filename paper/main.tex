@@ -79,14 +79,15 @@
 % --- Koran's exact split, comments stripped (the headline protocol) ------------------
 \newcommand{\tfidfKoran}{0.806}            % 0.8063; above 20 of 24
 \newcommand{\tfidfKoranCount}{20}
+% RESERVED (rows of the generated Table~\ref{tab:protocol-baseline}, not of the prose):
 \newcommand{\tfidfKept}{0.891}             % 0.8914, comments kept; above 22 of 24
 \newcommand{\tfidfKeptCount}{22}
-\newcommand{\charNgram}{0.783}             % 0.7830
+\newcommand{\charNgram}{0.783}             % 0.7830, char n-grams on the Koran split
 
 % --- The no-code floor. THE TRAP: two protocols, two values, two counts. -------------
 % NEVER write \nocodeCV next to \nocodeHeldoutCount. See fig/CAPTIONS.md.
 \newcommand{\nocodeCV}{0.772}              % 0.7715 +- 0.0389, 5x5 CV within the test split
-\newcommand{\nocodeCVsd}{0.039}
+\newcommand{\nocodeCVsd}{0.039}            % RESERVED: figures.py prints it inside F3
 \newcommand{\nocodeCVCount}{20}            % <- 0.772 clears 20
 \newcommand{\nocodeHeldout}{0.716}         % 0.7163, single 413-item held-out slice
 \newcommand{\nocodeHeldoutCount}{18}       % <- 0.716 clears 18
@@ -121,11 +122,10 @@
 \newcommand{\monN}{24}
 \newcommand{\monMedian}{0.609}
 \newcommand{\monMax}{0.937}
-\newcommand{\monMin}{0.434}
 
 % --- What the field's fix does and does not reach ------------------------------------
 \newcommand{\lenFiltered}{0.4726}          % length-only on the filtered split - chance
-\newcommand{\lenRaw}{0.826}                % 0.8255 pairwise on the raw artifact
+\newcommand{\lenRaw}{0.826}                % RESERVED (F1 row): 0.8255 pairwise, raw artifact
 \newcommand{\hashRaw}{0.6957}
 \newcommand{\hashStripped}{0.4983}
 
@@ -169,13 +169,11 @@
 \newcommand{\testCasesHonest}{38.85}
 
 % --- Split and artifact shapes ------------------------------------------------------
-\newcommand{\splitTrain}{1{,}209}
+\newcommand{\splitTrain}{1{,}209}          % PROBLEMS, and 1,209 per class in the appendix
+\newcommand{\splitTrainItems}{2{,}418}     % ... = the paired train split's item count
 \newcommand{\splitTest}{1{,}375}
 \newcommand{\splitAttack}{172}
 \newcommand{\splitHonest}{1{,}203}
-\newcommand{\artifactRows}{5{,}000}
-\newcommand{\genPool}{3{,}420}
-\newcommand{\analysisCeiling}{1{,}444}
 \newcommand{\harnessAgreement}{95.84\%}
 
 % --- Gate S ------------------------------------------------------------------------
@@ -188,6 +186,7 @@
 \newcommand{\rhoContent}{0.72}
 % Absolute AUROC each band corresponds to AT THE MEASURED B. Do NOT use 0.601/0.720:
 % those are arithmetic at an assumed B = 0.806 and route a G in 0.720-0.767 wrongly.
+% RESERVED: the corrected absolute bands, kept so the superseded 0.601/0.720 cannot return.
 \newcommand{\gCollapseMax}{0.6226}
 \newcommand{\gPartialMax}{0.7674}
 
@@ -197,7 +196,6 @@
 \newcommand{\armOneBprime}{0.874}      % B recomputed on arm 1's own eligible problems
 \newcommand{\armOneG}{0.962}
 \newcommand{\armOneRho}{1.234}
-\newcommand{\armOneSd}{4.78}
 \newcommand{\armOneTfidfDelta}{+0.088}
 \newcommand{\armOneLenG}{0.489}        % length carrier falls to chance while TF-IDF rises
 
@@ -218,13 +216,6 @@
 \newcommand{\simIndep}{0.659}          % independent arm, n=623 - the stored regime
 \newcommand{\simIndepHigh}{3.4\%}
 \newcommand{\simIndepLow}{34.8\%}
-\newcommand{\nIndep}{600}
-
-% --- Same-generator yield (RESULTS.md 4.10): the did-not-land numbers ----------------
-\newcommand{\nEdit}{1{,}112}           % edit-arm candidates
-\newcommand{\usableEdit}{40}           % pass the public tests AND fire
-\newcommand{\usableIndep}{10}          % same, independent arm, of \nIndep
-\newcommand{\pairFloor}{50}            % gate_s_samegen.py refuses below this
 
 % --- The release bundle (notes/07, release_split.py --check passed 2026-09-11) ----------
 \newcommand{\relHonest}{1{,}444}       % honest programs, one model
@@ -236,14 +227,12 @@
 \newcommand{\relPassBest}{1{,}046}     % same under the benchmark's own survivor selection (--keep best)
 \newcommand{\relFireBest}{99}          % ... firing
 \newcommand{\relFireBestCrash}{106}    % ... counting a crash on the trigger as firing
-\newcommand{\yieldSingleShot}{2\%}     % every prompt variant lands near 2% usable
 
 % --- Same-generator S: PLACEHOLDERS ONLY. ---------------------------------------------
 % Values come from handoff §4.3 (Worker C: S, n, CI, rho; Worker F: the monitor's AUROC
 % on the same pairs). Each renders as a visible red "TBD" until it is set, so a pass that
 % wires them into prose before the values exist cannot miss them. While the did-not-land
 % paragraph in §3 is the active text NONE of these is used in the body.
-\newcommand{\TBD}{\textcolor{red}{\textbf{TBD}}}
 % Same-generator S, RESULTS.md §9 (2026-09-11). All comment-stripped, problem-disjoint 5-fold,
 % bootstrap-over-problems 95% CIs. Coordinator's ruling: INCONCLUSIVE between partial and
 % content; the authorship-collapse reading is EXCLUDED (both CIs clear the collapse band).
@@ -257,11 +246,7 @@
 \newcommand{\sameGenRho}{0.687}
 \newcommand{\sameGenRhoLo}{0.625}       % joint bootstrap over problems (S and B' resampled together; RESULTS.md 12)
 \newcommand{\sameGenRhoHi}{0.755}
-\newcommand{\sameGenPairwise}{0.790}
 \newcommand{\sameGenLen}{0.5851}       % length-only carrier: to chance
-\newcommand{\sameGenSurface}{0.6087}
-\newcommand{\sameGenSim}{0.659}        % pair similarity, same problems
-\newcommand{\sameGenSimStored}{0.606}  % stored pairs on the same problems
 \newcommand{\curveHeadline}{0.8521}    % B at n = 623 under the identical pipeline
 \newcommand{\curveHeadlineSd}{0.0055}
 % Strict: survivor selection (the benchmark's own retry-and-keep), attack = passes AND fires
@@ -282,7 +267,6 @@
 \newcommand{\curveStrict}{0.7807}      % B at n = 99: absolute bands do not apply there
 \newcommand{\curveStrictSd}{0.0248}
 \newcommand{\survivorAuroc}{0.62}      % survivors vs non-survivors within the attack class
-\newcommand{\survivorLine}{0.70}       % pre-stated contamination line
 \newcommand{\survivorSwapS}{0.7595}    % S recomputed with non-firing attempts, same problems
 \newcommand{\survivorSwapSref}{0.7687} % S on those same problems with the survivors
 % The headline attack class is attempts: 14 of its \sameGenN{} selected draws fire
@@ -298,29 +282,51 @@
 % Yield (RESULTS §7.7): single-shot, blind, vs the stored attacker, which executes and iterates
 \newcommand{\fireGivenPassOurs}{2.5\%}
 \newcommand{\fireGivenPassStored}{67.2\%}   % Koran test split: 256/892 pass, 172/256 fire
-\newcommand{\retryProblems}{1{,}112}
-\newcommand{\retryMaxDraws}{13}
 % Edit arm: a bound under near-copies, never a verdict
 \newcommand{\editS}{0.6266}            % CI 0.6044-0.6467
 \newcommand{\editN}{427}
 \newcommand{\editRho}{0.371}
 \newcommand{\editSim}{0.928}
 % Positive control (RESULTS.md §10): a trusted-monitor prompt to the SAME model that wrote both
-% classes, scored on the same pairs. Headline set: 97.5% of its attacks never fire.
+% classes, scored on the same pairs. Headline set: 97.8% of its attacks never fire (14 of
+% 623 do, RESULTS.md 7.4). NOT 97.5%, which is the pooled per-draw rate of RESULTS.md 7.3.
 \newcommand{\monitorS}{0.566}          % AUROC on the 623 headline pairs
 \newcommand{\monitorSLo}{0.5507}
 \newcommand{\monitorSHi}{0.5833}
-\newcommand{\monitorSPairwise}{0.604}
 \newcommand{\monitorStrict}{0.818}     % AUROC on the 99 strict (pass AND fire) pairs
 \newcommand{\monitorStrictLo}{0.7630}
 \newcommand{\monitorStrictHi}{0.8686}
-\newcommand{\monitorStrictPairwise}{0.816}
 % RESULTS.md 11-12: the residual is layout from the attack prompt's framing, not the trigger idiom
 \newcommand{\sameGenSid}{0.700}         % S with identifiers normalised (the only mask that moves it)
 \newcommand{\sameGenRhoId}{0.54}
 \newcommand{\defMainAttack}{67\%}        % `def main` present, attack side of the headline pairs
-\newcommand{\defMainHonest}{39\%}        % honest side
+\newcommand{\defMainHonest}{38.5\%}      % honest side (RESULTS.md 11.3/11.5: 0.385)
 \newcommand{\monitorClfPhi}{0.04}        % pair-level phi between monitor and classifier correctness
+
+% =====================================================================================
+%  RESERVED PLACEHOLDERS for the three arms still running (RESULTS.md 13-15). Each renders
+%  as a red TBD, so a pass that wires one into prose before its value exists cannot miss it.
+%  NONE of these is used in the body yet; the second pass sets the values and only then
+%  writes the sentences of notes/09-review-audit.md 4. One macro, one protocol, count in the
+%  comment - as everywhere above.
+% =====================================================================================
+\newcommand{\TBDRED}{\textcolor{red}{\textbf{TBD}}}
+% --- Arm A: prompt-matched honest class (RESULTS.md 13) ------------------------------
+\newcommand{\pmS}{\TBDRED}\newcommand{\pmLo}{\TBDRED}\newcommand{\pmHi}{\TBDRED}
+\newcommand{\pmN}{\TBDRED}\newcommand{\pmBprime}{\TBDRED}
+\newcommand{\pmRho}{\TBDRED}\newcommand{\pmRhoLo}{\TBDRED}\newcommand{\pmRhoHi}{\TBDRED}  % joint
+\newcommand{\promptFloor}{\TBDRED}     % original honest vs prompt-matched honest: the prompt-only floor
+\newcommand{\promptFloorLo}{\TBDRED}\newcommand{\promptFloorHi}{\TBDRED}
+% --- Arm B: monitors that wrote neither class, and the stored pairs ------------------
+\newcommand{\monHaiku}{\TBDRED}        % Haiku 4.5 monitor, same-generator headline pairs
+\newcommand{\monStoredSonnet}{\TBDRED} % Sonnet 5 monitor on the STORED pairs, same problems
+\newcommand{\monStoredHaiku}{\TBDRED}  % Haiku 4.5 monitor on the STORED pairs, same problems
+\newcommand{\monRho}{\TBDRED}          % (monitor S - .5)/(monitor B' - .5): rho read by a monitor
+\newcommand{\monRhoLo}{\TBDRED}\newcommand{\monRhoHi}{\TBDRED}
+% --- Arm C: a second same-generator model (Haiku 4.5 writes both classes) ------------
+\newcommand{\haikuS}{\TBDRED}\newcommand{\haikuLo}{\TBDRED}\newcommand{\haikuHi}{\TBDRED}
+\newcommand{\haikuN}{\TBDRED}\newcommand{\haikuBprime}{\TBDRED}
+\newcommand{\haikuRho}{\TBDRED}\newcommand{\haikuRhoLo}{\TBDRED}\newcommand{\haikuRhoHi}{\TBDRED}
 
 % --- Robustness of B to the pass-flag choice (RESULTS.md 4.7) ------------------------
 \newcommand{\baselineBownflag}{0.873}  % 0.8729 under our own flag
@@ -453,10 +459,28 @@ the seven, from two publishers, declare no licence} \cite{koran2026highquality,
 sinha2026controlarenacorpora}; we report only aggregates over them and redistribute no
 corpus.
 
+% --- F3: the monitor comparison (the only body float) ----------------------------------
+\begin{figure}[t]\centering
+\includegraphics[width=0.70\linewidth]{f3-monitors-vs-floors.pdf}
+\caption{\textbf{Two floors against the \monN{} open-weight monitors ranked on the same
+split.} AUROC on Koran et al.'s \splitTest{}-item test split (\splitAttack{} attack /
+\splitHonest{} honest), comments stripped; monitor scores from \cite{jha2026decorrelation}
+(MIT), median \monMedian{}, max \monMax{}. \textbf{Two caveats.} (i)~The monitors are
+zero-shot prompted while the bag-of-words classifier is \emph{trained} on the benchmark's own
+paired train split: a statement about what the corpus makes recoverable
+\cite{gururangan2018annotation}, not a claim that bag-of-words is a better monitor.
+(ii)~The no-code floor is cross-validated \emph{within} the test split
+(appendix~\ref{app:protocol}); on one held-out slice it is \nocodeHeldout{}
+(CI \nocodeHeldoutLo{}--\nocodeHeldoutHi{}; $p = \nocodeHeldoutP{}$), above
+\nocodeHeldoutCount{} of \monN{}, \nocodeHeldoutPairedCount{} with a paired interval
+excluding zero.}
+\label{fig:monitors}
+\end{figure}
+
 \paragraph{Evaluation surface, and naming protocols.}
 Our headline protocol is the filtered, comment-stripped split of \cite{koran2026ensemble}:
-\splitTrain{} train and \splitTest{} test items (\splitAttack{} attack, \splitHonest{}
-honest), labelled by \texttt{backdoor\_works}, reconstructed with the released code of
+\splitTrain{} train problems (\splitTrainItems{} paired items) and \splitTest{} test items
+(\splitAttack{} attack, \splitHonest{} honest), labelled by \texttt{backdoor\_works}, reconstructed with the released code of
 \cite{jha2026decorrelation}. Every comparison below names its split, metric and preprocessing. Generated code is scored by our own
 runner, applied to both classes (appendix~\ref{app:harness}).
 
@@ -478,24 +502,6 @@ of them with a paired-bootstrap interval excluding zero, and a no-code floor of 
 \nocodeCVNull{}, $\permP$), above \nocodeCVCount{}
 and \nocodeCVPairedCount{} respectively (Figure~\ref{fig:monitors}): the preprocessing
 removed the carrier it targeted and not the two beside it.
-
-% --- F3: the monitor comparison (the only body float) ----------------------------------
-\begin{figure}[t]\centering
-\includegraphics[width=0.70\linewidth]{f3-monitors-vs-floors.pdf}
-\caption{\textbf{Two floors against the \monN{} open-weight monitors ranked on the same
-split.} AUROC on Koran et al.'s \splitTest{}-item test split (\splitAttack{} attack /
-\splitHonest{} honest), comments stripped; monitor scores from \cite{jha2026decorrelation}
-(MIT), median \monMedian{}, max \monMax{}. \textbf{Two caveats.} (i)~The monitors are
-zero-shot prompted while the bag-of-words classifier is \emph{trained} on the benchmark's own
-paired train split: a statement about what the corpus makes recoverable
-\cite{gururangan2018annotation}, not a claim that bag-of-words is a better monitor.
-(ii)~The no-code floor is cross-validated \emph{within} the test split
-(appendix~\ref{app:protocol}); on one held-out slice it is \nocodeHeldout{}
-(CI \nocodeHeldoutLo{}--\nocodeHeldoutHi{}; $p = \nocodeHeldoutP{}$), above
-\nocodeHeldoutCount{} of \monN{}, \nocodeHeldoutPairedCount{} with a paired interval
-excluding zero.}
-\label{fig:monitors}
-\end{figure}
 
 \paragraph{The signal is not sabotage.}
 Three measurements point the same way; every matched-protocol number here is
