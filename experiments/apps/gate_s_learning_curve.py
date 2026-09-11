@@ -159,13 +159,18 @@ def main() -> None:
     ap.add_argument("--out", default="gate_s_learning_curve.json")
     args = ap.parse_args()
 
+    # Read the arm first, so S's own n becomes a grid point rather than a nearest-neighbour.
+    sg = json.load(open(args.match_problems)) if args.match_problems else None
+    s_n = (sg.get("n_same_generator_pairs", sg["S"]["n_pairs"]) if sg else None)
+
     pairs = load_pool(args.human_pass_file)
     N = len(pairs)
     print(f"\nB pool: {N} pairs")
     if N < 50:
         raise SystemExit(f"only {N} eligible pairs")
 
-    grid = sorted({int(x) for x in args.grid.split(",") if x.strip()} | {N})
+    grid = sorted({int(x) for x in args.grid.split(",") if x.strip()} | {N}
+                  | ({s_n} if s_n else set()))
     grid = [n for n in grid if n <= N]
     print(f"grid {grid}, {args.draws} draws per n (seed {args.seed}), "
           f"{args.boot} bootstrap resamples per fit\n")
@@ -178,13 +183,11 @@ def main() -> None:
            "points": points, "full_pool_auroc": full["auroc_mean"]}
 
     # ---- matched to a same-generator arm -------------------------------------------------
-    s_n = s_auroc = s_ci = None
+    s_auroc = s_ci = None
     matched = None
-    if args.match_problems:
-        sg = json.load(open(args.match_problems))
+    if sg is not None:
         s_auroc = sg["S"]["auroc"]
         s_ci = sg["S"].get("auroc_ci95_boot")
-        s_n = sg.get("n_same_generator_pairs", sg["S"]["n_pairs"])
         out["samegen"] = {"file": args.match_problems, "tag": sg.get("tag"),
                           "arm": sg.get("arm"), "eligibility": sg.get("eligibility"),
                           "S_auroc": s_auroc, "S_ci95": s_ci, "S_n": s_n,
@@ -199,6 +202,12 @@ def main() -> None:
                 print("  B restricted to EXACTLY those problems (1 fit, no subsampling):")
                 matched = evaluate(sub.reset_index(drop=True), "B  same problems as S")
                 out["b_on_s_problems"] = matched
+                if sg.get("eligibility") == "passes" and \
+                        sg.get("b_prime_attack_rule", "").startswith("passes ("):
+                    print("  NOTE: this B is the B POOL restricted to S's problems, so its attack "
+                          "side is\n        all-firing. S's own arm was scored against an "
+                          "inert-inclusive B' (--bprime-inert).\n        Quote that B' for the "
+                          "`passes` headline; this row is the all-firing comparator.")
             else:
                 print(f"  only {len(sub)} of S's problems survive the B pool filter "
                       f"(working stored backdoor + passing human honest + deterministic); "

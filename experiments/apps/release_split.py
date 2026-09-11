@@ -265,6 +265,12 @@ def read_jsonl(path: str) -> list[dict]:
     return out
 
 
+def grouped(vals: dict) -> dict:
+    """Thousands separators for the card. 1,444 reads as a count; 1444 reads as an id."""
+    return {k: (f"{v:,}" if isinstance(v, int) and not isinstance(v, bool) else v)
+            for k, v in vals.items()}
+
+
 def sha256_file(path: str) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as fh:
@@ -488,10 +494,11 @@ def build(args) -> int:
         "pairs_usable_ind": sum(a == "independent" for _, a in pairs_usable),
     }
     built = args.build_date or _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%d")
-    card_vals = {**LEDGER, **counts, "model": model, "generated": args.generation_date,
-                 "agreement": args.agreement, "built": built,
-                 "pairs_passes_total": len(pairs_passes),
-                 "pairs_usable_total": len(pairs_usable)}
+    card_vals = grouped({**LEDGER, **counts, "model": model,
+                         "generated": args.generation_date,
+                         "agreement": args.agreement, "built": built,
+                         "pairs_passes_total": len(pairs_passes),
+                         "pairs_usable_total": len(pairs_usable)})
     card = CARD_TEMPLATE.format(**card_vals)
     scrub(card, "README.md")
     with open(os.path.join(out, "README.md"), "w") as fh:
@@ -726,7 +733,8 @@ def check(args) -> int:
     if os.path.exists(card_p):
         card = open(card_p).read()
         for k in ("honest_total", "honest_pass", "ind_usable"):
-            if str(manifest["counts"][k]) not in card:
+            v = manifest["counts"][k]
+            if str(v) not in card and f"{v:,}" not in card:
                 warns.append(f"README.md does not mention counts.{k} "
                              f"({manifest['counts'][k]}); regenerate the card from the manifest")
 
@@ -739,8 +747,10 @@ def check(args) -> int:
         if len(errs) > 40:
             print(f"  ... and {len(errs) - 40} more")
         return 1
-    print(f"\nOK: {out}/ is internally consistent, anonymised, and redistributes no upstream code"
-          + (f"  ({len(warns)} warning(s))" if warns else ""))
+    tail = ("and redistributes no upstream code" if upstream is not None
+            else "with the upstream-code check SKIPPED (see the warning)")
+    print(f"\nOK: {out}/ is internally consistent, anonymised, {tail}"
+          + (f"  [{len(warns)} warning(s)]" if warns else ""))
     return 0
 
 
@@ -796,10 +806,12 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.render_card_only:
-        vals = {**LEDGER, "agreement": args.agreement,
-                "generated": args.generation_date,
-                "pairs_passes_total": LEDGER["pairs_passes_edit"] + LEDGER["pairs_passes_ind"],
-                "pairs_usable_total": LEDGER["pairs_usable_edit"] + LEDGER["pairs_usable_ind"]}
+        vals = grouped({**LEDGER, "agreement": args.agreement,
+                        "generated": args.generation_date,
+                        "pairs_passes_total": (LEDGER["pairs_passes_edit"]
+                                               + LEDGER["pairs_passes_ind"]),
+                        "pairs_usable_total": (LEDGER["pairs_usable_edit"]
+                                               + LEDGER["pairs_usable_ind"])})
         card = CARD_TEMPLATE.format(**vals)
         scrub(card, "the dataset card")
         if args.card_out:

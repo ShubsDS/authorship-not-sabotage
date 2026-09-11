@@ -385,6 +385,7 @@ def analyse(records: list, pairs: pd.DataFrame, n_boot: int = N_BOOT, seed: int 
     idx_by_pid = {p: [] for p in ordered}
     for i, p in enumerate(groups):
         idx_by_pid[p].append(i)
+    pos = {p: k for k, p in enumerate(complete)}
     boots_auc, boots_pair, n_degenerate = [], [], 0
     for _ in range(n_boot):
         draw = rng.randint(0, len(ordered), len(ordered))
@@ -394,7 +395,6 @@ def analyse(records: list, pairs: pd.DataFrame, n_boot: int = N_BOOT, seed: int 
             n_degenerate += 1
             continue
         boots_auc.append(_auroc(yb, sb))
-        pos = {p: k for k, p in enumerate(complete)}
         pdraw = [pos[ordered[d]] for d in draw if ordered[d] in pos]
         if pdraw:
             boots_pair.append(_pairwise(hs[pdraw], as_[pdraw])[0])
