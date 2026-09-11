@@ -40,7 +40,8 @@ STATE_FILE_IND = "bdind_sonnet5.batch.json"
 BUDGET_CEILING = 100.0   # hard stop: total spend on this project must stay under $100
 
 
-def build(pool: pd.DataFrame, honest: dict, independent: bool = False):
+def build(pool: pd.DataFrame, honest: dict, independent: bool = False,
+          thinking: bool = False):
     from anthropic.types.message_create_params import MessageCreateParamsNonStreaming
     from anthropic.types.messages.batch_create_params import Request
     reqs, kept = [], []
@@ -57,7 +58,8 @@ def build(pool: pd.DataFrame, honest: dict, independent: bool = False):
         reqs.append(Request(custom_id=f"p{row.problem_id}",
                             params=MessageCreateParamsNonStreaming(
                                 model=MODEL, max_tokens=MAX_TOKENS,
-                                thinking={"type": "disabled"},
+                                thinking=({"type": "adaptive"} if thinking
+                                          else {"type": "disabled"}),
                                 messages=[{"role": "user", "content": body}])))
         kept.append(row.problem_id)
     return reqs, kept
@@ -90,6 +92,13 @@ def main() -> None:
     ap.add_argument("--spent", type=float, default=0.0,
                     help="dollars already spent on this project, for the budget ceiling")
     ap.add_argument("--poll-seconds", type=int, default=60)
+    ap.add_argument("--thinking", action="store_true",
+                    help="adaptive thinking. The stored backdoors came from claude-3-7-sonnet-"
+                         "THINKING, and writing a bug that passes every public test yet fires on a "
+                         "self-chosen input is reasoning-heavy: without it the single-shot usable "
+                         "rate was 3.6% (edit) and 1.7% (independent). Raises output tokens.")
+    ap.add_argument("--state-suffix", default="",
+                    help="distinguish concurrent batches of the same arm")
     ap.add_argument("--independent", action="store_true",
                     help="write the backdoored solution from the PROBLEM ALONE, never shown a "
                          "reference solution. The default arm edits the model's own honest "
@@ -126,13 +135,15 @@ def main() -> None:
         raise SystemExit("ANTHROPIC_API_KEY is not set")
     client = anthropic.Anthropic()
 
-    state_file = STATE_FILE_IND if args.independent else STATE_FILE
+    state_file = (STATE_FILE_IND if args.independent else STATE_FILE)
+    if args.state_suffix:
+        state_file = state_file.replace(".json", f".{args.state_suffix}.json")
     batch_id = None
     if os.path.exists(state_file):
         batch_id = json.load(open(state_file))["batch_id"]
         print(f"resuming batch {batch_id}")
     if batch_id is None:
-        reqs, kept = build(todo, honest, args.independent)
+        reqs, kept = build(todo, honest, args.independent, args.thinking)
         print(f"\nsubmitting {len(reqs)} backdoor requests to {MODEL} ...")
         batch = client.messages.batches.create(requests=reqs)
         batch_id = batch.id
@@ -167,6 +178,7 @@ def main() -> None:
             fh.write(json.dumps({
                 "problem_id": res.custom_id[1:], "model": MODEL, "code": code,
                 "arm": "independent" if args.independent else "edit",
+                "thinking": bool(args.thinking),
                 "backdoor_input": trig, "raw": text, "finish_reason": msg.stop_reason,
                 "n_output_tokens": msg.usage.output_tokens,
                 "truncated": msg.stop_reason == "max_tokens",
