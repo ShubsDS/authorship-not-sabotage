@@ -99,8 +99,8 @@ impossible to cross by accident:
       `\monitorS` are defined as a visible red **TBD** and are not used anywhere in the body while
       the did-not-land paragraph (notes/06 §5.3) is the active §3 text. Either fill them and swap
       in the outcome sentence, or leave the paragraph; never ship a TBD (grep the PDF text).
-- [x] ~~Complete the bibliography.~~ **Done 2026-09-10.** All 27 entries verified against the arXiv
-      API in one query (HTTP 200, 16/16 entries — not a throttled stub, per R3). **Six of `lit/01`'s
+- [x] ~~Complete the bibliography.~~ **Done 2026-09-10.** All 28 entries verified against the arXiv
+      API in one query (HTTP 200, every arXiv-hosted entry returned — not a throttled stub, per R3). **Six of `lit/01`'s
       partial records were wrong, not merely incomplete**; see the CORRECTIONS block atop `refs.bib`.
       Control Tax is a *2025* paper with a longer title; `2607.09786`'s author is Bryce Little, where
       `lit/01` recorded none — for the paper we credit with owning the scratchpad-regex instrument;

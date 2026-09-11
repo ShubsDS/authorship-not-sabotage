@@ -217,6 +217,17 @@
 \newcommand{\usableEdit}{40}           % pass the public tests AND fire
 \newcommand{\usableIndep}{10}          % same, independent arm, of \nIndep
 \newcommand{\pairFloor}{50}            % gate_s_samegen.py refuses below this
+
+% --- The release bundle (notes/07, release_split.py --check passed 2026-09-11) ----------
+\newcommand{\relHonest}{1{,}444}       % honest programs, one model
+\newcommand{\relEdit}{1{,}112}         % edit-arm attack programs
+\newcommand{\relIndep}{1{,}112}        % independent-arm attack programs
+\newcommand{\relRetryDraws}{11{,}565}  % every draw of the independent arm's retry pool
+\newcommand{\relPassFirst}{623}        % independent-arm pairs passing, outcome-blind (--keep first)
+\newcommand{\relFireFirst}{14}         % ... and firing
+\newcommand{\relPassBest}{1{,}046}     % same under the benchmark's own survivor selection (--keep best)
+\newcommand{\relFireBest}{99}          % ... firing
+\newcommand{\relFireBestCrash}{106}    % ... counting a crash on the trigger as firing
 \newcommand{\yieldSingleShot}{2\%}     % every prompt variant lands near 2% usable
 
 % --- Same-generator S: PLACEHOLDERS ONLY. ---------------------------------------------
@@ -286,8 +297,8 @@ signal transfers across backdoor generators, is nearly as strong on inert backdo
 working ones, and survives the field's comment stripper. Five same-generator agentic settings, where no authorship confound is possible,
 carry a second, structural floor. Regenerating only
 the honest half does not isolate content: with an open-weight model writing honest
-solutions against the stored backdoors, separability \emph{rises}, because the substitute
-generator opens a larger authorship gap than it closes. Holding authorship constant
+solutions against the stored backdoors, separability \emph{rises}. Holding authorship
+constant
 requires one model to write both classes; we report that design and its single-shot
 yield, which shows how heavily the stored attack class has been filtered. We recommend that
 stored-pair evaluations report partial-input and bag-of-words floors against permutation
@@ -368,8 +379,7 @@ Our headline protocol is the filtered, comment-stripped split of \cite{koran2026
 \splitTrain{} train and \splitTest{} test items (\splitAttack{} attack, \splitHonest{}
 honest), labelled by \texttt{backdoor\_works}, reconstructed with the released code of
 \cite{jha2026decorrelation}. It is the surface on which \monN{}
-open-weight monitors have published per-item scores, which makes a floor comparable to a
-monitor. The raw artifact, this split, pooled evaluation, matched pairs and
+open-weight monitors have published per-item scores. The raw artifact, this split, pooled evaluation, matched pairs and
 within-task evaluation are five populations, and pairwise accuracy and AUROC two metrics;
 every comparison below names its split, metric and preprocessing, and no value is placed
 beside a count from another protocol. Generated code is scored by our own runner, which
@@ -383,8 +393,8 @@ analysis pool and is applied to both classes (appendix~\ref{app:harness}).
 % one body float.
 % =====================================================================================
 
-Table~\ref{tab:protocol-baseline} (appendix) reports what a deliberately trivial classifier
-recovers under each protocol. The fix works where it was aimed: code length is driven to
+Table~\ref{tab:protocol-baseline} (appendix) reports what a trivial classifier recovers under
+each protocol. The fix works: code length is driven to
 chance on the filtered split (\lenFiltered{}) and the \texttt{\#}-count detector falls from
 \hashRaw{} to \hashStripped{}. What it does not reach, on that same split, is a
 bag-of-words floor of \tfidfKoran{} (95\% CI \tfidfKoranLo{}--\tfidfKoranHi{} by bootstrap
@@ -423,7 +433,7 @@ authorship and $\rho > \rhoContent{}$ as content. With an open-weight model writ
 honest class against the same backdoors ($n = \armOneN{}$, $B' = \armOneBprime{}$ on those
 problems), separation \emph{rises} to $G = \armOneG{}$, $\rho = \armOneRho{}$, some
 \armOneSd{} standard deviations above $B'$; TF-IDF gains \armOneTfidfDelta{} while the
-length carrier collapses to \armOneLenG{}, near chance. The new gap is lexical, not
+length carrier collapses to \armOneLenG{}. The new gap is lexical, not
 structural: substituting the honest author replaced one authorship confound with a larger
 one, and any control that regenerates one side of a stored pair inherits the same defect.
 
@@ -459,9 +469,8 @@ routes on a bootstrap-over-problems interval.
 \includegraphics[width=0.70\linewidth]{f3-monitors-vs-floors.pdf}
 \caption{\textbf{Two floors against the \monN{} open-weight monitors ranked on the same
 split.} All values are AUROC on Koran et al.'s \splitTest{}-item test split
-(\splitAttack{} attack / \splitHonest{} honest), comments stripped. Monitor scores are
-the published per-item scores of \cite{jha2026decorrelation} (MIT); median \monMedian{},
-max \monMax{}. \textbf{Two caveats.}
+(\splitAttack{} attack / \splitHonest{} honest), comments stripped. Monitor scores from
+\cite{jha2026decorrelation} (MIT); median \monMedian{}, max \monMax{}. \textbf{Two caveats.}
 (i)~The \monN{} monitors are zero-shot prompted while the bag-of-words classifier is
 \emph{trained} on the benchmark's own paired train split --- this is a statement about
 what the corpus makes recoverable, in the sense of \cite{gururangan2018annotation}, not a
@@ -484,13 +493,12 @@ Attack problems carry roughly half as many test cases as honest ones
 (\testCasesAttack{} versus \testCasesHonest{}), consistent with a problem with fewer tests
 being easier to backdoor undetectably, so difficulty and test count are correlated with the
 label before any code is read --- which is where the content-blind floor of \nocodeCV{}
-comes from. The filter that removes the comment channel installs a metadata channel in its
-place.
+comes from.
 
 \paragraph{The negative control comes free.}
 In five same-generator agentic settings the same three models write both classes, so no
 authorship confound is possible and any surviving floor is structural
-(Figure~\ref{fig:corpora}, appendix). The result is a range: \texttt{bash} sits on its
+(Figure~\ref{fig:corpora}, appendix). \texttt{bash} sits on its
 permutation null at \bashFloor{} while \texttt{agentdojo} reaches \agentdojoFloor{} from character count alone. A
 per-benchmark floor therefore separates corpora where the label is trivially recoverable
 from those where it is not.
@@ -509,13 +517,17 @@ Following \citet{kapoor2022leakage}, who treat leakage as a checklist rather tha
       only one side substitutes one authorship gap for another. This is precedent
       \cite{guo2025codemirage, demirok2025multiaigcd}, not invention.
 \item \textbf{Report a partial-input floor and a bag-of-words floor beside every monitor
-      number}, each against a permutation null. A monitor that
-      does not clear its corpus's own floor has not been shown to do anything.
+      number}, each against a permutation null.
 \item \textbf{Do not define the negative class by attack failure.} Drop inert backdoors
       from both classes rather than relabelling a failed attack as honest.
 \item \textbf{State the split, the metric and the preprocessing} whenever monitors are
-      compared, and \textbf{release the split definition and the scripts} so a floor can be
-      recomputed rather than trusted. Ours will be released under MIT.
+      compared, and \textbf{release the split and the scripts}. Ours accompany this paper as supplementary material under MIT: the
+      same-generator split (\relHonest{} honest, \relEdit{} edit-arm and \relIndep{}
+      independent-arm programs from one model, plus all \relRetryDraws{} retry-pool draws),
+      pair lists under both selection rules --- outcome-blind (\relPassFirst{} passing,
+      \relFireFirst{} firing independent-arm pairs) and the benchmark's own survivor
+      selection (\relPassBest{} and \relFireBest{}) --- a dataset card and a manifest
+      (appendix~\ref{app:release}).
 \end{enumerate}
 
 % =====================================================================================
@@ -533,7 +545,7 @@ caveat~i).
 \textbf{The same-generator arm is a later model behind a paid API.} The stored attacker,
 \texttt{claude-3-7-sonnet-thinking}, is retired (404 against a live key), so both
 same-generator classes come from a later model of the same lineage, called through a
-metered commercial API rather than an open-weight model. That API does not expose its sampling parameters, so the arm is not bit-reproducible as the
+metered commercial API. That API does not expose its sampling parameters, so the arm is not bit-reproducible as the
 open-weight arms are, and thinking was off although the stored attacker was a thinking
 model. That the remaining cross-model difference is small is an inference from our
 \transfer{} transfer and \citet{orel2026aicd}'s generator-independence result. We do not
@@ -542,7 +554,7 @@ authorship reading is therefore inference (\S\ref{sec:results}).
 
 \textbf{Scope, provenance and the harness.} Whether stored-pair corpora leak this way in
 general is not established here. Five of our seven corpora are one user's
-repackaging, so claims are scoped to those public releases. Two interpreter-era artifacts
+repackaging; claims are scoped to those releases. Two interpreter-era artifacts
 fall on opposite classes (a patched \texttt{stdin} lacking \texttt{.buffer} penalised the
 model class, fixed; \texttt{fractions.gcd}, removed in Python 3.9, penalises old human
 code); the same-generator arm is immune, $B$ is not.
@@ -664,6 +676,17 @@ are not a like-for-like null for each dot. These corpora declare no licence; we
 redistribute nothing and report aggregates only.}
 \label{fig:corpora}
 \end{figure}
+
+\paragraph{The release.}
+\label{app:release}
+The supplementary bundle holds the same-generator split (\relHonest{} honest programs,
+\relEdit{} edit-arm and \relIndep{} independent-arm attack programs written by one model,
+plus every one of the \relRetryDraws{} draws of the independent arm's retry pool), both
+eligibility rules as pair lists under an outcome-blind selection (\relPassFirst{} passing
+and \relFireFirst{} firing independent-arm pairs) and under the benchmark's own survivor
+selection (\relPassBest{} and \relFireBest{}, or \relFireBestCrash{} counting a crash on
+the trigger as firing), a dataset card, and a manifest of row counts and checksums, under
+the MIT licence.
 
 \paragraph{The test harness and the pass flag.}
 \label{app:harness}
