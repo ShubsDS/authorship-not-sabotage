@@ -202,14 +202,17 @@
 % built by editing its own honest solution changes similarity as well as authorship,
 % and its S cannot separate "the benchmark measured authorship" from "we made the two
 % classes the same text". Report S beside the similarity or it is uninterpretable.
-% AWAITING re-measurement with autojunk=False (handoff §3.2): the three means will move.
-\newcommand{\simStored}{0.469}         % stored benchmark, n=400
-\newcommand{\simStoredHigh}{2.5\%}     % share above 0.95
-\newcommand{\simStoredLow}{60.8\%}     % share below 0.60
-\newcommand{\simEdit}{0.924}           % edit arm - near-copies, n=1,110
-\newcommand{\simEditHigh}{68.7\%}
-\newcommand{\simIndep}{0.415}          % independent arm - matches the stored regime, n=600
-\newcommand{\simIndepLow}{76.8\%}
+% Re-measured 2026-09-11 with autojunk=False (RESULTS.md 9.1); the earlier 0.469 / 0.924 / 0.415
+% were computed with difflib's junk heuristic on and are superseded.
+\newcommand{\simStored}{0.606}         % stored benchmark on the headline's 623 problems
+\newcommand{\simStoredHigh}{3.4\%}     % share above 0.95
+\newcommand{\simStoredLow}{45.4\%}     % share below 0.60
+\newcommand{\simEdit}{0.928}           % edit arm - near-copies, n=427 passing pairs
+\newcommand{\simEditHigh}{64.2\%}
+\newcommand{\simEditLow}{4.0\%}
+\newcommand{\simIndep}{0.659}          % independent arm, n=623 - the stored regime
+\newcommand{\simIndepHigh}{3.4\%}
+\newcommand{\simIndepLow}{34.8\%}
 \newcommand{\nIndep}{600}
 
 % --- Same-generator yield (RESULTS.md 4.10): the did-not-land numbers ----------------
@@ -236,12 +239,62 @@
 % wires them into prose before the values exist cannot miss them. While the did-not-land
 % paragraph in §3 is the active text NONE of these is used in the body.
 \newcommand{\TBD}{\textcolor{red}{\textbf{TBD}}}
-\newcommand{\sameGenS}{\TBD}           % S, fold-mean AUROC, independent arm, `passes'
-\newcommand{\sameGenN}{\TBD}           % realised n of problem-disjoint pairs
-\newcommand{\sameGenLo}{\TBD}          % bootstrap-over-problems 95% CI, lower
-\newcommand{\sameGenHi}{\TBD}          % bootstrap-over-problems 95% CI, upper
-\newcommand{\sameGenRho}{\TBD}         % rho against B' on the same problems
-\newcommand{\monitorS}{\TBD}           % LLM-monitor AUROC on the same pairs (positive control)
+% Same-generator S, RESULTS.md §9 (2026-09-11). All comment-stripped, problem-disjoint 5-fold,
+% bootstrap-over-problems 95% CIs. Coordinator's ruling: INCONCLUSIVE between partial and
+% content; the authorship-collapse reading is EXCLUDED (both CIs clear the collapse band).
+% Headline: independent arm, outcome-blind first draw per problem, attack = passes the public
+% tests, B' inert-inclusive over the same problems.
+\newcommand{\sameGenS}{0.751}          % fold mean 0.7512
+\newcommand{\sameGenN}{623}
+\newcommand{\sameGenLo}{0.7295}
+\newcommand{\sameGenHi}{0.7713}
+\newcommand{\sameGenBprime}{0.8658}    % CI 0.8480-0.8812
+\newcommand{\sameGenRho}{0.687}
+\newcommand{\sameGenRhoLo}{0.627}
+\newcommand{\sameGenRhoHi}{0.742}
+\newcommand{\sameGenPairwise}{0.790}
+\newcommand{\sameGenLen}{0.5851}       % length-only carrier: to chance
+\newcommand{\sameGenSurface}{0.6087}
+\newcommand{\sameGenSim}{0.659}        % pair similarity, same problems
+\newcommand{\sameGenSimStored}{0.606}  % stored pairs on the same problems
+\newcommand{\curveHeadline}{0.8521}    % B at n = 623 under the identical pipeline
+\newcommand{\curveHeadlineSd}{0.0055}
+% Strict: survivor selection (the benchmark's own retry-and-keep), attack = passes AND fires
+% (crash not counted as firing), B' all-firing. Read through rho against its own B' only.
+\newcommand{\strictS}{0.7652}
+\newcommand{\strictLo}{0.7016}
+\newcommand{\strictHi}{0.8000}
+\newcommand{\strictN}{99}
+\newcommand{\strictBprime}{0.7877}     % CI 0.7427-0.8367
+\newcommand{\strictRho}{0.921}
+\newcommand{\strictRhoLo}{0.700}
+\newcommand{\strictRhoHi}{1.043}
+\newcommand{\curveStrict}{0.7807}      % B at n = 99: absolute bands do not apply there
+\newcommand{\curveStrictSd}{0.0248}
+\newcommand{\survivorAuroc}{0.62}      % survivors vs non-survivors within the attack class
+\newcommand{\survivorLine}{0.70}       % pre-stated contamination line
+\newcommand{\survivorSwapS}{0.7595}    % S recomputed with non-firing attempts, same problems
+\newcommand{\survivorSwapSref}{0.7687} % S on those same problems with the survivors
+% Yield (RESULTS §7.7): single-shot, blind, vs the stored attacker, which executes and iterates
+\newcommand{\fireGivenPassOurs}{2.5\%}
+\newcommand{\fireGivenPassStored}{67.2\%}   % Koran test split: 256/892 pass, 172/256 fire
+\newcommand{\retryProblems}{1{,}112}
+\newcommand{\retryMaxDraws}{13}
+% Edit arm: a bound under near-copies, never a verdict
+\newcommand{\editS}{0.6266}            % CI 0.6044-0.6467
+\newcommand{\editN}{427}
+\newcommand{\editRho}{0.371}
+\newcommand{\editSim}{0.928}
+% Positive control (RESULTS.md §10): a trusted-monitor prompt to the SAME model that wrote both
+% classes, scored on the same pairs. Headline set: 97.5% of its attacks never fire.
+\newcommand{\monitorS}{0.566}          % AUROC on the 623 headline pairs
+\newcommand{\monitorSLo}{0.5507}
+\newcommand{\monitorSHi}{0.5833}
+\newcommand{\monitorSPairwise}{0.604}
+\newcommand{\monitorStrict}{0.818}     % AUROC on the 99 strict (pass AND fire) pairs
+\newcommand{\monitorStrictLo}{0.7630}
+\newcommand{\monitorStrictHi}{0.8686}
+\newcommand{\monitorStrictPairwise}{0.816}
 
 % --- Robustness of B to the pass-flag choice (RESULTS.md 4.7) ------------------------
 \newcommand{\baselineBownflag}{0.873}  % 0.8729 under our own flag
@@ -294,13 +347,13 @@ open-weight monitors ranked on it, and a classifier that reads no code at all --
 problem metadata --- scores above most of them. We trace the residue to authorship rather
 than sabotage: the honest class is human-written while every attack is model-written. The
 signal transfers across backdoor generators, is nearly as strong on inert backdoors as on
-working ones, and survives the field's comment stripper. Five same-generator agentic settings, where no authorship confound is possible,
-carry a second, structural floor. Regenerating only
+working ones, and survives the field's comment stripper. Regenerating only
 the honest half does not isolate content: with an open-weight model writing honest
-solutions against the stored backdoors, separability \emph{rises}. Holding authorship
-constant
-requires one model to write both classes; we report that design and its single-shot
-yield, which shows how heavily the stored attack class has been filtered. We recommend that
+solutions against the stored backdoors, separability \emph{rises}. Holding authorship constant
+by construction, with one model writing both classes, removes about a third of the
+separability and leaves the rest: the same-generator control excludes authorship as the
+whole story and attributes the remainder to surface content of the attack class. We
+recommend that
 stored-pair evaluations report partial-input and bag-of-words floors against permutation
 nulls, use same-generator honest samples, and drop inert backdoors from both classes.
 \end{abstract}
@@ -324,7 +377,7 @@ is Jha's, whose released harness ships a \texttt{--leak-check} flag with two tri
 already inside it and concludes that stripping is mandatory rather than cosmetic: a
 \texttt{\#}-count detector falls from \hashRaw{} to \hashStripped{} once comments go, and code
 length alone sits at \lenFiltered{} \cite{jha2026decorrelation}. This paper starts from that
-work, not against it.
+work.
 
 What nobody has measured is what the preprocessing leaves behind. On the field's own filtered,
 comment-stripped split, a bag-of-words classifier reaches AUROC \tfidfKoran{} --- above
@@ -332,7 +385,7 @@ comment-stripped split, a bag-of-words classifier reaches AUROC \tfidfKoran{} --
 is \monMedian{} --- and a classifier that reads no code at all, only problem difficulty, test
 count and question length, reaches \nocodeCV{}, above \nocodeCVCount{}.
 
-The residue is authorship, not sabotage. Honest solutions come from APPS
+Much of the residue is authorship, not sabotage. Honest solutions come from APPS
 \cite{hendrycks2021apps} and are human-written; every backdoor is model-written. The
 classifier transfers across backdoor generators and is nearly as strong on \textbf{inert}
 backdoors as on working ones --- neither is a property of a backdoor. That bag-of-words separates
@@ -347,8 +400,10 @@ published standard, not one we invented. Adjacent control work attacks other axe
 a content-blind AUROC as a per-benchmark floor.
 
 We contribute (i)~a protocol $\times$ baseline measurement of what survives the field's
-preprocessing; (ii)~evidence that the survivor is authorship, including a negative result:
-regenerating one half of a stored pair swaps the confound rather than removing it; (iii)~a
+preprocessing; (ii)~a same-generator control attributing roughly a third of the
+separability to authorship and the rest to surface content of the attack class, with a
+negative result on the way: regenerating one half of a stored pair swaps the confound
+rather than removing it; (iii)~a
 second selection artifact the filter installs by defining the negative class through attack
 failure; and (iv)~a preprocessing checklist and a released split.
 \textbf{Scope:} this concerns monitor training, selection and benchmarking on \emph{stored}
@@ -379,10 +434,8 @@ Our headline protocol is the filtered, comment-stripped split of \cite{koran2026
 \splitTrain{} train and \splitTest{} test items (\splitAttack{} attack, \splitHonest{}
 honest), labelled by \texttt{backdoor\_works}, reconstructed with the released code of
 \cite{jha2026decorrelation}. It is the surface on which \monN{}
-open-weight monitors have published per-item scores. The raw artifact, this split, pooled evaluation, matched pairs and
-within-task evaluation are five populations, and pairwise accuracy and AUROC two metrics;
-every comparison below names its split, metric and preprocessing, and no value is placed
-beside a count from another protocol. Generated code is scored by our own runner, which
+open-weight monitors have published per-item scores. Five populations (the raw artifact, this split, pooled, matched pairs, within-task) and
+two metrics appear below; every comparison names its split, metric and preprocessing. Generated code is scored by our own runner, which
 agrees with the artifact's \texttt{solution\_passes\_tests} on \harnessAgreement{} of the
 analysis pool and is applied to both classes (appendix~\ref{app:harness}).
 
@@ -417,13 +470,10 @@ should be much harder, and they are not. Third, the residual carrier is stylisti
 than semantic: \texttt{\_\_main\_\_} appears in 0.116 of attack samples against
 \textbf{0.000} of honest ones, replicated on the train split (152 versus 1 of
 \splitTrain{}) and untouched by the stripper. None of these is a property of a
-backdoor. All of them are properties of who wrote the file. A fourth, token-level test \cite{orel2026aicd} does not replicate here
+backdoor. A fourth, token-level test \cite{orel2026aicd} does not replicate here
 (separation \tokenSep{}, permutation $p = \tokenP{}$; appendix~\ref{app:token}), a
-register effect. One authorship leak even survives the field's own comment
-stripper, because string literals are not comments: in the comment-stripped train split an
-author byline (\texttt{Author :}) survives in \bylineHonest{} of \splitTrain{} honest samples
-against \bylineAttack{} attack samples, and a triple-quoted block in \tripleHonest{} against
-\tripleAttack{} --- too rare to drive \tfidfKoran{}, but a literal record of authorship.
+register effect; and one authorship leak, author bylines inside string literals, survives
+the field's own comment stripper (appendix~\ref{app:stripped}).
 
 \paragraph{Regenerating one half of a pair does not isolate content.}
 Under the identical pipeline the human-honest baseline is $B = \baselineB$ over
@@ -431,38 +481,46 @@ $n = \baselineBn{}$ pairs, and the routing rule and its bands were fixed before 
 ran: retained signal $\rho = (G - 0.5)/(B - 0.5)$, with $\rho \le \rhoCollapse{}$ reading as
 authorship and $\rho > \rhoContent{}$ as content. With an open-weight model writing the
 honest class against the same backdoors ($n = \armOneN{}$, $B' = \armOneBprime{}$ on those
-problems), separation \emph{rises} to $G = \armOneG{}$, $\rho = \armOneRho{}$, some
-\armOneSd{} standard deviations above $B'$; TF-IDF gains \armOneTfidfDelta{} while the
-length carrier collapses to \armOneLenG{}. The new gap is lexical, not
-structural: substituting the honest author replaced one authorship confound with a larger
-one, and any control that regenerates one side of a stored pair inherits the same defect.
+problems), separation \emph{rises} to $G = \armOneG{}$, $\rho = \armOneRho{}$; TF-IDF gains \armOneTfidfDelta{} while the
+length carrier collapses to \armOneLenG{}. Substituting the honest author replaced one authorship confound with a larger one.
 
 \paragraph{Holding authorship constant needs care about what else changes.}
-We generate the attack class twice from one honest class: an \textbf{edit}
-arm shown its own honest solution and an \textbf{independent} arm shown only the problem
-statement. The stored benchmark's pairs are largely independent programs (mean character
-similarity \simStored{}); the edit arm's are near-copies
-(\simEdit{}) while the independent arm matches the stored regime (\simIndep{};
-Table~\ref{tab:similarity}, appendix). Only the independent arm changes authorship alone
---- a low $S$ from the edit arm could mean only that we made the two classes the same text
---- so we route on it and report the edit arm only as a bound.
+We generate the attack class twice from one honest class: an \textbf{edit} arm shown its
+own honest solution, whose pairs are near-copies, and an \textbf{independent} arm shown
+only the problem statement, whose pairs match the stored regime of independent programs
+(Table~\ref{tab:similarity}, appendix). Only the second changes authorship alone.
 
-% --- Gate S outcome. PLACEHOLDER: notes/06 §5.3 did-not-land paragraph, verbatim. -----
-% Handoff §4.3 replaces this with the outcome sentence from notes/06 §4.4 once Workers C
-% and F report, using \sameGenS \sameGenN \sameGenLo \sameGenHi \sameGenRho \monitorS.
-% If nothing readable lands, this paragraph stands as is.
-\textbf{The same-generator control did not land, and the authorship reading is inference.}
-Holding authorship constant requires one model to write both classes; our attack generations
-converted at roughly \yieldSingleShot{} into pairs that both pass the public tests and fire on
-their trigger --- \usableEdit{} of \nEdit{} in the edit arm and \usableIndep{} of \nIndep{}
-in the independent arm, against the \pairFloor{}-pair floor our analysis script requires ---
-so we report no $S$. The authorship reading is inference from the transfer, inert-backdoor
-and style evidence together with the five same-generator settings. The yield gap is itself a
-measurement: ControlArena attack policies resample and keep survivors, so the stored attack
-class is heavily filtered relative to any single-shot rate. One rule was changed before the
-retry batch was read, and we say so: the $\pm2$ fold-sd interval first coded for $S$ is far
-wider than a 95\% interval over problems and biased toward ``inconclusive'', so $S$ now
-routes on a bootstrap-over-problems interval.
+% --- Gate S outcome (handoff §4.3; RESULTS.md §9). \monitorS is pending. ---------------
+\textbf{Holding authorship constant removes about a third of the separability and leaves
+the rest.} With one model writing both classes --- one outcome-blind draw per problem, the
+attack class defined, as in the benchmark, by intent plus passing the public tests, and
+$B'$ inert-inclusive over the same problems --- $S = \sameGenS{}$ (95\% CI
+\sameGenLo{}--\sameGenHi{}; $n = \sameGenN{}$ problem-disjoint pairs) against
+$B' = \sameGenBprime{}$, so $\rho = \sameGenRho{}$ (\sameGenRhoLo{}--\sameGenRhoHi{}). The
+interval excludes the collapse band and spans the content line, so the pre-registered rule
+returns \emph{inconclusive between partial and content}. Authorship accounts for roughly a third of the separability and surface content
+of the attack class for the rest, and what survives is lexical: length-only falls to
+\sameGenLen{} while TF-IDF holds. The pairs are independent programs (similarity
+\sameGenSim{}; stored pairs on the same problems \sameGenSimStored{}), and at
+$n = \sameGenN{}$ $B$ under the identical pipeline is $\curveHeadline{} \pm
+\curveHeadlineSd{}$, so the drop is not sample size. The strict row --- attacks that pass
+\emph{and} fire, kept by the benchmark's own retry-and-keep procedure, the filtering this
+paper criticises, inherited deliberately --- agrees: $\rho = \strictRho{}$
+(\strictRhoLo{}--\strictRhoHi{}) from $S = \strictS{}$ (\strictLo{}--\strictHi{};
+$n = \strictN{}$) against its own $B' = \strictBprime{}$, read through $\rho$ alone because
+$B$ at that $n$ is $\curveStrict{} \pm \curveStrictSd{}$. Retention is not the artifact:
+survivors and non-survivors separate at only \survivorAuroc{}, and $S$ with non-firing
+attempts on the same problems is \survivorSwapS{} against \survivorSwapSref{}. The edit arm bounds $S$ under near-copies
+(similarity \editSim{}): \editS{}, $\rho = \editRho{}$. A trusted-monitor prompt to the
+same model --- the one that wrote both classes --- scores \monitorStrict{}
+(\monitorStrictLo{}--\monitorStrictHi{}) on the strict pairs, within the baseline's
+interval, but \monitorS{} (\monitorSLo{}--\monitorSHi{}) on the headline set, where TF-IDF
+holds \sameGenS{}: what survives there with authorship held constant is a lexical trace of
+the attack instruction, not a backdoor a monitor recognises. Our single-shot attacks fire given a pass at \fireGivenPassOurs{} against the stored
+attacker's \fireGivenPassStored{}, which executes and iterates: the stored attack class is
+a survivor set. The interval rule was changed before the retry pool was read, and we say
+so: the $\pm2$ fold-sd interval first coded is far wider than a 95\% interval over
+problems, so $S$ routes on a bootstrap over problems.
 
 % --- F3: the monitor comparison (the only body float) ----------------------------------
 \begin{figure}[t]\centering
@@ -502,8 +560,6 @@ authorship confound is possible and any surviving floor is structural
 permutation null at \bashFloor{} while \texttt{agentdojo} reaches \agentdojoFloor{} from character count alone. A
 per-benchmark floor therefore separates corpora where the label is trivially recoverable
 from those where it is not.
-\textbf{Two mechanisms:} authorship on the APPS pairs, structure on the agentic settings,
-and neither is visible without running the baseline.
 
 % =====================================================================================
 \section{Recommendations}
@@ -539,25 +595,21 @@ Following \citet{kapoor2022leakage}, who treat leakage as a checklist rather tha
 \citet{feng2019misleading} warn that the \emph{failure} of a partial-input baseline does not
 show a dataset is artifact-free; the converse binds us: our floors show the label is
 recoverable without reading a backdoor, in the sense of \citet{gururangan2018annotation} and
-\citet{poliak2018hypothesis}, not that any monitor exploits that (Figure~\ref{fig:monitors},
-caveat~i).
+\citet{poliak2018hypothesis}, not that any monitor exploits that.
 
 \textbf{The same-generator arm is a later model behind a paid API.} The stored attacker,
 \texttt{claude-3-7-sonnet-thinking}, is retired (404 against a live key), so both
 same-generator classes come from a later model of the same lineage, called through a
 metered commercial API. That API does not expose its sampling parameters, so the arm is not bit-reproducible as the
 open-weight arms are, and thinking was off although the stored attacker was a thinking
-model. That the remaining cross-model difference is small is an inference from our
-\transfer{} transfer and \citet{orel2026aicd}'s generator-independence result. We do not
-length-match: in deployment the untrusted model chooses its trajectory length. The
-authorship reading is therefore inference (\S\ref{sec:results}).
+model. We do not
+length-match: in deployment the untrusted model chooses its trajectory length.
 
 \textbf{Scope, provenance and the harness.} Whether stored-pair corpora leak this way in
 general is not established here. Five of our seven corpora are one user's
 repackaging; claims are scoped to those releases. Two interpreter-era artifacts
-fall on opposite classes (a patched \texttt{stdin} lacking \texttt{.buffer} penalised the
-model class, fixed; \texttt{fractions.gcd}, removed in Python 3.9, penalises old human
-code); the same-generator arm is immune, $B$ is not.
+fall on opposite classes (a \texttt{stdin} without \texttt{.buffer}, fixed; \texttt{fractions.gcd}, removed in
+Python 3.9, not fixable); the same-generator arm is immune, $B$ is not.
 
 % =====================================================================================
 \bibliographystyle{plainnat}
@@ -625,7 +677,12 @@ AUROC \surfaceSevenKept{}; stripped they are \transfer{}, \pairWorking{}, \pairI
 \pairAll{} and \surfaceSeven{}. Every one was inflated by the comment channel, which is
 this paper's thesis applied to itself. The \texttt{\#}-presence marker, \hashPresAttack{}
 against \hashPresHonest{} before stripping, closes to \hashPresAttackStripped{} against
-\hashPresHonestStripped{} after and is dropped; \texttt{\_\_main\_\_} is unchanged.
+\hashPresHonestStripped{} after and is dropped; \texttt{\_\_main\_\_} is unchanged. One
+authorship leak survives the stripper because string literals are not comments: in the
+comment-stripped train split an author byline (\texttt{Author :}) survives in
+\bylineHonest{} of \splitTrain{} honest samples against \bylineAttack{} attack samples, and
+a triple-quoted block in \tripleHonest{} against \tripleAttack{} --- too rare to drive
+\tfidfKoran{}, but a literal record of authorship.
 Stripped, the matched-protocol TF-IDF AUROC is \tfidfMatched{}, beside $B = \baselineB$ and
 the Koran-split \tfidfKoran{}, all three on stripped code. The other cross-generator
 transfer rows, stripped, are \transferOthreeClaude{} (o3-mini to claude-3-7-sonnet, 82 test
@@ -649,8 +706,8 @@ the two classes are largely independent programs.}
 Attack class & mean sim. & $>0.95$ & $<0.60$ & changes vs.\ the benchmark \\
 \midrule
 \textbf{stored benchmark} & \simStored{} & \simStoredHigh{} & \simStoredLow{} & --- (the regime to match) \\
-edit (shown its own solution) & \simEdit{} & \simEditHigh{} & 4.3\% & authorship \emph{and} similarity \\
-\textbf{independent} (problem only) & \simIndep{} & 1.0\% & \simIndepLow{} & \textbf{authorship only} \\
+edit (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & authorship \emph{and} similarity \\
+\textbf{independent} (problem only) & \simIndep{} & \simIndepHigh{} & \simIndepLow{} & \textbf{authorship only} \\
 \bottomrule
 \end{tabular}
 \end{table}

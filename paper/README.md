@@ -95,10 +95,10 @@ impossible to cross by accident:
 - [x] ~~Uncomment the `\renewcommand{\TODO}[1]{}` line so markers stop rendering.~~ **Done
       2026-09-11**, after verifying by grep that the five citation keys that used to live only
       inside `\TODO{}` blocks are cited in §1's prose. No `\TODO{}` remains in the source.
-- [ ] Gate S placeholders: `\sameGenS`, `\sameGenN`, `\sameGenLo`, `\sameGenHi`, `\sameGenRho`,
-      `\monitorS` are defined as a visible red **TBD** and are not used anywhere in the body while
-      the did-not-land paragraph (notes/06 §5.3) is the active §3 text. Either fill them and swap
-      in the outcome sentence, or leave the paragraph; never ship a TBD (grep the PDF text).
+- [x] Gate S: filled 2026-09-11 from `RESULTS.md` §9 (S, B′, ρ with CIs, learning curve,
+      survivor check, edit-arm bound) and §10 (the positive control, `\monitorS` / `\monitorStrict`).
+      The §3 outcome paragraph states the pre-registered ruling: inconclusive between partial and
+      content, collapse excluded. `\TBD` is now unused; keep `grep -c TBD` on the PDF text at 0.
 - [x] ~~Complete the bibliography.~~ **Done 2026-09-10.** All 28 entries verified against the arXiv
       API in one query (HTTP 200, every arXiv-hosted entry returned — not a throttled stub, per R3). **Six of `lit/01`'s
       partial records were wrong, not merely incomplete**; see the CORRECTIONS block atop `refs.bib`.
@@ -107,9 +107,7 @@ impossible to cross by accident:
       and AICD's "Paul" and "Wang" are first names, so "Paul et al." would have been wrong.
 - [ ] Confirm the content body is within 4 pages (it is exactly 4 as of 2026-09-11; re-check
       after every edit to §1–§5).
-- [ ] Gate S: the did-not-land paragraph stands in §3 and Limitations says the authorship
-      reading is inference. If a readable S lands, replace per handoff §4.3 and cut elsewhere.
-- [ ] Release sentence in §4 reads "Ours will be released under MIT"; replace with the
-      sentence from `notes/07-release.md` once the bundle exists.
+- [x] Release sentence in §4 item 4 carries the bundle counts as `\rel*` macros; the full
+      wording (including the crash-as-firing count) is appendix paragraph `app:release`.
 - [ ] Author block stays anonymous. The style file suppresses it, but do not paste real
       names in and rely on that.
