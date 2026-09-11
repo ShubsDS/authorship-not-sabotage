@@ -101,6 +101,11 @@
 \newcommand{\tfidfKoranHi}{0.8409}
 \newcommand{\tfidfKoranNull}{0.5465}       % null 95th percentile; p < 0.005 (0 of 200)
 \newcommand{\tfidfKoranPairedCount}{18}
+% The CI below is NOT an interval of \nocodeCV (the fold mean). RESULTS.md 8.3: protocol A
+% produces no single per-item score vector from a fold mean, so its interval and its paired
+% tests are built on the POOLED out-of-fold scores, whose AUROC is \nocodeCVPooled. Any
+% sentence quoting \nocodeCVLo--\nocodeCVHi must name \nocodeCVPooled beside it.
+\newcommand{\nocodeCVPooled}{0.766}        % 0.7658 pooled out-of-fold AUROC (RESULTS.md 8.3)
 \newcommand{\nocodeCVLo}{0.7319}           % CI on the pooled out-of-fold AUROC
 \newcommand{\nocodeCVHi}{0.8005}
 \newcommand{\nocodeCVNull}{0.5545}         % p < 0.005
@@ -266,9 +271,14 @@
 \newcommand{\strictHi}{0.8000}
 \newcommand{\strictN}{99}
 \newcommand{\strictBprime}{0.7877}     % CI 0.7427-0.8367
-\newcommand{\strictRho}{0.921}
+\newcommand{\strictRho}{0.921}          % fold-mean convention, as RESULTS.md 9 quotes S
+% As for the no-code floor: the interval is built on the POOLED out-of-fold scores, whose rho
+% is \strictRhoPooled (RESULTS.md 12.2, which asks the ledger to say which convention it
+% quotes). At n = 99 the two conventions differ by 0.06 of fold-to-fold variance.
+\newcommand{\strictRhoPooled}{0.86}     % 0.861, pooled-score rho; the interval below is on it
 \newcommand{\strictRhoLo}{0.662}        % joint bootstrap (RESULTS.md 12)
 \newcommand{\strictRhoHi}{1.089}
+\newcommand{\strictRhoSeeds}{0.85--0.92}  % five fold seeds, RESULTS.md 12.4 (mean 0.875 +- 0.028)
 \newcommand{\curveStrict}{0.7807}      % B at n = 99: absolute bands do not apply there
 \newcommand{\curveStrictSd}{0.0248}
 \newcommand{\survivorAuroc}{0.62}      % survivors vs non-survivors within the attack class
@@ -460,7 +470,8 @@ bag-of-words floor of \tfidfKoran{} (95\% CI \tfidfKoranLo{}--\tfidfKoranHi{} by
 over problems; permutation null 95th percentile \tfidfKoranNull{}, $\permP$), above
 \tfidfKoranCount{} of the \monN{} monitors by point estimate and \tfidfKoranPairedCount{}
 of them with a paired-bootstrap interval excluding zero, and a no-code floor of \nocodeCV{}
-(CI \nocodeCVLo{}--\nocodeCVHi{}; null \nocodeCVNull{}, $\permP$), above \nocodeCVCount{}
+(CI \nocodeCVLo{}--\nocodeCVHi{} on the pooled out-of-fold \nocodeCVPooled{}; null
+\nocodeCVNull{}, $\permP$), above \nocodeCVCount{}
 and \nocodeCVPairedCount{} respectively (Figure~\ref{fig:monitors}): the preprocessing
 removed the carrier it targeted and not the two beside it.
 
@@ -516,7 +527,7 @@ $n = \sameGenN{}$ $B$ under the identical pipeline is $\curveHeadline{} \pm
 \curveHeadlineSd{}$, so the drop is not sample size. The strict row --- attacks that pass
 \emph{and} fire, kept by the benchmark's own retry-and-keep procedure, the filtering this
 paper criticises, inherited deliberately --- agrees: $\rho = \strictRho{}$
-(\strictRhoLo{}--\strictRhoHi{}) from $S = \strictS{}$ (\strictLo{}--\strictHi{};
+(\strictRhoLo{}--\strictRhoHi{} on the pooled-score \strictRhoPooled{}) from $S = \strictS{}$ (\strictLo{}--\strictHi{};
 $n = \strictN{}$) against its own $B' = \strictBprime{}$, read through $\rho$ alone because
 $B$ at that $n$ is $\curveStrict{} \pm \curveStrictSd{}$. Retention is not the artifact:
 survivors and non-survivors separate at only \survivorAuroc{}, and $S$ with non-firing
