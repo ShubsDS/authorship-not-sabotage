@@ -994,3 +994,124 @@ The two funnels on the same two stages make the mechanism a measurement rather t
 | ours (single-shot, blind, 11,565 draws) | 6,570 / 11,565 = **56.8%** | 167 / 6,570 = **2.5%** |
 
 The stored attacker passes the tests *less* often and fires 27× more often when it does. The two rates move in opposite directions, which is the signature of an attacker that checks a candidate input against a running program and not of one that is better at writing evasive bugs. The 892 → 172 funnel is also the selection effect stated numerically on the exact split the paper evaluates: 5.2× of labelled candidates were discarded to build the stored attack class. Use this in place of the 46% vs 2% comparison in §4.10 wherever the two would sit together.
+
+---
+
+## 9. Gate S: the same-generator S (2026-09-11)
+
+Worker C. All rows from `gate_s_samegen.py` (honest class `gen_sonnet5.jsonl`/`pass_sonnet5.jsonl`,
+1,112 passers; generator `claude-sonnet-5` on both sides; problem-disjoint 5-fold; comments
+stripped; `evaluate()` unchanged from B). Attack draws from the retry pool of §7 under the two
+selection rules there. The interval quoted is the bootstrap-over-problems 95% CI on the pooled
+out-of-fold AUROC (2,000 resamples); the fold sd is shown because the script prints it and is not
+an interval (notes/06 §4.1). ρ = (S − 0.5)/(B′ − 0.5) against B′ fitted on the stored pairs over the
+same problems, with the B′ attack rule named per row; "lines" are the pre-registered ρ bands
+(collapse ≤ 0.33, content > 0.72) expressed in AUROC at that B′.
+
+**Coordinator decisions applied:** headline = `first` / passes / inert-inclusive B′; strict =
+`best` / passes-and-fires with crash-on-trigger draws scored as not working (ControlArena's rule);
+crash-inclusive 106 as a sensitivity row; `first` / usable reported as a refusal. **Note:** the
+strict set of 99 is the `best` policy re-run with crash draws ranked as passes-only
+(`bdind_sonnet5_best_nocrash.jsonl`); flipping `backdoor_works` on the `best` file leaves 96
+(row 4), because `best` had chosen a crash draw ahead of a later non-crash usable one on 3 problems.
+
+### 9.1 The runs
+
+| # | arm | keep | attack eligibility | B′ rule | n | S | 95% CI (boot) | fold sd | pairwise | length-only | surface-7 | B′ (95% CI) | ρ (95% CI) | lines collapse / content | pair sim same-gen / stored, same problems | state |
+|---|---|---|---|---|---:|---:|---|---:|---:|---:|---:|---|---|---|---|---|
+| 1 **headline** | independent | first | passes | passes (inert-inclusive) | 623 | **0.7512** | **0.7295–0.7713** | 0.0198 | 0.790 | 0.5851 | 0.6087 | 0.8658 (0.8480–0.8812) | **0.687 (0.627–0.742)** | 0.6207 / 0.7633 | 0.659 / 0.606 | inconclusive (partial ↔ content); collapse excluded |
+| 2 **strict** | independent | best, crash excl. | passes AND fires | passes AND fires | 99 | **0.7652** | **0.7016–0.8000** | 0.0570 | 0.848 | 0.6080 | 0.6663 | 0.7877 (0.7427–0.8367) | **0.921 (0.700–1.043)** | 0.5950 / 0.7072 | 0.617 / 0.659 | inconclusive (partial ↔ content); collapse excluded |
+| 3 sensitivity | independent | best, crash incl. | passes AND fires | passes AND fires | 106 | 0.7733 | 0.7204–0.8123 | 0.0366 | 0.859 | 0.5941 | 0.6625 | 0.7985 (0.7423–0.8306) | 0.916 (0.739–1.046) | 0.5985 / 0.7149 | 0.627 / 0.650 | content by 0.0055; not routed on |
+| 4 sensitivity | independent | best, crash flipped on file | passes AND fires | passes AND fires | 96 | 0.7847 | 0.7158–0.8137 | 0.0560 | 0.875 | 0.6045 | 0.6509 | 0.8013 (0.7372–0.8315) | 0.945 (0.716–1.041) | 0.5994 / 0.7169 | 0.613 / 0.658 | inconclusive (partial ↔ content) |
+| 5 sensitivity | independent | best | passes | passes (inert-inclusive) | 1,046 | 0.7772 | 0.7609–0.7921 | 0.0083 | 0.807 | 0.5874 | 0.6156 | 0.8703 (0.8574–0.8828) | 0.749 (0.705–0.789) | 0.6222 / 0.7666 | 0.642 / 0.612 | inconclusive (partial ↔ content); survivor-selected |
+| 6 | independent | first | passes AND fires | — | 14 | refused | | | | | | | | | | `only 14 pairs - below the 50-pair floor` |
+| 7 **bound** | edit | — | passes | passes (inert-inclusive) | 427 | 0.6266 | 0.6044–0.6467 | 0.0151 | 0.728 | 0.5250 | 0.5818 | 0.8413 (0.8211–0.8623) | 0.371 (0.306–0.430) | 0.6126 / 0.7457 | 0.928 / 0.603 | near-copies (64.2% > 0.95); bound, not a verdict |
+| 8 | edit | — | passes AND fires | — | 40 | refused | | | | | | | | | | `only 40 pairs - below the 50-pair floor` |
+
+Per-carrier B′ → S: headline TF-IDF −0.1146, length-only −0.0345, surface-7 −0.1697; strict
+−0.0226 / −0.0010 / −0.0846. Pair similarity now measured with `autojunk=False` (supersedes the
+0.924 / 0.415 / 0.469 of §4.9): the independent arm's pairs (0.62–0.66) sit in the stored
+benchmark's regime on the same problems (0.61–0.66); the edit arm's do not (0.928 vs 0.603).
+
+```
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl --eligibility passes --bprime-inert --label independent --out sg_indep_first_passes.json
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best_nocrash.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl --eligibility usable --label independent --out sg_indep_best_usable.json
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best.jsonl --bdpass bdindpass_sonnet5_best.jsonl --eligibility usable --label independent --out sg_indep_best_usable_crashincl.json
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best.jsonl --bdpass bdindpass_sonnet5_best_crashflipped.jsonl --eligibility usable --label independent --out sg_indep_best_usable_crashflipped96.json
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best.jsonl --bdpass bdindpass_sonnet5_best.jsonl --eligibility passes --bprime-inert --label independent --out sg_indep_best_passes.json
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl --eligibility usable --label independent --out sg_indep_first_usable.json
+python3 gate_s_samegen.py --tag sonnet5 --bd bd_sonnet5.jsonl --bdpass bdpass_sonnet5.jsonl --eligibility passes --bprime-inert --label edit --out sg_edit_passes.json
+python3 gate_s_samegen.py --tag sonnet5 --bd bd_sonnet5.jsonl --bdpass bdpass_sonnet5.jsonl --eligibility usable --label edit --out sg_edit_usable.json
+```
+
+### 9.2 The underfitting control: B at matched n and on S's own problems
+
+`gate_s_learning_curve.py`, shipped human flag (the full-pool point reproduces B = 0.8714,
+pairwise 0.9605, length 0.6081, surface-7 0.7673 exactly), 30 draws per n, seed 0, 2,000
+bootstrap resamples per fit. B over subsamples of the 1,444 pool, mean ± sd over draws (the sd is
+the spread of draws, not an interval): n = 50: 0.7513 ± 0.0406; 99: 0.7807 ± 0.0248 (range
+0.7243–0.8351); 125: 0.7882 ± 0.0222; 200: 0.8090 ± 0.0143; 335: 0.8276 ± 0.0112; 400: 0.8332 ±
+0.0083; 623: 0.8521 ± 0.0055 (range 0.8392–0.8634); 800: 0.8566 ± 0.0064; 1,444: 0.8714. Length
+and surface-7 are flat across n (0.61–0.63, 0.76–0.77); only the TF-IDF carrier underfits.
+
+- Headline, verbatim: "At n = 623, B under the identical pipeline is 0.8521 +/- 0.0055, so a
+  collapse to S is not attributable to sample size." B over S's own 623 problems: 0.8658 (95% CI
+  0.8480–0.8812), all-firing attack side; it coincides with row 1's inert-inclusive B′ because on
+  all 623 problems the first stored entry that passes the tests is also the first that fires
+  (checked: 623 same, 0 differ), so the two B′ rules select the same programs on this pool.
+- Strict, verbatim: "At n = 99, B under the identical pipeline is 0.7807 +/- 0.0248, so a collapse
+  to S is attributable to sample size." B over S's own 99 problems: 0.7877 (95% CI 0.7427–0.8367).
+  At n = 99 the pipeline underfits and B itself sits at 0.78, level with the strict S = 0.7652, so
+  the absolute AUROC bands do not apply at that n and the strict row is read only through ρ against
+  the problem-matched B′ (GATE-S-READING §4).
+
+```
+python3 gate_s_learning_curve.py --match-problems sg_indep_first_passes.json --out lc_first_passes.json
+python3 gate_s_learning_curve.py --match-problems sg_indep_best_usable.json --out lc_best_usable.json
+```
+
+### 9.3 Survivor-selection check (notes/08 §3.4; `survivor_check.py`)
+
+Survivor = passes AND fires on its own trigger, non-crash; non-survivor = passes and does not fire;
+one draw per problem per class, the earliest in pool order; 99 survivor problems vs 947
+non-survivor problems; identical TF-IDF pipeline, problem-disjoint folds.
+
+| check | n | AUROC | 95% CI (boot) |
+|---|---|---:|---|
+| (a) attack side: survivor vs non-survivor draws | 99 / 947 | 0.6224 (pooled 0.6218) | 0.5588–0.6829 |
+| (a′) paired within problem: survivor vs same problem's non-firing passing draw | 98 | 0.5912 (pooled 0.5955); pairwise 0.662; length-only 0.514 | 0.5439–0.6517 |
+| (b) honest side: survivor problems vs non-survivor problems | 99 / 947 | 0.5697 (pooled 0.5727) | 0.5100–0.6322 |
+| (d) S_inert_same_problems (strict problems; attack = non-firing passing draw) | 98 | **0.7595** | 0.6987–0.7929 |
+| (d) strict S on the same 98 | 98 | 0.7687 | 0.7045–0.8028 |
+
+(c) Mann-Whitney, survivors vs non-survivors: length p = 0.65 (medians 466 vs 506 chars), newlines
+0.53, `if` 0.24, `%` 0.80, `#` 0.96; numerals ≥ 3 digits p = 0.0024 and `==` p = 0.0025 (equal
+medians; the trigger comparison itself); problem `n_tests` p = 0.0029 (medians 13 vs 17).
+χ² on difficulty tier p = 0.61. Retention left a weak lexical mark (0.62, below the 0.70 line),
+a third of it problem selection (0.57), and the paired control (d) puts S on the same problems
+with non-firing attempts at 0.7595 against 0.7687 — the strict S is not a retention artifact.
+
+```
+python3 survivor_check.py --strict sg_indep_best_usable.json --out survivor_check.json
+```
+
+### 9.4 `strip_comments` fall-through on B's classes (closes §6.4's open item)
+
+Human honest class of the 1,444-problem pool (shipped flag, `_honest_code`): **0** fall-throughs.
+Stored backdoor class (`_pick_backdoor`): **0**. (`scratchpad/fallthrough.py`.)
+
+### 9.5 Reading
+
+Headline and strict agree: both intervals lie wholly above the collapse line (ρ lower bounds
+0.627 and 0.700 against 0.33) and both span the content line (upper 0.742 and 1.043 against
+0.72). The state is inconclusive between partial and content; the collapse (authorship) reading
+is excluded by every readable row of the independent arm, and by the learning curve
+(§9.2) it is not sample size. Length-only sits at chance (0.585) while TF-IDF holds 0.75, so what
+survives is lexical. The inconclusive sentence of notes/06 §4.4 is the routed one, minus its
+"S near 0.55 / full collapse" clause, which this interval rules out. The strict set's own B′ is
+0.7877, not 0.87: the problems on which Sonnet's backdoors fire are ones on which the stored
+benchmark is also less separable, which is why ρ is quoted against B′. Macros: `\sameGenS` 0.751,
+`\sameGenN` 623, `\sameGenLo` 0.7295, `\sameGenHi` 0.7713, `\sameGenRho` 0.687; strict 0.765 / 99
+/ 0.7016 / 0.8000 / 0.921.
+
+**Coordinator ruling (2026-09-11):** headline and strict agree. Both bootstrap intervals lie above the collapse line and both span the content line, so the pre-registered four-state rule returns INCONCLUSIVE between partial and content for both, and the collapse (authorship) reading is excluded by every readable independent-arm row. The paper states the interval and does not round it; the §4.4 inconclusive sentence is used with its "S near 0.55 / full collapse / yield" clause removed, because it does not apply. Holding authorship constant removes about a third of the separability (ρ = 0.687, 0.627–0.742, n = 623) and leaves the rest; length-only is at chance while TF-IDF holds, so what survives is lexical. The strict set is the 99 (crash ranked as passes-only, identical to the release's `crash_on_trigger = false` rows); the 96 stays on disk as a sensitivity row. The strict row is quoted only through ρ against its own B′ = 0.7877 with the learning-curve sentence (B at n = 99 is 0.7807). The edit arm is a bound. Title unchanged: "What Survives the Filter?". The positive control (§10) is running on the same 623 and 99 pairs.
