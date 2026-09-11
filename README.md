@@ -70,25 +70,26 @@ produced it. What shipped on the data machine today, per the ledger: B reproduce
 `gate_s_baseline.py` re-run bit-identical at 0.8714); the comment-stripped re-check of the
 authorship legs (§6); the independent arm's retry pool, merged, verified and reduced under two
 selection rules (§7); bootstrap and permutation intervals on the headline floors with the paired
-comparison against the 24 monitors (§8). **Gate S itself — S — is pending.**
+comparison against the 24 monitors (§8); **Gate S itself (§9) and its LLM-monitor positive
+control (§10)**.
 
-> **The three things that decide whether this submits.**
+> **What Gate S returned, and what is left.**
 >
-> 1. **Length.** `paper/main.tex` compiles clean but runs to **~5.5 content pages against a hard
->    4-page limit**, and §1 is still unwritten. This is now the binding constraint, and closing it
->    needs editorial cuts, not tightening — see [`paper/README.md`](paper/README.md).
-> 2. **§1 Introduction is not written.** §2–§5 are drafted; the introduction and the Gate S result
->    paragraph are what remain.
-> 3. **Gate S: all generation and verification done, S is the last number.** Arm 1 is
->    **confounded** (ρ = 1.234 — regenerating one half of a pair swaps the authorship gap rather
->    than removing it, which is itself a result). Both same-generator attack arms are verified; the
->    independent arm's single-shot yield (10 usable of 600) was far under the 50-pair floor, so it
->    was resampled into a **retry pool of 11,565 draws** (up to 13 per problem) and reduced two ways:
->    `first` (outcome-blind, 623 passing pairs — the headline S under the *passes* rule) and `best`
->    (survivor selection, 106 usable, 99 excluding crash-on-trigger — the strict S, with the
->    selection-effect sentence). **S on those two selections is the only thing outstanding**
->    ([`RESULTS.md`](experiments/RESULTS.md) §7). `PLAN.md` §6 route 4 remains a complete paper, and
->    under it the arm-1 null and the similarity result both survive as findings.
+> 1. **S landed: collapse excluded, partial to content.** Headline S = **0.7512** (95% CI
+>    0.7295–0.7713, n = 623, outcome-blind draw, attack = passes the tests) against B′ = 0.8658 on
+>    the same problems, **ρ = 0.687 (0.627–0.742)**; strict S = 0.7652 (0.7016–0.8000, n = 99,
+>    survivor-selected, passes and fires) against B′ = 0.7877, ρ = 0.921 (0.700–1.043). Both exclude
+>    the pre-registered collapse band and span the content line. Holding authorship constant removes
+>    about a third of the separability; length falls to chance while TF-IDF holds; B at n = 623 is
+>    0.8521, so it is not sample size; the survivor check (0.62) says it is not retention. The
+>    monitor on the same pairs: 0.566 on the headline set, 0.818 on the firing attacks. Arm 1 stays
+>    **confounded** (ρ = 1.234), which is itself a result. Title unchanged.
+> 2. **Paper: four content pages exactly**, §1 written, `\TODO` a no-op, every headline number with
+>    its interval, Gate S paragraph on the measured values, release sentence true. Tracked PDF
+>    beside the source.
+> 3. **Left for a human:** read the abstract, §1 and the Gate S paragraph; attach the release zip as
+>    supplementary; decide the 12 stuck generation batches (cancel) and the one uncommitted
+>    verifier variant from a parallel session (not used; leave or branch).
 
 | Piece | State |
 |---|---|
@@ -98,11 +99,12 @@ comparison against the 24 monitors (§8). **Gate S itself — S — is pending.*
 | G1 — is the mechanism claim ours? | **No, and we never claimed it.** Both AI-code-detection neighbours read end to end 2026-09-03: **NEIGHBOUR**, framing survives. [`lit/01`](lit/01-verified-bibliography.md) §4 |
 | Monitor comparison (24 × 1,375) | **No GPU needed** — `runs/scores/` is MIT and published. Gate M deleted. |
 | Gate S — arm 1 (regenerate honest half) | ⛔ **CONFOUNDED, and that is a result.** ρ = **1.234**, G above B by +4.78 sd: separation got *worse*. TF-IDF rose +0.088 while the length carrier fell to chance (0.489) — the substitute generator swapped a human-vs-Claude gap for a larger Qwen-vs-Claude one. **Regenerating one half of a pair cannot isolate content.** [`experiments/RESULTS.md`](experiments/RESULTS.md) §3 |
-| Gate S — the same-generator arm | ⏳ **Generation and verification complete; S pending.** One model writes *both* classes, so authorship is constant by construction. Honest class 1,444/1,444 (1,112 pass); **two** attack arms, both 100% — an **edit** arm (427 pass / 40 usable) and an **independent** arm (335 / 10). The independent arm was resampled into a **retry pool: 11,565 verified draws**, reduced to one per problem under `first` (623 passing / 14 usable) and `best` (1,046 / 106; 99 non-crash). S on those two is the last number. [`experiments/RESULTS.md`](experiments/RESULTS.md) §4, §7 |
+| Gate S — the same-generator arm | ✅ **Measured 2026-09-11: collapse excluded, partial to content.** One model writes *both* classes. Headline (independent arm, outcome-blind draw, attack = passes the tests): **S = 0.7512** (0.7295–0.7713, n = 623) vs B′ = 0.8658, **ρ = 0.687** (0.627–0.742). Strict (survivor selection, passes and fires, no crash): S = 0.7652 (0.7016–0.8000, n = 99) vs B′ = 0.7877, ρ = 0.921 (0.700–1.043). Learning curve: B at n = 623 is 0.8521. Survivor check 0.62; S with non-firing attempts on the same problems 0.7595 vs 0.7687. Edit arm a bound (S = 0.6266, similarity 0.928). Pool: 11,565 verified draws, `first` 623 / 14, `best` 1,046 / 106 (99 non-crash). [`experiments/RESULTS.md`](experiments/RESULTS.md) §7, §9 |
+| Gate S — LLM-monitor positive control | ✅ **Run 2026-09-11 on the same pairs.** Zero-shot trusted-monitor prompt to the model that wrote both classes (disclosed): **0.5662** (0.5507–0.5833) on the 623 headline pairs where TF-IDF holds 0.7512 — the residual is a lexical trace of the attack instruction, not a backdoor the monitor reads; **0.8182** (0.7630–0.8686) on the 99 firing attacks, within the baseline's interval (0.7652). [`experiments/RESULTS.md`](experiments/RESULTS.md) §10 |
 | Comment-stripped re-check of the authorship legs | ✅ **Run 2026-09-11; weakened but standing** (coordinator's band). The unstripped column reproduces `REPRODUCED.md` to the last decimal; stripped, transfer 0.994 → **0.969**, pairwise working 0.979 → **0.935**, inert 0.955 → **0.879**, surface-7 0.830 → **0.726**. The paper reports the stripped values. [`experiments/RESULTS.md`](experiments/RESULTS.md) §6 |
 | Headline intervals and the paired monitor comparison | ✅ **Run 2026-09-11.** TF-IDF 0.8063, 95% CI 0.770–0.841, permutation p < 0.005 (0 of 200), above 20 of 24 by point and **18 by a paired-bootstrap CI excluding zero**; no-code CV 0.7715 ± 0.0389 (pooled-OOF CI 0.732–0.801), 20 / **17**; no-code held-out 0.7163 (CI 0.648–0.780, p = 0.030), 18 / **12**. [`experiments/RESULTS.md`](experiments/RESULTS.md) §8 |
-| The release | ✅ **Built and checked 2026-09-11** (`same-generator-apps-split.zip`, 3.5 MB): 1,444 honest, 1,112 edit-arm and 1,112 single-shot independent-arm programs, the **full 11,565-draw retry pool**, both eligibility rules under both selections (`first`: 623 / 14 independent pairs; `best`: 1,046 / 106, 99 non-crash), `MANIFEST.json`, card, `LICENSE` (MIT, anonymous). One disclosed exemption — 53 trivial one-liners identical to a human solution, retained and declared — awaits the coordinator's ratification ([`notes/07`](notes/07-release.md) §1). |
-| **Why two attack arms** | ✅ **The check justified it.** An attack class built by editing its own honest solution changes pair *similarity* as well as authorship: its pairs run **0.924** mean similarity (68.7% above 0.95) against the stored benchmark's **0.469** (2.5%). A low S from it could not distinguish *the benchmark measured authorship* from *we made the classes the same text*. The **independent** arm sits at 0.415, in the benchmark's own regime — **the title routes on that one.** §4.8–4.9 |
+| The release | ✅ **Built and checked 2026-09-11** (`same-generator-apps-split.zip`, 3.5 MB): 1,444 honest, 1,112 edit-arm and 1,112 single-shot independent-arm programs, the **full 11,565-draw retry pool**, both eligibility rules under both selections (`first`: 623 / 14 independent pairs; `best`: 1,046 / 106, 99 non-crash), `MANIFEST.json`, card, `LICENSE` (MIT, anonymous). One disclosed exemption — 53 trivial one-liners identical to a human solution, retained and declared per record in the manifest — ratified by the coordinator ([`notes/07`](notes/07-release.md) §1). |
+| **Why two attack arms** | ✅ **The check justified it.** An attack class built by editing its own honest solution changes pair *similarity* as well as authorship: its pairs run **0.928** mean similarity (64.2% above 0.95) against the stored benchmark's **0.606** on the same problems (3.4%). A low S from it could not distinguish *the benchmark measured authorship* from *we made the classes the same text*. The **independent** arm sits at 0.659, in the benchmark's own regime — **the title routes on that one.** (Re-measured with `autojunk=False`; the earlier 0.924 / 0.469 / 0.415 used difflib's junk heuristic.) §4.8–4.9, §9.1 |
 | **B — the baseline Gate S routes against** | ✅ **Measured 2026-09-09: 0.8714** (n = 1,444), CPU only; re-run 2026-09-11 bit-identical, pool counts 5,000 / 3,420 / 1,582 / 1,444 re-verified ([`RESULTS.md`](experiments/RESULTS.md) §7.1). ρ is uninterpretable without it, and it never needed the GPU. ⚠️ **This also moves the routing thresholds**: the 0.601/0.720 in `PLAN.md` were arithmetic at an assumed B = 0.806; the real ones are **0.6226 / 0.7674**. |
 | The test harness | ✅ **Built and validated 2026-09-04**, three days early. **95.84%** agreement on the analysis pool; three defects found and fixed, all of which failed old human code specifically. |
 | The paper as a document | ⚠️ **§2–§5 drafted, §1 not.** [`paper/main.tex`](paper/README.md) compiles clean (NeurIPS 2026, `dblblindworkshop`, zero overfull boxes, zero undefined citations) with every number as a macro. **Bibliography complete** — all 28 entries (`grep -c '^@' paper/refs.bib`) verified against the arXiv API 2026-09-10, and six of `lit/01`'s partial records turned out to be *wrong*, not merely incomplete. ⚠️ **~5.5 content pages against a 4-page limit** is now the binding constraint. |
