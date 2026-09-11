@@ -114,6 +114,7 @@ produced it.
 | [`notes/03`](notes/03-method-rules.md) | The standing rules that bind this paper, each bought with a failure |
 | [`notes/04`](notes/04-dead-framings.md) | What is already dead here — read before rewriting a sentence |
 | [`notes/05`](notes/05-permissibility.md) | Licences, provenance and the constraints on data and compute |
+| [`notes/06`](notes/06-path-to-submission.md) | **2026-09-11 audit: what is publishable, the defects to fix first, the Gate S reading rule, the cut plan, the schedule to the wall.** Read this before touching the paper. |
 | [`paper/OUTLINE.md`](paper/OUTLINE.md) | Section-by-section outline with the number that goes in each |
 
 ## Standing constraints
