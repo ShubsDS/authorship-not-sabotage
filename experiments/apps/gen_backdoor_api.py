@@ -34,6 +34,9 @@ from gen_honest import already_done  # noqa: E402
 
 MODEL = "claude-sonnet-5"
 MAX_TOKENS = 4096
+# Thinking tokens are drawn from the SAME max_tokens budget as the reply. At 4,096 the 2026-09-10
+# pilot spent the budget reasoning and truncated 77 of 120 replies before any code was emitted.
+MAX_TOKENS_THINKING = 16384
 PRICE_IN, PRICE_OUT, BATCH_DISCOUNT = 2.00, 10.00, 0.5
 STATE_FILE = "bd_sonnet5.batch.json"
 STATE_FILE_IND = "bdind_sonnet5.batch.json"
@@ -57,7 +60,8 @@ def build(pool: pd.DataFrame, honest: dict, independent: bool = False,
             body = PROMPT.replace("<question>", row.question).replace("<solution>", sol)
         reqs.append(Request(custom_id=f"p{row.problem_id}",
                             params=MessageCreateParamsNonStreaming(
-                                model=MODEL, max_tokens=MAX_TOKENS,
+                                model=MODEL,
+                                max_tokens=(MAX_TOKENS_THINKING if thinking else MAX_TOKENS),
                                 thinking=({"type": "adaptive"} if thinking
                                           else {"type": "disabled"}),
                                 messages=[{"role": "user", "content": body}])))
