@@ -478,11 +478,15 @@ def print_table(blocks: list[dict]) -> None:
     print("  >CI = monitors we beat on IDENTICAL items with a paired-bootstrap 95% CI that excludes 0")
     for b in blocks:
         print(f"\n--- {b['name']} ({b['protocol']}), paired bootstrap over problems, "
-              f"n_items={b['n_items']} -------")
-        print(f"{'monitor':<46}{'mon':>8}{'ours':>8}{'diff':>9}{'95% CI of diff':>20}{'excl 0':>8}")
+              f"n_items={b['n_items']}; `mon` is recomputed on THESE items, "
+              f"`mon published CI` is the unused `ci` field of monitor-summary.json on the full split ---")
+        print(f"{'monitor':<46}{'mon':>8}{'mon published CI':>19}{'ours':>8}{'diff':>9}"
+              f"{'95% CI of diff':>20}{'excl 0':>8}")
         for d in b["per_monitor"]:
             ci = f"{d['diff_ci'][0]:+.4f},{d['diff_ci'][1]:+.4f}"
-            print(f"{d['repo']:<46}{d['monitor_auroc_on_these_items']:>8.4f}{d['our_auroc']:>8.4f}"
+            pc = d["monitor_published_ci"]
+            pcs = f"{pc[0]:.4f}-{pc[1]:.4f}" if pc else "-"
+            print(f"{d['repo']:<46}{d['monitor_auroc_on_these_items']:>8.4f}{pcs:>19}{d['our_auroc']:>8.4f}"
                   f"{d['diff']:>+9.4f}{ci:>20}{('yes' if d['ci_excludes_zero'] else 'no'):>8}")
 
 

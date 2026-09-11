@@ -66,7 +66,13 @@ def _quiet_evaluate(pairs: pd.DataFrame, label: str, n_boot: int) -> dict:
 
 
 def load_pool(human_pass_file: str | None) -> pd.DataFrame:
-    """The B pool, exactly as gate_s_baseline.main() builds it."""
+    """The B pool, exactly as gate_s_baseline.main() builds it.
+
+    The pair construction itself is `build_pairs()`, imported. Only the shard read and the
+    --human-pass-file parse are restated here, because gate_s_baseline keeps them inline in
+    main() and nothing in this branch may refactor that file. If they are ever factored out,
+    delete this function and call it instead - the two must not drift.
+    """
     shards = sorted(glob.glob("train_*.parquet"))
     if not shards:
         raise SystemExit("no train_*.parquet here - run `python fetch.py` first")
