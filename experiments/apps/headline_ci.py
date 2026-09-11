@@ -199,6 +199,8 @@ def load_scores(repos: list[dict], scores_dir: str) -> pd.DataFrame:
     label = None
     for m in repos:
         path = os.path.join(scores_dir, m["repo"].replace("/", "__") + ".json")
+        if not os.path.exists(path):
+            raise SystemExit(f"{path} is missing -- drop --no-fetch, or fetch it from {RAW_BASE}")
         d = json.load(open(path))
         if not d.get("ok", True):
             raise SystemExit(f"{path}: ok=false ({d.get('error')!r}); it should not be in the 24")
