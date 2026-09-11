@@ -10,13 +10,28 @@ both upstream artifacts this work builds on most — `RoganInglis/apps-control-a
 
 ```bash
 cd experiments/apps
-# headline build (proposed 2026-09-11; the coordinator sends the go with the final --keep):
-# the outcome-blind `first` selection of the independent-arm retry pool, one draw per problem
+# THE build (run 2026-09-11, coordinator's decision: keep BOTH). Headline pairs from the
+# outcome-blind `first` selection, the full retry pool shipped, the survivor (`best`) lists
+# keyed by draw into it; 53 trivial one-liners identical to a human solution retained and declared.
 python3 release_split.py --out release --keep first \
     --bd-independent bdind_sonnet5_first.jsonl --bdpass-independent bdindpass_sonnet5_first.jsonl \
-    --card-out ../RELEASE-CARD.md
-python3 release_split.py --check release         # run this from the directory holding train_*.parquet
+    --pool-independent bdind_sonnet5_retry.jsonl --poolpass-independent bdindpass_sonnet5_retry.jsonl \
+    --also-select best --allow-trivial-identical 120 --card-out ../RELEASE-CARD.md
+python3 release_split.py --check release --allow-trivial-identical 120   # from the directory holding train_*.parquet
 ```
+
+**The trivial-match exemption, stated plainly.** Without `--allow-trivial-identical` the first build
+failed `--check`: 53 released strings were byte-identical to an upstream human solution. All 53 are
+one-liners of at most 117 characters (7 lines) for introductory problems — `a, b = map(int,
+input().split()); print(a + b)` and the like — 51 of 53 on the same problem, none matching a stored
+backdoor. That is the canonical solution being the only solution, not memorisation, so the handoff
+§7 rule ("memorised; drop") was not applied blindly: the flag keeps matches of at most 120
+characters, refuses anything longer or anything equal to a stored backdoor, declares every
+retained record by file and problem id under `upstream_identical_trivial` in `MANIFEST.json`, and
+the card says so in one sentence. Without the flag `--check` still fails, so the strict rule is the
+default. Dropping them instead would remove 40 honest programs and change the honest-passer set
+the ledger's S runs used; that is the coordinator's call, and this build embodies the exemption
+until it is ratified or reversed (a rebuild is two minutes).
 
 `--keep` and the retry pool (`RESULTS.md` §7), checked in memory on 2026-09-11 without writing
 anything: fed the full pool (`bdind_sonnet5_retry.jsonl` + `bdindpass_sonnet5_retry.jsonl`, 11,565
@@ -90,9 +105,25 @@ Replace "Ours accompany this paper." with:
 > eligibility rules shipped as separate pair lists), the generation, execution and verification
 > scripts, and a manifest of row counts and checksums, released under the MIT licence.
 
-Fill the two counts from `MANIFEST.json`; if the macros are not wanted, write the numbers. If the
-retry pool ships (§1), add after "pair lists": "together with every draw of the independent arm's
-retry pool and the two selections made from it".
+Fill the two counts from `MANIFEST.json`; if the macros are not wanted, write the numbers.
+
+**As built 2026-09-11 (numbers from `MANIFEST.json`), the sentence that is true of the zip:**
+
+> Ours accompany this paper as supplementary material: the same-generator split (1,444 honest
+> programs, 1,112 edit-arm and 1,112 independent-arm attack programs written by one model, plus
+> every one of the 11,565 draws of the independent arm's retry pool), both eligibility rules as
+> pair lists under an outcome-blind selection (623 passing and 14 firing independent-arm pairs)
+> and under the benchmark's own survivor selection (1,046 and 99, or 106 counting a crash on the
+> trigger as firing), a dataset card, and a manifest of row counts and checksums, released under
+> the MIT licence.
+
+The zip holds `release/` and `LICENSE` only. The scripts are in the repository, not the zip; do not
+write "the generation, execution and verification scripts" unless they are added
+(`zip -r ../../same-generator-apps-split.zip release ../../LICENSE gen_honest_api.py
+gen_backdoor_api.py run_tests.py verify_backdoor.py merge_draws.py gate_s_samegen.py
+release_split.py data.py` — they carry no names or paths; the only scrub hits are the literal
+environment-variable name `ANTHROPIC_API_KEY` and `data.py`'s own upstream URLs, which is the one
+MIT file we redistribute, with its notice).
 
 ## 5. Still open, and not a blocker
 

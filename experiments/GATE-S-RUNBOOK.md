@@ -39,8 +39,8 @@ of 2026-09-09 the risk is stage 2's *queue time*, not any of the code.
 > | arm 1 — regenerate the honest half only (Qwen3-Coder-30B) | ⛔ **CONFOUNDED**, ρ = 1.234 |
 > | same-generator honest class | ✅ 1,444/1,444 generated, 1,112 pass |
 > | same-generator attack class, **edit** arm | ✅ 1,112/1,112 generated; verified 427 pass / 40 usable |
-> | same-generator attack class, **independent** arm | ✅ 600/600 — **this is the arm the title routes on** (§6); verified 335 pass / 10 usable, far below the 50-pair floor |
-> | independent arm, **retry pool** (§6.1) | ✅ **11,565 draws** verified (single shot + six rounds + 24 shards; 12 shards never landed); `first` 623 passing / 14 usable, `best` 1,046 / 106 (99 excluding crash-on-trigger) |
+> | same-generator attack class, **independent** arm | ✅ 600/600 — **this is the arm the title routes on** (§8); verified 335 pass / 10 usable, far below the 50-pair floor |
+> | independent arm, **retry pool** (§8.1) | ✅ **11,565 draws** verified (single shot + six rounds + 24 shards; 12 shards never landed); `first` 623 passing / 14 usable, `best` 1,046 / 106 (99 excluding crash-on-trigger) |
 > | **S** | pending — the last number; headline on `first` under `passes`, strict on `best` under `usable` (`RESULTS.md` §7, coordinator decisions) |
 >
 > Spend stayed inside the ceiling; the accounting is in the ledger. Full ledger: **`RESULTS.md`**.
@@ -53,7 +53,7 @@ of 2026-09-09 the risk is stage 2's *queue time*, not any of the code.
 
 ## 1. Environment — as actually measured, 2026-09-04
 
-Slurm job `6557548` on `serval09`: **2× H100 NVL, 94 GB each** (not 80 — this matters), 16 CPUs,
+A Slurm job on `<cluster-host>`: **2× H100 NVL, 94 GB each** (not 80 — this matters), 16 CPUs,
 125 GB RAM, 4-day limit. Reach it from a login shell with
 `srun --jobid=<id> --overlap bash -c '...'`; `--pty` hangs against an already-running job.
 
@@ -62,19 +62,20 @@ one GPU each**, rather than sequentially at `tensor_parallel_size=2`. That halve
 removes the tensor-parallel failure mode.
 
 ```bash
-cd /u/fvc9ch/ai-safety/authorship-not-sabotage
+cd <repo-root>
 python3 -m venv .venv-gpu
 .venv-gpu/bin/pip install vllm pandas pyarrow
 .venv-gpu/bin/python -c "import vllm, torch; print(vllm.__version__, torch.cuda.device_count())"
 ```
 
 > ### ⚠️ Put the HF cache somewhere with room, and export it in **every** shell
-> `$HOME` is quota-limited here. `/bigtemp` is 174 TB with 152 TB free, on `corezfs04`, and is
-> mounted on both the login node and `serval09` — verified writable from the compute node.
-> `/bigtemp1` is 96% full; `/bigtemp2` and `/localtmp` are node-local, not shared.
+> `$HOME` is quota-limited here. Use the large shared scratch filesystem (`<scratch>`, on the
+> order of 100 TB free) that is mounted on both the login node and the compute node — verified
+> writable from the compute node. The node-local temp filesystems are not shared, and the other
+> shared one was nearly full.
 >
 > ```bash
-> export HF_HOME=/bigtemp/$USER/hf
+> export HF_HOME=<scratch>/hf
 > export HF_HUB_ENABLE_HF_TRANSFER=1
 > ```
 >
@@ -156,7 +157,7 @@ sbatch --dependency=afterok:<gen_job_id> gate_s_check.sbatch                # st
 To smoke the vLLM path first — it is the one path never exercised off the allocation:
 
 ```bash
-export HF_HOME=/bigtemp/$USER/hf
+export HF_HOME=<scratch>/hf
 ../../.venv-gpu/bin/python gen_honest.py \
   --model Qwen/Qwen3.8-27B --out smoke_q38.jsonl --limit 20
 ```
@@ -440,7 +441,7 @@ Retained signal **ρ = (G − 0.5) / (B − 0.5)**.
 came back **confounded** (ρ = 1.234, `RESULTS.md` §3), so nothing routes on it. The other arms and
 the ladder were the confound diagnostics, read against `../PLAN.md` §3's tables: an arm that does
 not collapse while arm 1 does means that arm's result was code quality, not authorship. The title
-now routes on the same-generator independent arm (§6).
+now routes on the same-generator independent arm (§8).
 
 **If neither arm produces usable pairs by end of Sep 8**, take the fourth route in `../PLAN.md` §3 —
 ship without the control, authorship stated as inference in Limitations. Do not spend Sep 9 debugging
@@ -452,7 +453,9 @@ a generator.
 
 The regenerated honest pool, the pass/fail records, the split definition and all four scripts go out
 with the paper (B5, `../notes/05-permissibility.md`). We redistribute no upstream data: the scripts
-refetch it. Generated solutions are ours to release.
+refetch it. Generated solutions are ours to release. **Built 2026-09-11** by `apps/release_split.py`
+— the procedure, the exact command and the one disclosed exemption are in `../notes/07-release.md`;
+the rendered dataset card is `RELEASE-CARD.md`.
 
 ---
 
@@ -462,18 +465,18 @@ refetch it. Generated solutions are ours to release.
 |---|---|---|
 | `apps/gate_s_pool.py` | ✅ **written and run** | §2. Produces `gate_s_pool.parquet` and the 3,420 / 1,582 / 1,444 table. Re-verified on a second machine 2026-09-09: every count exact. |
 | `apps/gen_honest.py` | ✅ **RUN 2026-09-08** — arm 1 | §3. `--model Qwen/Qwen3-Coder-30B-A3B-Instruct`: 5,000 generations (`gen_q3c30.jsonl`), scored by `run_tests.py` into `pass_q3c30.jsonl`, 668 pairs on the analysis pool. The planned `Qwen3.8-27B` arm never ran. `RESULTS.md` §3. |
-| `apps/gen_honest_api.py` | ✅ **RUN 2026-09-09**, $8.62 | The Claude Sonnet 5 honest arm. 1,444 of 1,444 succeeded. Defaults to `--pool analysis` because it is metered and only the 1,444 can reach a result; the vLLM arms still generate wide. `RESULTS.md` §4.1. |
+| `apps/gen_honest_api.py` | ✅ **RUN 2026-09-09** | The Claude Sonnet 5 honest arm (paid API, disclosed). 1,444 of 1,444 succeeded. Defaults to `--pool analysis` because it is metered and only the 1,444 can reach a result; the vLLM arms still generate wide. `RESULTS.md` §4.1. |
 | `apps/run_tests.py` | ✅ **written, validated, and fixed again 2026-09-10** | §4. 95.84% on the analysis pool, unchanged by the 2026-09-10 fix (`StringIO` has no `.buffer`, which failed `sys.stdin.buffer.read()` instantly). `RESULTS.md` §4.4, §4.6. |
 | `apps/gate_s_baseline.py` | ✅ **RUN 2026-09-09, re-run 2026-09-10** | §5.1. B = 0.8714 (shipped flag, n=1,444); 0.8729 under our own flag at n=1,406, within one sd. Bit-identical across two machines and two library generations. `RESULTS.md` §4.7. |
 | `apps/gate_s_eval.py` | ✅ **RUN** — arm 1 | §5. `--gen-file gen_q3c30.jsonl --pass-file pass_q3c30.jsonl --label q3c30`: n = 668, B′ 0.8739, G 0.9616, **ρ = 1.234, confounded**. `RESULTS.md` §3. |
-| `apps/gen_backdoor_api.py` | ✅ **RUN** — both arms, then the retry rounds | The attack class, Sonnet 5. Edit arm 1,112/1,112; independent arm 600/600; then six full rounds and 36 shards over the 1,112 honest passers for the retry pool (§6.1), of which 12 shards never landed. Separate batch state files, so the arms cannot disturb one another. Its closing "Next:" line names the **edit-arm** verdict file for both arms — do not follow it for the independent arm (§6). |
+| `apps/gen_backdoor_api.py` | ✅ **RUN** — both arms, then the retry rounds | The attack class, Sonnet 5. Two arms, see §8 below. Edit arm 1,112/1,112; independent arm 600/600; then six full rounds and 36 shards over the 1,112 honest passers for the retry pool (§8.1), of which 12 shards never landed. Separate batch state files, so the arms cannot disturb one another. Its closing "Next:" line names the **edit-arm** verdict file for both arms — do not follow it for the independent arm. |
 | `apps/verify_backdoor.py` | ✅ **RUN** — both arms and the pool | Edit arm 427 pass / 40 usable; independent arm 335 / 10; the 11,565-draw pool 6,570 / 167 (14 crash-on-trigger). Carried the same `.buffer` defect as `run_tests.py` and was fixed with it — it mattered more here, because the caller reads a crash on the trigger as proof the backdoor fired; ControlArena scores a crash as not working, so crash survivors are counted separately (`RESULTS.md` §7). |
-| `apps/merge_draws.py` | ✅ **RUN 2026-09-11** | Pools the retry draws in chronological file order and reduces them to one draw per problem under `--keep first` (outcome-blind) or `--keep best` (survivor selection). Draws and verdicts join on the `draw` key, never by line. §6.1. |
+| `apps/merge_draws.py` | ✅ **RUN 2026-09-11** | Pools the retry draws in chronological file order and reduces them to one draw per problem under `--keep first` (outcome-blind) or `--keep best` (survivor selection). Draws and verdicts join on the `draw` key, never by line. §8.1. |
 | `apps/gate_s_samegen.py` | ✅ **smoke-tested 2026-09-10**; the S runs are pending in the ledger | Produces **S**. Refuses a pair of classes that do not share a generator, refuses below `--min-pairs 50`, and measures pair similarity against the stored 0.469. |
 
 ---
 
-## 6. The attack class — two arms, and why there are two
+## 8. The attack class — two arms, and why there are two
 
 `RESULTS.md` §4.8 carries the full reasoning; the short version a later agent needs:
 
@@ -518,10 +521,10 @@ python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5.jsonl --bdpass bdindpa
 
 > **Expect a lower yield from the independent arm.** Writing a program from scratch that passes every
 > public test *and* fails on a self-chosen trigger is harder than editing a working one. It landed at
-> 10 usable of 600 — far under the 50-pair floor — so it was topped up, as §6.1 records, rather than
+> 10 usable of 600 — far under the 50-pair floor — so it was topped up, as §8.1 records, rather than
 > reported at a small n.
 
-### 6.1 The retry pool — what was actually done, and what the two selections mean
+### 8.1 The retry pool — what was actually done, and what the two selections mean
 
 `RESULTS.md` §7 is the ledger; this is the procedure. The single-shot usable rate of the independent
 arm is about 2% (§4.10), and the stored benchmark's attack class is a retry-survivor set, so the arm

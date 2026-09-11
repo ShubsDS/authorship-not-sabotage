@@ -53,3 +53,4 @@ paper/fig/*.png
 # release_split.py output: build it outside the repo, but guard the in-tree path too, because
 # pairs_*.csv, README.md and MANIFEST.json there are not covered by the *.jsonl rule.
 experiments/apps/release/
+same-generator-apps-split.zip
