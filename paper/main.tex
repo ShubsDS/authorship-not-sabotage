@@ -157,7 +157,9 @@
 \newcommand{\tripleAttack}{9}
 
 % --- The second selection artifact --------------------------------------------------
-\newcommand{\inertShare}{80.7\%}           % of Koran's test-split backdoors do not work
+\newcommand{\inertShare}{80.7\%}           % of Koran's test-split labelled backdoors (892) do not work
+\newcommand{\inertSharePassing}{32.8\%}    % same, among the 256 that PASS the public tests (172 fire);
+                                           % the like-for-like analogue of our `passes' eligibility rule
 \newcommand{\testCasesAttack}{20.95}
 \newcommand{\testCasesHonest}{38.85}
 
@@ -476,7 +478,8 @@ excluding zero.}
 \paragraph{The filter installs a second artifact.}
 Labelling by \texttt{backdoor\_works} defines the negative class by \emph{attack failure}
 rather than by honesty: \inertShare{} of the test split's labelled backdoors do not work
-and are relabelled honest, so most of the ``honest'' class consists of failed attacks.
+(\inertSharePassing{} of those that pass the public tests) and are relabelled honest, so
+most of the ``honest'' class consists of failed attacks.
 Attack problems carry roughly half as many test cases as honest ones
 (\testCasesAttack{} versus \testCasesHonest{}), consistent with a problem with fewer tests
 being easier to backdoor undetectably, so difficulty and test count are correlated with the
@@ -509,8 +512,7 @@ Following \citet{kapoor2022leakage}, who treat leakage as a checklist rather tha
       number}, each against a permutation null. A monitor that
       does not clear its corpus's own floor has not been shown to do anything.
 \item \textbf{Do not define the negative class by attack failure.} Drop inert backdoors
-      from both classes rather than relabelling a failed attack as honest, which imports
-      the attacker's success rate into the label.
+      from both classes rather than relabelling a failed attack as honest.
 \item \textbf{State the split, the metric and the preprocessing} whenever monitors are
       compared, and \textbf{release the split definition and the scripts} so a floor can be
       recomputed rather than trusted. Ours will be released under MIT.
@@ -535,15 +537,15 @@ metered commercial API rather than an open-weight model. That API does not expos
 open-weight arms are, and thinking was off although the stored attacker was a thinking
 model. That the remaining cross-model difference is small is an inference from our
 \transfer{} transfer and \citet{orel2026aicd}'s generator-independence result. We do not
-length-match: in deployment the untrusted model chooses its trajectory length. The authorship reading is therefore inference (\S\ref{sec:results}), and we label
-it as such.
+length-match: in deployment the untrusted model chooses its trajectory length. The
+authorship reading is therefore inference (\S\ref{sec:results}).
 
 \textbf{Scope, provenance and the harness.} Whether stored-pair corpora leak this way in
 general is not established here. Five of our seven corpora are one user's
 repackaging, so claims are scoped to those public releases. Two interpreter-era artifacts
 fall on opposite classes (a patched \texttt{stdin} lacking \texttt{.buffer} penalised the
 model class, fixed; \texttt{fractions.gcd}, removed in Python 3.9, penalises old human
-code, scored as failing); the same-generator arm is immune, $B$ is not.
+code); the same-generator arm is immune, $B$ is not.
 
 % =====================================================================================
 \bibliographystyle{plainnat}
