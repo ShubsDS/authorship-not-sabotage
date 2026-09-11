@@ -145,6 +145,11 @@ SCRIPT_FILES = (
     "headline_ci.py",              # the headline intervals and the paired monitor comparison
     "rho_joint_ci.py",             # the joint bootstrap on rho
     "monitor_samegen.py",          # the zero-shot monitor on the same pairs
+    "monitor_rho.py",              # monitor-rho: the monitor's counterpart of the paper's rho
+    "gate_s_matched.py",           # the prompt-matched honest class, and the prompt-only floor
+    "gen_honest_haiku.py",         # the second generator's honest and matched-honest classes
+    "gate_s_matched_haiku.py",     # ... its prompt-matched rows (imports gate_s_matched's helpers)
+    "sim_stratified_s.py",         # S inside pair-similarity strata: the near-copy control
     "release_split.py",            # this file: the bundle is reproducible from the bundle
 )
 LICENCE_FILE = "LICENSE"
