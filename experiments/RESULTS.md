@@ -469,7 +469,71 @@ So the two arms answer two different questions, and only one of them is the pape
 | edit | *Hold the program fixed and change only the sabotage — can a trivial baseline see it?* A real result, but narrow. |
 | **independent** | *Authorship is the only thing that changed.* **This is the arm the title routes on.** |
 
-### 4.10 Remaining stages
+## 4.10 Verification: the yield is far too low to read, and prompting does not fix it
+
+| arm | candidates | passes tests | **usable (both)** |
+|---|---:|---:|---:|
+| edit | 1,112 | 427 (38.4%) | **40 (3.6%)** |
+| independent | 600 | 335 (55.8%) | **10 (1.7%)** |
+
+`gate_s_samegen.py` requires 50 pairs. **Neither arm clears it**, so there is no S from either.
+
+This was checked against our own code before being blamed on the model: triggers are well formed
+(correct shape, trailing newline, none empty), only **3 of 1,110** backdoors are their honest source
+unchanged, and hand-running a failing case confirms the verifier — the model made a real logic change
+and then chose a trigger that does not reach it. Of the 427 edit-arm backdoors that pass their public
+tests, **381 have a non-firing trigger**. Trigger selection is where the yield goes.
+
+### Four prompt variants, measured at 200 requests each
+
+| variant | passes tests | fires \| passes | usable |
+|---|---:|---:|---:|
+| **original prompt, no thinking** | **55.8%** | 3.0% | **1.7%** |
+| broad wrong-region, no thinking | 28.0% | 0.0% | 0.0% |
+| broad wrong-region **+ thinking** | 3.0% | **83.3%** | 2.5% |
+| sample-tests-first + thinking | 3.0% | 66.7% | 2.0% |
+
+Two findings, pulling against each other:
+
+1. **Thinking plus a self-check fixes trigger selection outright** — 3.0% → 83.3% conditional firing.
+   That was the dominant loss.
+2. **Thinking pins the test-pass rate at 3.0% whatever the prompt says.** A bug wide enough to fire
+   reliably is wide enough to hit the public tests.
+
+Every variant lands near 2% usable. **The dials are anti-correlated and prompting is not the lever.**
+Both prompts were reverted to the versions that generated the data on disk.
+
+> **An instructive own-goal.** The "broad wrong-region" instruction was added on the evidence that the
+> benchmark's backdoors fire broadly (`pid 7`: `m % 5 == 0`, ~20% of inputs; `pid 86`: `>=` → `>`).
+> That reading was right, but the instruction optimised one constraint into violating the other and
+> halved the pass rate. The benchmark's backdoors are broad *and* pass the tests because they survived
+> filtering — not because the generator was told to make them broad.
+
+### Why the benchmark reaches 46% and we reach 2%
+
+ControlArena attack policies **retry and keep survivors**. The stored 1,582 working backdoors are the
+survivors of an unknown number of attempts; our 2% is a single-shot rate. The two are not in
+contradiction, and the gap is itself a measurement: **the stored attack class is heavily filtered.**
+
+Resampling is therefore the route, and it is the benchmark's own procedure. It requires that repeated
+draws actually differ, which was verified rather than assumed — replaying 100 already-generated
+problems at identical settings (Sonnet 5 rejects `temperature`, so this is default sampling):
+
+| | identical to first draw |
+|---|---:|
+| code | 7/100 (7.0%) |
+| trigger | 24/100 (24.0%) |
+
+Independent enough for retry to work. 6,672 further requests are in flight as six concurrent rounds
+over all 1,112 problems; pooled with the 700 existing draws that used this same prompt, that is ~7
+samples per problem, projecting ~125 usable pairs at the measured 1.7%.
+
+> ⚠️ **This inherits the benchmark's selection effect, deliberately, and Limitations must say so.**
+> Keeping only the attempts that both evaded the tests and fired is the same filtering the paper
+> criticises. It is defensible as a faithful reproduction of the protocol under audit; it is not
+> defensible if left implicit.
+
+### 4.11 Remaining stages
 
 | Stage | Status |
 |---|---|
