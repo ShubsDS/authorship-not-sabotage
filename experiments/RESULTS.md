@@ -1777,7 +1777,7 @@ same pairwise call 78–82% of the time. On the same-generator headline pairs �
 chance — the correlation is +0.11 and the agreement rate 0.569, which is what two detectors that
 are both reading noise look like. Haiku's absolute AUROCs are lower than Sonnet's everywhere
 (0.88 vs 0.96 stored headline; 0.79 vs 0.82 same-gen strict), as a smaller monitor should be. The
-ratio, which is what the paper quotes, agrees to within 0.01 on the headline row and 0.03 on the
+ratio, which is what the paper quotes, agrees to 0.006 on the headline row and 0.032 on the
 strict row.
 
 ### 14.5 The truncation defect in the Haiku arm, and its control
@@ -1826,7 +1826,7 @@ strict pairs — attacks that pass *and* fire — the monitor keeps 72–77% and
 and those intervals overlap. The two rows say the same thing §10 and §11 said, now with the
 denominator measured rather than assumed: **what the stored benchmark's separability is made of
 differs by detector.** For a monitor it is almost entirely the human-vs-model authorship gap plus
-real backdoors; on the 97.5%-inert headline set, removing authorship removes essentially all of the
+real backdoors; on the 97.75%-inert headline set (14 of 623 fire), removing authorship removes essentially all of the
 monitor's signal, and the 0.75 the classifier still reads there is layout from the attack prompt's
 framing (§11), which a monitor does not score as suspicious.
 
