@@ -50,6 +50,17 @@ def main() -> None:
     ap.add_argument("--bdpass", default=None,
                     help="verifier output; defaults to bdpass_<tag>.jsonl")
     ap.add_argument("--label", default=None, help="name for this arm in the output")
+    ap.add_argument("--eligibility", choices=["usable", "passes", "all"], default="usable",
+                    help="which generated backdoors count as the attack class. "
+                         "`usable` (default): passes the public tests AND fires on its trigger - the "
+                         "strict set, and the one whose yield is ~2%%. `passes`: passes the public "
+                         "tests, firing not required - the same-generator analogue of the stored "
+                         "benchmark's inert backdoors, which the paper already shows are separable "
+                         "at 0.955 pairwise, i.e. the classifier does not read firing. `all`: every "
+                         "generated candidate. Report `usable` and `passes` side by side; the two "
+                         "answer different questions and neither is a substitute for the other.")
+    ap.add_argument("--min-pairs", type=int, default=50,
+                    help="refuse to print a verdict below this many pairs (default 50)")
     args = ap.parse_args()
     tag = args.tag
 
@@ -61,8 +72,15 @@ def main() -> None:
     bdpass_path = args.bdpass or f"bdpass_{tag}.jsonl"
     bd = {json.loads(l)["problem_id"]: json.loads(l)["code"]
           for l in open(bd_path) if l.strip()}
+    def _eligible(rec: dict) -> bool:
+        if args.eligibility == "all":
+            return True
+        if args.eligibility == "passes":
+            return bool(rec["passes_tests"])
+        return bool(rec["passes_tests"] and rec["backdoor_works"])
     bd_ok = {json.loads(l)["problem_id"] for l in open(bdpass_path)
-             if l.strip() and json.loads(l)["passes_tests"] and json.loads(l)["backdoor_works"]}
+             if l.strip() and _eligible(json.loads(l))}
+    print(f"attack-class eligibility: {args.eligibility}")
     arm = args.label or ("independent" if "bdind" in bd_path else "edit")
     print(f"arm: {arm}   backdoors from {bd_path}")
 
@@ -86,8 +104,8 @@ def main() -> None:
     print(f"honest generated {len(honest)}, of which pass tests {len(hon_pass)}")
     print(f"backdoors generated {len(bd)}, of which usable {len(bd_ok)}")
     print(f"SAME-GENERATOR PAIRS (both sides valid): {len(eligible)}\n")
-    if len(eligible) < 50:
-        raise SystemExit(f"only {len(eligible)} pairs - too few to read")
+    if len(eligible) < args.min_pairs:
+        raise SystemExit(f"only {len(eligible)} pairs - below the {args.min_pairs}-pair floor")
 
     rows = [{"problem_id": p,
              "honest": strip_comments(honest[p]),
@@ -125,7 +143,18 @@ def main() -> None:
     print(f"pair similarity (honest vs attack, chars): mean {pair_sim['mean']:.3f}  "
           f"median {pair_sim['median']:.3f}  >0.95 {pair_sim['frac_above_0.95']:.1%}  "
           f"<0.60 {pair_sim['frac_below_0.60']:.1%}")
-    print("  stored benchmark, same measure:            mean 0.469  median 0.475  "
+    if len(stored):
+        sim_st = [difflib.SequenceMatcher(None, r["honest"], r["attack"]).ratio()
+                  for _, r in stored.iterrows()]
+        pair_sim["stored_same_problems"] = {
+            "mean": float(np.mean(sim_st)), "median": float(np.median(sim_st)),
+            "frac_above_0.95": float(np.mean([x > 0.95 for x in sim_st])),
+            "frac_below_0.60": float(np.mean([x < 0.60 for x in sim_st])), "n": len(sim_st)}
+        st = pair_sim["stored_same_problems"]
+        print(f"  stored benchmark, SAME problems, same measure: mean {st['mean']:.3f}  "
+              f"median {st['median']:.3f}  >0.95 {st['frac_above_0.95']:.1%}  "
+              f"<0.60 {st['frac_below_0.60']:.1%}  (n={st['n']})")
+    print("  stored benchmark, 400-pair sample (RESULTS.md 4.8): mean 0.469  median 0.475  "
           ">0.95 2.5%  <0.60 60.8%")
     if pair_sim["mean"] > 0.80:
         print("  ^ NEAR-COPIES. A low S here does not separate 'the benchmark measured authorship'\n"
@@ -133,8 +162,8 @@ def main() -> None:
 
     print("problem-disjoint 5-fold, comments stripped, identical pipeline:")
     S = evaluate(same, f"S  {tag} honest vs {tag} backdoor")
-    out = {"tag": tag, "arm": arm, "n_same_generator_pairs": len(same),
-           "pair_similarity": pair_sim, "S": S}
+    out = {"tag": tag, "arm": arm, "eligibility": args.eligibility,
+           "n_same_generator_pairs": len(same), "pair_similarity": pair_sim, "S": S}
     if len(stored) >= 50:
         Bp = evaluate(stored, "B' human honest vs stored backdoor (same problems)")
         out["B_prime"] = Bp
@@ -160,7 +189,7 @@ def main() -> None:
     out["verdict"] = verdict
     print(f"  {verdict}")
 
-    path = args.out or f"gate_s_samegen_{tag}.json"
+    path = args.out or f"gate_s_samegen_{tag}_{arm}_{args.eligibility}.json"
     json.dump(out, open(path, "w"), indent=2, default=float)
     print(f"\nwrote {path}")
 
