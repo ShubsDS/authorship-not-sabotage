@@ -23,6 +23,8 @@ provenance.
 | `pairs_passes.csv` | 1,050 | problem ids forming a pair under the *passes-tests* rule, by arm |
 | `pairs_usable.csv` | 54 | problem ids forming a pair under the *passes-and-fires* rule, by arm |
 | `MANIFEST.json` | --- | row counts, SHA-256 of every file, generator, build date, harness agreement |
+| `scripts/` | 19 | the scripts behind the paper's numbers, at the revision that produced them |
+| `LICENSE` | --- | MIT, covering this bundle |
 | `attacks_independent_pool.jsonl` | 11,565 | **every** draw of the independent arm, 1,112 problems, up to 13 draws each, with `draw` / `source` / `round` |
 | `pairs_passes_best.csv` | 1,046 | survivor selection from the pool under the *passes-tests* rule, keyed by `draw` |
 | `pairs_usable_best.csv` | 106 | survivor selection under the *passes-and-fires* rule, keyed by `draw`; 99 rows fire without crashing (`crash_on_trigger = false`) |
@@ -127,8 +129,9 @@ Not intended for: training an attack policy; claiming a monitor is safe; any use
 
 ## Licence
 
-MIT. See `LICENSE` in the accompanying code release. Upstream corpora referenced by problem id
-keep their own licences; nothing from them is included here.
+MIT. `LICENSE` in this bundle covers the data and the scripts under `scripts/`. Upstream corpora
+referenced by problem id keep their own licences; nothing from them is included here. Cost
+figures in the scripts' comments are redacted to `$X`; nothing else in them was changed.
 
 ## Citation
 

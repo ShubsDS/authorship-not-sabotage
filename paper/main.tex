@@ -227,6 +227,7 @@
 \newcommand{\relPassBest}{1{,}046}     % same under the benchmark's own survivor selection (--keep best)
 \newcommand{\relFireBest}{99}          % ... firing
 \newcommand{\relFireBestCrash}{106}    % ... counting a crash on the trigger as firing
+\newcommand{\relScripts}{19}           % scripts/ in the bundle (release_split.py SCRIPT_FILES)
 
 % --- Same-generator S: PLACEHOLDERS ONLY. ---------------------------------------------
 % Values come from handoff §4.3 (Worker C: S, n, CI, rho; Worker F: the monitor's AUROC
@@ -779,8 +780,10 @@ plus every one of the \relRetryDraws{} draws of the independent arm's retry pool
 eligibility rules as pair lists under an outcome-blind selection (\relPassFirst{} passing
 and \relFireFirst{} firing independent-arm pairs) and under the benchmark's own survivor
 selection (\relPassBest{} and \relFireBest{}, or \relFireBestCrash{} counting a crash on
-the trigger as firing), a dataset card, and a manifest of row counts and checksums, under
-the MIT licence.
+the trigger as firing), the \relScripts{} scripts that produced every number in this paper ---
+generation, the test harness, the trigger verifier, the selection rules, and each measurement
+script --- a dataset card, and a manifest of row counts and checksums. The licence, MIT, is a
+file inside the bundle and covers the data and the scripts alike.
 
 \paragraph{The test harness and the pass flag.}
 \label{app:harness}

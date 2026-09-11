@@ -13,12 +13,25 @@ cd experiments/apps
 # THE build (run 2026-09-11, coordinator's decision: keep BOTH). Headline pairs from the
 # outcome-blind `first` selection, the full retry pool shipped, the survivor (`best`) lists
 # keyed by draw into it; 53 trivial one-liners identical to a human solution retained and declared.
-python3 release_split.py --out release --keep first \
+python3 release_split.py --out release --force --keep first \
     --bd-independent bdind_sonnet5_first.jsonl --bdpass-independent bdindpass_sonnet5_first.jsonl \
     --pool-independent bdind_sonnet5_retry.jsonl --poolpass-independent bdindpass_sonnet5_retry.jsonl \
     --also-select best --allow-trivial-identical 120 --card-out ../RELEASE-CARD.md
 python3 release_split.py --check release --allow-trivial-identical 120   # from the directory holding train_*.parquet
 ```
+
+**Schema 3 (2026-09-11): the scripts and the licence are in the bundle.** `release/scripts/`
+carries the 19 programs behind the paper's numbers and `release/LICENSE` is a copy inside the
+directory, so Recommendation 4 ("release the split *and the scripts*") is true of the artifact
+and the licence no longer extracts beside it. The scripts are read from **HEAD**, not the working
+tree, because other sessions edit `gen_*_api.py` and `monitor_samegen.py` while a build runs;
+`--scripts-from-worktree` overrides that and `--no-scripts` omits them. Cost figures in their
+comments are redacted to `$X` at build time (20 of them in this build) and `--check` refuses any
+that survive. Scripts are scrubbed on `SCRIPT_SCRUB_PATTERNS`, not on the data list: the data list
+bans every `github.com/<owner>/` URL, and two scripts carry one inside the third-party MIT notice
+`THIRD-PARTY-NOTICES.md` obliges us to keep. Still in the shipped `monitor_samegen.py`, and
+deliberately: `SPENT_SO_FAR = 99.0` and `BUDGET_CEILING = 135.0`, two bare numbers that carry no
+currency symbol and identify nobody.
 
 **The trivial-match exemption, stated plainly.** Without `--allow-trivial-identical` the first build
 failed `--check`: 53 released strings were byte-identical to an upstream human solution. All 53 are
@@ -62,10 +75,13 @@ The workshop is 4 pages **plus unlimited supplementary**, so this needs no exter
 anonymity gamble:
 
 ```bash
-cd experiments/apps && zip -r ../../same-generator-apps-split.zip release ../../LICENSE
+cd experiments/apps && rm -f ../../same-generator-apps-split.zip
+zip -r ../../same-generator-apps-split.zip release
 ```
 
-Attach the zip on OpenReview. It is self-contained: data, `MANIFEST.json`, dataset card, licence.
+`../../LICENSE` is **no longer** on that command line: the build copies it to `release/LICENSE`,
+and the old form stored an entry that extracted outside the release directory. Attach the zip on
+OpenReview. It is self-contained: data, scripts, `MANIFEST.json`, dataset card, licence.
 Do this first; it is the route that cannot fail.
 
 ## 3. Secondary route — an anonymised HuggingFace dataset
@@ -116,6 +132,9 @@ Fill the two counts from `MANIFEST.json`; if the macros are not wanted, write th
 > and under the benchmark's own survivor selection (1,046 and 99, or 106 counting a crash on the
 > trigger as firing), a dataset card, and a manifest of row counts and checksums, released under
 > the MIT licence.
+
+SUPERSEDED 2026-09-11 by schema 3: the zip now holds `release/` with `scripts/` and `LICENSE`
+inside it, 32 entries, and the paper's appendix says so. What follows is the state it replaced.
 
 The zip holds `release/` and `LICENSE` only. The scripts are in the repository, not the zip; do not
 write "the generation, execution and verification scripts" unless they are added

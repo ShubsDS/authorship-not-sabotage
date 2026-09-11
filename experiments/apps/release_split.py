@@ -10,6 +10,22 @@ directory that another group can download, read and recompute a floor from.
     python release_split.py --check release       # validate a built directory
     python release_split.py --render-card-only --card-out ../RELEASE-CARD.md
 
+The scripts, and the licence (added 2026-09-11; schema 3)
+---------------------------------------------------------
+Recommendation 4 of the paper is "release the split *and the scripts*", so the bundle ships
+both. `release/scripts/` carries the programs behind the paper's numbers, read from the
+**committed** revision (`git show HEAD:...`) rather than from the working tree, so a
+half-finished edit by a parallel session cannot ship; `--scripts-from-worktree` overrides that
+for a checkout without git. `release/LICENSE` is a copy inside the directory: the archive used
+to store it as `../../LICENSE`, which extracts beside the release rather than into it.
+
+Scripts are scrubbed on a list of their own (`SCRIPT_SCRUB_PATTERNS`). The data scrub bans
+every `github.com/<owner>/` URL, but two scripts carry one inside a third-party licence notice
+that `THIRD-PARTY-NOTICES.md` obliges us to keep, and an upstream repository is a citation, not
+an author. What the script scrub bans is what actually de-anonymises or leaks: credentials, API
+batch ids, local paths, personal names and email addresses --- and cost figures, which are
+redacted to `$X` on the way in and then refused if any survive.
+
 What it releases, and what it deliberately does not
 ---------------------------------------------------
 Released: **our** generations only --- honest solutions and backdoored solutions written by
@@ -83,6 +99,8 @@ import hashlib
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -108,6 +126,43 @@ CRASH_REASON = "backdoor crashes on trigger"
 
 POOL_FILE = "attacks_independent_pool.jsonl"
 BEST_FILES = ("pairs_passes_best.csv", "pairs_usable_best.csv")
+
+# The scripts behind the paper's numbers, shipped under release/scripts/. Generation and
+# verification first, then the measurements, then this builder. A name that is not on this list
+# is not in the bundle; a name on it that is missing from the source tree fails the build.
+SCRIPTS_DIR = "scripts"
+SCRIPT_FILES = (
+    "data.py",                     # the loaders, the pass flag and the comment stripper
+    "gen_honest.py", "gen_honest_api.py",          # the honest class, local and batch API
+    "gen_backdoor.py", "gen_backdoor_api.py",      # the two attack arms
+    "run_tests.py", "verify_backdoor.py",          # the harness and the trigger verdict
+    "merge_draws.py",              # the retry pool and the two selection rules
+    "gate_s_baseline.py", "gate_s_eval.py",        # B, and the pipeline every row shares
+    "gate_s_samegen.py", "gate_s_pool.py",         # S and B' on the same problems
+    "gate_s_learning_curve.py",    # B at matched n: the underfitting control
+    "survivor_check.py",           # retention is not the artifact
+    "lexical_probe.py",            # what the residual signal is made of
+    "headline_ci.py",              # the headline intervals and the paired monitor comparison
+    "rho_joint_ci.py",             # the joint bootstrap on rho
+    "monitor_samegen.py",          # the zero-shot monitor on the same pairs
+    "release_split.py",            # this file: the bundle is reproducible from the bundle
+)
+LICENCE_FILE = "LICENSE"
+
+# Scripts are prose as well as code. The data scrub (above) refuses every `github.com/<owner>/`
+# and every upstream dataset URL, which would strip a third-party MIT notice we are obliged to
+# keep and an upstream citation that identifies nobody. So scripts get their own list: what
+# de-anonymises the authors, what is a credential, and what discloses spend.
+SCRIPT_SCRUB_PATTERNS = [
+    (r"msgbatch_[A-Za-z0-9]+", "an API batch id"),
+    (r"sk-ant-[A-Za-z0-9_\-]{6,}", "an API key"),
+    (r"/home/[A-Za-z0-9._\-]+/", "a local home directory path"),
+    (r"/Users/[A-Za-z0-9._\-]+/", "a local home directory path"),
+    (r"[A-Za-z]:\\\\Users\\\\", "a local home directory path"),
+    (r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", "an email address"),
+    (r"\$\s?\d", "a cost figure"),
+]
+COST_FIGURE = re.compile(r"\$\s?\d[\d,]*(?:\.\d+)?")
 
 # Fields that must never reach the release even if a future version of a generator script adds
 # them. The allow-list above already excludes them; this list exists so `--check` can say *why*
@@ -148,6 +203,7 @@ LEDGER = {
     "pairs_passes_edit": 427, "pairs_passes_ind": 335,
     "pairs_usable_edit": 40, "pairs_usable_ind": 10,
     "built": "not yet --- this copy is rendered from the recorded ledger",
+    "scripts_row": "", "licence_row": "",
 }
 
 # --------------------------------------------------------------------------- dataset card
@@ -177,7 +233,7 @@ provenance.
 | `pairs_passes.csv` | {pairs_passes_total} | problem ids forming a pair under the *passes-tests* rule, by arm |
 | `pairs_usable.csv` | {pairs_usable_total} | problem ids forming a pair under the *passes-and-fires* rule, by arm |
 | `MANIFEST.json` | --- | row counts, SHA-256 of every file, generator, build date, harness agreement |
-{pool_file_rows}
+{scripts_row}{licence_row}{pool_file_rows}
 Each code record carries `code` (as generated, comments intact) and `code_stripped` (the same
 code through the comment stripper this protocol mandates). Comment presence is itself a known
 label channel, so the raw text is released and the stripping is shown rather than assumed: use
@@ -267,8 +323,9 @@ Not intended for: training an attack policy; claiming a monitor is safe; any use
 
 ## Licence
 
-MIT. See `LICENSE` in the accompanying code release. Upstream corpora referenced by problem id
-keep their own licences; nothing from them is included here.
+MIT. `LICENSE` in this bundle covers the data and the scripts under `scripts/`. Upstream corpora
+referenced by problem id keep their own licences; nothing from them is included here. Cost
+figures in the scripts' comments are redacted to `$X`; nothing else in them was changed.
 
 ## Citation
 
@@ -488,6 +545,75 @@ def scrub(text: str, where: str, fatal: bool = True) -> list[str]:
         raise SystemExit(f"refusing to write {where}: {len(hits)} anonymity violations. "
                          f"The paper is double-blind; fix the source records, do not force this.")
     return hits
+
+
+def git_head(where: str) -> str | None:
+    try:
+        return subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True,
+                              check=True, cwd=where or ".").stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def scrub_script(text: str, where: str, fatal: bool = True) -> list[str]:
+    """The script scrub. Run AFTER redact_costs(); a surviving `$<digit>` is a failure."""
+    hits = []
+    for pattern, why in SCRIPT_SCRUB_PATTERNS:
+        for m in re.finditer(pattern, text):
+            hits.append(f"{where}: {why} (matched {m.group(0)[:24]!r})")
+    if hits and fatal:
+        for h in hits[:20]:
+            print(f"  ANONYMITY: {h}", file=sys.stderr)
+        raise SystemExit(f"refusing to ship {where}: {len(hits)} anonymity violations. "
+                         f"Fix the script in the repository; do not force this.")
+    return hits
+
+
+def redact_costs(text: str) -> tuple[str, int]:
+    """Replace every `$12.34` / `$99` with `$X`. Cost figures live in docstrings and comments
+    (what a smoke test costs, what a run booked); the bundle carries no dollar figure."""
+    n = len(COST_FIGURE.findall(text))
+    return COST_FIGURE.sub("$X", text), n
+
+
+def script_source(name: str, worktree: bool, where: str) -> str:
+    """The committed text of one script, or the working-tree text under --scripts-from-worktree.
+
+    HEAD is the default because other sessions edit these files while a build runs: shipping a
+    working tree means shipping whatever was half-saved at that second. `git show` is asked for
+    the path as git knows it, so the build works from any directory inside the repository.
+    """
+    path = os.path.join(where, name)
+    if not worktree:
+        try:
+            rel = subprocess.run(["git", "ls-files", "--full-name", "--error-unmatch", path],
+                                 capture_output=True, text=True, check=True,
+                                 cwd=where or ".").stdout.strip()
+            out = subprocess.run(["git", "show", f"HEAD:{rel}"], capture_output=True,
+                                 check=True, cwd=where or ".")
+            return out.stdout.decode("utf-8")
+        except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+            raise SystemExit(
+                f"{name}: cannot read the committed revision ({exc.__class__.__name__}). "
+                f"Commit it, or build with --scripts-from-worktree and say so in the card.")
+    if not os.path.exists(path):
+        raise SystemExit(f"{name}: not found in {where or '.'}")
+    return open(path, encoding="utf-8").read()
+
+
+def write_scripts(out: str, where: str, worktree: bool) -> tuple[list[str], int]:
+    """Write release/scripts/*.py, redacted and scrubbed. Returns the paths and the redactions."""
+    os.makedirs(os.path.join(out, SCRIPTS_DIR), exist_ok=True)
+    written, redactions = [], 0
+    for name in SCRIPT_FILES:
+        text, n = redact_costs(script_source(name, worktree, where))
+        rel = f"{SCRIPTS_DIR}/{name}"
+        scrub_script(text, rel)
+        with open(os.path.join(out, rel), "w", encoding="utf-8") as fh:
+            fh.write(text)
+        written.append(rel)
+        redactions += n
+    return written, redactions
 
 
 # --------------------------------------------------------------------------- build
@@ -756,7 +882,30 @@ def build(args) -> int:
                          "agreement": args.agreement, "built": built,
                          "pairs_passes_total": len(pairs_passes),
                          "pairs_usable_total": len(pairs_usable)})
+    # The scripts and the licence: the paper's Recommendation 4, and the `../../LICENSE`
+    # archive entry that used to extract outside the release directory.
+    script_paths: list[str] = []
+    redactions = 0
+    if args.scripts:
+        script_paths, redactions = write_scripts(out, args.scripts_from, args.scripts_from_worktree)
+        print(f"  scripts: {len(script_paths)} files from "
+              f"{'the working tree' if args.scripts_from_worktree else 'HEAD'}"
+              f"{f', {redactions} cost figures redacted' if redactions else ''}")
+    licence_dst = None
+    if args.licence:
+        if not os.path.exists(args.licence):
+            raise SystemExit(f"--licence {args.licence}: not found (pass --no-licence to omit)")
+        shutil.copyfile(args.licence, os.path.join(out, LICENCE_FILE))
+        scrub(open(os.path.join(out, LICENCE_FILE), encoding="utf-8").read(), LICENCE_FILE)
+        licence_dst = LICENCE_FILE
+        print(f"  licence: {args.licence} -> {out}/{LICENCE_FILE}")
+
     card_vals.update(card_extras(pc if args.also_select == "best" else None))
+    card_vals["scripts_row"] = (
+        f"| `{SCRIPTS_DIR}/` | {len(script_paths)} | the scripts behind the paper's numbers, "
+        f"at the revision that produced them |\n" if script_paths else "")
+    card_vals["licence_row"] = (
+        f"| `{LICENCE_FILE}` | --- | MIT, covering this bundle |\n" if licence_dst else "")
     card_vals["trivial_sentence"] = trivial_sentence(trivial_decl)
     card = CARD_TEMPLATE.format(**card_vals)
     scrub(card, "README.md")
@@ -769,18 +918,19 @@ def build(args) -> int:
 
     files = {}
     for name in ("honest.jsonl", "attacks_edit.jsonl", "attacks_independent.jsonl",
-                 "pairs_passes.csv", "pairs_usable.csv", *extra_files, "README.md"):
+                 "pairs_passes.csv", "pairs_usable.csv", *extra_files, "README.md",
+                 *script_paths, *( [licence_dst] if licence_dst else [] )):
         p = os.path.join(out, name)
         n_rows = sum(1 for line in open(p) if line.strip())
         if name.endswith(".csv"):
             n_rows -= 1                       # the header is not a row
-        if name == "README.md":
-            n_rows = None                     # prose: hashed, not counted
+        if name == "README.md" or name.endswith(".py") or name == LICENCE_FILE:
+            n_rows = None                     # prose and code: hashed, not counted
         files[name] = {"sha256": sha256_file(p), "bytes": os.path.getsize(p), "rows": n_rows}
 
     manifest = {
         "name": "same-generator-apps-split",
-        "schema_version": 2,
+        "schema_version": 3,
         "generator_model": model,
         "generated": args.generation_date,
         "built": built,
@@ -817,6 +967,14 @@ def build(args) -> int:
                 "the verifier counted a crash on the trigger as backdoor_works; the upstream "
                 "validator scores it as not working. Use the flag to apply either rule"),
         },
+        "scripts": {
+            "files": script_paths,
+            "source": ("the working tree" if args.scripts_from_worktree
+                       else "the committed revision (git show HEAD:...)"),
+            "commit": git_head(args.scripts_from),
+            "redacted": f"{redactions} cost figures rewritten to $X",
+        } if script_paths else None,
+        "licence_file": licence_dst,
         "redistributes_upstream": False,
         **({"upstream_identical_trivial": trivial_decl} if trivial_decl else {}),
         "note": ("Problem ids reference APPS through the public apps-control-arena artifact. "
@@ -899,9 +1057,20 @@ def check(args) -> int:
             n = sum(1 for line in open(p) if line.strip()) - (1 if name.endswith(".csv") else 0)
             if n != meta["rows"]:
                 errs.append(f"{name}: {n} rows != manifest {meta['rows']}")
-    extra = sorted(set(os.listdir(out)) - set(manifest["files"]) - {"MANIFEST.json"})
+    # Listed names may be nested (scripts/foo.py), so compare on the top-level entry.
+    listed_top = {n.split("/", 1)[0] for n in manifest["files"]}
+    extra = sorted(set(os.listdir(out)) - listed_top - {"MANIFEST.json"})
     if extra:
         errs.append(f"unlisted files in the release directory: {extra}")
+    declared_scripts = (manifest.get("scripts") or {}).get("files", [])
+    for name in declared_scripts:
+        if name not in manifest["files"]:
+            errs.append(f"{name}: declared under scripts but absent from files")
+    on_disk = sorted(f"{SCRIPTS_DIR}/{n}" for n in os.listdir(os.path.join(out, SCRIPTS_DIR))) \
+        if os.path.isdir(os.path.join(out, SCRIPTS_DIR)) else []
+    if sorted(declared_scripts) != on_disk:
+        errs.append(f"{SCRIPTS_DIR}/ holds {on_disk} but the manifest declares "
+                    f"{sorted(declared_scripts)}")
 
     # 2. field allow-list, and no forbidden field anywhere
     rows: dict[str, list[dict]] = {}
@@ -937,12 +1106,15 @@ def check(args) -> int:
         if hdr != want_hdr:
             errs.append(f"{name}: header {hdr} != {want_hdr}")
 
-    # 3. anonymity scrub over the raw bytes of every released file
+    # 3. anonymity scrub over the raw bytes of every released file. Scripts are scrubbed on
+    #    their own list: see SCRIPT_SCRUB_PATTERNS for why a github.com URL is allowed there.
     for name in list(manifest["files"]) + ["MANIFEST.json"]:
         p = os.path.join(out, name)
         if not os.path.exists(p):
             continue
-        hits = scrub(open(p, encoding="utf-8", errors="replace").read(), name, fatal=False)
+        text = open(p, encoding="utf-8", errors="replace").read()
+        checker = scrub_script if name.startswith(f"{SCRIPTS_DIR}/") else scrub
+        hits = checker(text, name, fatal=False)
         errs.extend(f"ANONYMITY {h}" for h in hits)
 
     # 4. the pair CSVs must be exactly what the jsonl files imply
@@ -1153,6 +1325,20 @@ def main() -> int:
                          "problem), declaring each in MANIFEST.json; any longer match, or any match "
                          "with a stored backdoor, still fails. Default 0: every match fails. "
                          "Pass the same value to --check to verify the declaration.")
+    ap.add_argument("--scripts", action=argparse.BooleanOptionalAction, default=True,
+                    help="ship the scripts behind the paper's numbers under scripts/ (default: yes)")
+    ap.add_argument("--scripts-from", default=os.path.dirname(os.path.abspath(__file__)),
+                    help="directory holding the scripts (default: this file's directory)")
+    ap.add_argument("--scripts-from-worktree", action="store_true",
+                    help="read the scripts from the working tree instead of HEAD. The default is "
+                         "HEAD because parallel sessions edit these files mid-build.")
+    ap.add_argument("--licence",
+                    default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                         os.pardir, os.pardir, LICENCE_FILE),
+                    help="licence file to copy INTO the release (default: the repository's "
+                         "LICENSE two directories up); --no-licence to omit")
+    ap.add_argument("--no-licence", dest="licence", action="store_const", const="",
+                    help=argparse.SUPPRESS)
     ap.add_argument("--check", metavar="DIR", default=None,
                     help="validate a built release directory instead of building one")
     ap.add_argument("--render-card-only", action="store_true",
