@@ -24,7 +24,7 @@ C's Haiku generation batches above** and were quoted `--spent 101.60`, the balan
 worker started — so the projected totals printed inside the eight logs understate the true
 running total by Worker C's $9.38. The running-total column here is the file-order sum and is the
 one to trust. Ceiling $135 was never approached; largest single batch $2.39.
-| 2026-09-11 23:06 | Worker C | Haiku 4.5 prompt-matched honest class, 611 requests (the Gate S problem set), batch (gen_honest_haiku.py --matched --problem-ids) | 1.82 | 112.80 |
+| 2026-09-11 23:06 | Worker C | Haiku 4.5 prompt-matched honest class, 611 requests (the Gate S problem set), batch (gen_honest_haiku.py --matched --problem-ids) | 1.82 | 120.51 |
 | 2026-09-11 23:12 | Worker A | Sonnet 5 prompt-matched honest class (arm 3, RESULTS.md §13), 1,112 requests, batch (`gen_honest_api.py --matched`), est. $3.84, cap $12, 12.0 min, 0 errored | 4.48 | 124.99 |
 
 **Worker A total: $4.48** over one batch (`--dry-run` first: 1,112 problems, estimate $3.84, worst

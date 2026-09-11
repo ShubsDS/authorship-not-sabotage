@@ -1,0 +1,34 @@
+{
+  "samegen_json": "sg_haiku45_indep_passes.json",
+  "ledger_rho": 0.09496875331667265,
+  "ledger_rho_ci95_S_only": [
+    0.044389366057431615,
+    0.14823947266747353
+  ],
+  "joint": {
+    "n_common_problems": 611,
+    "n_boot": 2000,
+    "seed": 0,
+    "S_pooled_oof": 0.5344408699215956,
+    "B_prime_pooled_oof": 0.8563782910685442,
+    "rho_point_pooled_oof": 0.09664132407821484,
+    "S_ci95": [
+      0.5159071884517615,
+      0.5531224803855127
+    ],
+    "B_prime_ci95": [
+      0.8392226796778108,
+      0.8726077557919324
+    ],
+    "rho_ci95_joint": [
+      0.044490979230059235,
+      0.14995429978689867
+    ],
+    "rho_joint_median": 0.09594756042760463,
+    "P_rho_gt_content": 0.0,
+    "P_rho_le_collapse": 1.0,
+    "P_rho_ge_1": 0.0,
+    "n_boot_bprime_at_or_below_chance": 0,
+    "corr_S_Bprime_over_draws": -0.07989758443966075
+  }
+}
