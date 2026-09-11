@@ -462,15 +462,20 @@ def sentence(b: dict, label: str) -> str:
 
 
 def print_table(blocks: list[dict]) -> None:
-    print("\n" + "=" * 108)
-    print(f"{'floor':<34}{'protocol':<26}{'AUROC':>8}{'95% CI':>18}{'null p95':>10}{'p':>9}{'>pt':>6}{'>CI':>6}")
-    print("-" * 108)
+    w = max(34, max(len(b["name"]) for b in blocks) + 2)
+    width = w + 26 + 8 + 18 + 10 + 9 + 6 + 6
+    print("\n" + "=" * width)
+    print(f"{'floor':<{w}}{'protocol':<26}{'AUROC':>8}{'95% CI':>18}{'null p95':>10}{'p':>9}{'>pt':>6}{'>CI':>6}")
+    print("-" * width)
     for b in blocks:
         ci = f"{b['ci95'][0]:.4f}-{b['ci95'][1]:.4f}"
-        print(f"{b['name']:<34}{b['protocol']:<26}{b['auroc']:>8.4f}{ci:>18}"
+        print(f"{b['name']:<{w}}{b['protocol']:<26}{b['auroc']:>8.4f}{ci:>18}"
               f"{b['perm_null_p95']:>10.4f}{b['perm_p']:>9.4g}"
               f"{b['above_n_of_24_point_estimates']:>6}{b['above_n_of_24_ci_excludes_zero']:>6}")
-    print("=" * 108)
+    print("=" * width)
+    print("  >pt = monitors whose PUBLISHED full-split test_auroc is below our point estimate "
+          "(this is the paper's raw count)")
+    print("  >CI = monitors we beat on IDENTICAL items with a paired-bootstrap 95% CI that excludes 0")
     for b in blocks:
         print(f"\n--- {b['name']} ({b['protocol']}), paired bootstrap over problems, "
               f"n_items={b['n_items']} -------")
@@ -540,7 +545,7 @@ def main() -> None:
     own_cv = own_boot(cv["y"], cv["oof"], pids_all, a.n_boot, rng)
     print(f"    pooled out-of-fold AUROC={own_cv['auroc']:.4f} (the statistic the CI is built on)")
     paired_cv = paired_vs_monitors(cv["y"], cv["oof"], mon_df.loc[pids_all], mon_meta, pids_all, a.n_boot, rng)
-    b_cv = summarise("no-code floor (difficulty+num_tests+q_len)", "5x5 CV within test",
+    b_cv = summarise("no-code floor (metadata only)", "5x5 CV within test",
                      own_cv, cv["null"], paired_cv, "published")
     b_cv["headline_fold_mean"] = round(cv["fold_mean"], 4)
     b_cv["headline_fold_sd"] = round(cv["fold_sd"], 4)
@@ -557,7 +562,7 @@ def main() -> None:
     print(f"    held-out n={ho['n_test']} (train {ho['n_train']}); auroc.py reports 0.7163")
     own_ho = own_boot(ho["y"], ho["scores"], ho["pids"], a.n_boot, rng)
     paired_ho = paired_vs_monitors(ho["y"], ho["scores"], mon_df.loc[ho["pids"]], mon_meta, ho["pids"], a.n_boot, rng)
-    b_ho = summarise("no-code floor (difficulty+num_tests+q_len)", f"{ho['n_test']}-item held-out slice",
+    b_ho = summarise("no-code floor (metadata only)", f"{ho['n_test']}-item held-out slice",
                      own_ho, ho["null"], paired_ho, "published")
     b_ho["note"] = ("The paper's count for this protocol is 18 of 24, taken against the monitors' published "
                     "full-split test_auroc. The paired column beside it recomputes each monitor's AUROC on "
