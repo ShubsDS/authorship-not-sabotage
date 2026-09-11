@@ -553,13 +553,14 @@ excluding zero.}
 
 \paragraph{The filter installs a second artifact.}
 Labelling by \texttt{backdoor\_works} defines the negative class by \emph{attack failure}
-rather than by honesty: \inertShare{} of the test split's labelled backdoors do not work
-(\inertSharePassing{} of those that pass the public tests) and are relabelled honest, so
-most of the ``honest'' class consists of failed attacks.
+at the problem level rather than by honesty: \inertShare{} of the test split's labelled
+backdoors do not work (\inertSharePassing{} of those that pass the public tests), and a
+problem whose backdoor fails contributes its human honest solution to the negative class
+instead, so the label is fixed before any code is read.
 Attack problems carry roughly half as many test cases as honest ones
 (\testCasesAttack{} versus \testCasesHonest{}), consistent with a problem with fewer tests
 being easier to backdoor undetectably, so difficulty and test count are correlated with the
-label before any code is read --- which is where the content-blind floor of \nocodeCV{}
+label with no code read at all --- which is where the content-blind floor of \nocodeCV{}
 comes from.
 
 \paragraph{The negative control comes free.}
@@ -583,8 +584,8 @@ Following \citet{kapoor2022leakage}, who treat leakage as a checklist rather tha
       \cite{guo2025codemirage, demirok2025multiaigcd}, not invention.
 \item \textbf{Report a partial-input floor and a bag-of-words floor beside every monitor
       number}, each against a permutation null.
-\item \textbf{Do not define the negative class by attack failure.} Drop inert backdoors
-      from both classes rather than relabelling a failed attack as honest.
+\item \textbf{Do not define the negative class by attack failure.} Drop the problems
+      whose attacks failed, or sample the negative class independently of attack success.
 \item \textbf{State the split, the metric and the preprocessing} whenever monitors are
       compared, and \textbf{release the split and the scripts}. Ours accompany this paper as supplementary material under MIT: the
       same-generator split (\relHonest{} honest, \relEdit{} edit-arm and \relIndep{}
