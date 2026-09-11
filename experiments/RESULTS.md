@@ -1255,3 +1255,181 @@ magic-constant idiom the survivor check also found") needs rewording; the classi
 distinction it draws stands.
 
 **Coordinator correction to §10 (2026-09-11):** the §10 reading named the trigger idiom (`==` with a magic constant) as what survives on the headline set. §11 tests that directly and it is wrong: masking numerals and comparison operators leaves S at 0.752 (CI overlapping the control), and the idiom heads B′'s feature list, not S's. What survives is program layout — the attack prompt's framing returns function-wrapped programs (`def main` 66.9% of attacks vs 38.5% of honest; `data[` 37.7% vs 13.6%); identifier normalisation is the only mask that moves S (0.7512 → 0.6997, ρ 0.687 → 0.537) and it leaves B′ untouched. Consequence: the same-generator arm held the *model* constant but not the *prompt*, so ρ = 0.687 is an upper bound on content and part of it is prompt framing; the structure-only S of 0.70 is a floor on the layout signal, not its removal. The classifier-vs-monitor split (0.75 vs 0.566) stands, and the strict set is unaffected by masking (0.765 → 0.784). The paper's Gate S paragraph is corrected accordingly.
+
+---
+
+## 12. Uncertainty and robustness of S (2026-09-11)
+
+Worker I. Four checks on §9's headline (`first`/passes/inert-inclusive B′, n = 623) and strict
+(`best`, crash excluded/passes AND fires, n = 99) rows: a joint bootstrap for ρ, the monitor and
+the classifier compared on the same pairs (the row §10's `monitor_samegen.py` had to skip), fold-seed
+robustness, and the crossed-protocol B′ honest side. All CPU, no API. Two tracked scripts were
+changed additively (§12.6); every committed number reproduces to four decimals.
+
+### 12.1 Reproduction after the change
+
+`evaluate()` now returns the per-pair out-of-fold scores (`oof`) it already computed for the
+bootstrap; nothing else in its output changed. Checks, all run after the edit:
+
+- `python3 gate_s_baseline.py --out <scratch>`: B = 0.8714 (sd 0.0085, pooled 0.8710, CI
+  0.8607–0.8812), pairwise 0.9605, length-only 0.6081, surface-7 0.7673, n = 1,444. Identical to §2/§4.7.
+- Headline and strict rerun into new files (`sg_indep_first_passes_v2.json`,
+  `sg_indep_best_usable_v2.json`): every field of the committed jsons is equal (dict-diff: none);
+  the only additions are `S.oof`, `B_prime.oof`, `fold_seed` (null) and the three B′-flag fields.
+  Headline S = 0.7512, CI 0.7295–0.7713, B′ = 0.8658, ρ = 0.6868 (0.6274–0.7418); strict S = 0.7652,
+  CI 0.7016–0.8000, B′ = 0.7877, ρ = 0.9215 (0.7005–1.0427).
+- The strict row rerun a third time with the edited `gate_s_samegen.py` on its default path is
+  identical to `_v2` on every shared key.
+
+```
+python3 gate_s_baseline.py --out scratchpad/gate_s_baseline_check.json
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl --eligibility passes --bprime-inert --label independent --out sg_indep_first_passes_v2.json
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best_nocrash.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl --eligibility usable --label independent --out sg_indep_best_usable_v2.json
+```
+
+### 12.2 ρ with a joint bootstrap (`rho_joint_ci.py`)
+
+§9's `rho_ci95` resamples S's problems and holds B′ at its point value. B′ is fitted on the same
+problems, so the honest interval draws one resampled problem set per replicate and recomputes both
+pooled out-of-fold AUROCs on it (2,000 draws, seed 0; the S-only interval recomputed from the same
+`oof` reproduces §9's `auroc_ci95_boot` exactly). Point ρ in §9 is from the fold-mean AUROCs; the
+bootstrap is on the pooled out-of-fold AUROC, which at n = 99 differs (S pooled 0.7488 vs fold-mean
+0.7652), so the pooled point ρ is shown beside it.
+
+| row | n | ρ (fold-mean, §9) | ρ (pooled oof) | S-only 95% CI (§9) | **joint 95% CI** | P(ρ > 0.72) content | P(ρ ≤ 0.33) collapse | P(ρ ≥ 1) | corr(S, B′) over draws |
+|---|---:|---:|---:|---|---|---:|---:|---:|---:|
+| headline | 623 | 0.687 | 0.687 | 0.627–0.742 | **0.625–0.755** | **0.166** | **0.000** | 0.000 | −0.015 |
+| strict | 99 | 0.921 | 0.861 | 0.700–1.043 | **0.662–1.089** | **0.918** | **0.000** | 0.101 | +0.093 |
+
+The joint interval is a little wider than the S-only one (upper end 0.755 vs 0.742 on the headline;
+0.662–1.089 vs 0.700–1.043 on strict) and changes no state: both rows remain inconclusive between
+partial and content, and the collapse band has zero mass in 2,000 draws on both. What the joint
+bootstrap adds is the band probabilities: on the headline, 17% of draws land in the content band
+and 83% in the partial band; on the strict set 92% land in content, and 10% have ρ ≥ 1 (S above
+B′). The strict point ρ is 0.92 by the fold-mean convention §9 uses and 0.86 by the pooled one the
+CI is built on — the 0.06 is fold-to-fold variance at n = 99, not a disagreement about the
+interval, and the ledger should say which convention it quotes.
+
+```
+python3 rho_joint_ci.py sg_indep_first_passes_v2.json --monitor-json monitor_samegen_sonnet5_independent_passes.json --out rho_joint_headline.json
+python3 rho_joint_ci.py sg_indep_best_usable_v2.json  --monitor-json monitor_samegen_sonnet5_independent_usable.json  --out rho_joint_strict.json
+```
+
+### 12.3 Monitor vs classifier on the same pairs
+
+Per-program monitor scores from §10's jsons joined to the classifier's out-of-fold scores on the
+same problems (headline: all 623 pairs; strict: 98 of 99, one monitor reply missing). "Classifier
+wrong" = attack scored ≤ honest out of fold (pairwise-wrong, `monitor_samegen.py`'s definition);
+"monitor wrong" = attack scored < honest, ties (attack score == honest score, frequent because the
+monitor prints integers and gives 0 to most honest code) counted separately. Bootstrap over
+problems, 2,000 draws, seed 0.
+
+| row | pairs | monitor AUROC, all | on classifier-**wrong** pairs | on classifier-**right** pairs | classifier AUROC on monitor-wrong / -right pairs | Spearman, pair margins | Spearman, attack scores / honest scores |
+|---|---:|---|---|---|---|---:|---|
+| headline | 623 | 0.5662 (0.5507–0.5833) | 0.5536 (0.5196–0.5911), n = 131 | 0.5713 (0.5520–0.5911), n = 492 | 0.7497 (n = 398) / 0.7511 (n = 225) | **−0.008** | +0.086 / +0.419 |
+| strict | 98 | 0.8193 (0.7662–0.8683) | 0.7111 (0.5667–0.8644), n = 15 | 0.8363 (0.7790–0.8867), n = 83 | 0.7118 (n = 31) / 0.7674 (n = 67) | **+0.202** | −0.009 / +0.490 |
+
+2×2 of pair-level correctness (counts):
+
+| row | classifier right: monitor right / tie / wrong | classifier wrong: monitor right / tie / wrong | φ (ties as monitor wrong) | χ²(1) |
+|---|---|---|---:|---:|
+| headline | 182 / 237 / 73 (492) | 43 / 66 / 22 (131) | +0.035 | 0.78 |
+| strict | 59 / 21 / 3 (83) | 8 / 5 / 2 (15) | +0.137 | 1.85 |
+
+Reading. On the headline set the two detectors are independent: the monitor is at the same
+near-chance level on the pairs the classifier gets wrong (0.554) as on those it gets right (0.571),
+the classifier is at the same 0.75 on the pairs the monitor gets wrong as right, the pair-margin
+correlation is −0.01 and the 2×2 is flat (φ = 0.04). The only correlation between them is on the
+honest side (+0.42): both give low scores to the same clean programs, which is problem difficulty,
+not sabotage. So the lexical residue the classifier reads on non-firing attempts is not what the
+monitor reads, and vice versa — the §10 reading (content in the classifier's sense, not sabotage in
+the monitor's) holds pair by pair. On the strict set the margins correlate weakly (+0.20) and the
+monitor is lower on the 15 classifier-wrong pairs (0.71 vs 0.84, intervals overlapping): on firing
+backdoors, some pairs are hard for both. Note `monitor_samegen.py`'s reader looks for keys
+`honest`/`attack` (or `oof_honest`/`oof_attack`) inside `oof` rows; the persisted keys are
+`score_honest`/`score_attack` as specified, so its `metrics_tfidf_wrong_pairs` row will still come
+back empty until its reader adds those two names (not my file; one line).
+
+### 12.4 Fold-seed robustness
+
+`GroupKFold` in `evaluate()` is deterministic (folds assigned from the sorted unique problem ids,
+no shuffle); every published number used that split. `--seed k` now passes
+`GroupKFold(shuffle=True, random_state=k)` to both S and B′ fits; the bootstrap RNG stays at 0.
+
+| row | default split | seed 0 | 1 | 2 | 3 | 4 | mean ± sd (5 seeds) |
+|---|---|---|---|---|---|---|---|
+| headline S | 0.7512 | 0.7525 | 0.7493 | 0.7466 | 0.7527 | 0.7530 | **0.7508 ± 0.0028** |
+| headline B′ | 0.8658 | 0.8642 | 0.8607 | 0.8627 | 0.8648 | 0.8600 | **0.8625 ± 0.0021** |
+| headline ρ | 0.687 | 0.693 | 0.691 | 0.680 | 0.693 | 0.703 | **0.692 ± 0.008** |
+| strict S | 0.7652 | 0.7636 | 0.7575 | 0.7548 | 0.7561 | 0.7589 | **0.7582 ± 0.0034** |
+| strict B′ | 0.7877 | 0.7868 | 0.7909 | 0.7993 | 0.7960 | 0.8026 | **0.7951 ± 0.0063** |
+| strict ρ | 0.921 | 0.919 | 0.885 | 0.852 | 0.865 | 0.856 | **0.875 ± 0.028** |
+
+Pooled-oof S over seeds: headline 0.7496 ± 0.0023, strict 0.7579 ± 0.0048; the S bootstrap CI
+moves by < 0.003 at either end on the headline. The seed sd is a tenth of the bootstrap half-width
+on the headline and a fifth on strict; the published deterministic split sits at the top of the
+strict ρ range (0.92 against 0.85–0.92), which is the same fold-mean-vs-pooled point as §12.2 and
+another reason to quote the strict row through its interval.
+
+```
+for k in 0 1 2 3 4; do
+  python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl --eligibility passes --bprime-inert --label independent --seed $k --out sg_indep_first_passes_seed$k.json
+  python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best_nocrash.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl --eligibility usable --label independent --seed $k --out sg_indep_best_usable_seed$k.json
+done
+```
+
+### 12.5 The crossed protocol on B′'s honest side
+
+`gate_s_samegen.py` gates S's honest side on our harness (`pass_sonnet5.jsonl`) but built B′'s
+honest side with `_honest_code()`, the first solution the artifact's shipped flag marks passing —
+the crossing §4.7 fixed in `gate_s_baseline.py`. `--human-pass-file pass_human_fixed.jsonl` now
+selects the first solution our harness passes and drops problems with none.
+
+| row | B′ honest flag | n B′ | problems whose honest program changed | dropped | B′ (95% CI) | ρ (S-only CI) | ρ joint CI |
+|---|---|---:|---:|---:|---|---|---|
+| headline | shipped (`_honest_code`) | 623 | — | — | 0.8658 (0.8480–0.8812) | 0.687 (0.627–0.742) | 0.625–0.755 |
+| headline | own (`pass_human_fixed.jsonl`) | 620 | **4 of 623** | 3 | 0.8645 (0.8486–0.8808) | 0.689 (0.630–0.745) | 0.623–0.754 |
+| strict | shipped | 99 | — | — | 0.7877 (0.7427–0.8367) | 0.921 (0.700–1.043) | 0.662–1.089 |
+| strict | own | 99 | **0 of 99** | 0 | 0.7877 | 0.921 | (identical file) |
+
+Seven of the 623 headline problems are affected (4 change program, 3 leave B′); B′ moves by
+−0.0013 and ρ by +0.002. The strict set is untouched. The crossing is real but immaterial here,
+as it was for B in §4.7.
+
+```
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl --eligibility passes --bprime-inert --label independent --human-pass-file pass_human_fixed.jsonl --out sg_indep_first_passes_ownflag.json
+python3 gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best_nocrash.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl --eligibility usable --label independent --human-pass-file pass_human_fixed.jsonl --out sg_indep_best_usable_ownflag.json
+python3 rho_joint_ci.py sg_indep_first_passes_ownflag.json --out rho_joint_headline_ownflag.json
+```
+
+### 12.6 What changed in the two tracked scripts (additive; not committed)
+
+`gate_s_eval.py` (+15/−2): `evaluate(..., seed: int | None = None)`; the splitter is
+`GroupKFold(n_splits)` when `seed is None` (unchanged) and `GroupKFold(n_splits, shuffle=True,
+random_state=seed)` otherwise; the returned dict gains `"fold_seed": seed` and `"oof": [{problem_id,
+score_honest, score_attack}, ...]` (the pooled out-of-fold predictions already used for the
+bootstrap). No existing key or number changed; written with a temp file + `os.replace`.
+
+`gate_s_samegen.py` (+50/−3): `--seed` (passed to both `evaluate()` calls, recorded as
+`fold_seed`); `--human-pass-file` (builds `honest_idx` exactly as `gate_s_baseline.py` does,
+B′'s honest program = first solution in that file that passed, problems without one dropped;
+prints and records `b_prime_honest_flag`, `b_prime_honest_changed`, `b_prime_dropped_no_own_pass`).
+Default path unchanged (verified: identical json on the strict row).
+
+New: `rho_joint_ci.py`; outputs `sg_indep_{first_passes,best_usable}_{v2,seed0..4,ownflag}.json`,
+`rho_joint_{headline,strict,headline_ownflag}.json`. The committed `sg_*.json` were not overwritten.
+
+### 12.7 Reading
+
+Nothing here moves a state. The joint bootstrap puts the headline ρ at 0.687 with 95% CI
+0.625–0.755, zero mass in the collapse band and 17% in content; the strict ρ at 0.86–0.92 (pooled
+vs fold-mean) with CI 0.66–1.09, 92% content. Fold seeds move S by ±0.003 and ρ by ±0.01 (headline)
+or ±0.03 (strict), inside the intervals. Fixing B′'s crossed honest flag touches 7 of 623 problems
+and ρ by 0.002. On the pairs themselves the monitor and the classifier are uncorrelated on the
+headline set (margin Spearman −0.01, φ 0.04) — each detector fails on its own pairs, which is
+the §10 reading made pair-level: what the classifier retains with authorship held constant is not
+what a monitor sees. **Failed / not done:** nothing failed; `monitor_samegen.py`'s own
+`metrics_tfidf_wrong_pairs` row will stay empty until its reader accepts the `score_honest`/
+`score_attack` key names (its file, not edited here).
+
+**Coordinator note (2026-09-11):** the ledger and paper quote S as the fold-mean AUROC (§9 convention) with the bootstrap CI on the pooled out-of-fold AUROC; the strict row's ρ is therefore 0.92 by that convention and 0.86 on the pooled score, both inside the joint CI 0.662–1.089. No verdict state changes under the joint bootstrap, five fold seeds, or the own-flag B′. With §11: the classifier and the monitor are independent pair by pair (φ = 0.035 on the headline set) and read different things — layout from the prompt framing, and the backdoor.

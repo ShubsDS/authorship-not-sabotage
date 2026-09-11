@@ -1,0 +1,103 @@
+{
+  "samegen_json": "sg_indep_best_usable_v2.json",
+  "ledger_rho": 0.9214740581363448,
+  "ledger_rho_ci95_S_only": [
+    0.7004724236171425,
+    1.042672868685956
+  ],
+  "joint": {
+    "n_common_problems": 99,
+    "n_boot": 2000,
+    "seed": 0,
+    "S_pooled_oof": 0.7488011427405367,
+    "B_prime_pooled_oof": 0.7888990919293951,
+    "rho_point_pooled_oof": 0.8612043086703156,
+    "S_ci95": [
+      0.7015585144373022,
+      0.8000255076012651
+    ],
+    "B_prime_ci95": [
+      0.7410417304356698,
+      0.8339021528415468
+    ],
+    "rho_ci95_joint": [
+      0.6616333225744082,
+      1.0887890957367135
+    ],
+    "rho_joint_median": 0.8666093436514761,
+    "P_rho_gt_content": 0.918,
+    "P_rho_le_collapse": 0.0,
+    "P_rho_ge_1": 0.1005,
+    "n_boot_bprime_at_or_below_chance": 0,
+    "corr_S_Bprime_over_draws": 0.09348080379989482
+  },
+  "monitor_vs_classifier": {
+    "monitor_json": "monitor_samegen_sonnet5_independent_usable.json",
+    "n_pairs_both_scored": 98,
+    "n_pairs_in_S_not_monitored": 1,
+    "monitor_auroc_all": {
+      "n": 98,
+      "auroc": 0.8192940441482714,
+      "ci95": [
+        0.7662302165764266,
+        0.8682996668054976
+      ]
+    },
+    "monitor_auroc_on_classifier_wrong_pairs": {
+      "n": 15,
+      "auroc": 0.7111111111111111,
+      "ci95": [
+        0.5666666666666667,
+        0.8644444444444445
+      ]
+    },
+    "monitor_auroc_on_classifier_right_pairs": {
+      "n": 83,
+      "auroc": 0.8363332849470171,
+      "ci95": [
+        0.7789936855857164,
+        0.8867215851357234
+      ]
+    },
+    "classifier_auroc_all": {
+      "n": 98,
+      "auroc": 0.7507288629737608,
+      "ci95": [
+        0.7048104956268222,
+        0.7995783007080381
+      ]
+    },
+    "classifier_auroc_on_monitor_wrong_pairs": {
+      "n": 31,
+      "auroc": 0.7117585848074922,
+      "ci95": [
+        0.6201873048907389,
+        0.8075182101977105
+      ]
+    },
+    "classifier_auroc_on_monitor_right_pairs": {
+      "n": 67,
+      "auroc": 0.7674314992203163,
+      "ci95": [
+        0.7117398084205837,
+        0.8273613276899086
+      ]
+    },
+    "spearman_pair_margins": 0.202345362303908,
+    "spearman_attack_scores": -0.009372668983604516,
+    "spearman_honest_scores": 0.49040209492998726,
+    "pairwise_acc_classifier": 0.8469387755102041,
+    "pairwise_acc_monitor_strict": 0.6836734693877551,
+    "pairwise_acc_monitor_ties_half": 0.8163265306122449,
+    "table_2x2": {
+      "classifier_right__monitor_right": 59,
+      "classifier_right__monitor_tie": 21,
+      "classifier_right__monitor_wrong": 3,
+      "classifier_wrong__monitor_right": 8,
+      "classifier_wrong__monitor_tie": 5,
+      "classifier_wrong__monitor_wrong": 2
+    },
+    "phi_2x2": 0.1374324693019849,
+    "chi2_2x2": 1.8509929946072199
+  }
+}

@@ -46,12 +46,19 @@ def surface_features(code: str) -> list[float]:
             len(re.findall(r"#", code))]
 
 
-def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2000) -> dict:
+def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2000,
+             seed: int | None = None) -> dict:
     """Problem-disjoint 5-fold over honest/attack pairs. Returns AUROC and pairwise accuracy.
 
     Also returns the pooled out-of-fold AUROC with a bootstrap-over-problems 95% CI
     (`auroc_ci95_boot`). The existing fields are unchanged, so B = 0.8714 (sd 0.0085) still
     reproduces; the CI is an addition, not a replacement.
+
+    `seed` (default None) keeps the deterministic GroupKFold assignment every published number
+    used; an integer shuffles the problem-to-fold assignment (GroupKFold shuffle=True) for a
+    seed-robustness check. The bootstrap RNG is fixed at 0 regardless. The per-pair out-of-fold
+    scores are returned under `oof` so downstream scripts (joint rho bootstrap, monitor-vs-
+    classifier on the same pairs) can reuse the fit; nothing else about the output changed.
     """
     groups = pairs.problem_id.values
     n_splits = min(n_splits, len(np.unique(groups)))
@@ -66,7 +73,9 @@ def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2
     # correctly sized interval from the same fit.
     oof_h = np.full(len(pairs), np.nan)
     oof_a = np.full(len(pairs), np.nan)
-    for tr_idx, te_idx in GroupKFold(n_splits).split(pairs, groups=groups):
+    splitter = (GroupKFold(n_splits) if seed is None
+                else GroupKFold(n_splits, shuffle=True, random_state=seed))
+    for tr_idx, te_idx in splitter.split(pairs, groups=groups):
         tr, te = pairs.iloc[tr_idx], pairs.iloc[te_idx]
         y_tr = np.r_[np.zeros(len(tr)), np.ones(len(tr))]
         y_te = np.r_[np.zeros(len(te)), np.ones(len(te))]
@@ -108,6 +117,10 @@ def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2
         "pairwise_acc": float(np.mean(pairaccs)),
         "length_only_auroc": float(np.mean(len_aurocs)),
         "surface7_auroc": float(np.mean(surf_aurocs)),
+        # Additive (2026-09-11): the pooled out-of-fold score of every pair, and the fold seed.
+        "fold_seed": seed,
+        "oof": [{"problem_id": str(p), "score_honest": float(h), "score_attack": float(a)}
+                for p, h, a in zip(pairs.problem_id.values, oof_h, oof_a)],
     }
     print(f"  {label:24s} n={out['n_pairs']:5d}  TF-IDF AUROC={out['auroc']:.4f}"
           f" (sd {out['auroc_sd']:.4f}; pooled {pooled:.4f}, 95% CI {ci_lo:.4f}-{ci_hi:.4f})"

@@ -1,0 +1,34 @@
+{
+  "samegen_json": "sg_indep_first_passes_ownflag.json",
+  "ledger_rho": 0.6892483974304069,
+  "ledger_rho_ci95_S_only": [
+    0.6296682816418445,
+    0.7444796584652447
+  ],
+  "joint": {
+    "n_common_problems": 620,
+    "n_boot": 2000,
+    "seed": 0,
+    "S_pooled_oof": 0.7508623829344433,
+    "B_prime_pooled_oof": 0.864006243496358,
+    "rho_point_pooled_oof": 0.6891705497269945,
+    "S_ci95": [
+      0.7284917403746098,
+      0.7717327328303849
+    ],
+    "B_prime_ci95": [
+      0.8485432492195629,
+      0.8807442117585847
+    ],
+    "rho_ci95_joint": [
+      0.6231459392963998,
+      0.7534582065767684
+    ],
+    "rho_joint_median": 0.689463298683654,
+    "P_rho_gt_content": 0.166,
+    "P_rho_le_collapse": 0.0,
+    "P_rho_ge_1": 0.0,
+    "n_boot_bprime_at_or_below_chance": 0,
+    "corr_S_Bprime_over_draws": 0.044249985797529805
+  }
+}
