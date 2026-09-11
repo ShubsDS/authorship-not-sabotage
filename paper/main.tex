@@ -362,6 +362,9 @@
 % 2,000 draws (monitor_rho.py, RESULTS.md 14.3). Same-generator column: RESULTS.md 10.
 \newcommand{\monStoredHead}{0.9579}     % 0.9579; claude-sonnet-5 monitor, stored pairs, n = 623
 \newcommand{\monStoredStrict}{0.9437}   % 0.9437; ... stored pairs of the strict row, n = 99
+% The same value at the abstract's precision: the abstract quotes it beside \monitorStrict
+% (0.818), and four decimals among three-decimal neighbours read as false precision.
+\newcommand{\monStoredStrictAbs}{0.944}  % = \monStoredStrict to 3 dp, ABSTRACT ONLY
 \newcommand{\monRhoHead}{0.145}
 \newcommand{\monRhoHeadLo}{0.111}
 \newcommand{\monRhoHeadHi}{0.182}
@@ -471,10 +474,9 @@ against the stored backdoors, separability \emph{rises}. Holding authorship cons
 construction, with one model writing both classes, removes between a third (Claude Sonnet 5,
 $\rho = \sameGenRho{}$) and nine-tenths (Claude Haiku 4.5, $\rho = \haikuRho{}$) of the
 separability; matching the attack prompt's framing removes most of what remains, and what
-survives on attacks that actually fire is surface content a monitor also reads. A zero-shot
-trusted monitor is inflated the same way, scoring \monStoredHead{} on the stored pairs and
-\monitorStrict{} on firing backdoors from the same author. We
-recommend that
+survives on attacks that actually fire is consistent with surface content a monitor also
+reads. A zero-shot monitor is inflated the same way, scoring \monStoredStrictAbs{} on stored
+pairs and \monitorStrict{} on firing backdoors from the same author. We recommend that
 stored-pair evaluations report partial-input and bag-of-words floors against permutation
 nulls, use same-generator honest samples and the same prompt, and drop inert backdoors from
 both classes.
@@ -655,14 +657,15 @@ follows our own Recommendation 3 --- agrees, at low power: $\rho = \strictRho{}$
 (\strictRhoLo{}--\strictRhoHi{} on the pooled-score \strictRhoPooled{}) from $S = \strictS{}$ (\strictLo{}--\strictHi{};
 $n = \strictN{}$) against its own $B' = \strictBprime{}$, read through $\rho$ alone because
 $B$ at that $n$ is $\curveStrict{} \pm \curveStrictSd{}$; retention is not the artifact,
-and the edit arm bounds $S$ under near-copies (appendix~\ref{app:robust}). A monitor is inflated the same way. The same
-zero-shot trusted-monitor prompt scores \monStoredHead{} on the \emph{stored} pairs over the
-same problems and \monitorS{} (\monitorSLo{}--\monitorSHi{}) on the headline pairs, a
+and the edit arm bounds $S$ under near-copies (appendix~\ref{app:robust}). A monitor is inflated the same way. A zero-shot monitor
+prompt, answered by the model that wrote both classes, scores \monStoredHead{} on the
+\emph{stored} pairs over the same problems and \monitorS{} (\monitorSLo{}--\monitorSHi{}) on the headline pairs, a
 monitor-$\rho$ of \monRhoHead{} (\monRhoHeadLo{}--\monRhoHeadHi{}) against the classifier's
 \sameGenRho{}; on the strict pairs it is \monStoredStrict{} and \monitorStrict{}
 (\monitorStrictLo{}--\monitorStrictHi{}), monitor-$\rho$ \monRhoStrict{}
 (\monRhoStrictLo{}--\monRhoStrictHi{}), and a monitor that wrote neither class returns the
-same two ratios (\monHaikuRhoHead{}, \monHaikuRhoStrict{}). Classifier and monitor are
+same two ratios (\monHaikuRhoHead{}, a bound at half missingness, and
+\monHaikuRhoStrict{}). Classifier and monitor are
 independent pair by pair ($\phi = \monitorClfPhi{}$). Our single-shot attacks fire given a pass at \fireGivenPassOurs{} against the stored
 attacker's \fireGivenPassStored{}: the stored attack class is a survivor set.
 
@@ -850,8 +853,8 @@ only \survivorAuroc{}, and $S$ with non-firing attempts on the same problems is
 \survivorSwapS{} against \survivorSwapSref{}. The edit arm bounds $S$ under near-copies
 (similarity \editSim{}, Table~\ref{tab:similarity}): \editS{} over \editN{} pairs,
 $\rho = \editRho{}$. In arm 1, where only the honest half was regenerated, TF-IDF gains
-\armOneTfidfDelta{} while the length carrier collapses to \armOneLenG{}. Half the gap
-between our single-shot firing rate and the stored attacker's is our own attack prompt:
+\armOneTfidfDelta{} while the length carrier collapses to \armOneLenG{}. Our own attack
+prompt halves our single-shot firing rate:
 \trigPublicShare{} of our test-passing draws offer a public test input as the trigger, which
 cannot diverge from the honest solution, and those fire \trigPublicFire{} against
 \trigNovelFire{} for novel triggers; no stored working backdoor has such a trigger
@@ -891,6 +894,10 @@ and on the stored side the missing share differs by class (\monHaikuMissHonest{}
 against \monHaikuMissAttack{} attack), a bias of unknown sign. Re-running the strict pairs
 with a 1{,}024-token ceiling prices it: missingness falls to 2 of 198 and monitor-$\rho$ moves
 from \monHaikuRhoStrict{} to \monHaikuRhoStrictMt{}, inside the bootstrap interval.
+On the stored pairs both monitors beat the bag-of-words baseline over the same problems
+(\(+0.09\) and \(+0.15\) for the first, \(+0.02\) and \(+0.09\) for the second):
+Figure~\ref{fig:monitors}'s ranking is a statement about those monitors on that split, not a
+claim that a bag of words beats a monitor here.
 
 \paragraph{The two generators' funnel.}
 Both generators were run through the identical pipeline. Our honest draws pass the public
@@ -951,10 +958,9 @@ pool and is strictly conservative there --- it never credits a solution the arti
 stricter on one class than the other would manufacture exactly the artifact this paper
 documents. The headline does not depend on that choice --- under the artifact's flag
 $B = \baselineB$ at $n = \baselineBn{}$, under ours $B = \baselineBownflag{}$ at
-$n = \baselineBownflagN{}$, within one standard deviation of each other. Our release
-carries one MIT-licensed file of published monitor scores, with its notice; the monitor
-scores in Figure~\ref{fig:monitors} are \texttt{runs/x0/monitor-summary.json} of that
-release. Two interpreter-era artifacts in the upstream solutions fall on opposite classes: a
+$n = \baselineBownflagN{}$, within one standard deviation of each other. The monitor
+scores in Figure~\ref{fig:monitors} are \texttt{runs/x0/monitor-summary.json} of
+\cite{jha2026decorrelation}'s MIT release, used under its notice. Two interpreter-era artifacts in the upstream solutions fall on opposite classes: a
 \texttt{stdin} without \texttt{.buffer}, fixed, and \texttt{fractions.gcd}, removed in
 Python~3.9, not fixable.
 
