@@ -44,5 +44,8 @@ paper/fig/*.png
 *api_key*
 *.key
 
-# batch state files carry provider batch ids, not secrets, but they are run state
+# batch state files carry provider batch ids, not secrets, but they are run state.
+# The second pattern matters: --state-suffix writes bd_<tag>.batch.<suffix>.json, which
+# *.batch.json does not match, so six of them turned up untracked on 2026-09-11.
 *.batch.json
+*.batch.*.json
