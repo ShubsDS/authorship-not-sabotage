@@ -203,8 +203,9 @@ def main() -> None:
                                   else "passes AND fires",
            "pair_similarity": pair_sim, "S": S}
     if len(stored) >= 50:
-        print(f"B' stored attack rule: "
-              f"{'passes tests, firing NOT required (--bprime-inert)' if args.bprime_inert else 'passes tests AND fires (data._pick_backdoor)'}")
+        print("B' stored attack rule: "
+              + ("passes tests, firing NOT required (--bprime-inert)" if args.bprime_inert
+                 else "passes tests AND fires (data._pick_backdoor)"))
         Bp = evaluate(stored, "B' human honest vs stored backdoor (same problems)")
         out["B_prime"] = Bp
         drop = (S["auroc"] - 0.5) / (Bp["auroc"] - 0.5) if Bp["auroc"] > 0.5 else float("nan")

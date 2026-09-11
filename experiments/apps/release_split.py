@@ -102,7 +102,7 @@ LEDGER = {
     "ind_total": 600, "ind_pass": 335, "ind_usable": 10,
     "pairs_passes_edit": 427, "pairs_passes_ind": 335,
     "pairs_usable_edit": 40, "pairs_usable_ind": 10,
-    "built": "(not built --- rendered from the recorded ledger)",
+    "built": "not yet --- this copy is rendered from the recorded ledger",
 }
 
 # --------------------------------------------------------------------------- dataset card

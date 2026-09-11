@@ -133,4 +133,4 @@ keep their own licences; nothing from them is included here.
 
 ---
 
-Generator `claude-sonnet-5` - generated September 2026 - built (not built --- rendered from the recorded ledger) - harness agreement 95.84%
+Generator `claude-sonnet-5` - generated September 2026 - built not yet --- this copy is rendered from the recorded ledger - harness agreement 95.84%
