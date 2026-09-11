@@ -129,3 +129,44 @@ search depth of ~6.9 witnesses per candidate and lifts yield only **~2x** (1 -> 
 shard) — far below the ~5x an independence assumption predicts, because the proposed triggers are
 highly correlated: they are all small edge cases, so a backdoor that misses one usually misses the
 rest. Implemented and measured; not adopted.
+
+---
+
+## Appendix: the twelve late shards
+
+> **Landed after the pool was frozen; not in any ledger number; merge post-workshop.**
+> These twelve batches (shards `s1` and `s2` of each retry round) completed at 541–665 minutes,
+> long after the 11,565-draw pool was closed. The headline (n = 623) and strict (n = 99) sets, the
+> release zip, and every analysis running against them stay on the frozen pool. Recorded here so the
+> draws are not lost, and so a later merge starts from counts rather than from a re-run.
+
+Verified on the default path — no `--trigger-pool`, output `vp_<shard>.jsonl`, identical procedure to
+`verify_all_shards.sh`. The default path was checked against an already-verified shard before these
+were run: 180 verdicts, 0 differences.
+
+| shard | draws | passes tests | fires | crash-on-trigger |
+|---|---:|---:|---:|---:|
+| `r1s1` | 177 | 99 | 0 | 0 |
+| `r1s2` | 174 | 106 | 1 | 0 |
+| `r2s1` | 176 | 103 | 1 | 0 |
+| `r2s2` | 175 | 91 | 4 | 0 |
+| `r3s1` | 171 | 105 | 3 | 0 |
+| `r3s2` | 171 | 90 | 3 | 0 |
+| `r4s1` | 176 | 111 | 4 | 1 |
+| `r4s2` | 173 | 100 | 3 | 1 |
+| `r5s1` | 172 | 104 | 5 | 1 |
+| `r5s2` | 175 | 102 | 4 | 1 |
+| `r6s1` | 186 | 115 | 3 | 0 |
+| `r6s2` | 186 | 112 | 2 | 1 |
+| **total** | **2,112** | **1,238** | **33** | **5** |
+
+Pass rate **58.6%**, conditional firing **2.67%**, usable **1.56%**.
+
+**They confirm the diagnosis rather than complicate it.** The conditional firing rate of 2.67% sits
+right on the frozen pool's 2.5–2.9%, on draws generated hours apart and scheduled separately — so the
+yield ceiling is a property of the blind single-shot protocol, not of any particular batch or moment.
+The 5 crash-on-trigger records are counted in `fires`, consistent with the rest of the pool.
+
+Merging these would add roughly 33 usable draws to the retry pool before per-problem deduplication,
+so on the order of ten to twenty distinct problems. That would not move any conclusion in this paper,
+which is the other reason freezing was the right call.
