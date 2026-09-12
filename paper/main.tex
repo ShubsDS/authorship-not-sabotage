@@ -275,6 +275,10 @@
 % conditional rate over 11,565 draws and a different denominator.
 \newcommand{\headlineInert}{97.75\%}
 \newcommand{\haikuInert}{99.67\%}
+% The second generator's firing share, the analogue of \headlineFireShare: 2 of 611,
+% RESULTS 15.5. NOT the 35/1,444 usable count - 33 of those 35 sit on problems whose
+% honest program failed and never enter a pair.
+\newcommand{\haikuFireShare}{0.3\%}       % 2 of 611, RESULTS 15.5
 % Why our single-shot firing rate is low: the attack prompt reuses public test inputs as
 % triggers, which cannot diverge from the honest solution (experiments/apps/TRIGGER-YIELD.md
 % and trigger_public_check.py, over the 6,570 test-passing draws of the retry pool).
@@ -630,7 +634,8 @@ class is written from the problem statement alone, so authorship changes and not
 An \textbf{edit} arm, shown its own honest solution, returns near-copies instead
 (appendix~\ref{app:pairsim}). We take one outcome-blind draw per problem and define the
 attack class as the benchmark does, by intent plus passing the public tests.
-\headlineFireShare{} of those draws fire; $B'$ is inert-inclusive over the same problems.
+\headlineFireShare{} of the first generator's draws fire and \haikuFireShare{} of the
+second's (\haikuFireInRow{} of \haikuN{}); $B'$ is inert-inclusive over the same problems.
 The first generator's interval excludes the collapse band and spans the content line, so the
 pre-registered rule returns \emph{inconclusive between partial and content}. The second
 generator's lies inside the collapse band. The drop is not sample size: at $n = \sameGenN{}$,

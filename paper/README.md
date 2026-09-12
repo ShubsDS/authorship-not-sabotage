@@ -5,7 +5,7 @@ weaknesses 1, 4 and 6 ([`notes/12-final-review.md`](../notes/12-final-review.md)
 **pass 3** (that review's M1–M10), the second pass (`notes/11-pass2-brief.md`) and the reviewer
 audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
 `main.tex` compiles clean: **exit 0, no undefined citations, zero overfull boxes, four content
-pages** — the body fills page 4 with **1 free body line by the probe below**,
+pages** — the body fills page 4 with **no free body line by the probe below (N = 0)**,
 References begins on page 5, and the appendix follows the references. Nothing of the body reaches
 page 5.
 
@@ -87,11 +87,16 @@ the one to use.** The style file sets `\flushbottom`, so once no References line
 the last body baseline is stretched onto the block's bottom edge whatever the true slack is.
 Probe instead: append N one-word body lines (`\noindent PROBELINE\\`) just before
 `\bibliographystyle`, rebuild, and find the largest N that keeps every probe line on page 4.
-**On 2026-09-12, after pass 4, that is N = 1**; the second spills. (Pass 3 measured N = 2.
+**On 2026-09-12, after pass 4 and the coordinator's two-generator fix, that is N = 0**: the
+body fills page 4 exactly and the first probe line spills. (It was N = 1 before the fix, which
+added the second generator's firing share to the Gate S paragraph; the coordinator accepted
+N = 0, and the contingency they named — moving the edit-arm sentence to `app:robust` — was not
+taken because the body does not spill. Pass 3 measured N = 2.
 The probe is not monotonic near the boundary — at N = 3 the first two probe lines land on
 page 4 while at N = 2 both land on page 5, because the extra `\\` paragraphs re-trip the
 club/widow penalties. Read N as "the largest N for which *every* probe line is on page 4",
-which is the conservative reading, and re-run it from N = 1 upward.) (`notes/12` M8 re-ran the probe
+which is the conservative reading, and re-run it from N = 1 upward. At N = 0 there is no
+margin left: any addition to §1–§5 pushes the body onto page 5, so measure before you add.) (`notes/12` M8 re-ran the probe
 against the pass-2 body and got **N = 0**, not the 3 this file used to claim — the second pass had
 spent the slack and the figure was stale. Re-run the probe after every edit to §1–§5; do not trust
 a number written here without a date.)
@@ -185,7 +190,7 @@ impossible to cross by accident:
       `lit/01` recorded none — for the paper we credit with owning the scratchpad-regex instrument;
       and AICD's "Paul" and "Wang" are first names, so "Paul et al." would have been wrong.
 - [x] Confirm the content body is within 4 pages — **exactly 4 as of 2026-09-12 after pass 4**,
-      with **one** free line by the probe above, References on page 5, zero overfull boxes, and
+      with **no** free line by the probe above (N = 0), References on page 5, zero overfull boxes, and
       a fresh-clone build reproducing all three. Re-check after every edit to §1–§5.
 - [x] **Is a paper checklist required? No.** Settled 2026-09-12: the workshop CFP page
       (`index.html` of the workshop site) does not contain the word, and the OpenReview form
