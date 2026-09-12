@@ -18,8 +18,12 @@ not a submission question, but do not discover it in December.
 
 **`aiworkshoptracker.com` publishes deadlines in UTC. AoE = UTC − 12h**, so AoE is *later* than the
 UTC timestamp — a correction that **opens** rows, and once got used to close them. Verified against
-three venues independently: AIWILD Sep 6 13:00 UTC = Sep 5 AoE; **EvoRobust Sep 13 12:29 UTC = Sep 12
+three venues independently: AIWILD Sep 6 13:00 UTC = Sep 5 AoE; **EvoRobust Sep 13 11:59 UTC = Sep 12
 AoE**; VERICODEGEN Sep 14 11:59 UTC = Sep 13 AoE.
+
+**Corrected 2026-09-11 (`notes/12` M9): the EvoRobust row read "Sep 13 12:29 UTC", 30 minutes late.**
+The CFP's own words are *"All deadlines are 11:59 PM AoE"*, and 23:59 AoE on Sep 12 is **11:59 UTC on
+Sep 13**. Use 11:59 UTC as the wall; the 12:29 figure was a tracker artifact, not the CFP.
 
 **FLLMPT is the exception and it will catch you: its deadlines are GMT, not AoE — 13 hours earlier
 than EvoRobust.**
@@ -30,7 +34,7 @@ than EvoRobust.**
 
 | | |
 |---|---|
-| **Deadline** | **Sep 12 AoE** (*"All deadlines are 11:59 PM AoE"*). Re-checked 2026-09-04: no extension. |
+| **Deadline** | **Sep 12 AoE** (*"All deadlines are 11:59 PM AoE"*) = **Sep 13, 11:59 UTC**. Re-checked 2026-09-04: no extension. |
 | Format | **4 content pages** (5 camera-ready), unlimited references and supplementary, NeurIPS 2026 style, 50 MB |
 | Archival | **No.** OpenReview, double-blind. |
 | Dual submission | **Allowed**, explicitly — *"Workshop submissions can be subsequently or concurrently submitted to other venues."* |

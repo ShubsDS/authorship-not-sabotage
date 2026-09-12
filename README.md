@@ -2,7 +2,8 @@
 
 **Trivial baselines on the stored honest/attack pairs behind open AI-control monitoring results.**
 
-Target: **EvoRobust @ NeurIPS 2026** (Sydney) — 4 content pages, non-archival, **deadline Sep 12 AoE**.
+Target: **EvoRobust @ NeurIPS 2026** (Sydney) — 4 content pages, non-archival, **deadline Sep 12 AoE
+= Sep 13, 11:59 UTC** (`notes/12` M9 corrected the old 12:29 UTC figure).
 Non-archival, and it permits concurrent submission ([`notes/01`](notes/01-venue-evorobust.md)).
 
 > **FLLMPT was dropped on 2026-09-10.** It was only ever reachable by registering an abstract before
@@ -121,9 +122,13 @@ generator (§15).
 >    for the same prompt framing, and Limitations carries the style-vs-authorship caveat and the
 >    `passes`-only comparison. The body ends on page 4 with three free lines; References begins on
 >    page 5.
-> 3. **Left for a human:** read the abstract, §1 and the Gate S paragraph; attach the release zip as
->    supplementary; decide the 12 stuck generation batches (cancel) and the one uncommitted
->    verifier variant from a parallel session (not used; leave or branch).
+> 3. **Left for a human:** **confirm on the OpenReview submission form whether a paper checklist is
+>    required** — `notes/01` records format, archival status, dual submission and abstract
+>    registration for EvoRobust and says nothing about a checklist, `paper/checklist-reference.tex`
+>    is deliberately not `\input`, and this is the one venue rule that cannot be settled from the
+>    repo (`notes/12` M10); read the abstract, §1 and the three Gate S paragraphs; attach the
+>    release zip as supplementary; decide the 12 stuck generation batches (cancel) and the one
+>    uncommitted verifier variant from a parallel session (not used; leave or branch).
 
 | Piece | State |
 |---|---|
