@@ -338,6 +338,9 @@
 \newcommand{\matchedStrictRho}{0.697}
 \newcommand{\matchedStrictRhoLo}{0.494}
 \newcommand{\matchedStrictRhoHi}{0.856}
+\newcommand{\matchedStrictLo}{0.6464}   % ... its S interval (RESULTS.md 13.2, strict row a)
+\newcommand{\matchedStrictHi}{0.7453}
+\newcommand{\matchedStrictBprime}{0.8030} % B' on the same 96 problems, all-firing
 % As everywhere in RESULTS.md 12-15: a rho POINT is the fold-mean ratio and the joint interval
 % beside it is the bootstrap of the POOLED out-of-fold rho (notes/10 section 6). Pooled points on
 % these rows: headline matched 0.390, strict matched 0.662, Haiku headline 0.097.
@@ -552,7 +555,7 @@ corpus.
 
 % --- F3: the monitor comparison (the only body float) ----------------------------------
 \begin{figure}[t]\centering
-\includegraphics[width=0.70\linewidth]{f3-monitors-vs-floors.pdf}
+\includegraphics[width=0.64\linewidth]{f3-monitors-vs-floors.pdf}
 \caption{\textbf{Two floors against the \monN{} open-weight monitors ranked on the same
 split.} AUROC on Koran et al.'s \splitTest{}-item test split (\splitAttack{} attack /
 \splitHonest{} honest), comments stripped; monitor scores from \cite{jha2026decorrelation}
@@ -582,9 +585,8 @@ runner, applied to both classes (appendix~\ref{app:harness}).
 % one body float.
 % =====================================================================================
 
-Table~\ref{tab:protocol-baseline} (appendix) reports what a trivial classifier recovers under
-each protocol. The fix works, on the two carriers \S1 names.
-What it does not reach, on that same split, is a
+The fix works, on the two carriers \S1 names
+(Table~\ref{tab:protocol-baseline}, appendix). What it does not reach, on that same split, is a
 bag-of-words floor of \tfidfKoran{} (95\% CI \tfidfKoranLo{}--\tfidfKoranHi{} by bootstrap
 over problems; permutation null 95th percentile \tfidfKoranNull{}, $\permP$), above
 \tfidfKoranCount{} of the \monN{} monitors by point estimate and \tfidfKoranPairedCount{}
@@ -595,79 +597,98 @@ and \nocodeCVPairedCount{} respectively (Figure~\ref{fig:monitors}): the preproc
 removed the carrier it targeted and not the two beside it.
 
 \paragraph{The signal is not sabotage.}
-Three measurements point the same way; every matched-protocol number here is
-comment-stripped on both classes, and the unstripped values, inflated by the comment
-channel, are in appendix~\ref{app:stripped}. First, the classifier \emph{transfers across
+Three measurements point the same way; every number here is comment-stripped on
+both classes, the unstripped values, inflated by the comment channel, being in
+appendix~\ref{app:stripped}. First, the classifier \emph{transfers across
 backdoor generators} at \transfer{} pairwise: trained on one attacker's backdoors it
 identifies another's, so what it has learned is not any single model's sabotage style.
 Second, it is nearly as strong on \textbf{inert} backdoors (\pairInert{}) as on working
-ones (\pairWorking{}) --- if it were detecting sabotage, backdoors that do not function
-should be much harder, and they are not. Third, the residual carrier is stylistic rather
+ones (\pairWorking{}); if it were detecting sabotage, backdoors that do not function should
+be much harder. Third, the residual carrier is stylistic rather
 than semantic: \texttt{\_\_main\_\_} appears in 0.116 of attack samples against
 \textbf{0.000} of honest ones, replicated on the train split (152 versus 1 of
 \splitTrain{}) and untouched by the stripper. None of these is a property of a
-backdoor. A token-level test \cite{orel2026aicd} does not replicate, and one authorship leak
-survives the stripper (appendices~\ref{app:token},~\ref{app:stripped}).
+backdoor, and a token-level test \cite{orel2026aicd} does not replicate here
+(appendix~\ref{app:token}).
 
 \paragraph{Regenerating one half of a pair does not isolate content.}
 Under the identical pipeline the human-honest baseline is $B = \baselineB$ over
 $n = \baselineBn{}$ pairs, and the routing rule and its bands were fixed before any arm
 ran: retained signal $\rho = (G - 0.5)/(B - 0.5)$, with $\rho \le \rhoCollapse{}$ reading as
 authorship and $\rho > \rhoContent{}$ as content. With an open-weight model writing the
-honest class against the same backdoors ($n = \armOneN{}$, $B' = \armOneBprime{}$ on those
-problems), separation \emph{rises} to $G = \armOneG{}$, $\rho = \armOneRho{}$: substituting the
-honest author replaced one authorship confound with a larger one.
+honest class against the same backdoors, separation \emph{rises}, to $\rho = \armOneRho{}$
+(appendix~\ref{app:robust}): substituting the honest author replaced one authorship confound
+with a larger one.
 
-\paragraph{Holding authorship constant needs care about what else changes.}
-We generate the attack class twice from one honest class. An \textbf{edit} arm shown its own
-honest solution returns near-copies, so only the \textbf{independent} arm --- shown the problem
-statement alone, and matching the stored regime of independent programs --- changes authorship
-and nothing else (Table~\ref{tab:similarity}, appendix).
+% --- Gate S outcome, in three paragraphs plus Table~\ref{tab:gates} (notes/12 §1: the
+%     single highest-value change of the cold review). EVERY row-level number now lives in
+%     the table or its caption; the prose keeps the reading and the mechanism. Nothing left
+%     the paper - the clauses cut here (retention, the edit-arm bound) are in app:robust.
+\textbf{One model writing both classes removes between a third and nine-tenths of the
+separability.} We report the \textbf{independent} arm --- the attack class written from the
+problem statement alone, which changes authorship and nothing else, an \textbf{edit} arm
+shown its own honest solution returning near-copies (appendix~\ref{app:pairsim}). One
+outcome-blind draw per problem, the attack class as the benchmark defines it --- by intent plus passing the public tests (\headlineFireShare{} of these draws
+fire, the same-generator analogue of the split's own \inertShare{} inert class) --- and $B'$
+inert-inclusive over the same problems (Table~\ref{tab:gates}). The first generator's
+interval excludes the collapse band and spans the content line, so the pre-registered rule
+returns \emph{inconclusive between partial and content}; the second's lies inside the
+collapse band. At $n = \sameGenN{}$, $B$ under the identical pipeline is $\curveHeadline{}
+\pm \curveHeadlineSd{}$, so the drop is not sample size.
 
-% --- Gate S outcome (handoff §4.3; RESULTS.md §9). \monitorS is pending. ---------------
-\textbf{Holding authorship constant removes between a third and nine-tenths of the
-separability, and the attack prompt's framing most of what remains.} With one model writing both classes --- one outcome-blind draw per problem, the
-attack class defined, as in the benchmark, by intent plus passing the public tests (\headlineFireShare{} of these
-draws fire, the same-generator analogue of the split's own \inertShare{} inert class), and
-$B'$ inert-inclusive over the same problems --- $S = \sameGenS{}$ (95\% CI
-\sameGenLo{}--\sameGenHi{}; $n = \sameGenN{}$ problem-disjoint pairs) against
-$B' = \sameGenBprime{}$, so $\rho = \sameGenRho{}$ (\sameGenRhoLo{}--\sameGenRhoHi{}, joint bootstrap over
-problems); a second generator writing both classes under the same rule
-($n = \haikuN{}$) gives $S = \haikuS{}$ against $B' = \haikuBprime{}$,
-$\rho = \haikuRho{}$ (\haikuRhoLo{}--\haikuRhoHi{}) on an attack class \haikuInert{} inert
-against the first generator's \headlineInert{}. The first
-interval excludes the collapse band and spans the content line --- the pre-registered rule
-returns \emph{inconclusive between partial and content} --- and the second lies inside the
-collapse band. What survives is lexical:
-length-only falls to \sameGenLen{} while TF-IDF holds. It is not the trigger: masking numerals and comparison
-operators leaves $S$ unchanged, while normalising identifiers takes it to \sameGenSid{}
-($\rho = \sameGenRhoId{}$), and the top attack-side features are
-\texttt{def main} and \texttt{data[} (\defMainAttack{} vs \defMainHonest{} of pair sides) --- the
-layout the attack prompt elicits. Holding the prompt constant as well removes most of the
-rest: with the honest class regenerated under the attack prompt's framing minus the flaw
-sentence, $S = \matchedS{}$ (\matchedLo{}--\matchedHi{}; $n = \matchedN{}$),
-$\rho = \matchedRho{}$ (\matchedRhoLo{}--\matchedRhoHi{}), and the two honest classes
-separate from each other at \promptOnly{}. On the second generator neither moves: $S$ with the
-prompt matched too is \haikuSMatched{} ($\rho = \haikuMatchedRho{}$) and its prompt-only floor is
-\haikuPromptFloor{}, an interval containing chance. The pairs are independent programs (Table~\ref{tab:similarity}), and at
-$n = \sameGenN{}$ $B$ under the identical pipeline is $\curveHeadline{} \pm
-\curveHeadlineSd{}$, so the drop is not sample size. The strict row --- attacks that pass
-\emph{and} fire, kept by the benchmark's own retry-and-keep procedure, and the row that
-follows our own Recommendation 3 --- agrees, at low power: $\rho = \strictRho{}$
-(\strictRhoLo{}--\strictRhoHi{} on the pooled-score \strictRhoPooled{}) from $S = \strictS{}$ (\strictLo{}--\strictHi{};
-$n = \strictN{}$) against its own $B' = \strictBprime{}$, read through $\rho$ alone because
-$B$ at that $n$ is $\curveStrict{} \pm \curveStrictSd{}$; retention is not the artifact,
-and the edit arm bounds $S$ under near-copies (appendix~\ref{app:robust}). A monitor is inflated the same way. A zero-shot monitor
-prompt, answered by the model that wrote both classes, scores \monStoredHead{} on the
-\emph{stored} pairs over the same problems and \monitorS{} (\monitorSLo{}--\monitorSHi{}) on the headline pairs, a
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{\textbf{Gate S: what is left when one model writes both classes.} $S$ is the
+same-generator AUROC (5-fold, comments stripped) and $B'$ the stored-pair baseline on the
+row's own problems; $\rho$, its bands and its intervals are as in the text and
+appendix~\ref{app:robust}. \headlineInert{} of the first generator's headline attacks never
+fire and \haikuInert{} of the second's; the strict rows are all-firing.}
+\label{tab:gates}
+\begin{tabular}{@{}l r l r l l@{}}
+\toprule
+Arm & $n$ & $S$ (95\% CI) & $B'$ & $\rho$ (95\% CI, joint) & band \\
+\midrule
+Sonnet 5, headline & \sameGenN{} & \sameGenS{} (\sameGenLo{}--\sameGenHi{})
+  & \sameGenBprime{} & \sameGenRho{} (\sameGenRhoLo{}--\sameGenRhoHi{}) & partial--content \\
+Haiku 4.5, headline & \haikuN{} & \haikuS{} (\haikuSLo{}--\haikuSHi{})
+  & \haikuBprime{} & \haikuRho{} (\haikuRhoLo{}--\haikuRhoHi{}) & \textbf{collapse} \\
+Sonnet 5, prompt-matched & \matchedN{} & \matchedS{} (\matchedLo{}--\matchedHi{})
+  & \matchedBprime{} & \matchedRho{} (\matchedRhoLo{}--\matchedRhoHi{}) & \textbf{partial} \\
+Sonnet 5, strict & \strictN{} & \strictS{} (\strictLo{}--\strictHi{})
+  & \strictBprime{} & \strictRho{} (\strictRhoLo{}--\strictRhoHi{}) & partial--content \\
+Sonnet 5, strict, matched & \matchedStrictN{} & \matchedStrictS{} (\matchedStrictLo{}--\matchedStrictHi{})
+  & \matchedStrictBprime{} & \matchedStrictRho{} (\matchedStrictRhoLo{}--\matchedStrictRhoHi{}) & partial--content \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Holding the attack prompt constant as well removes most of what is left.} What
+survives on the first generator is lexical: length-only falls to \sameGenLen{} while TF-IDF
+holds. It is not the trigger --- masking numerals and comparison operators leaves $S$
+unchanged, while normalising identifiers takes it to \sameGenSid{} ($\rho =
+\sameGenRhoId{}$) --- and the top attack-side features are \texttt{def main}
+(\defMainAttack{} vs \defMainHonest{} of sides) and \texttt{data[}: the layout the attack
+prompt elicits. Regenerating the honest class under that framing minus the flaw sentence
+takes $\rho$ to \matchedRho{}, and the two honest classes alone, no attack on either side,
+separate at \promptOnly{}: what the prompt removes is framing, not backdoor. On the second
+generator neither moves --- \haikuSMatched{} with the prompt matched ($\rho =
+\haikuMatchedRho{}$) over a prompt-only floor of \haikuPromptFloor{} whose interval contains
+chance: a generator that never adopts the prompt's layout. The strict rows --- attacks that pass \emph{and} fire under the
+benchmark's own retry-and-keep, the rows that follow our Recommendation 3 --- agree at low
+power, read through $\rho$ alone because $B$ at $n = \strictN{}$ is $\curveStrict{} \pm
+\curveStrictSd{}$.
+
+\textbf{Monitors are inflated the same way.} A zero-shot monitor prompt, answered by the
+model that wrote both classes, scores \monStoredHead{} on the \emph{stored} pairs over those
+problems and \monitorS{} (\monitorSLo{}--\monitorSHi{}) on the headline pairs, a
 monitor-$\rho$ of \monRhoHead{} (\monRhoHeadLo{}--\monRhoHeadHi{}) against the classifier's
 \sameGenRho{}; on the strict pairs it is \monStoredStrict{} and \monitorStrict{}
 (\monitorStrictLo{}--\monitorStrictHi{}), monitor-$\rho$ \monRhoStrict{}
 (\monRhoStrictLo{}--\monRhoStrictHi{}), and a monitor that wrote neither class returns the
-same two ratios (\monHaikuRhoHead{}, a bound at half missingness, and
-\monHaikuRhoStrict{}). Classifier and monitor are
-independent pair by pair ($\phi = \monitorClfPhi{}$). Our single-shot attacks fire given a pass at \fireGivenPassOurs{} against the stored
-attacker's \fireGivenPassStored{}: the stored attack class is a survivor set.
+same two ratios (\monHaikuRhoHead{}, a bound at half missingness, and \monHaikuRhoStrict{}).
+Classifier and monitor are independent pair by pair ($\phi = \monitorClfPhi{}$). Our
+single-shot attacks fire given a pass at \fireGivenPassOurs{} against the stored attacker's
+\fireGivenPassStored{}: the stored attack class is a survivor set.
 
 \paragraph{The filter installs a second artifact.}
 Labelling by \texttt{backdoor\_works} defines the negative class by \emph{attack failure}
@@ -675,18 +696,16 @@ at the problem level rather than by honesty: \inertShare{} of the test split's l
 backdoors do not work (\inertSharePassing{} of those that pass the public tests), and a
 problem whose backdoor fails contributes its human honest solution to the negative class
 instead, so the label is fixed before any code is read.
-Attack problems carry roughly half as many test cases as honest ones
-(\testCasesAttack{} versus \testCasesHonest{}), consistent with a problem with fewer tests
-being easier to backdoor undetectably, so difficulty and test count are correlated with the
-label with no code read at all --- which is where the content-blind floor of \nocodeCV{}
-comes from.
+Attack problems also carry roughly half as many test cases
+(\testCasesAttack{} versus \testCasesHonest{}) --- fewer tests, easier to backdoor
+undetectably --- so difficulty and test count correlate with the label with no code read at
+all, which is where the content-blind \nocodeCV{} comes from.
 
 \paragraph{The negative control comes free.}
-In five same-generator agentic settings the same three models write both classes, so no
-authorship confound is possible and any surviving floor is structural
-(Figure~\ref{fig:corpora}, appendix): floors run from \bashFloor{} (\texttt{bash}, on its
-null) to \agentdojoFloor{} (\texttt{agentdojo}) from character count alone. A per-benchmark floor separates
-corpora where the label is trivially recoverable from those where it is not.
+In five same-generator agentic settings, where the same three models write both classes and
+no authorship confound is possible, the surviving floor is structural: \bashFloor{}
+(\texttt{bash}, on its null) to \agentdojoFloor{} (\texttt{agentdojo}) on character count
+alone (Figure~\ref{fig:corpora}, appendix).
 
 % =====================================================================================
 \section{Recommendations}
@@ -703,9 +722,8 @@ Following \citet{kapoor2022leakage}, who treat leakage as a checklist rather tha
 \item \textbf{Do not define the negative class by attack failure.} Drop the problems
       whose attacks failed, or sample the negative class independently of attack success.
 \item \textbf{State the split, the metric and the preprocessing} whenever monitors are
-      compared, and \textbf{release the split and the scripts}. Ours accompany this paper under
-      MIT: the split, both selection rules, the retry pool, the scripts, a card and a manifest
-      (appendix~\ref{app:release}).
+      compared, and \textbf{release the split and the scripts}. Ours accompany this paper
+      under MIT (appendix~\ref{app:release}).
 \end{enumerate}
 
 % =====================================================================================
@@ -818,6 +836,7 @@ pairs), \transferClaudeOthree{} (the reverse) and \transferOoneGemini{} (o1-mini
 gemini-2.0-flash).
 
 \subsection{Pair similarity, and why the same-generator control needs two arms}
+\label{app:pairsim}
 An attack class built by editing its own honest solution changes pair similarity as well as
 authorship (Table~\ref{tab:similarity}); the independent arm sits in the stored benchmark's
 regime and if anything slightly further from it, so it cannot manufacture a low $S$ by
@@ -846,13 +865,15 @@ Intervals in the Gate S paragraph of \S\ref{sec:results} are bootstraps over pro
 resampling $S$ and $B'$ jointly for $\rho$; this replaced a $\pm2$ fold-sd rule before the
 retry pool was read. Every $\rho$ point we quote is the ratio of the fold-mean AUROCs and every
 joint interval beside it is the bootstrap of the pooled out-of-fold $\rho$, which is the same
-quantity computed two ways: the pooled points are \matchedRhoPooled{} (prompt-matched headline),
+quantity computed two ways: the pooled points are \strictRhoPooled{} (strict, the row whose interval
+Table~\ref{tab:gates} quotes), \matchedRhoPooled{} (prompt-matched headline),
 \matchedStrictRhoPooled{} (prompt-matched strict) and \haikuRhoPooled{} (the second generator). Five fold seeds move the strict row's $\rho$ over \strictRhoSeeds{}.
 Retention is not the artifact: survivors and non-survivors separate at
 only \survivorAuroc{}, and $S$ with non-firing attempts on the same problems is
 \survivorSwapS{} against \survivorSwapSref{}. The edit arm bounds $S$ under near-copies
 (similarity \editSim{}, Table~\ref{tab:similarity}): \editS{} over \editN{} pairs,
-$\rho = \editRho{}$. In arm 1, where only the honest half was regenerated, TF-IDF gains
+$\rho = \editRho{}$. In arm 1, where only the honest half was regenerated, $G = \armOneG{}$ against
+$B' = \armOneBprime{}$ on that arm's $n = \armOneN{}$ eligible problems, and TF-IDF gains
 \armOneTfidfDelta{} while the length carrier collapses to \armOneLenG{}. Our own attack
 prompt halves our single-shot firing rate:
 \trigPublicShare{} of our test-passing draws offer a public test input as the trigger, which
