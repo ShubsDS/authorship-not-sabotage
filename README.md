@@ -139,9 +139,9 @@ generator (§15).
 > 3. **Left for a human:** read the abstract, §1 and the three Gate S paragraphs; attach the
 >    release zip. **No checklist is required** (settled 2026-09-12: the workshop CFP page never
 >    uses the word, and the OpenReview form has only title / authors / keywords / TL;DR / abstract /
->    PDF / licence / readers fields; `paper/checklist-reference.tex` stays un-`\input`) (`notes/12` M10); read the abstract, §1 and the three Gate S paragraphs; attach the
->    release zip as supplementary; decide the 12 stuck generation batches (cancel) and the one
->    uncommitted verifier variant from a parallel session (not used; leave or branch).
+>    PDF / licence / readers fields; `paper/checklist-reference.tex` stays un-`\input`; `notes/12` M10). The 12 late generation shards landed and are recorded in
+>    `experiments/apps/TRIGGER-YIELD.md`, not merged; the parallel session's verifier variant
+>    stays uncommitted (not used).
 
 | Piece | State |
 |---|---|
