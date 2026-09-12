@@ -147,4 +147,4 @@ figures in the scripts' comments are redacted to `$X`; nothing else in them was 
 
 ---
 
-Generator `claude-sonnet-5` - generated September 2026 - built 2026-09-11 - harness agreement 95.84%
+Generator `claude-sonnet-5` - generated September 2026 - built 2026-09-12 - harness agreement 95.84%
