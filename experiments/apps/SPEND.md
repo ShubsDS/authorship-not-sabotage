@@ -33,3 +33,7 @@ running total in my row is the **file-order sum of every ACTUAL COST above it** 
 $18.91 of this session's other batches), which is the column the header says to trust, and it
 agrees with the row above it (120.51 + 4.48 = 124.99). New spend this session including mine:
 **$23.39** against the $33 session cap.
+
+| 2026-09-12 00:07 | Worker C | Haiku 4.5 independent-arm attacks, draw 2 (RESULTS.md §15.8), 1,444 requests, batch (`gen_backdoor_api.py --model claude-haiku-4-5 --independent`), 52.0 min, 0 errored | 4.81 | 129.80 |
+
+**Booked by the coordinator after Worker C stopped on a rate limit.** File-order total **$129.80**; new spend this session **$28.20** against the $33 cap. No draw 3 was bought (§15.8 says why).
