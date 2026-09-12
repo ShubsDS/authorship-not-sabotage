@@ -1,9 +1,11 @@
 # paper/ — the submission
 
-Built and verified 2026-09-12, after the second pass (`notes/11-pass2-brief.md`) was applied on
-top of the reviewer audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
+Built and verified 2026-09-11 after **pass 3** — the cold review
+([`notes/12-final-review.md`](../notes/12-final-review.md)), whose M1–M10 are applied — on top of
+the second pass (`notes/11-pass2-brief.md`) and the reviewer audit
+([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
 `main.tex` compiles clean: **exit 0, no undefined citations, zero overfull boxes, four content
-pages** — the body now fills page 4 to the bottom of the text block with **3 free body lines**,
+pages** — the body fills page 4 with **2 free body lines by the probe below**,
 References begins on page 5, and the appendix follows the references. Nothing of the body reaches
 page 5.
 
@@ -21,7 +23,7 @@ grep -n References` must report a page index of 3 or more, with no body text aft
 
 | File | What |
 |---|---|
-| `main.tex` | The paper. §1–§5 plus F3 as the only body float; schema table, F1, similarity table, F2, the token test, the harness note, the comment-stripping companion values and the scratchpad channel are in the appendix after the references. `\TODO` is the no-op form (2026-09-11) — see "Before submitting". |
+| `main.tex` | The paper. §1–§5 plus **two body floats, F3 and Table~1 (the Gate S rows)**; schema table, F1, similarity table, F2, the token test, the harness note, the comment-stripping companion values and the scratchpad channel are in the appendix after the references. `\TODO` is the no-op form (2026-09-11) — see "Before submitting". |
 | `refs.bib` | 28 entries, built **only** from `lit/01-verified-bibliography.md`. |
 | `neurips_2026.sty` | Official style file, from `media.neurips.cc/Conferences/NeurIPS2026/Formatting_Instructions_For_NeurIPS_2026.zip` (fetched 2026-09-09, HTTP 200). Unmodified. |
 | `checklist-reference.tex` | The template's checklist, kept for reference. **Not** `\input` by `main.tex` — workshops do not require it. |
@@ -52,10 +54,10 @@ before the style file. Numeric is NeurIPS house style, it is far tighter than au
 at 4 pages, and it stops the two entries whose authors `lit/01` never recorded from
 rendering inline as "leg [2026]" and "len [2026]".
 
-**3. THE PAGE BUDGET: four pages, and three free lines left after the second pass.**
+**3. THE PAGE BUDGET: four pages, and two free lines left after pass 3.**
 The `notes/06` §5.1 cut plan was applied 2026-09-11 (F1, F2, the schema and similarity tables,
-the token test and the scratchpad channel to the appendix; §1 written; F3 at `0.70\linewidth`
-is the one body float). That still left four lines of §5 above References, so the audit's cuts
+the token test and the scratchpad channel to the appendix; §1 written; F3, then the only body
+float, at `0.70\linewidth`). That still left four lines of §5 above References, so the audit's cuts
 C1–C6 were taken as well, plus nine compressions of material the paper says twice — every one
 with an appendix home, and **no number left the paper**. The new appendix paragraph
 `app:robust` holds the interval rule, the survivor check, the edit-arm bound, arm 1's carrier
@@ -71,20 +73,42 @@ the one to use.** The style file sets `\flushbottom`, so once no References line
 the last body baseline is stretched onto the block's bottom edge whatever the true slack is.
 Probe instead: append N one-word body lines (`\noindent PROBELINE\\`) just before
 `\bibliographystyle`, rebuild, and find the largest N that keeps every probe line on page 4.
-On 2026-09-12 that is **N = 3**; the fourth spills.
+**On 2026-09-11, after pass 3, that is N = 2**; the third spills. (`notes/12` M8 re-ran the probe
+against the pass-2 body and got **N = 0**, not the 3 this file used to claim — the second pass had
+spent the slack and the figure was stale. Re-run the probe after every edit to §1–§5; do not trust
+a number written here without a date.)
+
+**There are now two body floats.** Pass 3 moved the Gate S rows into Table~1 (`tab:gates`,
+`[h]`, `\footnotesize` + booktabs, five rows: Sonnet headline, Haiku headline, Sonnet
+prompt-matched, Sonnet strict, Sonnet strict prompt-matched). It is placed `[h]` deliberately, so
+it stays inside §3 beside the paragraphs that read it; it currently sets at the foot of page 3.
+Its caption is short **because caption lines are body lines**: the ρ definition and the bands are
+in the arm-1 paragraph, the interval convention is in `app:robust`, and the caption carries only
+what neither does. If you lengthen it, re-run the probe.
 
 **F3's float anchor is load-bearing.** A `[t]` float lands at the top of the page *after* the
 page its definition falls on, so with the definition sitting in §3 a four-word edit anywhere
 earlier flipped it between pages 3 and 4 and swung the end of the body by a page. It is now
-defined inside §2, a page from either boundary. Leave it there. If a float-only page ever
-appears, check that F3 is still the only float in the body.
+defined inside §2, a page from either boundary. Leave it there. Pass 3 narrowed it to
+`0.64\linewidth` (from `0.70`) to pay for part of Table~1; if a float-only page ever appears,
+check where F3 and Table~1 have gone.
+
+**Pass 3 (2026-09-11) spent, and then re-earned, the last of the slack.** The Gate S paragraph
+became three paragraphs plus Table~1, which costs more lines than the prose it replaced, so the
+cuts `notes/12` §3 ranks were taken in its order: arm 1's row-level numbers to `app:robust`, the
+agentic-settings paragraph to one sentence, the token-test clause to its pointer, the
+retention/edit-arm clause (already in `app:robust`), the pair-similarity paragraph folded into a
+clause, Recommendation 4's bundle enumeration (it is in `app:release`), and F3 to `0.64`.
+**No number left the paper** — checked by comparing every `\newcommand` against its uses before
+and after. Four numbers came *in*: `\matchedStrictLo/Hi/Bprime` and `\matchedBprime`.
 
 **The three arms landed on 2026-09-12 and spent that slack.** The reserved block is gone:
 `\matched*`, `\promptOnly*`, `\mon*` and `\haiku*` carry measured values from `RESULTS.md`
 §13–§15, each with its protocol, its n and its ledger section in the comment; `\TBDRED` is
 deleted and `grep -n TBD main.tex` is empty. The sentences of `notes/09` §4 (branch 1) and the
 Haiku clause cost the 13.5 lines almost exactly, so cut C1's "five fold seeds" parenthetical was
-taken as well and its number moved to `app:robust`. Three free lines remain by the probe above.
+taken as well and its number moved to `app:robust`. (That pass left **no** free lines, not the
+three this file claimed until pass 3 measured it — see the probe above.)
 
 ### Both tables are width-constrained; do not "tidy" the column specs
 
@@ -102,7 +126,9 @@ never read) with `p{}` columns tuned against these constraints:
 | Against | `0.170` | absorbs the remaining slack; wraps freely |
 
 Narrowing Baseline reintroduces an overfull box. The schema table in `main.tex` (now in
-the appendix) has the same problem and the same fix. **Current state: zero overfull boxes.**
+the appendix) has the same problem and the same fix. Table~1 (Gate S, body) is the third:
+`@{}l r l r l l@{}` at `\tabcolsep` 4pt and `\footnotesize` fits the 5.5in block with the
+arm labels as written; lengthening a row label or a band word will overflow it. **Current state: zero overfull boxes.**
 F1's pairwise rows carry the comment-stripped values from `RESULTS.md` §6 with the earlier
 comments-kept values beside them labelled "inflated by the comment channel"; pairwise
 accuracies are three decimals, AUROCs four.
@@ -140,8 +166,12 @@ impossible to cross by accident:
       Control Tax is a *2025* paper with a longer title; `2607.09786`'s author is Bryce Little, where
       `lit/01` recorded none — for the paper we credit with owning the scratchpad-regex instrument;
       and AICD's "Paul" and "Wang" are first names, so "Paul et al." would have been wrong.
-- [ ] Confirm the content body is within 4 pages (it is exactly 4 as of 2026-09-12, with three
-      free lines by the probe above; re-check after every edit to §1–§5).
+- [ ] Confirm the content body is within 4 pages (it is exactly 4 as of 2026-09-11 after pass 3,
+      with **two** free lines by the probe above; re-check after every edit to §1–§5).
+- [ ] **Is a paper checklist required?** `notes/01` records format, archival status, dual
+      submission and abstract registration for EvoRobust and says nothing about a checklist, and
+      `checklist-reference.tex` is deliberately not `\input`. Confirm on the OpenReview
+      submission form before uploading (`notes/12` M10) — the one venue rule not settleable here.
 - [x] Release sentence in §4 item 4 names what the bundle holds without the counts, which now
       live once, in appendix paragraph `app:release`, with the crash-as-firing count and the
       `\relScripts{}` scripts. The bundle really does carry them as of schema 3 — `release/scripts/`

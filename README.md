@@ -115,13 +115,27 @@ generator (§15).
 >    beside the source. The reviewer audit of 2026-09-11
 >    ([`notes/09-review-audit.md`](notes/09-review-audit.md)) has been applied in full except for
 >    what depends on numbers that do not exist yet.
+> 2b. **Pass 3 is done (2026-09-11), from the cold review
+>    [`notes/12-final-review.md`](notes/12-final-review.md).** All ten must-fixes applied. The
+>    abstract no longer splices two protocols (it pairs the stored **0.944** with 0.818 on the
+>    *same* strict row), stops calling a self-evaluation a *trusted* monitor, and says what
+>    survives on firing attacks is *consistent with* surface content — the band at n = 96 does not
+>    return content. The §3 Gate S block is now **three paragraphs with bold leads plus one
+>    five-row table** (Sonnet headline, Haiku headline, Sonnet prompt-matched, Sonnet strict,
+>    Sonnet strict prompt-matched; n, S with CI, B′, ρ with joint CI, band), which was the review's
+>    single highest-value change: the evidence is on the page instead of in a 30-line wall. The
+>    appendix units are `\subsection`s, so cross-references read A.2 / A.5 / A.11 instead of nine
+>    identical "A"s. Two appendix sentences were wrong and are fixed (the release does not ship
+>    `monitor-summary.json`; the attack prompt halves *our firing rate*, not the gap). The table was
+>    paid for by the review's own ranked cuts — **no number left the paper**. Body ends page 4 with
+>    **2 free lines by the probe** (`paper/README.md` §3), References page 5, zero overfull boxes.
 > 2a. **The second pass is done (2026-09-12).** The three arms landed, their macros carry measured
 >    values, no placeholder remains, and the sentences they pay for are written: the abstract and
 >    contribution (ii) state two generators and two bands, the §3 Gate S paragraph carries the
 >    Haiku clause, the prompt-matched sentence and the monitor-ρ sentence, Recommendation 1 asks
 >    for the same prompt framing, and Limitations carries the style-vs-authorship caveat and the
->    `passes`-only comparison. The body ends on page 4 with three free lines; References begins on
->    page 5.
+>    `passes`-only comparison. (Its "three free lines" was stale: `notes/12` M8 re-measured the
+>    pass-2 body at **N = 0**.)
 > 3. **Left for a human:** **confirm on the OpenReview submission form whether a paper checklist is
 >    required** — `notes/01` records format, archival status, dual submission and abstract
 >    registration for EvoRobust and says nothing about a checklist, `paper/checklist-reference.tex`
@@ -145,15 +159,18 @@ generator (§15).
 | Gate S — LLM-monitor positive control | ✅ **Run 2026-09-11 on the same pairs.** Zero-shot trusted-monitor prompt to the model that wrote both classes (disclosed): **0.5662** (0.5507–0.5833) on the 623 headline pairs where TF-IDF holds 0.7512 — the residual is a lexical trace of the attack instruction, not a backdoor the monitor reads; **0.8182** (0.7630–0.8686) on the 99 firing attacks, within the baseline's interval (0.7652). [`experiments/RESULTS.md`](experiments/RESULTS.md) §10 |
 | Comment-stripped re-check of the authorship legs | ✅ **Run 2026-09-11; weakened but standing** (coordinator's band). The unstripped column reproduces `REPRODUCED.md` to the last decimal; stripped, transfer 0.994 → **0.969**, pairwise working 0.979 → **0.935**, inert 0.955 → **0.879**, surface-7 0.830 → **0.726**. The paper reports the stripped values. [`experiments/RESULTS.md`](experiments/RESULTS.md) §6 |
 | Headline intervals and the paired monitor comparison | ✅ **Run 2026-09-11.** TF-IDF 0.8063, 95% CI 0.770–0.841, permutation p < 0.005 (0 of 200), above 20 of 24 by point and **18 by a paired-bootstrap CI excluding zero**; no-code CV 0.7715 ± 0.0389 (pooled-OOF CI 0.732–0.801), 20 / **17**; no-code held-out 0.7163 (CI 0.648–0.780, p = 0.030), 18 / **12**. [`experiments/RESULTS.md`](experiments/RESULTS.md) §8 |
-| The release | ✅ **Built and checked 2026-09-11** (`same-generator-apps-split.zip`, 3.5 MB): 1,444 honest, 1,112 edit-arm and 1,112 single-shot independent-arm programs, the **full 11,565-draw retry pool**, both eligibility rules under both selections (`first`: 623 / 14 independent pairs; `best`: 1,046 / 106, 99 non-crash), `MANIFEST.json`, card, `LICENSE` (MIT, anonymous). One disclosed exemption — 53 trivial one-liners identical to a human solution, retained and declared per record in the manifest — ratified by the coordinator ([`notes/07`](notes/07-release.md) §1). |
+| The release | ✅ **Built and checked 2026-09-11, rebuilt from HEAD 2026-09-12** (`release_split.py` reads every shipped script with `git show HEAD:`, so another session's uncommitted edits to `merge_draws.py` / `verify_backdoor.py` cannot reach the bundle; `--check` passes, counts unchanged, anonymity grep clean) (`same-generator-apps-split.zip`, 3.5 MB): 1,444 honest, 1,112 edit-arm and 1,112 single-shot independent-arm programs, the **full 11,565-draw retry pool**, both eligibility rules under both selections (`first`: 623 / 14 independent pairs; `best`: 1,046 / 106, 99 non-crash), `MANIFEST.json`, card, `LICENSE` (MIT, anonymous). One disclosed exemption — 53 trivial one-liners identical to a human solution, retained and declared per record in the manifest — ratified by the coordinator ([`notes/07`](notes/07-release.md) §1). |
 | **Why two attack arms** | ✅ **The check justified it.** An attack class built by editing its own honest solution changes pair *similarity* as well as authorship: its pairs run **0.928** mean similarity (64.2% above 0.95) against the stored benchmark's **0.606** on the same problems (3.4%). A low S from it could not distinguish *the benchmark measured authorship* from *we made the classes the same text*. The **independent** arm sits at 0.659, in the benchmark's own regime — **the title routes on that one.** (Re-measured with `autojunk=False`; the earlier 0.924 / 0.469 / 0.415 used difflib's junk heuristic.) §4.8–4.9, §9.1 |
 | **B — the baseline Gate S routes against** | ✅ **Measured 2026-09-09: 0.8714** (n = 1,444), CPU only; re-run 2026-09-11 bit-identical, pool counts 5,000 / 3,420 / 1,582 / 1,444 re-verified ([`RESULTS.md`](experiments/RESULTS.md) §7.1). ρ is uninterpretable without it, and it never needed the GPU. ⚠️ **This also moves the routing thresholds**: the 0.601/0.720 in `PLAN.md` were arithmetic at an assumed B = 0.806; the real ones are **0.6226 / 0.7674**. |
 | The test harness | ✅ **Built and validated 2026-09-04**, three days early. **95.84%** agreement on the analysis pool; three defects found and fixed, all of which failed old human code specifically. |
-| The paper as a document | ✅ **§1–§5 written; four content pages with slack.** [`paper/main.tex`](paper/README.md) compiles clean (NeurIPS 2026, `dblblindworkshop`, zero overfull boxes, zero undefined citations) with every number as a macro. **Bibliography complete** — all 28 entries (`grep -c '^@' paper/refs.bib`) verified against the arXiv API 2026-09-10, and six of `lit/01`'s partial records turned out to be *wrong*, not merely incomplete. The reviewer audit ([`notes/09`](notes/09-review-audit.md)) is applied: the false negative-class sentence rewritten, both intervals attached to the estimate they are intervals of, the cuts taken, the release made true. The body ends on page 4 with ~14 free lines and References begins there. |
+| The paper as a document | ✅ **§1–§5 written; four content pages with slack.** [`paper/main.tex`](paper/README.md) compiles clean (NeurIPS 2026, `dblblindworkshop`, zero overfull boxes, zero undefined citations) with every number as a macro. **Pass 3 applied 2026-09-11** (`notes/12` M1–M10: the abstract's same-row monitor pair, the
+monitor named rather than called trusted, the modality of the firing-attack claim, the Gate S
+block split into three paragraphs and Table 1, the appendix promoted to subsections so refs
+resolve, two false appendix sentences fixed). **Bibliography complete** — all 28 entries (`grep -c '^@' paper/refs.bib`) verified against the arXiv API 2026-09-10, and six of `lit/01`'s partial records turned out to be *wrong*, not merely incomplete. The reviewer audit ([`notes/09`](notes/09-review-audit.md)) is applied: the false negative-class sentence rewritten, both intervals attached to the estimate they are intervals of, the cuts taken, the release made true. **The body ends on page 4 with 2 free lines by the probe (pass 3, 2026-09-11); References begins on page 5.** |
 | The confound, with no experiment at all | `backdoors` carries `model` and `source`; `solutions` carries neither. **The honest class has no generator field because it has no generator.** |
 | Figures | 3 remain (protocol × baseline; per-corpus floors with permutation nulls; monitor-vs-floor dot plot) |
 | Venue gates | **G2 PASS for EvoRobust**, conditional on excluding AgentHarm. Page limit, dual-submission and title-change policies verified 2026-09-04. (G2 was also run for FLLMPT, now dropped.) [`notes/01`](notes/01-venue-evorobust.md) |
-| Prose | 4 pages, Sep 10–11, audit applied 2026-09-11, **second pass applied 2026-09-12** from §13–§15: the macros carry measured values, the abstract and §3 state two generators and two bands, and the body ends on page 4 with three free lines. |
+| Prose | 4 pages, Sep 10–11, audit applied 2026-09-11, second pass applied 2026-09-12 from §13–§15, **pass 3 applied 2026-09-11** from [`notes/12`](notes/12-final-review.md): the abstract pairs one protocol's row with itself, the Gate S block is three paragraphs plus Table 1, the appendix cross-references resolve, and the body ends on page 4 with **2** free lines by the probe. |
 
 ## Layout
 
