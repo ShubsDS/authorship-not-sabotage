@@ -168,10 +168,10 @@ impossible to cross by accident:
       and AICD's "Paul" and "Wang" are first names, so "Paul et al." would have been wrong.
 - [ ] Confirm the content body is within 4 pages (it is exactly 4 as of 2026-09-11 after pass 3,
       with **two** free lines by the probe above; re-check after every edit to §1–§5).
-- [ ] **Is a paper checklist required?** `notes/01` records format, archival status, dual
-      submission and abstract registration for EvoRobust and says nothing about a checklist, and
-      `checklist-reference.tex` is deliberately not `\input`. Confirm on the OpenReview
-      submission form before uploading (`notes/12` M10) — the one venue rule not settleable here.
+- [x] **Is a paper checklist required? No.** Settled 2026-09-12: the workshop CFP page
+      (`index.html` of the workshop site) does not contain the word, and the OpenReview form
+      carries only title, authors, keywords, TL;DR, abstract, PDF, licence, readers and
+      signatures. `checklist-reference.tex` stays un-`\input`.
 - [x] Release sentence in §4 item 4 names what the bundle holds without the counts, which now
       live once, in appendix paragraph `app:release`, with the crash-as-firing count and the
       `\relScripts{}` scripts. The bundle really does carry them as of schema 3 — `release/scripts/`

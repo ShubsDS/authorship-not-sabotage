@@ -136,11 +136,10 @@ generator (§15).
 >    for the same prompt framing, and Limitations carries the style-vs-authorship caveat and the
 >    `passes`-only comparison. (Its "three free lines" was stale: `notes/12` M8 re-measured the
 >    pass-2 body at **N = 0**.)
-> 3. **Left for a human:** **confirm on the OpenReview submission form whether a paper checklist is
->    required** — `notes/01` records format, archival status, dual submission and abstract
->    registration for EvoRobust and says nothing about a checklist, `paper/checklist-reference.tex`
->    is deliberately not `\input`, and this is the one venue rule that cannot be settled from the
->    repo (`notes/12` M10); read the abstract, §1 and the three Gate S paragraphs; attach the
+> 3. **Left for a human:** read the abstract, §1 and the three Gate S paragraphs; attach the
+>    release zip. **No checklist is required** (settled 2026-09-12: the workshop CFP page never
+>    uses the word, and the OpenReview form has only title / authors / keywords / TL;DR / abstract /
+>    PDF / licence / readers fields; `paper/checklist-reference.tex` stays un-`\input`) (`notes/12` M10); read the abstract, §1 and the three Gate S paragraphs; attach the
 >    release zip as supplementary; decide the 12 stuck generation batches (cancel) and the one
 >    uncommitted verifier variant from a parallel session (not used; leave or branch).
 
