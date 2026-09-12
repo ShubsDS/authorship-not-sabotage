@@ -1,13 +1,27 @@
 # paper/ — the submission
 
-Built and verified 2026-09-11 after **pass 3** — the cold review
-([`notes/12-final-review.md`](../notes/12-final-review.md)), whose M1–M10 are applied — on top of
-the second pass (`notes/11-pass2-brief.md`) and the reviewer audit
-([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
+Built and verified 2026-09-12 after **pass 4** — a clarity pass against the cold review's
+weaknesses 1, 4 and 6 ([`notes/12-final-review.md`](../notes/12-final-review.md) §1) — on top of
+**pass 3** (that review's M1–M10), the second pass (`notes/11-pass2-brief.md`) and the reviewer
+audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
 `main.tex` compiles clean: **exit 0, no undefined citations, zero overfull boxes, four content
-pages** — the body fills page 4 with **2 free body lines by the probe below**,
+pages** — the body fills page 4 with **1 free body line by the probe below**,
 References begins on page 5, and the appendix follows the references. Nothing of the body reaches
 page 5.
+
+**Pass 4 changed prose only. No macro value moved, no macro that was used became unused, and
+no claim was added** — checked by diffing every `\newcommand` and every `\macro{}` use against
+the pass-3 source. Three reading risks were the target: (1) the two generators now carry their
+*reason* in the body — the second Gate S paragraph leads with "The two generators differ because
+of the attack prompt, not because the measurement is noisy" and states the `def main`/`sys.stdin`
+vs `input(` mechanism that used to sit only in `app:secondpass`; (2) the Gate S block is one idea
+per sentence, three bold leads, and ρ is glossed in plain words ("ρ = 1 means holding authorship
+constant changed nothing, ρ = 0 that nothing survived") in the arm-1 paragraph, *before* the first
+ρ a body reader meets; (3) the strict rows get one plain sentence saying what they are and why
+they are read through ρ alone. Four sentences moved to homes that already held their numbers:
+Table 1's inert-share sentence (the values are in `app:secondpass`'s funnel paragraph), F3's
+held-out CI/p/paired count (`app:protocol`), the pair-level φ (`app:harness`'s monitor
+subsection), and the length-match and interpreter-artifact disclosures (`app:harness`).
 
 ```bash
 cd paper && pdflatex -interaction=nonstopmode main && bibtex main \
@@ -73,7 +87,11 @@ the one to use.** The style file sets `\flushbottom`, so once no References line
 the last body baseline is stretched onto the block's bottom edge whatever the true slack is.
 Probe instead: append N one-word body lines (`\noindent PROBELINE\\`) just before
 `\bibliographystyle`, rebuild, and find the largest N that keeps every probe line on page 4.
-**On 2026-09-11, after pass 3, that is N = 2**; the third spills. (`notes/12` M8 re-ran the probe
+**On 2026-09-12, after pass 4, that is N = 1**; the second spills. (Pass 3 measured N = 2.
+The probe is not monotonic near the boundary — at N = 3 the first two probe lines land on
+page 4 while at N = 2 both land on page 5, because the extra `\\` paragraphs re-trip the
+club/widow penalties. Read N as "the largest N for which *every* probe line is on page 4",
+which is the conservative reading, and re-run it from N = 1 upward.) (`notes/12` M8 re-ran the probe
 against the pass-2 body and got **N = 0**, not the 3 this file used to claim — the second pass had
 spent the slack and the figure was stale. Re-run the probe after every edit to §1–§5; do not trust
 a number written here without a date.)
@@ -166,8 +184,9 @@ impossible to cross by accident:
       Control Tax is a *2025* paper with a longer title; `2607.09786`'s author is Bryce Little, where
       `lit/01` recorded none — for the paper we credit with owning the scratchpad-regex instrument;
       and AICD's "Paul" and "Wang" are first names, so "Paul et al." would have been wrong.
-- [ ] Confirm the content body is within 4 pages (it is exactly 4 as of 2026-09-11 after pass 3,
-      with **two** free lines by the probe above; re-check after every edit to §1–§5).
+- [x] Confirm the content body is within 4 pages — **exactly 4 as of 2026-09-12 after pass 4**,
+      with **one** free line by the probe above, References on page 5, zero overfull boxes, and
+      a fresh-clone build reproducing all three. Re-check after every edit to §1–§5.
 - [x] **Is a paper checklist required? No.** Settled 2026-09-12: the workshop CFP page
       (`index.html` of the workshop site) does not contain the word, and the OpenReview form
       carries only title, authors, keywords, TL;DR, abstract, PDF, licence, readers and
@@ -178,3 +197,28 @@ impossible to cross by accident:
       and `release/LICENSE`, `notes/07` has the build and zip commands.
 - [ ] Author block stays anonymous. The style file suppresses it, but do not paste real
       names in and rely on that.
+
+## Submission form
+
+What OpenReview asks for (title, authors, keywords, TL;DR, abstract, PDF, licence, readers,
+signatures — settled 2026-09-12, no checklist required). The two free-text fields:
+
+**TL;DR** (one sentence, 242 characters):
+
+> Most of what separates the stored honest/attack pairs AI-control monitors are ranked on is
+> authorship, not sabotage — one model writing both classes removes a third to nine-tenths of it
+> — so the benchmark's label is partly a dataset artifact.
+
+It names the **benchmark-validity** reading deliberately: the paper is evidence about a corpus,
+not a verdict on any monitor computed on it (§5's first Limitation says so in those words), and
+that is the reading the EvoRobust audience can check without AI-control background.
+
+**Keywords** (8, placing the paper across the workshop's *Benchmarks and Governance* and
+*Agentic Safety* tracks):
+
+`AI control`, `trusted monitoring`, `benchmark validity`, `partial-input baselines`,
+`authorship confound`, `dataset artifacts`, `same-generator control`, `backdoor detection`
+
+The first two and the last put it in *Agentic Safety*; `benchmark validity`,
+`partial-input baselines`, `authorship confound` and `dataset artifacts` put it in
+*Benchmarks and Governance*; `same-generator control` names the method both tracks would ask for.
