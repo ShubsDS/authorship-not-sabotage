@@ -335,8 +335,8 @@ figures in the scripts' comments are redacted to `$X`; nothing else in them was 
 ## Citation
 
 ```
-@misc{{authorshipconfounds,
-  title  = {{Authorship Confounds in AI-Control Monitor Evaluation, and a Same-Generator Corpus}},
+@misc{{samegeneratorcorpus,
+  title  = {{A Same-Generator Corpus and Classifier Floors for AI-Control Monitor Evaluation}},
   author = {{Anonymous}},
   year   = {{2026}},
   note   = {{Under double-blind review; dataset split accompanying the submission.
