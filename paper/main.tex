@@ -721,14 +721,14 @@ Our floors show that the label is recoverable without reading a backdoor. They d
 that any monitor recovers it that way, and no number here is a correction to a published
 monitor score.
 
-\textbf{The same-generator arm is a later model behind a paid API.} The stored attacker,
-\texttt{claude-3-7-sonnet-thinking}, is retired (404 against a live key), so both classes
-come from a later model of the same lineage, called through a metered API that does not
-expose its sampling parameters, so the arm is not bit-reproducible; thinking was off
-although the stored attacker was a thinking model. The stored attacker and ours also
-differ in backdoor style, not only in authorship, so every $\rho$ here, classifier or
-monitor, bounds how much of the separability is content rather than partitioning it. And
-the two generators are compared on the \texttt{passes} eligibility alone: Haiku 4.5's strict
+\textbf{Our generator is not the stored attacker, so $\rho$ bounds rather than partitions.}
+The model that wrote the stored backdoors, \texttt{claude-3-7-sonnet-thinking}, is retired, so
+both same-generator classes come from a later model of the same lineage. It differs from the
+stored attacker in backdoor style, not only in authorship, so every $\rho$ here, classifier or
+monitor, bounds how much of the separability is content rather than partitioning it. The arm
+ran through a metered API that does not expose sampling parameters, so it is not
+bit-reproducible, and thinking was off although the stored attacker was a thinking model. The
+two generators are also compared on the \texttt{passes} eligibility alone: Haiku 4.5's strict
 row was refused at \haikuUsable{} pairs against our 50-pair floor.
 
 \textbf{Scope, provenance and the harness.} Whether stored-pair corpora leak this way is

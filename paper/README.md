@@ -1,15 +1,46 @@
 # paper/ — the submission
 
-Built and verified 2026-09-13 after **pass 6** — problem-first framing, and literature confined
-to §1 — on top of **pass 5** (format conventions), both described below, and on top of
-**pass 4** (a clarity pass against the cold review's
-weaknesses 1, 4 and 6, [`notes/12-final-review.md`](../notes/12-final-review.md) §1),
-**pass 3** (that review's M1–M10), the second pass (`notes/11-pass2-brief.md`) and the reviewer
-audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
+Built and verified 2026-09-13 after **pass 7** (the generator limitation inverted), on top of
+**pass 6** (problem-first framing, literature confined to §1) and **pass 5** (format
+conventions), all three described below. Those sit on **pass 4** (a clarity pass against the
+cold review's weaknesses 1, 4 and 6, [`notes/12-final-review.md`](../notes/12-final-review.md)
+§1), **pass 3** (that review's M1–M10), the second pass (`notes/11-pass2-brief.md`) and the
+reviewer audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
 `main.tex` compiles clean: **exit 0, no undefined citations, zero overfull boxes, four content
 pages** — the body fills page 4 with **no free body line by the probe below (N = 0)**,
 References begins on page 5, and the appendix follows the references. Nothing of the body reaches
 page 5.
+
+## Pass 7 (2026-09-13) — the generator limitation, inverted not deleted
+
+The second Limitation was queried as possibly not a real limitation. **It is, and it is probably
+the most important one in the paper**, so it stays. What was wrong is the order: the paragraph
+led with procurement and logbook detail and buried the scientific consequence three sentences
+in. Now inverted, at the same line count.
+
+Three records say it cannot go:
+
+- [`notes/09`](../notes/09-review-audit.md) ranks it **weakness 9**: "the same-generator model is
+  not the stored attacker … so $B'$ compares generations as well as prompts, and ρ mixes them",
+  status *disclosed, not measured*, with the note that "a reviewer will still dock for it".
+- That audit set a test to retire it: *"**C decides it**: if Haiku 4.5's ρ lands inside
+  0.625–0.755, model identity is not carrying the result."* The test ran and **failed**. Haiku's
+  ρ is 0.095 (0.044–0.150), outside that band by a wide margin. §3 explains the gap by
+  prompt-layout adoption, but the headline range, a third to nine-tenths, exists *because* two
+  substitute generators disagree, and neither is the stored attacker. Deleting the caveat while
+  keeping the range would not be defensible.
+- [`notes/05`](../notes/05-permissibility.md) amended the project's `$0`/open-weight constraint
+  to allow the paid arm **on the condition that three things are disclosed**: the retired
+  attacker and later lineage, the unavailable sampling parameters and loss of
+  bit-reproducibility, and thinking being off against a thinking attacker. "All three belong in
+  Limitations, not buried." **All three survive the rewrite.**
+
+What changed: the bold lead now states the limitation ("Our generator is not the stored
+attacker, so ρ bounds rather than partitions") instead of the procurement fact ("a later model
+behind a paid API"); the style confound moves from third sentence to second; the reproducibility
+and thinking disclosures compress into one trailing sentence. **"(404 against a live key)" was
+cut** as lab-notebook detail; the verification is in `RESULTS.md` §4.1 and `notes/05` if it is
+ever wanted back.
 
 ## Pass 6 (2026-09-13) — the problem first, the literature only in §1
 
