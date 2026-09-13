@@ -32,6 +32,12 @@ Regenerate the figures with `experiments/apps/figures.py`; do not hand-edit the 
 > ptm (= Nimbus). All four figures were regenerated together so the paper is at least internally
 > consistent. **To restore Nimbus: install the URW base-35 fonts (ghostscript, or a
 > `font-urw-base35` cask) and re-run `figures.py`** — it changes font bytes only, no layout.
+>
+> ℹ️ **The paper was already mixed before this, which is how the fallback went unnoticed.** F5 as
+> committed was *already* Times New Roman — regenerating it on 2026-09-13 produced byte-identical
+> output, so it had been built on a machine without Nimbus at some earlier point, while F2 and F3
+> still carried Nimbus. Whoever restores the font should re-run `figures.py` once and commit all
+> four together, rather than fixing the figure they happen to be editing.
 
 > ### ✅ RESOLVED — the constructive half has two figures now
 > This box read *"MISSING: there is no Gate S figure"* while the paper's constructive half was
