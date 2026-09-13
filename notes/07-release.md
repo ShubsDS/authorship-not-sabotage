@@ -6,6 +6,11 @@ Written 2026-09-11. Closes the open `LICENSE` item in `notes/05-permissibility.m
 both upstream artifacts this work builds on most — `RoganInglis/apps-control-arena` and
 `anik-jha/challenger-panels`.
 
+> **Updated 2026-09-13:** the paper was renamed to *Authorship Confounds in AI-Control Monitor
+> Evaluation*. `LICENSE` and the `RELEASE-CARD.md` citation block now carry that title (BibTeX
+> key `authorshipconfounds`); the procedure above is otherwise unchanged. Any release bundle
+> built before that date carries the old title and should be rebuilt.
+
 ## 1. Build and check (on the machine with the run products)
 
 ```bash

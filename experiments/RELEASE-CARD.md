@@ -136,8 +136,8 @@ figures in the scripts' comments are redacted to `$X`; nothing else in them was 
 ## Citation
 
 ```
-@misc{whatsurvivesthefilter,
-  title  = {What Survives the Filter? Trivial Baselines on Stored Honest/Attack Pairs},
+@misc{authorshipconfounds,
+  title  = {Authorship Confounds in AI-Control Monitor Evaluation},
   author = {Anonymous},
   year   = {2026},
   note   = {Under double-blind review; dataset split accompanying the submission.

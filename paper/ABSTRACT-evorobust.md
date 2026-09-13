@@ -84,3 +84,8 @@ remaining sentence to write is the one reporting **S** (one model writes both cl
 The EvoRobust title is not locked by anything and can be decided on Sep 12. Route-agnostic option,
 **What Survives the Filter? Trivial Baselines on Stored Honest/Attack Pairs
 in AI-Control Monitoring**. If Gate S collapses, *Authorship, Not Sabotage* is stronger.
+
+**Decided 2026-09-13:** the title is **Authorship Confounds in AI-Control Monitor Evaluation**.
+The rhetorical question was dropped as attention-seeking, and the authorship reading led rather
+than the baselines, which are the instrument rather than the finding. The Scope sentence in §1
+carries the narrowing to stored pairs that the title itself does not.
