@@ -561,7 +561,11 @@ differ in writer and in elicitation as well as in sabotage. We hold the writer c
 prompt as well (the tinted columns), the two prompts being identical apart from the sentences that
 ask for a flaw. The backdoor row never merges, and it is the only difference a monitor should
 read. Under each construction is the same bag-of-words classifier's AUROC on it, on one scale from
-chance to 1.0; every arm's $S$, $B'$ and $\rho$ are in Table~\ref{tab:gates}.}
+chance to 1.0. Each is measured on the problems its own construction realises (\baselineBn{},
+\sameGenN{} and \matchedN{} pairs), so the three are a ladder and not a paired comparison, and
+none of them is the \tfidfKoran{} floor of \S\ref{sec:results}, which is measured on the split the
+monitors are ranked on. Every arm's refitted baseline $B'$ and its $\rho$ are in
+Table~\ref{tab:gates}.}
 \label{fig:constructions}
 \end{figure}
 
