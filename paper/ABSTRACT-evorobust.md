@@ -85,7 +85,13 @@ The EvoRobust title is not locked by anything and can be decided on Sep 12. Rout
 **What Survives the Filter? Trivial Baselines on Stored Honest/Attack Pairs
 in AI-Control Monitoring**. If Gate S collapses, *Authorship, Not Sabotage* is stronger.
 
-**Decided 2026-09-13:** the title is **Authorship Confounds in AI-Control Monitor Evaluation**.
-The rhetorical question was dropped as attention-seeking, and the authorship reading led rather
-than the baselines, which are the instrument rather than the finding. The Scope sentence in §1
-carries the narrowing to stored pairs that the title itself does not.
+**Decided 2026-09-13:** the title is **Authorship Confounds in AI-Control Monitor Evaluation: Baseline Floors and a Same-Generator Corpus**.
+The rhetorical question was dropped as attention-seeking, and the authorship reading leads, with
+the two contributions named after the colon. Two word choices are deliberate. *Monitor
+Evaluation*, not *Monitoring*: the confound is in how monitors are evaluated, and the first
+Limitations paragraph is explicit that a high floor does not settle results computed on the
+corpus. *Baseline Floors*, not *Trivial Baselines*: `floor` is the body's own term (36 uses
+against one for `trivial`, and that one describes the `--leak-check` detectors, not ours), and
+the bag-of-words classifier is trained on the benchmark's train split, so calling it trivial
+oversells the asymmetry against the zero-shot monitors. The Scope sentence in §1 still carries
+the narrowing to stored pairs that the title does not.

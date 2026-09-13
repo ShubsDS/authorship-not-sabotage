@@ -1,5 +1,5 @@
 % =====================================================================================
-%  Authorship Confounds in AI-Control Monitor Evaluation
+%  Authorship Confounds in AI-Control Monitor Evaluation: Baseline Floors and a Same-Generator Corpus
 %  EvoRobust @ NeurIPS 2026 - 4 content pages, non-archival, double-blind, Sep 12 AoE.
 %
 %  Scaffold built 2026-09-09. Cut plan (notes/06 §5.1) and §1 applied 2026-09-11.
@@ -443,9 +443,14 @@
 
 % =====================================================================================
 
-% Manual break: left to itself LaTeX breaks after "Monitor" and hangs "Evaluation"
-% alone on line two. This splits the title at its natural phrase boundary instead.
-\title{Authorship Confounds in\\AI-Control Monitor Evaluation}
+% Three lines, broken by hand. Unbroken, LaTeX wraps after "Monitor" and strands
+% "Evaluation:" alone on line two. Breaking before "AI-Control" and at the colon
+% puts each break on a phrase boundary. "Monitor Evaluation" not "Monitoring":
+% the confound is in how monitors are evaluated, not in monitoring itself (see the
+% first Limitations paragraph). "Baseline Floors" not "Trivial Baselines": floor is
+% the body's word (36 uses), and the bag-of-words classifier is TRAINED, so calling
+% it trivial oversells the asymmetry against the zero-shot monitors.
+\title{Authorship Confounds in\\AI-Control Monitor Evaluation:\\Baseline Floors and a Same-Generator Corpus}
 
 % Required by the dblblindworkshop option - appears in the title footnote.
 \workshoptitle{Self-Evolving Diversity-Driven Search for Robust AI Systems}
