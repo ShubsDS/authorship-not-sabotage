@@ -580,13 +580,13 @@ runner, applied to both classes (appendix~\ref{app:harness}).
 % =====================================================================================
 
 Comment stripping works on comment count and code length, driving both to chance
-(Table~\ref{tab:protocol-baseline}, appendix). What it does not reach, on that same split, is a
-bag-of-words floor of \tfidfKoran{} (95\% CI \tfidfKoranLo{}--\tfidfKoranHi{} by bootstrap
+(Table~\ref{tab:protocol-baseline}, appendix). Two floors on that same split do not move.
+Bag-of-words reaches \tfidfKoran{} (95\% CI \tfidfKoranLo{}--\tfidfKoranHi{} by bootstrap
 over problems; permutation null 95th percentile \tfidfKoranNull{}, $\permP$), above
 \tfidfKoranCount{} of the \monN{} monitors by point estimate and \tfidfKoranPairedCount{}
-of them with a paired-bootstrap interval excluding zero, and a no-code floor of \nocodeCV{}
-(CI \nocodeCVLo{}--\nocodeCVHi{} on the pooled out-of-fold \nocodeCVPooled{}; null
-\nocodeCVNull{}, $\permP$), above \nocodeCVCount{}
+of them with a paired-bootstrap interval excluding zero. The no-code classifier reaches
+\nocodeCV{} (CI \nocodeCVLo{}--\nocodeCVHi{} on the pooled out-of-fold \nocodeCVPooled{};
+null \nocodeCVNull{}, $\permP$), above \nocodeCVCount{}
 and \nocodeCVPairedCount{} respectively (Figure~\ref{fig:monitors}, appendix). The preprocessing
 reached the carrier it was aimed at and left the two beside it standing.
 
