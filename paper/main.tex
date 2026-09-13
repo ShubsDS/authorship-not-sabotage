@@ -535,7 +535,7 @@ it. Run on two generators, it attributes between a third and nine-tenths of the 
 authorship and most of the remainder to the attack prompt's framing, and returns a null on the
 way, since regenerating one half of a stored pair substitutes one confound for another. We add
 (iii)~a second selection artifact the filter installs by defining the negative class through
-attack failure, and (iv)~a preprocessing checklist.
+attack failure, and (iv)~the construction and reporting practice these imply.
 \emph{Scope.} This concerns monitor training, selection and benchmarking on \emph{stored}
 pairs; our measurement is of one APPS-derived family plus five agentic settings. ControlArena's live evaluations generate both classes and are not implicated.
 
@@ -686,8 +686,7 @@ survivor set.
 
 Regenerating only the honest half makes separation worse. With an open-weight model writing
 the honest class against the stored backdoors, $\rho = \armOneRho{}$
-(appendix~\ref{app:robust}). Substituting the honest author replaced one authorship confound
-with a larger one.
+(appendix~\ref{app:robust}).
 
 \paragraph{A second selection artifact.}
 Labelling by \texttt{backdoor\_works} defines the negative class at the problem level by
@@ -733,23 +732,32 @@ scoped to them. Two interpreter-era artifacts reach $B$ but not the same-generat
 (appendix~\ref{app:harness}).
 
 % =====================================================================================
-\section{Recommendations}
-% Budget: ~190 words, in Kapoor & Narayanan's register.
+\section{Discussion}
+% Prose, not a checklist. None of the five papers this paper is submitted alongside ends on a
+% bulleted list: Feng closes with Discussion then a four-sentence Conclusion, Koran, Terekhov
+% and Little each carry a Discussion. The checklist register came from kapoor2022leakage,
+% which is meta-science rather than an empirical venue paper. Run-in \paragraph labels follow
+% Feng's Discussion, which uses short noun-phrase subheadings.
 % =====================================================================================
 
-\begin{enumerate}\itemsep0pt
-\item Generate both rollouts from one model under one prompt framing, and verify both with one
-      harness. If the attack class is model-written, the honest class must be too; regenerating
-      one side substitutes one authorship gap for another. Matched construction is precedented
-      in code-detection benchmarks \cite{guo2025codemirage}, but we are not aware of it
-      reaching backdoor detection.
-\item Report a partial-input floor and a bag-of-words floor beside every monitor number, each
-      against a permutation null.
-\item Do not define the negative class by attack failure. Drop the problems whose attacks
-      failed, or sample the negative class independently of attack success.
-\item State the split, the metric and the preprocessing whenever monitors are compared, and
-      release all three. Ours are MIT (appendix~\ref{app:release}).
-\end{enumerate}
+\paragraph{Constructing stored pairs.}
+One model should write both classes under one prompt framing, and one harness should verify
+both. Regenerating a single side does not help: substituting the honest author left a larger
+gap than the one it replaced. Matched construction is precedented in code-detection benchmarks
+\cite{guo2025codemirage}, though we have not seen it reach backdoor detection.
+
+\paragraph{The negative class, and what to report.}
+Defining the negative class through attack failure ties the label to the attacker rather than
+the code, and puts a content-blind classifier above most monitors ranked on this split; dropping
+the failed problems removes it, as does sampling that class independently of attack success. A
+monitor number is in turn interpretable only against the floors of its own split, so a
+partial-input and a bag-of-words floor belong beside it, each against a permutation null, with
+the split, the metric and the preprocessing released alongside (ours are MIT,
+appendix~\ref{app:release}).
+
+Stored pairs remain the cheapest way to develop a monitor, and nothing here argues for
+abandoning them, only that a score on one describes two authors until the construction rules
+that reading out.
 
 % =====================================================================================
 \bibliographystyle{plainnat}
