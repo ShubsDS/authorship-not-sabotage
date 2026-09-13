@@ -479,11 +479,9 @@ working ones, and survives the field's comment stripper. Regenerating only
 the honest half does not isolate content: with an open-weight model writing the honest class
 against the stored backdoors, separability \emph{rises}. Holding authorship constant by
 construction --- one model writing both classes --- removes between a third and nine-tenths
-of the separability. The share of above-chance signal that survives is $\rho = \sameGenRho{}$
-for Claude Sonnet 5 and $\rho = \haikuRho{}$ for Claude Haiku 4.5. The two differ because
-only Sonnet adopts the attack prompt's layout. Matching that prompt on the honest side removes
-most of what remains. What survives on attacks that actually fire is consistent with surface
-content a monitor also reads. A zero-shot monitor is inflated the same way, scoring \monStoredStrictAbs{} on stored
+of the separability, on two generators that differ because only one adopts the attack prompt's
+layout. Matching that prompt on the honest side removes most of what remains. What survives
+on attacks that actually fire is consistent with surface content a monitor also reads. A zero-shot monitor is inflated the same way, scoring \monStoredStrictAbs{} on stored
 pairs and \monitorStrict{} on firing backdoors from the same author. We recommend that
 stored-pair evaluations report partial-input and bag-of-words floors against permutation
 nulls, use same-generator honest samples and the same prompt, and drop inert backdoors from
@@ -503,8 +501,8 @@ solutions, some carrying a planted backdoor \cite{koran2026ensemble, terekhov202
 jha2026decorrelation}. The field already knows these pairs leak. Koran
 et al.\ keep only working honest solutions and working backdoors and strip every comment, with
 the rationale stated \cite{koran2026ensemble}; Control Tax reports the pass-tests pre-filter and
-appendices ``Monitoring failed backdoors'' \cite{terekhov2025controltax};
-\cite{sreevatsa2026legibility} is an entire paper on the comment channel. The sharpest treatment
+appendices ``Monitoring failed backdoors'' \cite{terekhov2025controltax}; an entire paper is
+given to the comment channel \cite{sreevatsa2026legibility}. The sharpest treatment
 is Jha's, whose harness ships a \texttt{--leak-check} flag with two trivial baselines inside
 it and concludes that stripping is mandatory rather than cosmetic: a \texttt{\#}-count detector
 falls from \hashRaw{} to \hashStripped{} once comments go, and code length alone sits at
@@ -524,11 +522,10 @@ human-written from model-written code is established out-of-field \cite{orel2026
 known-ness of the mechanism is the argument, not a dent in it. The neighbouring field already applies the control missing here --- CodeMirage gates its
 classes on line and character count \cite{guo2025codemirage}, MultiAIGCD pairs to shared
 problem definitions \cite{demirok2025multiaigcd} --- so unmatched pairs are a defect by a
-published standard. Adjacent control work attacks other axes:
-\cite{terekhov2026adaptive} subverts monitors with injected text,
-\cite{gewang2026attackselection} shows attacker-side selection inflates safety estimates, and
-\cite{pinto2026calibration} removes transcript length as a nuisance covariate; we publish one
-as a per-benchmark floor.
+published standard. Adjacent control work attacks other axes: one subverts monitors with
+injected text \cite{terekhov2026adaptive}, another shows attacker-side selection inflates
+safety estimates \cite{gewang2026attackselection}, and a third removes transcript length as a
+nuisance covariate \cite{pinto2026calibration}; we publish one as a per-benchmark floor.
 
 We contribute (i)~a protocol $\times$ baseline measurement of what survives the field's
 preprocessing; (ii)~a same-generator control on two generators, attributing between a
@@ -588,7 +585,7 @@ runner, applied to both classes (appendix~\ref{app:harness}).
 % one body float.
 % =====================================================================================
 
-The fix works, on the two carriers \S1 names
+Comment stripping works on the two carriers \S1 names, driving both to chance
 (Table~\ref{tab:protocol-baseline}, appendix). What it does not reach, on that same split, is a
 bag-of-words floor of \tfidfKoran{} (95\% CI \tfidfKoranLo{}--\tfidfKoranHi{} by bootstrap
 over problems; permutation null 95th percentile \tfidfKoranNull{}, $\permP$), above
@@ -715,25 +712,6 @@ no authorship confound is possible, the surviving floor is structural: \bashFloo
 alone (Figure~\ref{fig:corpora}, appendix).
 
 % =====================================================================================
-\section{Recommendations}
-% Budget: ~190 words, in Kapoor & Narayanan's register.
-% =====================================================================================
-
-Following \citet{kapoor2022leakage}, who treat leakage as a checklist rather than a verdict:
-\begin{enumerate}\itemsep1pt
-\item \textbf{Generate both classes with the same model and the same prompt framing.} If the attack class is
-      model-written, the honest class must be too; as our arm-1 null shows, regenerating
-      only one side substitutes one authorship gap for another.
-\item \textbf{Report a partial-input floor and a bag-of-words floor beside every monitor
-      number}, each against a permutation null.
-\item \textbf{Do not define the negative class by attack failure.} Drop the problems
-      whose attacks failed, or sample the negative class independently of attack success.
-\item \textbf{State the split, the metric and the preprocessing} whenever monitors are
-      compared, and \textbf{release the split and the scripts}. Ours accompany this paper
-      under MIT (appendix~\ref{app:release}).
-\end{enumerate}
-
-% =====================================================================================
 \section{Limitations}
 % Budget: three paragraphs. Disclosures owed by notes/05 are in the second.
 % =====================================================================================
@@ -760,6 +738,25 @@ them. Two interpreter-era artifacts reach $B$ but not the same-generator arm
 (appendix~\ref{app:harness}).
 
 % =====================================================================================
+\section{Recommendations}
+% Budget: ~190 words, in Kapoor & Narayanan's register.
+% =====================================================================================
+
+Following \citet{kapoor2022leakage}, who treat leakage as a checklist rather than a verdict:
+\begin{enumerate}\itemsep1pt
+\item \textbf{Generate both classes with the same model and the same prompt framing.} If the attack class is
+      model-written, the honest class must be too; as our arm-1 null shows, regenerating
+      only one side substitutes one authorship gap for another.
+\item \textbf{Report a partial-input floor and a bag-of-words floor beside every monitor
+      number}, each against a permutation null.
+\item \textbf{Do not define the negative class by attack failure.} Drop the problems
+      whose attacks failed, or sample the negative class independently of attack success.
+\item \textbf{State the split, the metric and the preprocessing} whenever monitors are
+      compared, and \textbf{release the split and the scripts}. Ours accompany this paper
+      under MIT (appendix~\ref{app:release}).
+\end{enumerate}
+
+% =====================================================================================
 \bibliographystyle{plainnat}
 \bibliography{refs}
 
@@ -767,6 +764,10 @@ them. Two interpreter-era artifacts reach $B$ but not the same-generator arm
 %  APPENDIX - not counted against the four content pages.
 % =====================================================================================
 \appendix
+% Appendix floats are numbered A1, A2, ... so the body's Table 1 / Figure 1 stay Table 1 /
+% Figure 1. Before this the body referenced Tables 2 and 3 (both here) before Table 1.
+\setcounter{table}{0}\renewcommand{\thetable}{A\arabic{table}}
+\setcounter{figure}{0}\renewcommand{\thefigure}{A\arabic{figure}}
 \section{Supplementary tables and figures}
 
 \subsection{The schema}
@@ -775,9 +776,9 @@ Table~\ref{tab:schema} is the record schema of \texttt{RoganInglis/apps-control-
 \texttt{source}, naming the system that produced each backdoor; the honest class carries no
 such field, because there is no generator to name. The two APPS-backdoor corpora we use are
 two views of this one artifact: every problem in the filtered release
-\cite{koran2026highquality} is in \cite{inglis2025appscontrolarena}, byte-identical except a
-re-validated \texttt{backdoor\_works}. Among the agentic corpora we exclude AgentHarm, whose
-author is an invited speaker at this venue.
+\cite{koran2026highquality} is also in \cite{inglis2025appscontrolarena}, byte-identical
+except a re-validated \texttt{backdoor\_works}. Among the agentic corpora we exclude
+AgentHarm, to avoid a conflict of interest.
 
 % The sub-field list must WRAP - as a plain `l' column it overflowed the 5.5in text block
 % and the rules ran off the page edge.

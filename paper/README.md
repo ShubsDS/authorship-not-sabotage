@@ -1,13 +1,55 @@
 # paper/ — the submission
 
-Built and verified 2026-09-12 after **pass 4** — a clarity pass against the cold review's
-weaknesses 1, 4 and 6 ([`notes/12-final-review.md`](../notes/12-final-review.md) §1) — on top of
+Built and verified 2026-09-13 after **pass 5** — a format-convention pass against NeurIPS
+workshop norms, described below — on top of **pass 4** (a clarity pass against the cold review's
+weaknesses 1, 4 and 6, [`notes/12-final-review.md`](../notes/12-final-review.md) §1),
 **pass 3** (that review's M1–M10), the second pass (`notes/11-pass2-brief.md`) and the reviewer
 audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
 `main.tex` compiles clean: **exit 0, no undefined citations, zero overfull boxes, four content
 pages** — the body fills page 4 with **no free body line by the probe below (N = 0)**,
 References begins on page 5, and the appendix follows the references. Nothing of the body reaches
 page 5.
+
+## Pass 5 (2026-09-13) — format conventions, no claim changed
+
+Six changes, none of which moved a macro value, made a used macro unused, or added or removed a
+claim (checked by diffing every `\newcommand` and its uses against the pass-4 source; the nine
+macros that were already unused are unchanged). The probe was re-run after the pass and is
+**still N = 0**.
+
+1. **Bare numeric citations are no longer sentence subjects.** Five sites rendered as
+   "[18] is an entire paper…", "[20] subverts monitors…", "[3] shows…", "[15] removes…" and,
+   in the appendix, "[11] is in [8]". Under numeric style a bracket is not a noun. Rephrased
+   rather than switched to `\citet`, which would have cost body lines the budget does not have.
+2. **§4 and §5 are swapped: Limitations now precedes Recommendations.** The paper used to
+   prescribe and *then* caveat, and its last line before References was an interpreter-artifact
+   disclosure. It now ends on the checklist, which is contribution (iv).
+3. **§3 opens on its own result.** "The fix works, on the two carriers §1 names (Table 3,
+   appendix)" had no antecedent across the section break and sent a four-page reader to page 7
+   for the evidence. Now: "Comment stripping works on the two carriers §1 names, driving both to
+   chance", with the appendix table demoted to a pointer.
+4. **Appendix floats are lettered.** `\setcounter` + `\renewcommand{\thetable}{A\arabic{table}}`
+   (and the same for figures) after `\appendix`. The body used to reference Tables 2 and 3, both
+   in the appendix, before Table 1. Body floats are now Table 1 and Figure 1; appendix floats are
+   Tables A1–A3 and Figure A1, and the out-of-order reference is gone.
+5. **The abstract is 236 words, down from 264.** The cut sentence restated in ρ what the sentence
+   before it had already said in words ("between a third and nine-tenths"), and ρ was the only
+   undefined symbol in the abstract. Both ρ values remain in the body and in Table 1. Note the
+   EvoRobust PC is not AI-control-native ([`notes/01`](../notes/01-venue-evorobust.md)).
+6. **The AgentHarm exclusion is stated neutrally** ("to avoid a conflict of interest"), not as
+   "whose author is an invited speaker at this venue". The exclusion itself is unchanged and is
+   still recorded in `notes/01` G2.
+
+**A takeaway sentence was drafted for the end of §5 and did not fit.** At N = 0 any added body
+line spills onto page 5; the probe confirmed it. If a line is ever freed, the sentence to restore
+is: *"Until a stored-pair corpus reports these, a ranking computed on it cannot say how much of a
+monitor's score comes from sabotage and how much from who wrote the code."*
+
+**Known, not fixed, and deliberate:** the appendix (five pages, 13 subsections under one
+`\section`) is longer than the body, and the body makes ten pointers into it, several of them
+load-bearing — the protocol × baseline table above all. Workshop reviewers are not obliged to
+read past page 4. Fixing this properly means restating numbers in the body, which needs page
+budget this submission does not have; it is the first thing to spend a fifth camera-ready page on.
 
 **Pass 4 changed prose only. No macro value moved, no macro that was used became unused, and
 no claim was added** — checked by diffing every `\newcommand` and every `\macro{}` use against
@@ -71,7 +113,7 @@ rendering inline as "leg [2026]" and "len [2026]".
 **3. THE PAGE BUDGET: four pages, and two free lines left after pass 3.**
 The `notes/06` §5.1 cut plan was applied 2026-09-11 (F1, F2, the schema and similarity tables,
 the token test and the scratchpad channel to the appendix; §1 written; F3, then the only body
-float, at `0.70\linewidth`). That still left four lines of §5 above References, so the audit's cuts
+float, at `0.70\linewidth`). That still left four lines of the last body section above References, so the audit's cuts
 C1–C6 were taken as well, plus nine compressions of material the paper says twice — every one
 with an appendix home, and **no number left the paper**. The new appendix paragraph
 `app:robust` holds the interval rule, the survivor check, the edit-arm bound, arm 1's carrier
@@ -196,7 +238,7 @@ impossible to cross by accident:
       (`index.html` of the workshop site) does not contain the word, and the OpenReview form
       carries only title, authors, keywords, TL;DR, abstract, PDF, licence, readers and
       signatures. `checklist-reference.tex` stays un-`\input`.
-- [x] Release sentence in §4 item 4 names what the bundle holds without the counts, which now
+- [x] Release sentence in §5 item 4 (§4 before pass 5) names what the bundle holds without the counts, which now
       live once, in appendix paragraph `app:release`, with the crash-as-firing count and the
       `\relScripts{}` scripts. The bundle really does carry them as of schema 3 — `release/scripts/`
       and `release/LICENSE`, `notes/07` has the build and zip commands.
@@ -215,7 +257,7 @@ signatures — settled 2026-09-12, no checklist required). The two free-text fie
 > — so the benchmark's label is partly a dataset artifact.
 
 It names the **benchmark-validity** reading deliberately: the paper is evidence about a corpus,
-not a verdict on any monitor computed on it (§5's first Limitation says so in those words), and
+not a verdict on any monitor computed on it (§4's first Limitation says so in those words), and
 that is the reading the EvoRobust audience can check without AI-control background.
 
 **Keywords** (8, placing the paper across the workshop's *Benchmarks and Governance* and
