@@ -359,6 +359,12 @@ def fig4_constructions():
     Deliberately NOT here: Haiku 4.5 and the strict rows (Table 2 carries every row), the fire
     shares, and the flow arrows the earlier version spent 60% of its ink on. The previous draft
     also labelled the panels A/B/C while printing $B$ = 0.871 inside panel A.
+
+    TEXT BUDGET: every string on this canvas is a label, never a phrase. The row label and the
+    cell form the phrase between them - "prompt" + "solve", not a cell reading "solve the
+    problem" - and anything needing a clause goes in the caption. Cut here on 2026-09-13:
+    "writes both" (the merged bar already says both), "of the baseline" twice, "the baseline",
+    "one prompt for both classes", "written for APPS", "0.5," before "chance".
     """
     # 2.50in, not the 2.62 the tree version needed: the grid carries the same content in less
     # height, and the caption below it grew. Anything taller pushes the Discussion onto page 5.
@@ -424,12 +430,12 @@ def fig4_constructions():
     for y, lab in zip(ROWS, ("writer", "prompt", "backdoor")):
         ax.text(GUT - 1.5, y, lab, ha="right", va="center", fontsize=7.5, color=INK2)
 
-    split(BLOCKS[0], ROWS[0], "human\n(APPS)", "Claude 3.7\nSonnet")
-    split(BLOCKS[0], ROWS[1], "written\nfor APPS", "attack\nprompt")
+    split(BLOCKS[0], ROWS[0], "human", "Claude 3.7")
+    split(BLOCKS[0], ROWS[1], "none", "attack")
     for bx in BLOCKS[1:]:
-        merged(bx, ROWS[0], "Claude Sonnet 5 writes both")
-    split(BLOCKS[1], ROWS[1], "solve the\nproblem", "attack\nprompt")
-    merged(BLOCKS[2], ROWS[1], "one prompt for both classes")
+        merged(bx, ROWS[0], "Claude Sonnet 5")
+    split(BLOCKS[1], ROWS[1], "solve", "attack")
+    merged(BLOCKS[2], ROWS[1], "same prompt")
     for bx in BLOCKS:
         split(bx, ROWS[2], "none", "planted")
 
@@ -445,7 +451,7 @@ def fig4_constructions():
                                     fc=hue, ec="none", zorder=4))
     # The scale is defined once, under the first bar, where the eye starts. Repeating it under
     # all three reads as three scales; putting 1.0 under the third reads as a value of the third.
-    ax.text(BLOCKS[0][0], Y_BAR - 6.4, "0.5, chance", ha="left", va="center",
+    ax.text(BLOCKS[0][0], Y_BAR - 6.4, "chance", ha="left", va="center",
             fontsize=6.5, color=MUTED)
     ax.text(BLOCKS[0][1], Y_BAR - 6.4, "1.0", ha="right", va="center",
             fontsize=6.5, color=MUTED)
@@ -453,13 +459,12 @@ def fig4_constructions():
     # --- the numbers ------------------------------------------------------------------
     ax.text((BLOCKS[0][0] + BLOCKS[0][1]) / 2, Y_NUM, "$B$ = 0.871", ha="center", va="center",
             fontsize=9.5, color=INK, weight="bold")
-    ax.text((BLOCKS[0][0] + BLOCKS[0][1]) / 2, Y_RHO, "the baseline", ha="center", va="center",
-            fontsize=7.0, color=MUTED)
+
     for bx, s, r in ((BLOCKS[1], "0.751", "0.687"), (BLOCKS[2], "0.642", "0.394")):
         xc = (bx[0] + bx[1]) / 2
         ax.text(xc, Y_NUM, f"$S$ = {s}", ha="center", va="center",
                 fontsize=9.5, color=INK, weight="bold")
-        ax.text(xc, Y_RHO, f"$\\rho$ = {r} of the baseline", ha="center", va="center",
+        ax.text(xc, Y_RHO, f"$\\rho$ = {r}", ha="center", va="center",
                 fontsize=7.0, color=MUTED)
 
     fig.savefig(f"{OUT}/f4-constructions.pdf", metadata=PDF_METADATA)

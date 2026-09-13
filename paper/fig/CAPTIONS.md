@@ -75,7 +75,15 @@ fall is seen rather than read. Panel letters are gone (names instead), and a tin
 label — *as stored* against *what we build* — carries the ownership the old version never stated.
 
 Not in it, deliberately: Haiku 4.5 and the strict rows (Table 2 carries every row), the fire
-shares, and the flow arrows the old version spent most of its ink on. Height is **2.50 in**, not
+shares, and the flow arrows the old version spent most of its ink on.
+
+**Text budget — this applies to every figure, not only F4.** Every string on the canvas is a
+label, never a phrase. The row label and the cell form the phrase between them ("prompt" +
+"solve", not a cell reading "solve the problem"), and anything needing a clause goes in the
+caption. The first draft of the grid still carried "Claude Sonnet 5 writes both", "one prompt
+for both classes", "written for APPS" and "$\rho$ = 0.687 of the baseline"; all of it was cut on
+2026-09-13, taking the canvas from roughly 75 words to 40 with nothing lost that the caption
+does not already say. Height is **2.50 in**, not
 the 2.62 the tree version used: the caption grew to explain the encoding, and anything taller
 pushes the Discussion onto page 5 and breaks the four-page limit.
 
