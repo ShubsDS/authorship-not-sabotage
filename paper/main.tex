@@ -484,8 +484,10 @@ strong on backdoors that never work, so it is not a property of the sabotage. We
 corpus so that one model writes both classes on the same problems, and release it. Holding the
 writer constant removes between a third and nine-tenths of the separability, and holding the
 prompt constant as well removes most of the rest. An LLM monitor moves the same way, from
-\monStoredHeadAbs{} on stored pairs to \monitorS{} on same-generator pairs. Stored-pair evaluations
-should report a partial-input and a bag-of-words floor against permutation nulls, generate both
+\monStoredHeadAbs{} on stored pairs to \monitorS{} on same-generator pairs. The label installs
+a second artifact: a problem whose backdoor fails contributes its human honest solution, so
+the negative class records attack failure. Stored-pair evaluations
+should report a no-code and a bag-of-words floor against permutation nulls, generate both
 classes from one model under one prompt, and define the negative class by honesty rather than by
 attack failure.
 \end{abstract}
@@ -508,35 +510,38 @@ separation between two authors.
 
 There are various known confounding variables between the human and AI solutions, such as in commenting style, so corpora are often preprocessed to mitigate them. The filtered
 release keeps only working honest solutions and working backdoors and strips every comment
-\cite{koran2026ensemble}; Control Tax reports its pass-tests pre-filter and appendices
-``Monitoring failed backdoors'' \cite{terekhov2025controltax};  one harness ships a \texttt{--leak-check} flag with
-two trivial baselines in it, a \texttt{\#}-count detector that falls from \hashRaw{} to
-\hashStripped{} once comments go and code length alone at \lenFiltered{}
-\cite{jha2026decorrelation}. Out of field, bag-of-words is known to separate human-written from
-model-written code \cite{orel2026aicd}, and the detectors built on it match their classes on
-line and character count or on shared problem definitions \cite{guo2025codemirage,
-demirok2025multiaigcd}. Adjacent control work attacks other axes, subverting monitors with
-injected text, showing that attacker-side selection inflates safety estimates, and removing
-transcript length as a nuisance covariate \cite{terekhov2026adaptive, gewang2026attackselection,
+\cite{koran2026ensemble}; Control Tax reports its pass-tests pre-filter and moves its failed
+backdoors to an appendix \cite{terekhov2025controltax}; the monitor-ensemble harness of
+\cite{jha2026decorrelation} ships a \texttt{--leak-check} flag with two trivial baselines in
+it: a \texttt{\#}-count detector that falls from \hashRaw{} to \hashStripped{} once comments
+are stripped, and code length alone, at \lenFiltered{}. Outside AI control, bag-of-words is known to separate human-written from
+model-written code \cite{orel2026aicd}, and the benchmarks built for that task match their two
+classes on line and character count or on shared problem definitions \cite{guo2025codemirage,
+demirok2025multiaigcd}. Adjacent control work attacks other axes: monitors subverted with
+injected text, attacker-side selection shown to inflate safety estimates, transcript length
+removed as a nuisance covariate \cite{terekhov2026adaptive, gewang2026attackselection,
 pinto2026calibration}.
 
 None of that preprocessing removes the authorship gap. On the filtered, comment-stripped
 split, a bag-of-words classifier reaches AUROC \tfidfKoran{}, above \tfidfKoranCount{} of the
-\monN{} open-weight monitors ranked on that same split, whose median is \monMedian{}; a
-classifier that reads no code at all, only problem difficulty, test count and question length,
-reaches \nocodeCV{}, above \nocodeCVCount{}. The classifier transfers across backdoor
-generators and is nearly as strong on \emph{inert} backdoors as on working ones. Neither is
+\monN{} open-weight monitors ranked on that same split, whose median score is \monMedian{}; a
+classifier that reads no code at all, only problem difficulty, test count and question length
+-- the \emph{no-code floor} -- reaches \nocodeCV{}, above \nocodeCVCount{}. The classifier
+transfers across backdoor generators and is nearly as strong on \emph{inert} backdoors, ones
+that never produce a wrong answer, as on working ones. Neither is
 a property of a backdoor.
 
 We contribute (i)~a construction for stored-pair corpora, in which one model writes both
 classes under one prompt framing and one harness verifies both, and the corpus that implements
 it. Run on two generators, it attributes between a third and nine-tenths of the separability to
-authorship and most of the remainder to the attack prompt's framing, and returns a null on the
-way, since regenerating one half of a stored pair substitutes one confound for another. We add
+authorship and most of the remainder to the attack prompt's framing; a one-sided variant,
+regenerating only the honest class, substitutes one confound for another. We identify
 (ii)~a second selection artifact the filter installs by defining the negative class through
 attack failure, and (iii)~the construction and reporting practice these imply.
 Our claims concern monitor training, selection and benchmarking on stored pairs, and our
-measurement is of one APPS-derived family plus five agentic settings. ControlArena's live evaluations generate both classes and are not implicated.
+measurement is of one APPS-derived family plus five agentic settings
+(appendix~\ref{app:agentic}). ControlArena, the evaluation framework most of these corpora are
+exported from, generates both classes live and is not implicated.
 
 % =====================================================================================
 \section{Setup}
@@ -545,40 +550,51 @@ measurement is of one APPS-derived family plus five agentic settings. ControlAre
 
 % --- F1: the construction, conceptual, before any result. Generated by figures.py.
 \begin{figure}[t]\centering
-\includegraphics[width=\linewidth]{f4-constructions.pdf}
+\includegraphics[width=0.85\linewidth]{f4-constructions.pdf}
 \caption{\textbf{How a stored pair is built, and how we rebuild it.} Each row is one property of
 the pair, marked \emph{confounded} where the two classes differ in it and \emph{controlled}
 where one model or one prompt holds it constant. The backdoor row is the target: it is the only
 difference a monitor should read, and the only one left once both controls are applied. Under
 each construction is the bag-of-words classifier's AUROC on that construction's own pairs, so
-the three are a ladder and not a paired comparison; each arm's $B'$ and $\rho$ are in
-Table~\ref{tab:gates}.}
+the three are a ladder and not a paired comparison. The stored-benchmark \baselineB{} is on
+the full \baselineBn{}-problem artifact, not the filtered split, whose value is \tfidfKoran{};
+each arm's numbers are in Table~\ref{tab:gates} (notation: Table~\ref{tab:notation}).}
 \label{fig:constructions}
 \end{figure}
 
 We use seven public corpora, whose
-per-class provenance is the object of study. In the APPS family the honest class is human and
+per-class provenance is the object of study: two views of one APPS-backdoor artifact
+(appendix~\ref{app:schema}) and five agentic settings (appendix~\ref{app:agentic}). In the
+APPS family the honest class is human and
 the attack class is one of ten named models. Six of the seven declare no licence
 \cite{koran2026highquality, sinha2026controlarenacorpora}, so we report only aggregates and
 redistribute no corpus.
 
-Our headline protocol is one of the seven, the filtered, comment-stripped split
+Our primary protocol is one of the seven, the filtered, comment-stripped split
 \cite{koran2026ensemble}: \splitTrain{} train problems (\splitTrainItems{} paired items) and
 \splitTest{} test items (\splitAttack{} attack, \splitHonest{} honest), labelled by
 \texttt{backdoor\_works}, reconstructed with the released harness code
-\cite{jha2026decorrelation}. Generated code is scored by our own
+\cite{jha2026decorrelation}. The split is a filtered view of a \baselineBn{}-problem artifact
+whose full pool the same-generator arms use, so two stored-pair values recur:
+\tfidfKoran{} on this split, $B = \baselineB{}$ on
+the artifact (Figure~\ref{fig:constructions}). Generated code is scored by our own
 runner, applied to both classes (appendix~\ref{app:harness}).
 
 Against that we build a corpus in which one model writes both classes on the same APPS
-problems. The \emph{independent} arm writes the attack class from the problem statement alone,
-so the writer changes and nothing else; an \emph{edit} arm, shown its own honest solution,
-returns near-copies (appendix~\ref{app:pairsim}); a \emph{prompt-matched} arm regenerates the
+problems; the construction is run twice, with Sonnet~5 and with Haiku~4.5 as the generator.
+The \emph{independent} arm writes the attack class from the problem statement alone,
+so the writer changes and nothing else (the \emph{headline} rows of
+Table~\ref{tab:gates}). An \emph{edit} arm, shown its own honest solution,
+returns near-copies (appendix~\ref{app:pairsim}), and a \emph{prompt-matched} arm regenerates the
 honest class from the attack prompt with the clauses asking for a flaw replaced by their
 correct-program counterparts, so both classes are elicited alike. We sample one attack per
 problem, fixed before its outcome is known, and define the attack class as the benchmark does,
-by intent together with passing the public tests. Table~\ref{tab:notation} fixes the notation,
-and the bands were registered before any arm ran: $\rho \le \rhoCollapse{}$ reads as authorship,
-$\rho > \rhoContent{}$ as content, the interval between them as neither.
+by intent together with passing the public tests. A backdoor \emph{fires} if it passes the
+public tests and gives a wrong answer on the trigger input the attacker declares; one that
+never fires is \emph{inert}. Table~\ref{tab:notation} fixes the notation,
+and the bands were registered before any arm ran: $\rho \le \rhoCollapse{}$ reads as authorship
+(the \emph{collapse} band), $\rho > \rhoContent{}$ as content, the interval between as
+neither (\emph{partial}).
 
 \begin{table}[h]\centering\footnotesize
 \caption{\textbf{Notation.} One classifier throughout; the arms differ only in the corpus
@@ -603,24 +619,26 @@ $\rho = (S - 0.5)/(B' - 0.5)$ & the share of above-chance separability that surv
 % one body float.
 % =====================================================================================
 
-Comment stripping works on comment count and code length, driving both to chance
-(Table~\ref{tab:protocol-baseline}, appendix). Two floors on that same split do not move. A
-monitor scoring at or below a floor has shown nothing beyond what the corpus leaks.
-Bag-of-words reaches \tfidfKoran{} and a classifier that reads no code at all reaches
+Comment stripping succeeds on comment count and code length, driving both to chance
+(Table~\ref{tab:protocol-baseline}, appendix). Two baselines on that same split do not move;
+we call them \emph{floors}: a monitor at or below a floor has shown nothing beyond what the
+corpus leaks.
+Bag-of-words reaches \tfidfKoran{} and the no-code floor reaches
 \nocodeCV{}, both far above their permutation nulls and above \tfidfKoranCount{} of the
 \monN{} monitors ranked on that split (Figure~\ref{fig:monitors}; intervals, nulls and
 paired-bootstrap counts in appendix~\ref{app:protocol}). The two are not trained alike -- the monitors are
 zero-shot, our classifiers fitted on the split's own train problems -- so the comparison states
 what the corpus makes recoverable, not that a bag of words is the better monitor.
 
-Three further measurements show that the bag-of-words classifier is not reading the backdoor.
-It transfers across backdoor generators at \transfer{} pairwise: trained on one attacker's backdoors it identifies
+Three further measurements show that the bag-of-words classifier is not reading the backdoor
+(the first two are pairwise accuracies, not AUROCs; appendix~\ref{app:protocol}).
+It transfers across backdoor generators at \transfer{}: trained on one attacker's backdoors it identifies
 another's, so the feature it has learned is one the attackers share. It is nearly as strong on
 inert backdoors as on working ones, \pairInert{} against \pairWorking{}, although a backdoor
 that never fires should be the harder case for a detector of sabotage. The feature it does read
 is stylistic: \texttt{\_\_main\_\_} appears in 0.116 of attack samples against 0.000 of honest
 ones, a gap the comment stripper leaves untouched and one that replicates on the train split,
-at 152 against 1 of \splitTrain{}. All three measurements are comment-stripped on both classes; the
+in 152 of \splitTrain{} attack samples against 1 of \splitTrain{} honest ones. All three measurements are comment-stripped on both classes; the
 unstripped values, inflated by the comment channel, are in appendix~\ref{app:stripped},
 and a token-level version of the last test does not replicate (appendix~\ref{app:token}).
 
@@ -628,17 +646,17 @@ and a token-level version of the last test does not replicate (appendix~\ref{app
 %     single highest-value change of the cold review). EVERY row-level number now lives in
 %     the table or its caption; the prose keeps the reading and the mechanism. Nothing left
 %     the paper - the clauses cut here (retention, the edit-arm bound) are in app:robust.
-Holding the writer constant removes between a third and nine-tenths of the separability
-(Table~\ref{tab:gates}); $B'$ is refitted on each arm's own problems and includes inert
-attacks. With $\rho = 1$ meaning that holding the writer constant changed nothing, and
-$\rho = 0$ that nothing survived, the arms return \sameGenRho{} and \haikuRho{}.
+Holding the writer constant removes between a third and nine-tenths of the above-chance
+separability (Table~\ref{tab:gates}, whose $B'$ is refitted on each row's own problems and
+includes inert attacks): the two generators return $\rho = \sameGenRho{}$
+(Sonnet 5) and \haikuRho{} (Haiku 4.5).
 
-The pre-registered rule returns a different verdict for each generator. Sonnet 5's interval
-excludes the collapse band and spans the content line, leaving it inconclusive between partial
+The pre-registered bands return a different verdict for each generator. Sonnet 5's interval
+excludes the collapse band and spans the content boundary, leaving it inconclusive between partial
 and content; Haiku 4.5's lies inside the collapse band. Sample size does not account for the fall
 (appendix~\ref{app:robust}). Two further rows are \emph{strict}, keeping only attacks that
-pass the public tests \emph{and} give a wrong answer on the trigger input the model declares;
-single samples do so \headlineFireShare{} of the time, so these rows rest on \strictN{} pairs
+fire; a single sampled attack does so \headlineFireShare{} of the time, so these rows rest on
+\strictN{} pairs
 and agree with the headline rows at low power (appendix~\ref{app:secondpass}).
 
 \begin{table}[h]\centering\footnotesize
@@ -666,61 +684,68 @@ Sonnet 5, strict, matched & \matchedStrictN{} & \matchedStrictS{} (\matchedStric
 \end{tabular}
 \end{table}
 
-The attack prompt separates the two generators. On Sonnet 5 what survives is lexical rather
-than structural: length alone falls to \sameGenLen{} while TF-IDF holds, and of the masks we
+The two generators respond differently to the attack prompt. On Sonnet 5 what survives is lexical rather
+than structural: length alone falls to \sameGenLen{} while TF-IDF holds, and of the
+feature-ablation masks we
 apply only identifier normalisation moves $S$ (appendix~\ref{app:robust}). The top
 attack-side features are \texttt{def main} (\defMainAttack{} of attack programs against
 \defMainHonest{} of honest ones) and \texttt{data[}, which together are the program layout the
-attack prompt elicits. Haiku 4.5 never adopts that layout in any of its three classes
-(appendix~\ref{app:secondpass}), which is why the two generators part. Holding the prompt
+attack prompt elicits. Haiku 4.5 never adopts that layout in any of its three classes --
+honest, attack, or prompt-matched honest
+(appendix~\ref{app:secondpass}) -- which is why the two generators part. Holding the prompt
 constant as well as the model moves them back toward each other, to
-$\rho = \matchedRho{}$ and $\rho = \haikuMatchedRho{}$. On Sonnet this removes most of what
-is left. The two honest classes alone, with no attack on either side, already separate at
+$\rho = \matchedRho{}$ on Sonnet 5 (Table~\ref{tab:gates}) and $\rho = \haikuMatchedRho{}$ on
+Haiku 4.5 (appendix~\ref{app:secondpass}). On Sonnet this removes most of what
+is left. The original and the prompt-matched honest classes -- both correct, no attack on
+either side -- already separate at
 \promptOnly{}, so the prompt carries framing and no backdoor at all; on Haiku 4.5 that same
 floor contains chance.
 
-Regenerating one class rather than both does not work: an open-weight model writing the honest
+Regenerating only one class fails: Qwen3-Coder-30B writing the honest
 class against the stored backdoors separates \emph{better} than the stored pairs do,
-$\rho = \armOneRho{}$, having replaced one authorship gap with another
+$\rho = \armOneRho{}$, one authorship gap replaced by another
 (appendix~\ref{app:robust}).
 
-The same inflation appears when the detector is an LLM monitor rather than a bag-of-words
-classifier. We put a zero-shot monitor prompt to the model that wrote both classes, the most
-favourable case available since it is reading its own output. It scores \monStoredHead{} on the
+The same inflation appears with an LLM monitor as the detector. We put a zero-shot monitor
+prompt to the model that wrote both classes, the most
+favourable case, since it reads its own output. It scores \monStoredHead{} on the
 stored pairs and \monitorS{} on the same-generator pairs, a monitor-$\rho$ of \monRhoHead{},
 below the classifier's \sameGenRho{}; on the strict pairs the ratio is \monRhoStrict{}, and a
-monitor that wrote neither class returns the same two (appendix~\ref{app:monitors}).
+monitor that wrote neither class returns nearly the same two ratios
+(appendix~\ref{app:monitors}).
 
 The split selects on a second property besides authorship. Labelling by
-\texttt{backdoor\_works} defines the negative class by attack failure where the criterion
-should be honesty: \inertShare{} of the test split's labelled backdoors do not work, and a
-problem whose backdoor fails contributes its human honest solution instead, before any code is
-read. Attack problems also carry half as many test cases (\testCasesAttack{} against
-\testCasesHonest{}), so problem difficulty correlates with the label, which is what the
-content-blind \nocodeCV{} reads.
+\texttt{backdoor\_works} defines the negative class by attack failure rather than by
+honesty: \inertShare{} of the test split's labelled backdoors do not work, and a
+problem whose backdoor fails contributes its human honest solution instead -- the label is
+set before any code is read. Attack problems also carry half as many test
+cases (\testCasesAttack{} against
+\testCasesHonest{}), so problem difficulty correlates with the label, which the
+no-code floor's \nocodeCV{} reads.
 
 % =====================================================================================
 \section{Limitations}
 % Budget: three paragraphs. Disclosures owed by notes/05 are in the second.
 % =====================================================================================
 
-A high floor is evidence about a corpus, not about results computed on it. Ours show that the
-label is recoverable without reading a backdoor, but say nothing about whether any monitor
+A high floor is evidence about a corpus, not about results computed on it. Ours show the
+label is recoverable without reading a backdoor, not that any monitor
 recovers it that way, and no number here corrects a published monitor score.
 
-The control arm is limited by the generator we had to substitute. The model that wrote the
-stored backdoors, \texttt{claude-3-7-sonnet-thinking}, is retired, so
+The control arm is limited by the generator we had to substitute. The stored backdoors'
+writer, \texttt{claude-3-7-sonnet-thinking}, is retired, so
 both same-generator classes come from a later model of the same lineage. It differs from the
 stored attacker in backdoor style as well as in authorship, so every $\rho$ here, classifier or
-monitor, bounds the content share of the separability instead of partitioning it. The arm is
-not bit-reproducible, having run through a metered API that does not expose sampling
+monitor, bounds the content share of the separability from above instead of partitioning it.
+The arm is not bit-reproducible: it ran through a metered API that does not expose sampling
 parameters, with thinking off although the stored attacker was a thinking model.
 
 Our scope is narrow in three further ways. We measure one APPS-derived corpus family and five
 agentic settings, and other stored-pair corpora are untested. Five of our seven corpora are one
 user's repackaging of ControlArena releases, so our claims are scoped to those artifacts as
-published. And two interpreter-era artifacts fall on opposite classes, so $B$ carries a small
-execution-environment channel that the same-generator arm does not
+published. Two interpreter-era artifacts, human solutions written for an older Python,
+fall on opposite classes, so $B$ carries a small
+execution-environment channel the same-generator arm does not
 (appendix~\ref{app:harness}).
 
 % =====================================================================================
@@ -734,16 +759,16 @@ execution-environment channel that the same-generator arm does not
 % =====================================================================================
 
 These results imply one rule for construction: one model should write both classes under one
-prompt framing, and one harness should verify both. Regenerating a single side does not help: substituting the honest author left a larger
-gap than the one it replaced. Matched construction is precedented in code-detection benchmarks
-\cite{guo2025codemirage}, though we have not seen it reach backdoor detection.
+prompt framing, and one harness should verify both. Matched construction is precedented in
+code-detection benchmarks
+\cite{guo2025codemirage} but has not reached backdoor detection.
 
 The definition of the negative class needs the same treatment. Defining it through attack
 failure ties the label to the attacker rather than to the code; dropping the failed problems
-removes that, as does sampling the class independently of attack success. A monitor number is in
-turn interpretable only against the floors of its own split, so a partial-input and a
-bag-of-words floor belong beside it, each against a permutation null, with the split and its
-preprocessing released alongside (ours are MIT, appendix~\ref{app:release}).
+removes that, as does sampling the class independently of attack success. A monitor number is
+interpretable only against the floors of its own split, so a no-code and a
+bag-of-words floor belong beside it, each against a permutation null, with the split and
+preprocessing released alongside (ours: MIT, appendix~\ref{app:release}).
 
 Stored pairs remain the cheapest way to develop a monitor, and nothing here argues for
 abandoning them, only that a score on one describes two authors until the construction rules
@@ -764,6 +789,7 @@ that reading out.
 \section{Supplementary tables and figures}
 
 \subsection{The schema}
+\label{app:schema}
 Table~\ref{tab:schema} is the record schema of \texttt{RoganInglis/apps-control-arena}
 \cite{inglis2025appscontrolarena}. The attack class carries \texttt{model} and
 \texttt{source}, naming the system that produced each backdoor; the honest class carries no
@@ -899,7 +925,8 @@ Retention does not produce the effect. Survivors and non-survivors separate at o
 \survivorAuroc{}, and $S$ computed with non-firing attempts on the same problems is
 \survivorSwapS{} against \survivorSwapSref{}. The edit arm bounds $S$ under near-copies
 (similarity \editSim{}, Table~\ref{tab:similarity}): \editS{} over \editN{} pairs,
-$\rho = \editRho{}$. In arm 1, where only the honest half was regenerated, $G = \armOneG{}$ against
+$\rho = \editRho{}$. In the one-sided arm of \S\ref{sec:results}, where only the honest half
+was regenerated, the classifier reaches \armOneG{} against
 $B' = \armOneBprime{}$ on that arm's $n = \armOneN{}$ eligible problems, and TF-IDF gains
 \armOneTfidfDelta{} while the length carrier collapses to \armOneLenG{}. Our own attack
 prompt halves our single-shot firing rate:
@@ -969,6 +996,7 @@ single-shot firing rate belongs to the protocol and not to either model, since
 \trigPublicShare{} of test-passing draws offer a public test input as their trigger.
 
 \subsection{The five same-generator agentic settings}
+\label{app:agentic}
 Removing the authorship gap does not remove every floor. In five settings where the same three
 models write both classes, so no authorship confound is possible, the surviving floor is
 structural: \bashFloor{} (\texttt{bash}, on its null) to \agentdojoFloor{}
