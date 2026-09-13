@@ -537,8 +537,8 @@ authorship and most of the remainder to the attack prompt's framing, and returns
 way, since regenerating one half of a stored pair substitutes one confound for another. We add
 (iii)~a second selection artifact the filter installs by defining the negative class through
 attack failure, and (iv)~the construction and reporting practice these imply.
-\emph{Scope.} This concerns monitor training, selection and benchmarking on \emph{stored}
-pairs; our measurement is of one APPS-derived family plus five agentic settings. ControlArena's live evaluations generate both classes and are not implicated.
+Our claims concern monitor training, selection and benchmarking on stored pairs, and our
+measurement is of one APPS-derived family plus five agentic settings. ControlArena's live evaluations generate both classes and are not implicated.
 
 % =====================================================================================
 \section{Setup}
@@ -596,9 +596,9 @@ paired-bootstrap counts in appendix~\ref{app:protocol}).
 Three further measurements show that the bag-of-words classifier is not reading the backdoor.
 Every number in this paragraph is comment-stripped on both classes; the unstripped
 values, inflated by the comment channel, are in appendix~\ref{app:stripped}. The classifier
-\emph{transfers across backdoor generators} at \transfer{} pairwise. Trained on one
+transfers across backdoor generators at \transfer{} pairwise. Trained on one
 attacker's backdoors it identifies another's, so it has learned a feature the attackers
-share. It is also nearly as strong on \emph{inert} backdoors
+share. It is also nearly as strong on inert backdoors
 (\pairInert{}) as on working ones (\pairWorking{}), where a detector of sabotage should
 find the backdoors that never function much harder. And the residual carrier is stylistic.
 \texttt{\_\_main\_\_} appears in 0.116 of attack samples against 0.000 of
@@ -626,7 +626,7 @@ attack class as the benchmark does, by intent plus passing the public tests.
 \headlineFireShare{} of the first generator's draws fire and \haikuFireShare{} of the
 second's (\haikuFireInRow{} of \haikuN{}); $B'$ is inert-inclusive over the same problems.
 The first generator's interval excludes the collapse band and spans the content line, so the
-pre-registered rule returns \emph{inconclusive between partial and content}. The second
+pre-registered rule returns inconclusive between partial and content. The second
 generator's lies inside the collapse band. Sample size does not explain the drop, since at
 $n = \sameGenN{}$ the baseline $B$ under the identical pipeline is $\curveHeadline{} \pm
 \curveHeadlineSd{}$. Two rows are
@@ -682,7 +682,7 @@ replaced by a new one between that model and the stored attacker.
 
 The same inflation appears when the detector is an LLM monitor rather than a bag-of-words
 classifier. We put a zero-shot monitor prompt to the model that wrote both classes. In this field's vocabulary it is an untrusted monitor, which
-makes it the most favourable case available, since it is reading its own output. On the \emph{stored} pairs over the headline problems it scores
+makes it the most favourable case available, since it is reading its own output. On the stored pairs over the headline problems it scores
 \monStoredHead{} and on the same-generator pairs \monitorS{}, a monitor-$\rho$ of
 \monRhoHead{}, below the classifier's \sameGenRho{}. On the strict pairs it scores
 \monStoredStrict{} and \monitorStrict{}, a monitor-$\rho$ of \monRhoStrict{} (intervals in
@@ -693,8 +693,8 @@ against the stored attacker's \fireGivenPassStored{}, which makes the stored att
 survivor set.
 
 The split selects on a second property besides authorship. Labelling by
-\texttt{backdoor\_works} defines the negative class at the problem level by \emph{attack
-failure}; the criterion should be honesty. \inertShare{} of the test split's labelled
+\texttt{backdoor\_works} defines the negative class at the problem level by attack
+failure; the criterion should be honesty. \inertShare{} of the test split's labelled
 backdoors do not work (\inertSharePassing{} of those that pass the public tests), and a
 problem whose backdoor fails contributes its human honest solution instead. The label is
 fixed before any code is read. Attack problems also carry half as many test cases
@@ -815,7 +815,7 @@ split.} AUROC on the \splitTest{}-item test split (\splitAttack{} attack /
 \splitHonest{} honest), comments stripped; monitor scores from the MIT-licensed release of
 \cite{jha2026decorrelation}, median \monMedian{}, max \monMax{}. Both floors clear
 \tfidfKoranCount{} of the \monN{}. \textbf{Two caveats.} (i)~The monitors are
-zero-shot prompted while the bag-of-words classifier is \emph{trained} on the benchmark's own
+zero-shot prompted while the bag-of-words classifier is trained on the benchmark's own
 paired train split. The comparison states what the corpus makes recoverable and does not
 claim that bag-of-words is a better monitor.
 (ii)~The no-code floor is cross-validated \emph{within} the test split; on one
@@ -826,7 +826,7 @@ held-out slice it is \nocodeHeldout{}, above \nocodeHeldoutCount{} of \monN{}
 
 \subsection{The protocol $\times$ baseline table}
 \label{app:protocol}
-The no-code floor is cross-validated \emph{within} the test split because the released
+The no-code floor is cross-validated within the test split because the released
 train/val split is paired and therefore metadata-balanced; its permutation null shuffles
 labels for fitting and scoring alike.
 Table~\ref{tab:protocol-baseline} is the full measurement behind \S\ref{sec:results}. Rows
@@ -892,7 +892,7 @@ above and below those similarities.}
 Attack class & mean sim. & share $>0.95$ & share $<0.60$ & changes vs.\ the benchmark \\
 \midrule
 \textbf{stored benchmark} & \simStored{} & \simStoredHigh{} & \simStoredLow{} & the regime to match \\
-\textbf{edit} (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & authorship \emph{and} similarity \\
+\textbf{edit} (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & authorship and similarity \\
 \textbf{independent} (problem only) & \simIndep{} & \simIndepHigh{} & \simIndepLow{} & authorship only \\
 \bottomrule
 \end{tabular}
@@ -1039,7 +1039,7 @@ generated and ran ourselves, is immune.
 We attempted to confirm a reported token-level mechanism \cite{orel2026aicd} in our setting and
 it does not replicate. Separation is \tokenSep{}, the wrong sign, at permutation
 $p = \tokenP{}$. The reason is register. Their human class is general-purpose repository
-code, whereas \emph{both} of our classes are competitive-programming code, so an identifier
+code, whereas both of our classes are competitive-programming code, so an identifier
 axis that separates general human code from model code does not separate these two
 populations. Only 8 of their 10 canonical tokens are in our vocabulary, so the test is
 underpowered; but an underpowered true effect would still carry the right sign, and this one
