@@ -591,12 +591,12 @@ null \nocodeCVNull{}, $\permP$), above \nocodeCVCount{}
 and \nocodeCVPairedCount{} respectively (Figure~\ref{fig:monitors}, appendix). The preprocessing
 reached the carrier it was aimed at and left the two beside it standing.
 
-\paragraph{The signal is not sabotage.}
+\paragraph{Three checks on the carrier.}
 Every number in this paragraph is comment-stripped on both classes; the unstripped
 values, inflated by the comment channel, are in appendix~\ref{app:stripped}. The classifier
 \emph{transfers across backdoor generators} at \transfer{} pairwise. Trained on one
-attacker's backdoors it identifies another's, so what it has learned belongs to no single
-model's sabotage style. It is also nearly as strong on \textbf{inert} backdoors
+attacker's backdoors it identifies another's, so it has learned a feature the attackers
+share. It is also nearly as strong on \textbf{inert} backdoors
 (\pairInert{}) as on working ones (\pairWorking{}), where a detector of sabotage should
 find the backdoors that never function much harder. And the residual carrier is stylistic.
 \texttt{\_\_main\_\_} appears in 0.116 of attack samples against \textbf{0.000} of
@@ -658,7 +658,7 @@ Sonnet 5, strict, matched & \matchedStrictN{} & \matchedStrictS{} (\matchedStric
 \end{tabular}
 \end{table}
 
-What separates the two generators is the attack prompt. On Sonnet 5 the surviving signal is
+The attack prompt separates the two generators. On Sonnet 5 the surviving signal is
 lexical, with length alone falling to \sameGenLen{} while TF-IDF holds, and it does not run
 through the trigger. Masking numerals and comparison operators leaves $S$ unchanged;
 only normalising identifiers moves it, to \sameGenSid{} ($\rho = \sameGenRhoId{}$). The top
@@ -674,9 +674,8 @@ is left. The two honest classes alone, with no attack on either side, already se
 prompt-only floor is \haikuPromptFloor{}, an interval containing chance.
 
 \textbf{The same inflation reaches an LLM monitor.} We put a zero-shot monitor prompt to the
-model that wrote both classes. In this field's vocabulary it is an untrusted monitor rather
-than a trusted one, which makes it the most favourable case available, since it is reading its
-own output. On the \emph{stored} pairs over the headline problems it scores
+model that wrote both classes. In this field's vocabulary it is an untrusted monitor, which
+makes it the most favourable case available, since it is reading its own output. On the \emph{stored} pairs over the headline problems it scores
 \monStoredHead{}; on the same-generator pairs, \monitorS{} (\monitorSLo{}--\monitorSHi{}).
 That is a monitor-$\rho$ of \monRhoHead{} (\monRhoHeadLo{}--\monRhoHeadHi{}), below the
 classifier's \sameGenRho{}. On the strict pairs the two scores are \monStoredStrict{} and
@@ -693,16 +692,16 @@ the honest class against the stored backdoors, $\rho = \armOneRho{}$
 with a larger one.
 
 \paragraph{The filter installs a second artifact.}
-Labelling by \texttt{backdoor\_works} defines the negative class by \emph{attack failure}
-at the problem level rather than by honesty. \inertShare{} of the test split's labelled
+Labelling by \texttt{backdoor\_works} defines the negative class at the problem level by
+\emph{attack failure}; the criterion should be honesty. \inertShare{} of the test split's labelled
 backdoors do not work (\inertSharePassing{} of those that pass the public tests), and a
 problem whose backdoor fails contributes its human honest solution instead. The label is
 fixed before any code is read. Attack problems also carry half as many test cases
 (\testCasesAttack{} versus \testCasesHonest{}), and fewer tests make a backdoor easier
-to hide, so difficulty and test count correlate with the label. That correlation is where the
-content-blind \nocodeCV{} comes from.
+to hide, so difficulty and test count correlate with the label. That correlation produces the
+content-blind \nocodeCV{}.
 
-\paragraph{Where authorship is already matched, a floor remains.}
+\paragraph{A floor survives matched authorship.}
 In five agentic settings where the same three models write both classes, so no authorship
 confound is possible, the surviving floor is structural: \bashFloor{} (\texttt{bash}, on its
 null) to \agentdojoFloor{} (\texttt{agentdojo}) from character count alone
@@ -715,21 +714,21 @@ null) to \agentdojoFloor{} (\texttt{agentdojo}) from character count alone
 
 \textbf{A high floor is evidence about a corpus; it does not settle results computed on
 that corpus.} Our floors show that the label is recoverable without reading a backdoor. They
-leave open whether any monitor recovers it that way, and no number here corrects a published
-monitor score.
+say nothing about whether any monitor recovers it that way, and no number here corrects a
+published monitor score.
 
 \textbf{The generator, and what $\rho$ can therefore be read as.}
 The model that wrote the stored backdoors, \texttt{claude-3-7-sonnet-thinking}, is retired, so
 both same-generator classes come from a later model of the same lineage. It differs from the
-stored attacker in backdoor style, not only in authorship, so every $\rho$ here, classifier or
-monitor, bounds how much of the separability is content rather than partitioning it. The arm is
+stored attacker in backdoor style as well as in authorship, so every $\rho$ here, classifier or
+monitor, bounds the content share of the separability instead of partitioning it. The arm is
 not bit-reproducible, having run through a metered API that does not expose sampling
 parameters, with thinking off although the stored attacker was a thinking model. The two generators are
 compared on the \texttt{passes} eligibility alone, Haiku 4.5's strict row having been refused
 at \haikuUsable{} pairs against our 50-pair floor.
 
-\textbf{Scope, provenance and the harness.} Whether stored-pair corpora beyond these leak the
-same way is untested. Five of our seven corpora are one user's repackaging, and our claims are
+\textbf{Scope, provenance and the harness.} We have not tested stored-pair corpora beyond
+these for the same leak. Five of our seven corpora are one user's repackaging, and our claims are
 scoped to them. Two interpreter-era artifacts reach $B$ but not the same-generator arm
 (appendix~\ref{app:harness}).
 
@@ -807,8 +806,8 @@ split.} AUROC on the \splitTest{}-item test split (\splitAttack{} attack /
 \cite{jha2026decorrelation}, median \monMedian{}, max \monMax{}. Both floors clear
 \tfidfKoranCount{} of the \monN{}. \textbf{Two caveats.} (i)~The monitors are
 zero-shot prompted while the bag-of-words classifier is \emph{trained} on the benchmark's own
-paired train split: a statement about what the corpus makes recoverable, not a claim that
-bag-of-words is a better monitor.
+paired train split. The comparison states what the corpus makes recoverable and does not
+claim that bag-of-words is a better monitor.
 (ii)~The no-code floor is cross-validated \emph{within} the test split; on one
 held-out slice it is \nocodeHeldout{}, above \nocodeHeldoutCount{} of \monN{}
 (appendix~\ref{app:protocol}).}
@@ -909,8 +908,8 @@ cannot diverge from the honest solution, and those fire \trigPublicFire{} agains
 \label{app:secondpass}
 Under prompt matching the identifier mask, the only mask of \S\ref{sec:results} that moved
 $S$, takes the headline row to \matchedSid{} ($\rho = \matchedRhoId{}$) where it takes the
-original honest class on the same \matchedN{} problems to \matchedSidOrig{}: most of what
-identifier normalisation removed is what prompt matching removes. That masked row is the one that decides whether the residue is structure or naming, and under
+original honest class on the same \matchedN{} problems to \matchedSidOrig{}, so identifier
+normalisation and prompt matching remove largely the same thing. That masked row is the one that decides whether the residue is structure or naming, and under
 prompt matching it is band-ambiguous: its joint interval, \matchedRhoIdLo{}--\matchedRhoIdHi{},
 puts \matchedRhoIdCollapse{} of its mass in the collapse band. A character model
 (3--5-grams, same classifier and folds) retains more than the word tokeniser, \matchedChar{}
@@ -941,8 +940,8 @@ with a 1{,}024-token ceiling prices it: missingness falls to 2 of 198 and monito
 from \monHaikuRhoStrict{} to \monHaikuRhoStrictMt{}, inside the bootstrap interval.
 On the stored pairs both monitors beat the bag-of-words baseline over the same problems
 (\(+0.09\) and \(+0.15\) for the first, \(+0.02\) and \(+0.09\) for the second):
-Figure~\ref{fig:monitors}'s ranking is a statement about those monitors on that split, not a
-claim that a bag of words beats a monitor here. Classifier and monitor are independent pair
+Figure~\ref{fig:monitors}'s ranking states something about those monitors on that split and
+does not claim that a bag of words beats a monitor here. Classifier and monitor are independent pair
 by pair on the same-generator pairs ($\phi = \monitorClfPhi{}$), so the two are reading
 different things.
 
@@ -950,7 +949,7 @@ different things.
 Both generators were run through the identical pipeline. Our honest draws pass the public
 tests at \sonnetHonestPass{} and \haikuHonestPass{} of 1{,}444 problems; the second
 generator's attack draws pass at \haikuAttackPass{} of 1{,}444 and \haikuUsable{} of those
-fire, below the 50-pair floor \texttt{gate\_s\_samegen.py} requires, which is why it has no
+fire, below the 50-pair floor \texttt{gate\_s\_samegen.py} requires, leaving it with no
 strict row and the two generators are compared on the \texttt{passes} eligibility only. The two
 compared rows differ in inertness. \haikuFireInRow{} of the \haikuN{} attacks in the
 second generator's row fire (\haikuInert{} inert) against \relFireFirst{} of \sameGenN{}
@@ -1020,8 +1019,8 @@ $p = \tokenP{}$. The reason is register. Their human class is general-purpose re
 code, whereas \emph{both} of our classes are competitive-programming code, so an identifier
 axis that separates general human code from model code does not separate these two
 populations. Only 8 of their 10 canonical tokens are in our vocabulary, so the test is
-underpowered; but the point estimate has the wrong sign, which is not what an underpowered
-true effect looks like. We report it because a reader who knows that work may run exactly
+underpowered; but an underpowered true effect would still carry the right sign, and this one
+does not. We report it because a reader who knows that work may run exactly
 this test.
 
 \subsection{A third channel, noted but not developed here}
