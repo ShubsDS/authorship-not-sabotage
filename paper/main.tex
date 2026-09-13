@@ -612,7 +612,7 @@ One model writing both classes removes between a third and nine-tenths of the se
 (Table~\ref{tab:gates}). We report the \emph{independent} arm, in which the model writes the
 attack class from the problem statement alone, so the writer changes and nothing else; an
 \emph{edit} arm, shown its own honest solution, returns near-copies and is reported in
-appendix~\ref{app:pairsim}. We take one draw per problem, fixed before its outcome is known, and
+appendix~\ref{app:pairsim}. We sample one attack per problem, fixed before its outcome is known, and
 define the attack class as the benchmark does, by intent together with passing the public tests.
 $B'$ is refitted on the same problems and includes inert attacks.
 
@@ -620,12 +620,14 @@ The pre-registered rule returns a different verdict for each generator. Sonnet 5
 excludes the collapse band and spans the content line, leaving it inconclusive between partial
 and content; Haiku 4.5's lies inside the collapse band. Sample size does not account for the
 fall: at $n = \sameGenN{}$ the stored-pair baseline under the identical pipeline is
-$\curveHeadline{} \pm \curveHeadlineSd{}$. Two further rows are \emph{strict}, keeping only
-attacks that pass the tests \emph{and} fire on their trigger, selected by the benchmark's own
-retry-and-keep. Only \headlineFireShare{} of Sonnet 5's draws fire, which leaves \strictN{}
-pairs, so we read those rows through $\rho$ alone and they agree with the headline rows at low
-power; \haikuFireShare{} of Haiku 4.5's fire (\haikuFireInRow{} of \haikuN{}), too few for a
-strict row at all.
+$\curveHeadline{} \pm \curveHeadlineSd{}$. Two further rows are \emph{strict}: they keep only
+attacks that pass the public tests \emph{and} give a wrong answer on the trigger input the model
+declares. Single samples rarely do both, \headlineFireShare{} of Sonnet 5's and
+\haikuFireShare{} of Haiku 4.5's (\haikuFireInRow{} of \haikuN{}), so for Sonnet 5 the strict
+rows follow the benchmark's own practice of sampling each problem repeatedly and keeping the
+survivors, which yields \strictN{} pairs. We read those rows through $\rho$ alone and they agree
+with the headline rows at low power. Haiku 4.5 has too few for a strict row at all
+(appendix~\ref{app:secondpass}).
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -680,9 +682,9 @@ makes it the most favourable case available, since it is reading its own output.
 \monStoredStrict{} and \monitorStrict{}, a monitor-$\rho$ of \monRhoStrict{} (intervals in
 appendix~\ref{app:monitors}). A monitor that wrote neither class
 returns the same two ratios: \monHaikuRhoHead{}, a bound at half missingness, and
-\monHaikuRhoStrict{}. Our single-shot attacks fire given a pass at \fireGivenPassOurs{}
-against the stored attacker's \fireGivenPassStored{}, which makes the stored attack class a
-survivor set.
+\monHaikuRhoStrict{}. Among attacks that pass the tests, ours give a wrong answer on their trigger at
+\fireGivenPassOurs{} against the stored attacker's \fireGivenPassStored{}, which makes the
+stored attack class a survivor set.
 
 The split selects on a second property besides authorship. Labelling by
 \texttt{backdoor\_works} defines the negative class at the problem level by attack
