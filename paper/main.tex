@@ -609,22 +609,23 @@ as authorship and $\rho > \rhoContent{}$ as content, and fixed both bands before
 %     the table or its caption; the prose keeps the reading and the mechanism. Nothing left
 %     the paper - the clauses cut here (retention, the edit-arm bound) are in app:robust.
 One model writing both classes removes between a third and nine-tenths of the separability
-(Table~\ref{tab:gates}). We report the \emph{independent} arm, in which the
-attack class is written from the problem statement alone, so authorship changes and nothing else.
-An \emph{edit} arm, shown its own honest solution, returns near-copies instead
-(appendix~\ref{app:pairsim}). We take one outcome-blind draw per problem and define the
-attack class as the benchmark does, by intent plus passing the public tests.
-\headlineFireShare{} of the first generator's draws fire and \haikuFireShare{} of the
-second's (\haikuFireInRow{} of \haikuN{}); $B'$ is inert-inclusive over the same problems.
-The first generator's interval excludes the collapse band and spans the content line, so the
-pre-registered rule returns inconclusive between partial and content. The second
-generator's lies inside the collapse band. Sample size does not explain the drop, since at
-$n = \sameGenN{}$ the baseline $B$ under the identical pipeline is $\curveHeadline{} \pm
-\curveHeadlineSd{}$. Two rows are
-\emph{strict}: they keep only attacks that pass the tests \emph{and} fire on their trigger,
-selected by the benchmark's own retry-and-keep. Only
-\strictN{} pairs meet it,
-so we read them through $\rho$ alone; they agree with the headline rows at low power.
+(Table~\ref{tab:gates}). We report the \emph{independent} arm, in which the model writes the
+attack class from the problem statement alone, so the writer changes and nothing else; an
+\emph{edit} arm, shown its own honest solution, returns near-copies and is reported in
+appendix~\ref{app:pairsim}. We take one draw per problem, fixed before its outcome is known, and
+define the attack class as the benchmark does, by intent together with passing the public tests.
+$B'$ is refitted on the same problems and includes inert attacks.
+
+The pre-registered rule returns a different verdict for each generator. Sonnet 5's interval
+excludes the collapse band and spans the content line, leaving it inconclusive between partial
+and content; Haiku 4.5's lies inside the collapse band. Sample size does not account for the
+fall: at $n = \sameGenN{}$ the stored-pair baseline under the identical pipeline is
+$\curveHeadline{} \pm \curveHeadlineSd{}$. Two further rows are \emph{strict}, keeping only
+attacks that pass the tests \emph{and} fire on their trigger, selected by the benchmark's own
+retry-and-keep. Only \headlineFireShare{} of Sonnet 5's draws fire, which leaves \strictN{}
+pairs, so we read those rows through $\rho$ alone and they agree with the headline rows at low
+power; \haikuFireShare{} of Haiku 4.5's fire (\haikuFireInRow{} of \haikuN{}), too few for a
+strict row at all.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
