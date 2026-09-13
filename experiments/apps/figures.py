@@ -21,6 +21,17 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
+# The figures used to render in matplotlib's default sans while the paper sets in Times (ptm).
+# That mismatch, not the data, was what made them read as pasted in. Nimbus Roman is the URW
+# clone of Times and is metrically identical to ptm; it ships with TeX Live and ghostscript.
+# fonttype 42 embeds TrueType rather than Type 3, which some camera-ready checkers reject.
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.serif": ["Nimbus Roman", "Times New Roman", "Times", "STIXGeneral", "DejaVu Serif"],
+    "mathtext.fontset": "stix",
+    "pdf.fonttype": 42,
+})
+
 OUT = "../../paper/fig"
 
 # Without this, matplotlib stamps /CreationDate into the PDF and every rebuild differs from the
@@ -30,6 +41,7 @@ PDF_METADATA = {"CreationDate": None}
 BLUE, ORANGE = "#2a78d6", "#eb6834"
 INK, INK2, MUTED = "#0b0b0b", "#52514e", "#8c8b86"
 GRID = "#e3e2dd"
+CONNECT = "#d3d2cc"   # dumbbell connector: visible against the surface, lighter than any mark
 
 # Verified on this machine 2026-09-04; see ../REPRODUCED.md
 TFIDF_FLOOR = 0.8063          # trained on Koran's paired train split, scored on their 1,375 test
@@ -51,12 +63,15 @@ SCAN = [
 ]
 
 
-def style(ax):
-    ax.spines[["top", "right"]].set_visible(False)
-    for s in ("left", "bottom"):
-        ax.spines[s].set_color(GRID)
-    ax.tick_params(colors=INK2, labelsize=8, length=3, width=0.8)
-    ax.grid(axis="x", color=GRID, lw=0.6, zorder=0)
+def style(ax, base=8):
+    """Hairline chrome. The grid is one shade off the surface so the two reference lines and
+    the marks are the only things with weight; y carries rank, not a scale, so it gets no
+    spine and no tick marks."""
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.spines["bottom"].set_color(GRID)
+    ax.tick_params(axis="x", colors=INK2, labelsize=base, length=3, width=0.7)
+    ax.tick_params(axis="y", colors=INK2, labelsize=base, length=0)
+    ax.grid(axis="x", color=GRID, lw=0.5, zorder=0)
     ax.set_axisbelow(True)
 
 
@@ -68,27 +83,44 @@ def fig3_monitors():
     below_tfidf = sum(a < TFIDF_FLOOR for a in aurocs)
     below_nocode = sum(a < NOCODE_FLOOR for a in aurocs)
 
-    fig, ax = plt.subplots(figsize=(5.5, 2.9))
-    style(ax)
+    fig, ax = plt.subplots(figsize=(5.5, 3.0))
+    style(ax, base=11)
+    # Three rules about the key, each of which was learned by getting it wrong:
+    #
+    # 1. It goes upper-left, frameless. The sorted dots run bottom-left to top-right, so that
+    #    corner is dead space. As a boxed legend in the lower right it sat on both floor rules.
+    # 2. Every vertical rule STOPS at the top of the data (y = top). Drawn full height with
+    #    axvline they ran straight through the key text - the same strike-through the chance
+    #    label had. Above y = top there is nothing but the key.
+    # 3. The labels carry the name and the value only. With "(20 of 24 below)" appended the key
+    #    ran past x = 0.77 and the orange rule crossed its own entry. Both counts are 20 of 24
+    #    and they are in the caption and in the body.
+    #
     # No +-sd band: that spread is across CV folds, not a CI on the mean, and drawn as a band it
-    # visually swallows the bag-of-words floor 0.04 away. The sd goes in the legend text instead.
-    ax.axvline(NOCODE_FLOOR, color=ORANGE, lw=2, zorder=3,
-               label=f"reads no code  0.772 $\\pm$ 0.039  ({below_nocode} of {n} below)")
-    ax.axvline(TFIDF_FLOOR, color=BLUE, lw=2, zorder=3,
-               label=f"bag-of-words  {TFIDF_FLOOR:.3f}  ({below_tfidf} of {n} below)")
-    ax.axvline(0.5, color=MUTED, lw=1, ls=(0, (4, 3)), zorder=2)
-    ax.text(0.5, n + 0.4, "chance", ha="center", va="bottom", fontsize=7, color=MUTED)
+    # visually swallows the bag-of-words floor 0.04 away. The sd goes in the key text instead.
+    top = n + 0.9
+    ax.plot([NOCODE_FLOOR] * 2, [-0.4, top], color=ORANGE, lw=1.5, zorder=3,
+            label="reads no code  0.772 $\\pm$ 0.039")
+    ax.plot([TFIDF_FLOOR] * 2, [-0.4, top], color=BLUE, lw=1.5, zorder=3,
+            label=f"bag-of-words  {TFIDF_FLOOR:.3f}")
+
+    # Chance is a threshold, so it stays dashed - but the label used to be centred ON the line,
+    # which struck the word through. It now sits to the right of the line at the foot of the
+    # plot, in the gap below the lowest monitor.
+    ax.plot([0.5, 0.5], [-0.4, top], color=MUTED, lw=0.8, ls=(0, (3, 3)), zorder=2)
+    ax.text(0.507, 0.1, "chance", ha="left", va="bottom", fontsize=9.5, color=MUTED)
     below_heldout = sum(a < NOCODE_HELDOUT for a in aurocs)
 
-    ax.scatter(aurocs, range(1, n + 1), s=34, facecolor=INK2, edgecolor="white",
+    ax.scatter(aurocs, range(1, n + 1), s=26, facecolor=INK2, edgecolor="white",
                linewidth=0.8, zorder=4)
     ax.set_yticks([])
-    ax.set_ylim(0, n + 2.2)
+    ax.set_ylim(-0.4, n + 4.6)          # headroom for the key, above where the rules stop
     ax.set_xlim(0.40, 0.98)
-    ax.set_xlabel("AUROC on the 1,375-item test split", fontsize=8.5, color=INK)
-    ax.set_ylabel(f"{n} open-weight monitors\n(sorted)", fontsize=8.5, color=INK)
-    leg = ax.legend(loc="lower right", fontsize=7.5, frameon=True, framealpha=1,
-                    edgecolor=GRID, borderpad=0.5, borderaxespad=0.8)
+    ax.set_xlabel("AUROC on the 1,375-item test split", fontsize=11.5, color=INK)
+    ax.set_ylabel(f"{n} open-weight monitors\n(sorted)", fontsize=11.5, color=INK)
+    leg = ax.legend(loc="upper left", fontsize=10.5, frameon=False,
+                    handlelength=1.6, handletextpad=0.6, labelspacing=0.45,
+                    borderaxespad=0.2)
     for t in leg.get_texts():
         t.set_color(INK)
     fig.tight_layout(pad=0.4)
@@ -114,25 +146,29 @@ def fig2_corpora():
     y = list(range(len(names)))
 
     fig, ax = plt.subplots(figsize=(5.5, 2.7))
-    style(ax)
-    ax.axvline(0.5, color=MUTED, lw=1, ls=(0, (4, 3)), zorder=2)
-    ax.text(0.5, len(names) - 0.35, "chance", ha="center", va="bottom", fontsize=7, color=MUTED)
+    style(ax, base=9.5)
+    # Same fix as F3: the label used to be centred on the dashed line and was struck through by
+    # it. Here every row is crowded around 0.5, so the label goes below the last row instead.
+    ax.axvline(0.5, color=MUTED, lw=0.8, ls=(0, (3, 3)), zorder=2)
+    ax.text(0.505, -0.55, "chance", ha="left", va="center", fontsize=8.5, color=MUTED)
 
+    # A thin connector, not a 2.5pt bar. At the old weight it read as a bar grown from the null,
+    # which is the reading the dumbbell was chosen to avoid.
     for i, (v, nv) in enumerate(zip(vals, nulls)):
-        ax.plot([nv, v], [i, i], color=GRID, lw=2.5, zorder=3, solid_capstyle="round")
-    ax.scatter(nulls, y, s=40, facecolor=ORANGE, edgecolor="white", linewidth=0.8, zorder=5,
+        ax.plot([nv, v], [i, i], color=CONNECT, lw=1.1, zorder=3, solid_capstyle="round")
+    ax.scatter(nulls, y, s=30, facecolor=ORANGE, edgecolor="white", linewidth=0.8, zorder=5,
                label="permutation null")
-    ax.scatter(vals, y, s=48, facecolor=BLUE, edgecolor="white", linewidth=0.8, zorder=6,
+    ax.scatter(vals, y, s=34, facecolor=BLUE, edgecolor="white", linewidth=0.8, zorder=6,
                label="within-task, character count only")
     for i, v in enumerate(vals):
-        ax.text(v + 0.011, i, f"{v:.3f}", va="center", fontsize=7.5, color=INK)
+        ax.text(v + 0.012, i, f"{v:.3f}", va="center", fontsize=9, color=INK)
 
     ax.set_yticks(y)
-    ax.set_yticklabels(names, fontsize=8, color=INK, linespacing=1.35)
-    ax.set_ylim(-0.6, len(names) - 0.1)
-    ax.set_xlim(0.44, 0.87)
-    ax.set_xlabel("AUROC", fontsize=8.5, color=INK)
-    leg = ax.legend(loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2, fontsize=7.5,
+    ax.set_yticklabels(names, fontsize=9.5, color=INK, linespacing=1.35)
+    ax.set_ylim(-0.85, len(names) - 0.35)
+    ax.set_xlim(0.44, 0.90)             # 0.87 clipped agentdojo's 0.802 label against the frame
+    ax.set_xlabel("AUROC", fontsize=10, color=INK)
+    leg = ax.legend(loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2, fontsize=9.5,
                     frameon=False, handletextpad=0.4, columnspacing=1.4)
     for t in leg.get_texts():
         t.set_color(INK)
@@ -173,27 +209,22 @@ F1_ROWS = [
     ("Raw artifact, problem level", "all metadata", "AUROC", "0.8917", "no code", "---"),
     ("\\quad same", "difficulty only", "AUROC", "0.6823", "no code", "---"),
     ("\\quad same", "\\texttt{solution\\_passes\\_tests}", "AUROC", "0.7881", "no code", "---"),
-    ("Matched pairs (P3)", "all metadata", "AUROC", "0.5000", "no code",
-     "exactly chance by construction"),
+    ("Matched pairs (P3)", "all metadata", "AUROC", "0.5000", "no code", "by construction"),
     # RESULTS.md §6 (2026-09-11): the matched protocol re-measured with comments stripped from
     # both classes, mean over five problem-disjoint splits. The paper reports the stripped rows;
     # the comments-kept rows are the earlier values, kept here labelled as what they are.
-    ("DSPy matched, problem-disjoint", "TF-IDF word 1--2gram", "pairwise", "0.897", "stripped",
-     "tutorial monitor 0.69--0.81"),
+    ("DSPy matched pairs", "TF-IDF word 1--2gram", "pairwise", "0.897", "stripped",
+     "monitor 0.69--0.81"),
     ("\\quad working backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.935", "stripped",
      "---"),
     ("\\quad \\textbf{inert} backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.879",
-     "stripped", "the signal is not sabotage"),
-    ("\\quad transfer, Control Tax $\\rightarrow$ GPT-4-era set", "TF-IDF word 1--2gram",
+     "stripped", "not sabotage"),
+    ("\\quad transfer, cross-generator", "TF-IDF word 1--2gram",
      "pairwise", "0.969", "stripped", "---"),
-    ("\\quad all pairs, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.962", "kept",
-     "inflated by the comment channel"),
-    ("\\quad working, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.979", "kept",
-     "inflated by the comment channel"),
-    ("\\quad inert, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.955", "kept",
-     "inflated by the comment channel"),
-    ("\\quad transfer, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.994", "kept",
-     "inflated by the comment channel"),
+    ("\\quad all pairs, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.962", "kept", "---"),
+    ("\\quad working, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.979", "kept", "---"),
+    ("\\quad inert, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.955", "kept", "---"),
+    ("\\quad transfer, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.994", "kept", "---"),
     # This row used to read "0.8255 | and 0.4726 once filtered": a pairwise accuracy with an
     # AUROC from another split in its Against cell, under the pairwise heading. The 0.4726
     # contrast lives in the AUROC block above, where it belongs; this row stands alone.
@@ -245,8 +276,11 @@ def fig1_table():
         "\\caption{What the field's preprocessing leaves behind. Every row is measured under the "
         "protocol named in column one; rows are not comparable across protocols. "
         "\\emph{Prep.} says whether comments were stripped before the baseline read the code; "
-        "\\emph{no code} means the baseline never reads the program. Pairwise accuracies are "
-        "given to three decimals, their resolution over the pair count.}",
+        "\\emph{no code} means the baseline never reads the program. The comments-kept rows are "
+        "inflated by the comment channel and are given for contrast, not as results. The matched "
+        "rows are problem-disjoint and scored against the DSPy tutorial monitor; the transfer "
+        "row runs Control Tax to the GPT-4-era set. "
+        "Pairwise accuracies are given to three decimals, their resolution over the pair count.}",
         "\\label{tab:protocol-baseline}",
         "\\begin{tabular}{" + col + "}",
         "\\toprule",

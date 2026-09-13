@@ -1,8 +1,8 @@
 # paper/ — the submission
 
-Built and verified 2026-09-13 after **pass 7** (the generator limitation inverted), on top of
-**pass 6** (problem-first framing, literature confined to §1) and **pass 5** (format
-conventions), all three described below. Those sit on **pass 4** (a clarity pass against the
+Built and verified 2026-09-13 after **pass 8** (the figures and the appendix tables), on top of
+**pass 7** (the generator limitation inverted), **pass 6** (problem-first framing, literature
+confined to §1) and **pass 5** (format conventions), all four described below. Those sit on **pass 4** (a clarity pass against the
 cold review's weaknesses 1, 4 and 6, [`notes/12-final-review.md`](../notes/12-final-review.md)
 §1), **pass 3** (that review's M1–M10), the second pass (`notes/11-pass2-brief.md`) and the
 reviewer audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
@@ -10,6 +10,51 @@ reviewer audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
 pages** — the body fills page 4 with **no free body line by the probe below (N = 0)**,
 References begins on page 5, and the appendix follows the references. Nothing of the body reaches
 page 5.
+
+## Pass 8 (2026-09-13) — the figures and the appendix tables
+
+Everything here was found by rasterising the built PDF and looking at it (`pdftoppm -r 190`),
+not by reading the source. Do that before believing a figure is fine. Both figures regenerate
+**bit-identically** across runs (md5 checked), the probe is **still N = 0**, and no number moved.
+
+**The figures set in the wrong typeface, and that was the biggest single problem.** They rendered
+in matplotlib's default DejaVu Sans against a paper set in Times, which is why they read as
+pasted in. `figures.py` now sets `font.family: serif` with **Nimbus Roman** first — the URW clone
+of Times, metrically identical to the `ptm` the style file uses, and present in TeX Live and
+ghostscript. Also `pdf.fonttype: 42`, so glyphs embed as TrueType rather than Type 3.
+
+**A vertical rule struck through text in three places.** The `chance` label was drawn `ha="center"`
+at x = 0.5, i.e.\ centred *on* the dashed rule, in both figures. Fixing that exposed two more of
+the same kind: with the counts in the key, the orange floor rule crossed its own legend entry, and
+the full-height dashed rule crossed both key rows. The rules now **stop at the top of the data**
+(`ax.plot` between explicit limits, not `axvline`), so the band holding the key is empty by
+construction, and both `chance` labels sit beside their rule rather than under it.
+
+**F3's boxed legend sat on top of the data.** It was `loc="lower right"` with a frame, over both
+floor rules. It is now frameless in the upper-left, which is dead space because the dots are
+sorted. The counts moved to the caption, which now reads "Both floors clear 20 of the 24".
+
+**The type was too small on the page.** F3 is included at `0.64\linewidth`, so 8pt in the figure
+renders at about 5pt. Sizes are now given at the scale each figure is included at (F3 base 11,
+F2 base 9.5). The figure canvas is unchanged, so the page geometry is unchanged.
+
+**F2's connector read as a bar.** 2.5pt in the grid colour, which is the reading the dumbbell was
+chosen to avoid; now 1.1pt in its own tone. The y tick marks rendered as stray dashes beside the
+two-line labels and are gone, and `xlim` went to 0.90 because 0.87 pushed `agentdojo`'s label
+against the frame.
+
+**Table A2 had four identical two-line cells.** "inflated by the comment channel" appeared four
+times running, which is what made the lower half ragged; the `Prep.` column already says "kept",
+so the caption says it once and those cells are now "—". Three more cells overran the column and
+wrapped ("exactly chance by construction", "tutorial monitor 0.69–0.81", "the signal is not
+sabotage") and are shortened. Two protocol labels overran column one and their continuation lines
+set flush left, reading as new top-level rows: "DSPy matched, problem-disjoint" and "transfer,
+Control Tax → GPT-4-era set". Both now fit on one line and the detail is in the caption.
+**Every row in the table is now a single line.**
+
+**Table A3** loses the em dash before "(the regime to match)" — the cell is just "the regime to
+match". Its headers say `share > 0.95` / `share < 0.60` rather than bare inequalities, the caption
+says what the shares are of, and all three row labels are bold instead of two of three.
 
 ## Pass 7 (2026-09-13) — the generator limitation, inverted not deleted
 

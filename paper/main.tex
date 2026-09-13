@@ -561,7 +561,8 @@ corpus.
 \caption{\textbf{Two floors against the \monN{} open-weight monitors ranked on the same
 split.} AUROC on the \splitTest{}-item test split (\splitAttack{} attack /
 \splitHonest{} honest), comments stripped; monitor scores from the MIT-licensed release of
-\cite{jha2026decorrelation}, median \monMedian{}, max \monMax{}. \textbf{Two caveats.} (i)~The monitors are
+\cite{jha2026decorrelation}, median \monMedian{}, max \monMax{}. Both floors clear
+\tfidfKoranCount{} of the \monN{}. \textbf{Two caveats.} (i)~The monitors are
 zero-shot prompted while the bag-of-words classifier is \emph{trained} on the benchmark's own
 paired train split: a statement about what the corpus makes recoverable, not a claim that
 bag-of-words is a better monitor.
@@ -854,15 +855,16 @@ making the classes alike.
 \setlength{\tabcolsep}{5pt}
 \caption{Character similarity of honest/attack pairs, comments stripped. The edit arm's
 classes are near-copies; the independent arm reproduces the stored benchmark's regime, where
-the two classes are largely independent programs.}
+the two classes are largely independent programs. The last two columns are the share of pairs
+above and below those similarities.}
 \label{tab:similarity}
 \begin{tabular}{@{}l r r r l@{}}
 \toprule
-Attack class & mean sim. & $>0.95$ & $<0.60$ & changes vs.\ the benchmark \\
+Attack class & mean sim. & share $>0.95$ & share $<0.60$ & changes vs.\ the benchmark \\
 \midrule
-\textbf{stored benchmark} & \simStored{} & \simStoredHigh{} & \simStoredLow{} & --- (the regime to match) \\
-edit (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & authorship \emph{and} similarity \\
-\textbf{independent} (problem only) & \simIndep{} & \simIndepHigh{} & \simIndepLow{} & \textbf{authorship only} \\
+\textbf{stored benchmark} & \simStored{} & \simStoredHigh{} & \simStoredLow{} & the regime to match \\
+\textbf{edit} (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & authorship \emph{and} similarity \\
+\textbf{independent} (problem only) & \simIndep{} & \simIndepHigh{} & \simIndepLow{} & authorship only \\
 \bottomrule
 \end{tabular}
 \end{table}
