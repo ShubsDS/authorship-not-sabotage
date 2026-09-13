@@ -106,17 +106,25 @@ SCAN = [
 #   0.871  \baselineB, n = \baselineBn 1,444   (apps/gate_s_baseline.json)
 #   0.751  \sameGenS,  n = \sameGenN   623
 #   0.642  \matchedS,  n = \matchedN   586
+# Each row carries its STATUS and nothing else. The generator names and prompt names the rows used
+# to print under each class ("human" / "Sonnet 3.7", "solve" / "attack", "none" / "planted") are
+# gone as of 2026-09-13: they were the figure answering a question - which writer, which prompt -
+# that the caption and section 2 already answer, and reading them meant reading six cells to
+# recover one bit per row. The badge IS the bit. Everything the reader needs from a row is now on
+# one line: the property, and whether it is held.
 CONSTRUCTIONS = [
     dict(key="stored",  title="stored benchmark",  n="1,444 pairs", auroc=0.871, ours=False,
-         writer=("human", "Sonnet 3.7"), prompt=("none", "attack"),
+         writer="confounded", prompt="confounded",
          pill=(BAD_BG, "#fecdd3", "#be123c")),
     dict(key="samegen", title="same-generator",    n="623 pairs",   auroc=0.751, ours=True,
-         writer="Sonnet 5",              prompt=("solve", "attack"),
+         writer="controlled", prompt="confounded",
          pill=("#eff6ff", "#bfdbfe", "#1d4ed8")),
     dict(key="matched", title="prompt-matched",    n="586 pairs",   auroc=0.642, ours=True,
-         writer="Sonnet 5",              prompt="same template",
+         writer="controlled", prompt="controlled",
          pill=(OK_BG, "#bbf7d0", "#15803d")),
 ]
+
+BADGE = {"confounded": (BAD_BG, BAD_TX), "controlled": (OK_BG, OK_TX), "target": (TGT_BG, TGT_TX)}
 
 # Every row: label, rho, lo, hi, colour. `None` bounds mean the ledger quotes no joint interval,
 # and then no whisker is drawn. The draft invented one for 1.234 (1.150-1.318) and mis-set two
@@ -167,15 +175,19 @@ def save(fig, name):
 #  F4  -  how a stored pair is built, and how we rebuild it
 # =============================================================================================
 #
-# Ported from the draft's three-panel card layout, with one structural change that the paper's
-# caption depends on: a property the two classes SHARE is written once, centred across the pair;
-# one they DIFFER in is written twice, once under each class. Count the merged rows and you have
-# the paper: none, one, two. Cleveland & McGill put position on a common scale first and colour
-# hue last, so the figure's one claim rides on position; the badge only names it.
+# Ported from the draft's three-panel card layout. Each factor row is ONE LINE - the property on
+# the left, its status on the right - and the ladder is read by scanning the badge column down each
+# panel: two confounded, then one, then none. Count them and you have the paper.
 #
-# What the draft carried that is gone: the italic strap-lines under each header ("Standard
+# An earlier pass wrote the values under each class as well (a shared property once and tied, a
+# differing one twice, once per class). That encoded the same one bit per row a second time, in a
+# channel that cost six cells to read, and the values themselves - which generator, which prompt -
+# are section 2's job, not this figure's. Cut 2026-09-13. If anything ever goes back into a row,
+# it has to earn its line against the badge, which already says the only thing the row asserts.
+#
+# What the draft carried that is also gone: the italic strap-lines under each header ("Standard
 # Multi-Factor Confound", "Full Factor Isolation Control"), the per-card provenance captions, and
-# "BoW: 0.806" on the first panel - a value main.tex:556 explicitly says is NOT one of these three.
+# "BoW: 0.806" on the first panel - a value that is the Koran-split floor, not one of these three.
 
 def _measure(ax, t):
     ax.figure.canvas.draw()
@@ -203,19 +215,22 @@ def _card(ax, x, y, w, h, title, bg, ec, tc, fs=7.5, lw=0.9, r=1.0):
 
 
 def fig4_constructions():
-    fig, ax = plt.subplots(figsize=(W_F4, 3.15))
+    # 2.45in, down from 3.15: the rows are one line each now. Every constant below is a fraction
+    # of that height, so if the figsize moves they all have to be recomputed against the POINT
+    # sizes - a y-unit here is 1.764pt and the type does not scale with the canvas.
+    fig, ax = plt.subplots(figsize=(W_F4, 2.45))
     ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.axis("off")
     fig.subplots_adjust(left=0.002, right=0.998, top=0.998, bottom=0.002)
 
     PW = (98.0 - 2 * 2.2) / 3
     XS = [1.0 + i * (PW + 2.2) for i in range(3)]
-    Y_PANEL, H_PANEL = 2.5, 88.0
-    Y_HEAD, Y_N = 90.5, 83.6
-    Y_PROB, H_PROB = 72.8, 8.6
-    Y_CARD, H_CARD = 55.2, 10.6
-    Y_RULE = 52.6
-    ROW_Y, ROW_H = (40.2, 28.2, 16.2), 11.4
-    Y_PILL, H_PILL = 3.4, 10.2
+    Y_PANEL, H_PANEL = 2.0, 93.0
+    Y_HEAD, Y_N = 95.0, 87.8
+    Y_PROB, H_PROB = 73.0, 10.8
+    Y_CARD, H_CARD = 55.5, 12.5
+    Y_RULE = 52.0
+    ROW_Y, ROW_H = (40.5, 30.3, 20.1), 8.5
+    Y_PILL, H_PILL = 3.4, 13.6
 
     for col, x in zip(CONSTRUCTIONS, XS):
         cx = x + PW / 2
@@ -255,44 +270,28 @@ def fig4_constructions():
         _card(ax, rx - cw / 2, Y_CARD, cw, H_CARD, "attack", BAD_BG, BAD_EC, BAD_TX)
         ax.plot([x + 1.6, x + PW - 1.6], [Y_RULE, Y_RULE], color=GRID, lw=0.8, zorder=2)
 
-        rows = [("writer", col["writer"]), ("prompt", col["prompt"]),
-                ("backdoor", ("none", "planted"))]
-        for ry, (name, val) in zip(ROW_Y, rows):
+        rows = (("writer", col["writer"]), ("prompt", col["prompt"]), ("backdoor", "target"))
+        for ry, (name, status) in zip(ROW_Y, rows):
             ax.add_patch(FancyBboxPatch((x + 1.6, ry), PW - 3.2, ROW_H,
                                         boxstyle="round,pad=0,rounding_size=0.7",
                                         fc="#ffffff", ec="#e5e7eb", lw=0.8, zorder=2))
-            ax.text(x + 3.0, ry + 7.9, name, ha="left", va="center", fontsize=6.8,
+            yc = ry + ROW_H / 2
+            ax.text(x + 3.0, yc, name, ha="left", va="center", fontsize=6.8,
                     color=INK, weight="bold", zorder=4)
-            if name == "backdoor":
-                bg, tc, badge = TGT_BG, TGT_TX, "target"
-            elif isinstance(val, tuple):
-                bg, tc, badge = BAD_BG, BAD_TX, "confounded"
-            else:
-                bg, tc, badge = OK_BG, OK_TX, "controlled"
-            _badge(ax, x + PW - 3.0, ry + 7.9, badge, bg, tc)
-            if isinstance(val, tuple):          # differs: written twice, under each class
-                for tx, s in ((lx, val[0]), (rx, val[1])):
-                    ax.text(tx, ry + 2.9, s, ha="center", va="center", fontsize=7.0,
-                            color=INK2, zorder=4)
-            else:                               # held identical: written once, and tied
-                ax.text(cx, ry + 3.4, val, ha="center", va="center", fontsize=7.0,
-                        color=INK2, zorder=4)
-                yt = ry + 1.4
-                ax.plot([lx, rx], [yt, yt], color=BLUE, lw=0.8, zorder=4, solid_capstyle="butt")
-                for e in (lx, rx):
-                    ax.plot([e, e], [yt, yt + 1.1], color=BLUE, lw=0.8, zorder=4)
+            _badge(ax, x + PW - 3.0, yc, status, *BADGE[status])
 
         pbg, pec, ptc = col["pill"]
         ax.add_patch(FancyBboxPatch((x + 1.6, Y_PILL), PW - 3.2, H_PILL,
                                     boxstyle="round,pad=0,rounding_size=1.1",
                                     fc=pbg, ec=pec, lw=1.0, zorder=2))
-        ax.text(cx, Y_PILL + 7.2, "AUROC", ha="center", va="center", fontsize=6.0,
+        ax.text(cx, Y_PILL + 9.4, "AUROC", ha="center", va="center", fontsize=6.0,
                 color=MUTED, zorder=3)
-        ax.text(cx, Y_PILL + 3.0, f"{col['auroc']:.3f}", ha="center", va="center", fontsize=10.0,
+        ax.text(cx, Y_PILL + 4.4, f"{col['auroc']:.3f}", ha="center", va="center", fontsize=10.0,
                 color=ptc, weight="bold", zorder=3)
 
     save(fig, "f4-constructions.pdf")
-    print("F4: 0 / 1 / 2 merged rows left to right; AUROC ladder "
+    conf = [sum(1 for k in ("writer", "prompt") if c[k] == "confounded") for c in CONSTRUCTIONS]
+    print(f"F4: {' / '.join(map(str, conf))} confounded rows left to right; AUROC ladder "
           + " / ".join(f"{c['auroc']:.3f}" for c in CONSTRUCTIONS))
 
 

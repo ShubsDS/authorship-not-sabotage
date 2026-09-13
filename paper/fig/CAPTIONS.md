@@ -78,72 +78,86 @@ protocol's number against another's.
 
 ## F4 · `f4-constructions.pdf`
 
-**Fourth version, 2026-09-13.** V1 was a flow diagram (trees, arrows, a chip row per panel). V2
-was the same content as a grid of twelve filled rounded boxes, and it still read as cluttered.
-V3 removed every box. **V4 puts the cards back** — the dashboard draft's panel, problem deck,
-honest/attack cards, factor rows and status badges — but keeps V3's encoding intact, which is the
-only reason the port is defensible. The merged / split grammar and the alignment survive intact,
-and the badge only *names* what position already says. The enclosure finding is the one V4 spends
-down — see the second bullet below. Height is **3.15 in**, up from V3's 2.16, which the cards cost.
+**Fifth version, 2026-09-13.** V1 was a flow diagram (trees, arrows, a chip row per panel). V2 was
+the same content as a grid of twelve filled rounded boxes, and it still read as cluttered. V3
+removed every box. V4 restored the dashboard draft's cards — panel, problem deck, honest/attack
+cards, factor rows, status badges — and kept V3's value grammar inside them, so each factor row ran
+to two lines: the status on the first, the values under each class on the second. **V5 cuts the
+second line.** A factor row is now the property and its status, and nothing else. Height is
+**2.45 in** (V4 3.15, V3 2.16, V1 2.62).
 
-Three things V4 changes beyond the styling:
+**What went, and why it is not a loss.** The values were `human` / `Sonnet 3.7`, `Sonnet 5` merged
+and tied, `solve` / `attack`, `same template`, `none` / `planted` — eighteen strings carrying, per
+row, the same one bit the badge carries: is this property held across the pair. Reading them meant
+reading six cells to recover three bits, and answering a question — *which* writer, *which* prompt
+— that is section 2's, not this figure's. Two things follow and both should be kept:
 
-* The pair count (`1,444 pairs`, `623 pairs`, `586 pairs`) is now **in** each panel. The caption
-  used to carry all three, and the ladder claim — these are different problem sets, not a paired
-  comparison — is the one thing a reader must not miss.
+* The ladder is now read **down the badge column**: two *confounded*, then one, then none. That is
+  the paper, in the place a reader's eye already goes.
+* Nothing goes back into a row without earning its line against the badge, which already states
+  the only thing the row asserts.
+
+Three other things this version fixes or carries:
+
+* The pair count (`1,444 pairs`, `623 pairs`, `586 pairs`) is **in** each panel. The ladder claim —
+  these are different problem sets, not a paired comparison — is the one thing a reader must not
+  miss, and the caption should not be its only home.
 * The AUROC row is a **number in a tinted pill**, not a dot on a chance-to-1.0 scale. The caption's
-  clause "on one scale from chance to 1.0" was cut with it; do not restore one without the other.
-* The draft labelled panel one **`BoW: 0.806`**. That is the Koran-split floor, and this figure's
-  own caption says in as many words that none of the three numbers is it. The value is
-  `\baselineB` = 0.871. `check()` now fails the build if panel one is ever within 0.005 of the
-  floor again.
+  clause "on one scale from chance to 1.0" went with it; do not restore one without the other.
+* The dashboard draft labelled panel one **`BoW: 0.806`**. That is the Koran-split floor, measured
+  on the split the monitors are ranked on; none of this figure's three numbers is it. Panel one is
+  `\baselineB` = 0.871, and `check()` fails the build if it ever comes within 0.005 of the floor
+  again — the caption alone did not stop it the first time.
 
-The three findings that decided V3. Two are spent exactly as they were; the middle one is not:
+### The three findings that decided V3, and where V5 stands on each
+
+Two are spent down. That is a real cost of the card layout and it should be recorded as one, not
+argued away.
 
 * **Cleveland & McGill's ranking of elementary perceptual tasks** (Wong, *Nat. Methods* **7**:665)
-  puts *position on a common scale* first and *colour hue* last. V2 encoded its one claim — are
-  the two classes the same in this property or not — in **fill colour**, rank 6–7. V3 puts it in
-  **position**: a shared property is written **once**, centred across the pair and tied; a
-  differing one is written **twice**, once under each class. One word versus two.
+  puts *position on a common scale* first and *colour hue* last. V2 encoded its one claim — are the
+  two classes the same in this property or not — in **fill colour alone**, rank 6–7, with no word
+  attached; that was the defect. V3 moved it to position (written once and tied, or twice). **V5
+  uses neither: the claim is a word.** The ranking governs the decoding of *quantities*, and this
+  claim is nominal and two-valued, for which a read label is exact and needs no decoding at all.
+  Hue rides along as redundant reinforcement, which is the one use of it the finding permits. This
+  is why the badge must keep its **text** — a bare coloured chip would be V2's defect returning.
 * **Gestalt grouping** (Wong, *Nat. Methods* **7**:863): enclosure is the strongest grouping cue,
-  strong enough to override similarity, proximity and connection — so it must be spent once, on
+  strong enough to override similarity, proximity and connection, so it should be spent once, on
   the grouping that matters most. V2 spent it on all twelve cells plus the panel, so nothing was
-  grouped. V3 spent it once, on the tint behind the two columns we build. **V4 re-enclosed the
-  panels and the cards, so enclosure is no longer what marks that grouping** — the tint still is,
-  and it is now the only thing distinguishing the two columns we build from the one we inherited.
-  This is the finding V4 spends down; it is the price of the card layout, and it is why the tint
-  must not be dropped.
+  grouped. V3 spent it once, on the tint behind the two columns we build. **V4/V5 re-enclosed the
+  panels, the cards and the rows, so enclosure no longer marks that grouping** — the tint is now
+  the only thing separating the two constructions we build from the one we inherited, and it must
+  not be dropped.
 * **Visual completion** (Wong, *Nat. Methods* **7**:941): *"enables us to forgo the extraneous
   lines, boxes, bullets and other graphical elements that tend to clutter our presentations."*
-  The rows and columns hold together on alignment alone, with two hairlines for structure.
-
-The tie under a merged value is grouping by **connection**, the next cue down, which is the right
-weight for a secondary signal. Count the ties and you have the paper: none, one, two.
+  **Also spent down.** V3 held its rows and columns together on alignment alone with two hairlines.
+  V5 draws a box per row, per card and per panel. What buys it back, partly, is that V5's rows are
+  one line instead of two, so there are nine boxes of text where V4 had nine boxes of text plus
+  eighteen loose strings, and the figure is 0.7 in shorter.
 
 Column titles are the ladder. V3's were *as stored* / *+ same writer* / *+ same prompt*, each
-naming the row it merges. V4's are the paper's own names for the three corpora — *stored
-benchmark*, *same-generator*, *prompt-matched* — because the body and Table 2 name the arms that
-way and the reader has to get from one to the other. The merged rows still say which property
-each construction fixed, so the rename costs nothing.
+naming the row it merges. V5's are the paper's own names for the three corpora — *stored benchmark*,
+*same-generator*, *prompt-matched* — because the body and Table 2 name the arms that way and the
+reader has to get from one to the other.
 
-**Cut on request, 2026-09-13:** the *as stored* / *what we build* band labels (the tint carries
-it, and the caption names it); $\rho$ (nothing near this figure explains it — it is defined in
-§3 and tabulated in Table 2); and the $B$ / $S$ symbols. $B$ and $S$ are the same classifier's
-AUROC on different corpora, and printing them under two letters made one measurement look like
-two — the three numbers are now bare under a row labelled AUROC.
+**Cut on request, 2026-09-13:** the *as stored* / *what we build* band labels (the tint carries it,
+and the caption names it); $\rho$ (nothing near this figure explains it — it is defined in §3 and
+tabulated in Table 2); and the $B$ / $S$ symbols. $B$ and $S$ are the same classifier's AUROC on
+different corpora, and printing them under two letters made one measurement look like two — the
+three numbers are bare under a row labelled AUROC.
 
-**Text budget — this applies to every figure, not only F4.** Every string on the canvas is a
-label, never a phrase. The row label and the cell form the phrase between them ("prompt" +
-"solve", not a cell reading "solve the problem"), and anything needing a clause goes in the
-caption. V2 still carried "Claude Sonnet 5 writes both", "one prompt for both classes", "written
-for APPS" and "$\rho$ = 0.687 of the baseline"; all of it is gone. Both generators are Sonnet
-models, so they are named "Sonnet 3.7" and "Sonnet 5" rather than "Claude 3.7" against "Claude
-Sonnet 5", which hid that and cost a word.
+**Text budget — this applies to every figure, not only F4.** Every string on the canvas is a label,
+never a phrase. The row label and the badge form the phrase between them ("prompt" + "confounded",
+not a cell reading "the two classes were prompted differently"), and anything needing a clause goes
+in the caption. V2 carried "Claude Sonnet 5 writes both", "one prompt for both classes", "written
+for APPS" and "$\rho$ = 0.687 of the baseline"; the dashboard draft carried "Standard Multi-Factor
+Confound" and "Full Factor Isolation Control"; all of it is gone. With V5 the generator names are
+gone too, which retires the old note here about spelling them "Sonnet 3.7" and "Sonnet 5" so that
+both reading as Sonnet models was visible — section 2 carries that now.
 
 Not in it, deliberately: Haiku 4.5 and the strict rows (Table 2 carries every row), the fire
-shares, and the flow arrows V1 spent most of its ink on. Height is **2.16 in**, down from V1's
-2.62: dropping the boxes, the band row and the $\rho$ row took it there, and the space went to a
-caption that now has to teach the encoding.
+shares, and the flow arrows V1 spent most of its ink on.
 
 > ⚠️ **One imprecision this figure turned up, not yet fixed in the ledger.** `RESULTS.md` §13 says
 > `PROMPT_INDEPENDENT_HONEST` is `PROMPT_INDEPENDENT` "with only the flaw sentence replaced", and
