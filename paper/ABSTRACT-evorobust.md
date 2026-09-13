@@ -85,13 +85,19 @@ The EvoRobust title is not locked by anything and can be decided on Sep 12. Rout
 **What Survives the Filter? Trivial Baselines on Stored Honest/Attack Pairs
 in AI-Control Monitoring**. If Gate S collapses, *Authorship, Not Sabotage* is stronger.
 
-**Decided 2026-09-13:** the title is **Authorship Confounds in AI-Control Monitor Evaluation: Baseline Floors and a Same-Generator Corpus**.
+**Decided 2026-09-13:** the title is **Authorship Confounds in AI-Control Monitor Evaluation: Partial-Input and Bag-of-Words Floors, and a Same-Generator Corpus**.
 The rhetorical question was dropped as attention-seeking, and the authorship reading leads, with
 the two contributions named after the colon. Two word choices are deliberate. *Monitor
 Evaluation*, not *Monitoring*: the confound is in how monitors are evaluated, and the first
 Limitations paragraph is explicit that a high floor does not settle results computed on the
-corpus. *Baseline Floors*, not *Trivial Baselines*: `floor` is the body's own term (36 uses
-against one for `trivial`, and that one describes the `--leak-check` detectors, not ours), and
-the bag-of-words classifier is trained on the benchmark's train split, so calling it trivial
-oversells the asymmetry against the zero-shot monitors. The Scope sentence in §1 still carries
-the narrowing to stored pairs that the title does not.
+corpus. *Partial-Input and Bag-of-Words Floors*, not *Trivial Baselines* and not
+*Baseline Floors*. `trivial` appears once in the body and describes the `--leak-check`
+detectors rather than ours, and the bag-of-words classifier is trained on the benchmark's train
+split, so calling it trivial oversells the asymmetry against the zero-shot monitors. *Baseline
+Floors* was the next draft and is redundant (a baseline of this kind is the floor) and names
+neither floor; the phrase used instead is the abstract's closing sentence and Recommendation 2
+verbatim, and it says what the two floors read, which is the point. *Content-blind* was
+rejected because it is true of the no-code floor only and would mislabel the headline
+\tfidfKoran{} one. Note for a later pass: `floor` is never defined in the body, and it carries
+a second, unrelated sense in Limitations (the 50-pair sample-size floor). The Scope sentence in
+§1 still carries the narrowing to stored pairs that the title does not.

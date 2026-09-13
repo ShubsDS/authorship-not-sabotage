@@ -1,5 +1,5 @@
 % =====================================================================================
-%  Authorship Confounds in AI-Control Monitor Evaluation: Baseline Floors and a Same-Generator Corpus
+%  Authorship Confounds in AI-Control Monitor Evaluation: Partial-Input and Bag-of-Words Floors, and a Same-Generator Corpus
 %  EvoRobust @ NeurIPS 2026 - 4 content pages, non-archival, double-blind, Sep 12 AoE.
 %
 %  Scaffold built 2026-09-09. Cut plan (notes/06 §5.1) and §1 applied 2026-09-11.
@@ -443,14 +443,16 @@
 
 % =====================================================================================
 
-% Three lines, broken by hand. Unbroken, LaTeX wraps after "Monitor" and strands
-% "Evaluation:" alone on line two. Breaking before "AI-Control" and at the colon
-% puts each break on a phrase boundary. "Monitor Evaluation" not "Monitoring":
-% the confound is in how monitors are evaluated, not in monitoring itself (see the
-% first Limitations paragraph). "Baseline Floors" not "Trivial Baselines": floor is
-% the body's word (36 uses), and the bag-of-words classifier is TRAINED, so calling
-% it trivial oversells the asymmetry against the zero-shot monitors.
-\title{Authorship Confounds in\\AI-Control Monitor Evaluation:\\Baseline Floors and a Same-Generator Corpus}
+% Four lines, broken by hand at each phrase boundary; unbroken, LaTeX strands
+% "Evaluation:" alone on a line. Wording checked against the body, not chosen by ear:
+%   "Monitor Evaluation" not "Monitoring" - the confound is in how monitors are
+%     evaluated, which the first Limitations paragraph is explicit about.
+%   "Partial-Input and Bag-of-Words Floors" not "Baseline Floors" - this is the
+%     abstract's closing phrase and Recommendation 2 verbatim, and it says what the
+%     two floors READ, which is the point. "Baseline floor" is redundant (a baseline
+%     of this kind IS the floor) and names neither. Not "content-blind" either: that
+%     is true of the no-code floor only, and would mislabel the headline 0.806.
+\title{Authorship Confounds in\\AI-Control Monitor Evaluation:\\Partial-Input and Bag-of-Words Floors,\\and a Same-Generator Corpus}
 
 % Required by the dblblindworkshop option - appears in the title footnote.
 \workshoptitle{Self-Evolving Diversity-Driven Search for Robust AI Systems}

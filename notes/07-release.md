@@ -7,7 +7,7 @@ both upstream artifacts this work builds on most — `RoganInglis/apps-control-a
 `anik-jha/challenger-panels`.
 
 > **Updated 2026-09-13:** the paper was renamed to *Authorship Confounds in AI-Control Monitor
-> Evaluation: Baseline Floors and a Same-Generator Corpus*. `LICENSE` and the `RELEASE-CARD.md`
+> Evaluation: Partial-Input and Bag-of-Words Floors, and a Same-Generator Corpus*. `LICENSE` and the `RELEASE-CARD.md`
 > citation block now carry that title (BibTeX key `authorshipconfounds`); the procedure above is
 > otherwise unchanged. Any release bundle built before that date carries the old title and
 > should be rebuilt.
