@@ -4,6 +4,8 @@ F1  protocol x baseline    -> LaTeX booktabs table (it is >7 rows of labelled va
                               table, not a chart)
 F2  per-corpus floors      -> horizontal bars with the permutation null marked on every bar
 F3  monitors vs our floors -> dot plot of 24 monitors against the two floors
+F4  the three constructions -> the confound and the control, as a diagram
+F5  rho forest             -> every arm's retained signal against the bands
 
 Colour: slots 1 and 2 of the reference palette (blue #2a78d6, orange #eb6834) in their documented
 order, which that palette certifies for the adjacent pairlist in light mode. Monitors and bars carry
@@ -20,6 +22,7 @@ import statistics
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch  # noqa: E402
 
 # The figures used to render in matplotlib's default sans while the paper sets in Times (ptm).
 # That mismatch, not the data, was what made them read as pasted in. Nimbus Roman is the URW
@@ -299,9 +302,208 @@ def fig1_table():
           f"5 columns, sized to fit a 5.5in text block")
 
 
+# =====================================================================================
+#  F4 and F5 are the BODY figures for the narrative rebuild: the confound and the control
+#  as a diagram, and every arm's retained signal against the pre-registered bands.
+#
+#  Both are included at \linewidth, so - per pass 8's rule - their point sizes are given at
+#  the size they render on the page. The paper's body is 10pt; nothing here is below 8pt.
+#  Both set in the same serif as F2/F3 through the rcParams at the top of this file.
+# =====================================================================================
+
+def _pill(ax, x, y, text, *, fs, fc, ec, tc, padx=2.6, pady=2.1, weight="normal", lw=0.9):
+    """Text first, then a rounded box measured to it, so the box can never crop the label."""
+    t = ax.text(x, y, text, ha="center", va="center", fontsize=fs, color=tc,
+                weight=weight, zorder=6, linespacing=1.3)
+    ax.figure.canvas.draw()
+    bb = t.get_window_extent().transformed(ax.transData.inverted())
+    ax.add_patch(FancyBboxPatch((bb.x0 - padx, bb.y0 - pady),
+                                bb.width + 2 * padx, bb.height + 2 * pady,
+                                boxstyle="round,pad=0,rounding_size=0.8",
+                                fc=fc, ec=ec, lw=lw, zorder=5))
+    return bb.y0 - pady, bb.y1 + pady
+
+
+def _arrow(ax, a, b, color=MUTED, lw=0.9):
+    ax.add_patch(FancyArrowPatch(a, b, arrowstyle="-|>", mutation_scale=8, color=color,
+                                 lw=lw, zorder=4, shrinkA=0, shrinkB=0))
+
+
+def _chiprow(ax, xc, y, items, fs):
+    """Centred row of chips. items = [(label, fill, textcolour)]. Two-pass, like _pill."""
+    handles = [(ax.text(0, y, lab, ha="center", va="center", fontsize=fs, color=tc, zorder=7),
+                fc) for lab, fc, tc in items]
+    ax.figure.canvas.draw()
+    padx, gap = 1.6, 1.6
+    widths = [h.get_window_extent().transformed(ax.transData.inverted()).width + 2 * padx
+              for h, _ in handles]
+    x = xc - (sum(widths) + gap * (len(widths) - 1)) / 2
+    for (h, fc), w in zip(handles, widths):
+        h.set_x(x + w / 2)
+        ax.figure.canvas.draw()
+        bb = h.get_window_extent().transformed(ax.transData.inverted())
+        ax.add_patch(FancyBboxPatch((x, bb.y0 - 1.3), w, bb.height + 2.6,
+                                    boxstyle="round,pad=0,rounding_size=0.6",
+                                    fc=fc, ec="none", zorder=6))
+        x += w + gap
+
+
+def fig4_constructions():
+    """The confound and the control, side by side: three panels, one factor removed at a time.
+
+    The five-second read is the chip row - three factors separate the stored classes, two
+    separate ours, one separates the prompt-matched arm - and the number falling underneath it.
+    """
+    fig, ax = plt.subplots(figsize=(5.5, 2.62))
+    ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.axis("off")
+    fig.subplots_adjust(left=0.004, right=0.996, top=0.996, bottom=0.004)
+
+    CX = (17.0, 50.0, 83.0)
+    Y_T, Y_P, Y_G, Y_C, Y_CH, Y_N, Y_A = 95.5, 80.5, 59.0, 36.0, 21.5, 10.5, 2.5
+    FS_BOX, FS_LEAF, FS_CHIP, FS_NUM = 8.5, 8.5, 8.0, 9.5
+
+    for x in (33.5, 66.5):
+        ax.plot([x, x], [3, 90], color=GRID, lw=0.8, zorder=1)
+    for xc, ttl in zip(CX, ("A · as stored", "B · same generator",
+                            "C · + same prompt")):
+        ax.text(xc, Y_T, ttl, ha="center", va="center", fontsize=9.5, color=INK, weight="bold")
+    for xc in CX:
+        _pill(ax, xc, Y_P, "APPS problem", fs=8.0, fc="white", ec=GRID, tc=MUTED)
+
+    # --- A: two authors, so the fork is above the generators -------------------------
+    xa, xb = CX[0] - 7.6, CX[0] + 7.6
+    for x in (xa, xb):
+        _arrow(ax, (CX[0], Y_P - 5.6), (x, Y_G + 9.6))
+    _pill(ax, xa, Y_G, "human\nAPPS\nauthor", fs=FS_BOX, fc="white", ec=INK2, tc=INK)
+    _pill(ax, xb, Y_G, "claude-3-7-\nsonnet-\nthinking", fs=FS_BOX, fc="white", ec=ORANGE, tc=INK)
+    for x, lab in ((xa, "honest"), (xb, "attack")):
+        _arrow(ax, (x, Y_G - 9.6), (x, Y_C + 3.6))
+        ax.text(x, Y_C, lab, ha="center", va="center", fontsize=FS_LEAF, color=INK2)
+
+    # --- B and C: one generator, so the fork is below it ------------------------------
+    for idx, xc in enumerate(CX[1:]):
+        _arrow(ax, (xc, Y_P - 5.6), (xc, Y_G + 7.8))
+        _pill(ax, xc, Y_G, "one model\nSonnet 5  /  Haiku 4.5", fs=FS_BOX,
+              fc="white", ec=BLUE, tc=INK)
+        la, lb = xc - 7.6, xc + 7.6
+        two = idx == 0
+        _arrow(ax, (xc, Y_G - 12.0), (la, Y_C + 3.6), color=MUTED)
+        _arrow(ax, (xc, Y_G - 12.0), (lb, Y_C + 3.6), color=ORANGE if two else MUTED)
+        # The connector label sits ON the fork apex, with a white halo, so no stub shows above it.
+        ax.text(xc, Y_G - 9.7, "two prompts" if two else "same prompt", ha="center",
+                va="center", fontsize=8.0, color=ORANGE if two else INK2, style="italic",
+                zorder=8, bbox=dict(fc="white", ec="none", pad=2.0))
+        for x, lab in ((la, "honest"), (lb, "attack")):
+            ax.text(x, Y_C, lab, ha="center", va="center", fontsize=FS_LEAF, color=INK2)
+
+    # --- the chip row: what still separates the two classes ---------------------------
+    OF, BF, OT, BT = "#fbdccd", "#cfe0f6", "#8a3b17", "#174a87"
+    sets = ([("author", OF, OT), ("prompt", OF, OT), ("sabotage", BF, BT)],
+            [("prompt", OF, OT), ("sabotage", BF, BT)],
+            [("sabotage", BF, BT)])
+    for xc, items in zip(CX, sets):
+        ax.text(xc, Y_CH + 7.2, "the two classes differ by", ha="center", va="center",
+                fontsize=8.0, color=MUTED)
+        _chiprow(ax, xc, Y_CH, items, FS_CHIP)
+
+    # --- and the number underneath it -------------------------------------------------
+    ax.text(CX[0], Y_N, "$B$ = 0.871", ha="center", va="center", fontsize=FS_NUM,
+            color=INK, weight="bold")
+    ax.text(CX[0], Y_A, "(the baseline)", ha="center", va="center", fontsize=8.0, color=MUTED)
+    for xc, s, r, h in ((CX[1], "0.751", "0.687", "0.534   $\\rho$ = 0.095"),
+                        (CX[2], "0.642", "0.394", "0.540   $\\rho$ = 0.113")):
+        ax.text(xc, Y_N, f"$S$ = {s}      $\\rho$ = {r}", ha="center", va="center",
+                fontsize=FS_NUM, color=INK, weight="bold")
+        ax.text(xc, Y_A, f"Haiku 4.5:  {h}", ha="center", va="center", fontsize=8.0, color=MUTED)
+
+    fig.savefig(f"{OUT}/f4-constructions.pdf", metadata=PDF_METADATA)
+    plt.close(fig)
+    print("F4: three constructions; chips 3 -> 2 -> 1, B 0.871 -> S 0.751 -> 0.642")
+
+
+# Every row: label, rho, lo, hi, colour. `None` bounds mean the ledger quotes no joint interval.
+RHO_ROWS = [
+    ("head", "Bag-of-words classifier",          None,  None,  None,  None),
+    ("row",  "Sonnet 5  ·  headline",       0.687, 0.625, 0.755, BLUE),
+    ("row",  "prompt-matched",                   0.394, 0.326, 0.454, BLUE),
+    ("row",  "strict (also fires)",              0.921, 0.662, 1.089, BLUE),
+    ("row",  "strict, prompt-matched",           0.697, 0.494, 0.856, BLUE),
+    ("row",  "Haiku 4.5  ·  headline",      0.095, 0.044, 0.150, BLUE),
+    ("row",  "prompt-matched",                   0.113, None,  None,  BLUE),
+    ("head", "LLM monitor, same pairs",          None,  None,  None,  None),
+    ("row",  "wrote both  ·  headline",     0.145, 0.111, 0.182, ORANGE),
+    ("row",  "strict",                           0.717, 0.601, 0.832, ORANGE),
+    ("row",  "wrote neither  ·  headline †", 0.151, 0.063, 0.242, ORANGE),
+    ("head", "The obvious fix",                  None,  None,  None,  None),
+    ("row",  "honest half regenerated",          1.234, None,  None,  INK2),
+]
+
+
+def fig5_rho():
+    """Every arm's retained signal against the bands that were fixed before any arm ran.
+
+    A forest plot, because the quantity is one ratio measured eleven ways and the reader's
+    question is which band each one lands in. The null sits to the RIGHT of rho = 1, which is
+    the whole point of publishing it.
+    """
+    fig, ax = plt.subplots(figsize=(5.5, 3.30))
+    fig.subplots_adjust(left=0.300, right=0.792, top=0.900, bottom=0.140)
+
+    XMAX, n = 1.30, len(RHO_ROWS)
+    ax.set_xlim(0, XMAX); ax.set_ylim(-0.7, n - 0.35)
+
+    ax.axvspan(0, 0.33, color="#efedE8".lower(), zorder=0)
+    ax.axvspan(0.33, 0.72, color="#f7f5f2", zorder=0)
+    ax.axvspan(0.72, XMAX, color="#fcfbf9", zorder=0)
+    for b in (0.33, 0.72):
+        ax.axvline(b, color=GRID, lw=0.8, zorder=1)
+    ax.axvline(1.0, color=MUTED, lw=0.8, ls=(0, (3, 3)), zorder=2)
+
+    top = n - 0.46
+    for x, lab in ((0.165, "collapse"), (0.525, "partial"), (0.855, "content")):
+        ax.text(x, top, lab, ha="center", va="bottom", fontsize=8.5, color=INK2, style="italic")
+    ax.text(1.015, top, r"$\rho$ = 1", ha="left", va="bottom", fontsize=8.0, color=MUTED)
+    ax.text(1.022, top, r"$\rho$  (95% CI)", transform=ax.get_yaxis_transform(),
+            ha="left", va="bottom", fontsize=8.5, color=INK, weight="bold")
+
+    ticks, labels = [], []
+    for i, (kind, label, v, lo, hi, colour) in enumerate(RHO_ROWS):
+        y = n - 1 - i
+        if kind == "head":
+            ax.text(-0.014, y, label, transform=ax.get_yaxis_transform(), ha="right",
+                    va="center", fontsize=8.8, color=INK, weight="bold")
+            continue
+        ticks.append(y); labels.append(label)
+        if lo is not None:
+            ax.plot([lo, hi], [y, y], color=colour, lw=1.6, alpha=0.40, zorder=4,
+                    solid_capstyle="butt")
+            for e in (lo, hi):
+                ax.plot([e, e], [y - 0.17, y + 0.17], color=colour, lw=1.0, alpha=0.55, zorder=4)
+        ax.scatter([v], [y], s=30, facecolor=colour, edgecolor="white", lw=0.8, zorder=6)
+        txt = f"{v:.3f}" if lo is None else f"{v:.3f}  ({lo:.3f}–{hi:.3f})"
+        ax.text(1.022, y, txt, transform=ax.get_yaxis_transform(), ha="left", va="center",
+                fontsize=8.5, color=INK2)
+
+    ax.set_yticks(ticks)
+    ax.set_yticklabels(labels, fontsize=8.5, color=INK2)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.spines["bottom"].set_color(GRID)
+    ax.tick_params(axis="x", colors=INK2, labelsize=9.0, length=3, width=0.7)
+    ax.tick_params(axis="y", length=0)
+    ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0, 1.25])
+    ax.set_xlabel(r"$\rho$  =  share of above-chance separability that survives",
+                  fontsize=9.5, color=INK, labelpad=3)
+
+    fig.savefig(f"{OUT}/f5-rho-forest.pdf", metadata=PDF_METADATA)
+    plt.close(fig)
+    print("F5: 11 rows, 3 bands; null at 1.234 sits right of rho = 1")
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     fig1_table()
     fig2_corpora()
     fig3_monitors()
+    fig4_constructions()
+    fig5_rho()
     print(f"\nwrote to {os.path.abspath(OUT)}")

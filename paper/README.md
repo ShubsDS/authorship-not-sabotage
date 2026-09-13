@@ -1,5 +1,65 @@
 # paper/ — the submission
 
+## Pass 9 (2026-09-13) — one spine, and the construction shown rather than described
+
+Pass 9 changed the **narrative**, not the evidence. No experiment was run, no macro value moved
+except one precision fix, and the set of macros *used* is byte-identical before and after
+(checked by diffing every `\macro{}` use). Five changes:
+
+1. **The control is introduced on a definition, not on a null.** ρ used to be defined inside the
+   arm-1 paragraph, so a reader's first meeting with the paper's instrument was a failed
+   experiment. The definition now opens the same-generator block under its own lead
+   (*"The control is to have one model write both classes"*) and names $G$, which the formula
+   previously used without introducing. Arm 1 moved to the **end** of that block, as a flat
+   statement of a null — which is where this literature puts negative results.
+2. **"Gate S" is gone from the paper.** It was an internal codename and it had reached a body
+   table caption and three appendix paragraphs. It is now "the same-generator control/arm".
+   The name survives only in source comments.
+3. **The self-monitor is named correctly.** The monitor scoring 0.9579/0.566 is
+   `claude-sonnet-5` — the model that wrote both classes. In AI control "trusted" is a claim
+   about the threat model (a model too weak, or too well-characterised, to be subverting), never
+   about quality, so a frontier model scoring its own output is the *untrusted* case. The body
+   now says so in the first two sentences, and that **strengthens** the result: it is the most
+   favourable monitor the benchmark could ask for and it deflates anyway.
+4. **Figure 1 shows the construction.** `fig/CAPTIONS.md` had flagged its absence since
+   2026-09-04 (*"⛔ MISSING: there is no Gate S figure"*). Three panels, one confounding factor
+   removed per panel, with the chip row shrinking 3 → 2 → 1 and the number falling underneath.
+   It is `[t]` in §2, before the first results float, which is the convention every paper in
+   this genre follows. F3 (monitors vs floors) moved to the appendix as Figure A1 to pay for it;
+   its sentence already stood in §3.
+5. **Contribution (ii) is the artifact, not the measurement**, and Recommendation 1 states the
+   norm with its precedent (CodeMirage's matched construction) and the gap (nobody has applied
+   it to backdoor detection). This is what answers *how does this advance control research*.
+
+**The one number that moved:** `\sameGenS` 0.751 → **0.7512**. It is used only in Table 1, where
+it rendered at 3 dp beside 0.5340 / 0.6423 / 0.7652, against the ledger's own "AUROC 4 dp" rule;
+its macro comment already recorded 0.7512. Figure 1 rounds every AUROC to 3 dp and is internally
+consistent at that.
+
+**Paid for by**, each with an existing appendix home and no number leaving the paper: the
+learning-curve value for the strict rows (to `app:robust`), the agentic-settings paragraph
+(compressed), the provenance sentence, the Recommendations lead-in line (the section title and
+§1's scope sentence already carry it), the reproducibility disclosures in Limitations (two
+sentences doing one job), and one sentence of my own that restated the sentence before it.
+
+**Verified:** exit 0, 0 undefined citations, 0 overfull boxes, body ends page 4, References page
+5, `grep -c TBD` on the PDF is 0, and the page probe run from N = 1 upward returns **N = 0** —
+the same zero slack as pass 8. Measure before you add.
+
+**A second body figure exists and did not fit.** `fig/f5-rho-forest.pdf` (11 rows of ρ against
+the pre-registered bands, with arm 1 visibly right of ρ = 1) is built and reproducible. Dropping
+Table 1 for it costs **~17 body lines**, measured, which is a content decision rather than a
+layout one. It is the first thing to add for the archival version.
+
+**Two build notes for this machine.** BasicTeX needed `units`, `environ`, `trimspaces`,
+`helvetic`, `times`, `courier`, `symbol` and `zapfding`, installed with
+`tlmgr --usermode install` into `~/Library/texmf` (no sudo). And matplotlib here resolves the
+figure serif to **Times New Roman** where the committed F2/F3 embed **Nimbus Roman** — metrically
+identical clones, invisible at 8 pt, but it means F2/F3 must be restored from git after any
+local `figures.py` run, or all four regenerated together on one machine.
+
+---
+
 Built and verified 2026-09-13 after **pass 8** (the figures and the appendix tables), on top of
 **pass 7** (the generator limitation inverted), **pass 6** (problem-first framing, literature
 confined to §1) and **pass 5** (format conventions), all four described below. Those sit on **pass 4** (a clarity pass against the
