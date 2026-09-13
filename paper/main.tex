@@ -503,17 +503,13 @@ human-written, taken from APPS \cite{hendrycks2021apps}; every backdoor is writt
 language model, and the corpus records which one. Separation credited to a monitor may be
 separation between two authors.
 
-That these pairs leak is known, and the corpora are preprocessed against it. The filtered
+There are various known confounding variables between the human and AI solutions, such as in commenting style, so corpora are often preprocessed to mitigate them. The filtered
 release keeps only working honest solutions and working backdoors and strips every comment
 \cite{koran2026ensemble}; Control Tax reports its pass-tests pre-filter and appendices
-``Monitoring failed backdoors'' \cite{terekhov2025controltax}; the comment channel has a paper
-of its own \cite{sreevatsa2026legibility}. One harness ships a \texttt{--leak-check} flag with
+``Monitoring failed backdoors'' \cite{terekhov2025controltax};  one harness ships a \texttt{--leak-check} flag with
 two trivial baselines in it, a \texttt{\#}-count detector that falls from \hashRaw{} to
 \hashStripped{} once comments go and code length alone at \lenFiltered{}
-\cite{jha2026decorrelation}. Partial-input baselines are the standard instrument for this
-\cite{gururangan2018annotation, poliak2018hypothesis}; their failure does not certify a dataset
-\cite{feng2019misleading}, and leakage is usually treated as a checklist
-\cite{kapoor2022leakage}. Out of field, bag-of-words is known to separate human-written from
+\cite{jha2026decorrelation}. Out of field, bag-of-words is known to separate human-written from
 model-written code \cite{orel2026aicd}, and the detectors built on it match their classes on
 line and character count or on shared problem definitions \cite{guo2025codemirage,
 demirok2025multiaigcd}. Adjacent control work attacks other axes, subverting monitors with
