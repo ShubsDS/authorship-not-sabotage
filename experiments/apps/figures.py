@@ -349,76 +349,122 @@ def _chiprow(ax, xc, y, items, fs):
 
 
 def fig4_constructions():
-    """The confound and the control, side by side: three panels, one factor removed at a time.
+    """How a stored pair is built, and how we rebuild it: three constructions as a property grid.
 
-    The five-second read is the chip row - three factors separate the stored classes, two
-    separate ours, one separates the prompt-matched arm - and the number falling underneath it.
+    The encoding is the whole figure: each row is one property of the pair, a SPLIT row means the
+    honest and attack sides differ in it, a MERGED bar means they are identical. Left to right the
+    rows merge one at a time, and the separability bar under them falls. Only the backdoor row is
+    still split in the third column, which is the construction this paper argues for.
+
+    Deliberately NOT here: Haiku 4.5 and the strict rows (Table 2 carries every row), the fire
+    shares, and the flow arrows the earlier version spent 60% of its ink on. The previous draft
+    also labelled the panels A/B/C while printing $B$ = 0.871 inside panel A.
     """
-    fig, ax = plt.subplots(figsize=(5.5, 2.62))
+    # 2.50in, not the 2.62 the tree version needed: the grid carries the same content in less
+    # height, and the caption below it grew. Anything taller pushes the Discussion onto page 5.
+    fig, ax = plt.subplots(figsize=(5.5, 2.50))
     ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.axis("off")
     fig.subplots_adjust(left=0.004, right=0.996, top=0.996, bottom=0.004)
 
-    CX = (17.0, 50.0, 83.0)
-    Y_T, Y_P, Y_G, Y_C, Y_CH, Y_N, Y_A = 95.5, 80.5, 59.0, 36.0, 21.5, 10.5, 2.5
-    FS_BOX, FS_LEAF, FS_CHIP, FS_NUM = 8.5, 8.5, 8.0, 9.5
+    NEUT, OTINT, BTINT = "#ffffff", "#fbdccd", "#cfe0f6"
+    OT, BT = "#8a3b17", "#174a87"
+    OURS_BG = "#f6f9fd"
 
-    for x in (33.5, 66.5):
-        ax.plot([x, x], [3, 90], color=GRID, lw=0.8, zorder=1)
-    for xc, ttl in zip(CX, ("A · as stored", "B · same generator",
-                            "C · + same prompt")):
-        ax.text(xc, Y_T, ttl, ha="center", va="center", fontsize=9.5, color=INK, weight="bold")
-    for xc in CX:
-        _pill(ax, xc, Y_P, "APPS problem", fs=8.0, fc="white", ec=GRID, tc=MUTED)
+    GUT = 11.0                                    # row-label gutter
+    BLOCKS = [(13.0, 40.5), (43.0, 70.5), (73.0, 100.0)]
+    SPLIT = 1.6                                   # gap between the honest and attack halves
 
-    # --- A: two authors, so the fork is above the generators -------------------------
-    xa, xb = CX[0] - 7.6, CX[0] + 7.6
-    for x in (xa, xb):
-        _arrow(ax, (CX[0], Y_P - 5.6), (x, Y_G + 9.6))
-    _pill(ax, xa, Y_G, "human\nAPPS\nauthor", fs=FS_BOX, fc="white", ec=INK2, tc=INK)
-    _pill(ax, xb, Y_G, "claude-3-7-\nsonnet-\nthinking", fs=FS_BOX, fc="white", ec=ORANGE, tc=INK)
-    for x, lab in ((xa, "honest"), (xb, "attack")):
-        _arrow(ax, (x, Y_G - 9.6), (x, Y_C + 3.6))
-        ax.text(x, Y_C, lab, ha="center", va="center", fontsize=FS_LEAF, color=INK2)
+    Y_BAND, Y_TITLE, Y_SUB = 96.5, 88.0, 79.0
+    ROWS = (68.0, 55.5, 43.0)                     # writer, prompt, backdoor
+    CELL_H = 11.0
+    Y_BAR, Y_NUM, Y_RHO = 30.0, 18.0, 8.0
 
-    # --- B and C: one generator, so the fork is below it ------------------------------
-    for idx, xc in enumerate(CX[1:]):
-        _arrow(ax, (xc, Y_P - 5.6), (xc, Y_G + 7.8))
-        _pill(ax, xc, Y_G, "one model\nSonnet 5  /  Haiku 4.5", fs=FS_BOX,
-              fc="white", ec=BLUE, tc=INK)
-        la, lb = xc - 7.6, xc + 7.6
-        two = idx == 0
-        _arrow(ax, (xc, Y_G - 12.0), (la, Y_C + 3.6), color=MUTED)
-        _arrow(ax, (xc, Y_G - 12.0), (lb, Y_C + 3.6), color=ORANGE if two else MUTED)
-        # The connector label sits ON the fork apex, with a white halo, so no stub shows above it.
-        ax.text(xc, Y_G - 9.7, "two prompts" if two else "same prompt", ha="center",
-                va="center", fontsize=8.0, color=ORANGE if two else INK2, style="italic",
-                zorder=8, bbox=dict(fc="white", ec="none", pad=2.0))
-        for x, lab in ((la, "honest"), (lb, "attack")):
-            ax.text(x, Y_C, lab, ha="center", va="center", fontsize=FS_LEAF, color=INK2)
+    # The tint behind columns two and three is the only thing that says which of these
+    # constructions is ours. It is doing more work than any sentence in the old caption.
+    ax.add_patch(FancyBboxPatch((BLOCKS[1][0] - 1.8, 3.0),
+                                BLOCKS[2][1] - BLOCKS[1][0] + 3.6, 98.0 - 3.0,
+                                boxstyle="round,pad=0,rounding_size=1.2",
+                                fc=OURS_BG, ec="none", zorder=0))
 
-    # --- the chip row: what still separates the two classes ---------------------------
-    OF, BF, OT, BT = "#fbdccd", "#cfe0f6", "#8a3b17", "#174a87"
-    sets = ([("author", OF, OT), ("prompt", OF, OT), ("sabotage", BF, BT)],
-            [("prompt", OF, OT), ("sabotage", BF, BT)],
-            [("sabotage", BF, BT)])
-    for xc, items in zip(CX, sets):
-        ax.text(xc, Y_CH + 7.2, "the two classes differ by", ha="center", va="center",
-                fontsize=8.0, color=MUTED)
-        _chiprow(ax, xc, Y_CH, items, FS_CHIP)
+    def cell(x0, x1, yc, text, *, fill, tc, ec, fs=7.0, weight="normal"):
+        ax.add_patch(FancyBboxPatch((x0, yc - CELL_H / 2), x1 - x0, CELL_H,
+                                    boxstyle="round,pad=0,rounding_size=0.9",
+                                    fc=fill, ec=ec, lw=0.8, zorder=3))
+        ax.text((x0 + x1) / 2, yc, text, ha="center", va="center", fontsize=fs,
+                color=tc, zorder=4, linespacing=1.15, weight=weight)
 
-    # --- and the number underneath it -------------------------------------------------
-    ax.text(CX[0], Y_N, "$B$ = 0.871", ha="center", va="center", fontsize=FS_NUM,
-            color=INK, weight="bold")
-    ax.text(CX[0], Y_A, "(the baseline)", ha="center", va="center", fontsize=8.0, color=MUTED)
-    for xc, s, r, h in ((CX[1], "0.751", "0.687", "0.534   $\\rho$ = 0.095"),
-                        (CX[2], "0.642", "0.394", "0.540   $\\rho$ = 0.113")):
-        ax.text(xc, Y_N, f"$S$ = {s}      $\\rho$ = {r}", ha="center", va="center",
-                fontsize=FS_NUM, color=INK, weight="bold")
-        ax.text(xc, Y_A, f"Haiku 4.5:  {h}", ha="center", va="center", fontsize=8.0, color=MUTED)
+    def split(bx, yc, left, right, fs=7.0):
+        """The two classes differ in this property: two boxes, tinted as a difference."""
+        x0, x1 = bx
+        mid = (x0 + x1) / 2
+        cell(x0, mid - SPLIT / 2, yc, left, fill=NEUT, tc=INK, ec=GRID, fs=fs)
+        cell(mid + SPLIT / 2, x1, yc, right, fill=OTINT, tc=OT, ec="none", fs=fs)
+
+    def merged(bx, yc, text, fs=7.0):
+        """Held identical across the pair: one bar, and it says so in words."""
+        cell(bx[0], bx[1], yc, text, fill=BTINT, tc=BT, ec="none", fs=fs)
+
+    # --- headers ---------------------------------------------------------------------
+    ax.text((BLOCKS[0][0] + BLOCKS[0][1]) / 2, Y_BAND, "as stored", ha="center", va="center",
+            fontsize=7.5, color=MUTED, style="italic")
+    ax.text((BLOCKS[1][0] + BLOCKS[2][1]) / 2, Y_BAND, "what we build", ha="center", va="center",
+            fontsize=7.5, color=BT, style="italic")
+    for bx, ttl in zip(BLOCKS, ("human vs model", "one model, two prompts",
+                                "one model, one prompt")):
+        ax.text((bx[0] + bx[1]) / 2, Y_TITLE, ttl, ha="center", va="center",
+                fontsize=8.5, color=INK, weight="bold")
+    for bx in BLOCKS:
+        mid = (bx[0] + bx[1]) / 2
+        ax.text((bx[0] + mid) / 2, Y_SUB, "honest", ha="center", va="center",
+                fontsize=7.0, color=MUTED)
+        ax.text((mid + bx[1]) / 2, Y_SUB, "attack", ha="center", va="center",
+                fontsize=7.0, color=MUTED)
+
+    # --- the three properties --------------------------------------------------------
+    for y, lab in zip(ROWS, ("writer", "prompt", "backdoor")):
+        ax.text(GUT - 1.5, y, lab, ha="right", va="center", fontsize=7.5, color=INK2)
+
+    split(BLOCKS[0], ROWS[0], "human\n(APPS)", "Claude 3.7\nSonnet")
+    split(BLOCKS[0], ROWS[1], "written\nfor APPS", "attack\nprompt")
+    for bx in BLOCKS[1:]:
+        merged(bx, ROWS[0], "Claude Sonnet 5 writes both")
+    split(BLOCKS[1], ROWS[1], "solve the\nproblem", "attack\nprompt")
+    merged(BLOCKS[2], ROWS[1], "one prompt for both classes")
+    for bx in BLOCKS:
+        split(bx, ROWS[2], "none", "planted")
+
+    # --- separability, on one scale, drawn rather than only printed --------------------
+    ax.text(GUT - 1.5, Y_BAR, "AUROC", ha="right", va="center", fontsize=7.5, color=INK2)
+    for bx, v, hue in zip(BLOCKS, (0.871, 0.751, 0.642), (ORANGE, BLUE, BLUE)):
+        x0, x1 = bx
+        ax.add_patch(FancyBboxPatch((x0, Y_BAR - 2.6), x1 - x0, 5.2,
+                                    boxstyle="round,pad=0,rounding_size=0.6",
+                                    fc="white", ec=GRID, lw=0.8, zorder=3))
+        ax.add_patch(FancyBboxPatch((x0, Y_BAR - 2.6), (x1 - x0) * (v - 0.5) / 0.5, 5.2,
+                                    boxstyle="round,pad=0,rounding_size=0.6",
+                                    fc=hue, ec="none", zorder=4))
+    # The scale is defined once, under the first bar, where the eye starts. Repeating it under
+    # all three reads as three scales; putting 1.0 under the third reads as a value of the third.
+    ax.text(BLOCKS[0][0], Y_BAR - 6.4, "0.5, chance", ha="left", va="center",
+            fontsize=6.5, color=MUTED)
+    ax.text(BLOCKS[0][1], Y_BAR - 6.4, "1.0", ha="right", va="center",
+            fontsize=6.5, color=MUTED)
+
+    # --- the numbers ------------------------------------------------------------------
+    ax.text((BLOCKS[0][0] + BLOCKS[0][1]) / 2, Y_NUM, "$B$ = 0.871", ha="center", va="center",
+            fontsize=9.5, color=INK, weight="bold")
+    ax.text((BLOCKS[0][0] + BLOCKS[0][1]) / 2, Y_RHO, "the baseline", ha="center", va="center",
+            fontsize=7.0, color=MUTED)
+    for bx, s, r in ((BLOCKS[1], "0.751", "0.687"), (BLOCKS[2], "0.642", "0.394")):
+        xc = (bx[0] + bx[1]) / 2
+        ax.text(xc, Y_NUM, f"$S$ = {s}", ha="center", va="center",
+                fontsize=9.5, color=INK, weight="bold")
+        ax.text(xc, Y_RHO, f"$\\rho$ = {r} of the baseline", ha="center", va="center",
+                fontsize=7.0, color=MUTED)
 
     fig.savefig(f"{OUT}/f4-constructions.pdf", metadata=PDF_METADATA)
     plt.close(fig)
-    print("F4: three constructions; chips 3 -> 2 -> 1, B 0.871 -> S 0.751 -> 0.642")
+    print("F4: property grid, 3 constructions; rows merge left to right, AUROC 0.871 -> 0.642")
 
 
 # Every row: label, rho, lo, hi, colour. `None` bounds mean the ledger quotes no joint interval.

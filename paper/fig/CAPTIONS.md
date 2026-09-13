@@ -22,16 +22,56 @@ Regenerate the figures with `experiments/apps/figures.py`; do not hand-edit the 
 > ⚠️ **A different matplotlib version will still change the bytes** — font subsetting differs across
 > versions (17,318 → 17,597 for F2 on matplotlib 3.11.1). Reproducibility here means *same version,
 > same bytes*, not across versions. Built on matplotlib 3.10.5.
+>
+> ⚠️ **The FONT has to be present too, and on 2026-09-13 it was not.** `figures.py` asks for Nimbus
+> Roman first and Times New Roman second. Nimbus Roman is not installed on this machine in any form
+> matplotlib can read — TeX Live ships it as Type 1 `.pfb` (`utmr8a.pfb`), which the Agg backend
+> cannot use, and there is no `.otf`/`.ttf` copy anywhere on disk — so every figure rebuilt on
+> 2026-09-13 fell back to **Times New Roman**. The two are metrically compatible Times designs and
+> nothing reflowed, but the glyphs are Monotype's rather than URW's, and the body text is still
+> ptm (= Nimbus). All four figures were regenerated together so the paper is at least internally
+> consistent. **To restore Nimbus: install the URW base-35 fonts (ghostscript, or a
+> `font-urw-base35` cask) and re-run `figures.py`** — it changes font bytes only, no layout.
 
-> ### ⛔ MISSING: there is no Gate S figure
-> The paper's constructive half — B, the arm-1 confound, and S — is prose-only. See the bottom of
-> this file for what exists to plot and what it would cost.
+> ### ✅ RESOLVED — the constructive half has two figures now
+> This box read *"MISSING: there is no Gate S figure"* while the paper's constructive half was
+> prose-only. F4 (the constructions) and F5 (the ρ forest) both exist; F1 did move to the
+> appendix as the swap at the foot of this file proposed. **The planning section at the bottom is
+> superseded and kept only for the argument it records.**
 
 ## F1 · `f1-protocol-baseline.tex`
 
 Carries its own `\caption{}`. The load-bearing clause is the second one — **rows are not comparable
 across protocols** — and it is what stops a reader repeating the round-16 mistake of reading one
 protocol's number against another's.
+
+## F4 · `f4-constructions.pdf`
+
+**Redesigned 2026-09-13.** The first version was a flow diagram: three panels titled A/B/C, each
+an `APPS problem` node forking through generator boxes to `honest` / `attack` leaves, with a chip
+row underneath and the numbers under that. It was replaced because a reader could not tell from
+it what the three panels *were*. Four faults, all of them now gone:
+
+1. **Nothing marked which construction was ours.** The reader had to infer it from the caption's
+   "our control", and A/B/C carry no ownership.
+2. **Panel B collided with the symbol $B$**, which was printed inside panel A as `B = 0.871`.
+3. **The chip rows were centred, not aligned**, so the one message — factors peeling away, three
+   then two then one — had to be reconstructed by counting chips in three different places.
+4. **The generator box said "Sonnet 5 / Haiku 4.5" while the big numbers were Sonnet 5's only**,
+   with Haiku's in a grey sub-line. The figure named two generators and measured one.
+
+The replacement is a **property grid**, and the encoding is the whole figure: each row is one
+property of the pair (writer, prompt, backdoor), a **split row** means the honest and attack sides
+differ in it, and a **single bar spanning both columns** means they are identical. Left to right
+the rows merge one at a time; the backdoor row never merges, which is the construction the paper
+argues for. The AUROC bars under the grid put 0.871 → 0.751 → 0.642 on one 0.5–1.0 scale so the
+fall is seen rather than read. Panel letters are gone (names instead), and a tint plus one italic
+label — *as stored* against *what we build* — carries the ownership the old version never stated.
+
+Not in it, deliberately: Haiku 4.5 and the strict rows (Table 2 carries every row), the fire
+shares, and the flow arrows the old version spent most of its ink on. Height is **2.50 in**, not
+the 2.62 the tree version used: the caption grew to explain the encoding, and anything taller
+pushes the Discussion onto page 5 and breaks the four-page limit.
 
 ## F2 · `f2-corpus-floors.pdf`
 
