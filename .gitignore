@@ -61,3 +61,8 @@ paper/fig/*.png
 # pairs_*.csv, README.md and MANIFEST.json there are not covered by the *.jsonl rule.
 experiments/apps/release/
 same-generator-apps-split.zip
+
+# Editor swap files
+*.swp
+*.swo
+*~
