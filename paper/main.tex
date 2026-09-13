@@ -397,7 +397,7 @@
 % The identical pipeline - same prompts, same harness, same evaluate(), same B' construction.
 % One outcome-blind draw per problem over the same 1,444-problem pool; no retry pool and no
 % selection rule, so every Haiku row is the analogue of the headline row and there is no
-% strict row: 35 usable attacks against a 50-pair floor (RESULTS.md 15.2).
+% strict row: 35 usable attacks against a 50-pair minimum (RESULTS.md 15.2).
 \newcommand{\haikuS}{0.5340}            % 0.5340, n = 611, `passes' eligibility
 \newcommand{\haikuSLo}{0.5159}
 \newcommand{\haikuSHi}{0.5531}
@@ -414,7 +414,7 @@
 \newcommand{\haikuStrataBprime}{0.7884--0.8334} % ... while B' holds
 \newcommand{\haikuStrataLowSim}{0.451}        % the most dissimilar stratum's mean, n = 150
 \newcommand{\haikuUsable}{35}          % usable attacks over the 1,444-problem pool, one draw each:
-                                       % below the 50-pair floor, so there is no strict row
+                                       % below the 50-pair minimum, so there is no strict row
 \newcommand{\haikuFireInRow}{2}        % ... and only this many lie inside \haikuN (notes/10 section 7)
 \newcommand{\haikuUsableOutside}{33}   % ... the rest are on problems whose honest program failed
 \newcommand{\haikuMatchedN}{562}
@@ -581,12 +581,12 @@ runner, applied to both classes (appendix~\ref{app:harness}).
 % =====================================================================================
 
 Comment stripping works on comment count and code length, driving both to chance
-(Table~\ref{tab:protocol-baseline}, appendix). Two floors on that same split do not move.
+(Table~\ref{tab:protocol-baseline}, appendix). Two floors on that same split do not move. A
+monitor scoring at or below a floor has shown nothing beyond what the corpus leaks.
 Bag-of-words reaches \tfidfKoran{} and a classifier that reads no code at all reaches
 \nocodeCV{}, both far above their permutation nulls and above \tfidfKoranCount{} of the
 \monN{} monitors ranked on that split (Figure~\ref{fig:monitors}; intervals, nulls and
-paired-bootstrap counts in appendix~\ref{app:protocol}). The preprocessing reached the
-carrier it was aimed at and left the two beside it standing.
+paired-bootstrap counts in appendix~\ref{app:protocol}).
 
 \paragraph{The carrier.}
 Every number in this paragraph is comment-stripped on both classes; the unstripped
@@ -723,7 +723,7 @@ monitor, bounds the content share of the separability instead of partitioning it
 not bit-reproducible, having run through a metered API that does not expose sampling
 parameters, with thinking off although the stored attacker was a thinking model. The two generators are
 compared on the \texttt{passes} eligibility alone, Haiku 4.5's strict row having been refused
-at \haikuUsable{} pairs against our 50-pair floor.
+at \haikuUsable{} pairs against our 50-pair minimum.
 
 \paragraph{Scope, provenance and the harness.}
 We have not tested stored-pair corpora beyond
@@ -970,7 +970,7 @@ different things.
 Both generators were run through the identical pipeline. Our honest draws pass the public
 tests at \sonnetHonestPass{} and \haikuHonestPass{} of 1{,}444 problems; the second
 generator's attack draws pass at \haikuAttackPass{} of 1{,}444 and \haikuUsable{} of those
-fire, below the 50-pair floor \texttt{gate\_s\_samegen.py} requires, leaving it with no
+fire, below the 50-pair minimum \texttt{gate\_s\_samegen.py} requires, leaving it with no
 strict row and the two generators are compared on the \texttt{passes} eligibility only. The two
 compared rows differ in inertness. \haikuFireInRow{} of the \haikuN{} attacks in the
 second generator's row fire (\haikuInert{} inert) against \relFireFirst{} of \sameGenN{}
