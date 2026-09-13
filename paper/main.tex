@@ -557,11 +557,13 @@ against it.
 \begin{figure}[t]\centering
 \includegraphics[width=\linewidth]{f4-constructions.pdf}
 \caption{\textbf{How a stored pair is built, and how we rebuild it.} Each row is one property of
-the pair; a bar spanning both columns means the two sides are identical in it. We have one model
-write both classes (middle), then elicit both with the same prompt, which differs only in the
-clause asking for a flaw (right); the backdoor row never merges. $B$ is the stored-pair baseline over
-$n = \baselineBn{}$ pairs and $S$ the same classifier on each arm; $\rho$ is the share of
-above-chance separability that survives, against $B'$ refitted on that arm's own problems.}
+the pair: written once and tied, it is identical on the two sides; written twice, it differs. As
+stored, the honest program is human-written and the backdoored one model-written, so the classes
+differ in writer and in elicitation as well as in sabotage. We hold the writer constant, then the
+prompt as well (the tinted columns), the two prompts being identical apart from the sentences that
+ask for a flaw. The backdoor row never merges, and it is the only difference a monitor should
+read. Under each construction is the same bag-of-words classifier's AUROC on it, on one scale from
+chance to 1.0; every arm's $S$, $B'$ and $\rho$ are in Table~\ref{tab:gates}.}
 \label{fig:constructions}
 \end{figure}
 

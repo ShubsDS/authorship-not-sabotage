@@ -53,39 +53,57 @@ protocol's number against another's.
 
 ## F4 · `f4-constructions.pdf`
 
-**Redesigned 2026-09-13.** The first version was a flow diagram: three panels titled A/B/C, each
-an `APPS problem` node forking through generator boxes to `honest` / `attack` leaves, with a chip
-row underneath and the numbers under that. It was replaced because a reader could not tell from
-it what the three panels *were*. Four faults, all of them now gone:
+**Third version, 2026-09-13.** V1 was a flow diagram (trees, arrows, a chip row per panel). V2
+was the same content as a grid of twelve filled rounded boxes, and it still read as cluttered.
+V3 removes every box. Three findings decided it, and each is spent deliberately:
 
-1. **Nothing marked which construction was ours.** The reader had to infer it from the caption's
-   "our control", and A/B/C carry no ownership.
-2. **Panel B collided with the symbol $B$**, which was printed inside panel A as `B = 0.871`.
-3. **The chip rows were centred, not aligned**, so the one message — factors peeling away, three
-   then two then one — had to be reconstructed by counting chips in three different places.
-4. **The generator box said "Sonnet 5 / Haiku 4.5" while the big numbers were Sonnet 5's only**,
-   with Haiku's in a grey sub-line. The figure named two generators and measured one.
+* **Cleveland & McGill's ranking of elementary perceptual tasks** (Wong, *Nat. Methods* **7**:665)
+  puts *position on a common scale* first and *colour hue* last. V2 encoded its one claim — are
+  the two classes the same in this property or not — in **fill colour**, rank 6–7. V3 puts it in
+  **position**: a shared property is written **once**, centred across the pair and tied; a
+  differing one is written **twice**, once under each class. One word versus two.
+* **Gestalt grouping** (Wong, *Nat. Methods* **7**:863): enclosure is the strongest grouping cue,
+  strong enough to override similarity, proximity and connection — so it must be spent once, on
+  the grouping that matters most. V2 spent it on all twelve cells plus the panel, so nothing was
+  grouped. The **only** enclosure now is the tint behind the two columns we build.
+* **Visual completion** (Wong, *Nat. Methods* **7**:941): *"enables us to forgo the extraneous
+  lines, boxes, bullets and other graphical elements that tend to clutter our presentations."*
+  The rows and columns hold together on alignment alone, with two hairlines for structure.
 
-The replacement is a **property grid**, and the encoding is the whole figure: each row is one
-property of the pair (writer, prompt, backdoor), a **split row** means the honest and attack sides
-differ in it, and a **single bar spanning both columns** means they are identical. Left to right
-the rows merge one at a time; the backdoor row never merges, which is the construction the paper
-argues for. The AUROC bars under the grid put 0.871 → 0.751 → 0.642 on one 0.5–1.0 scale so the
-fall is seen rather than read. Panel letters are gone (names instead), and a tint plus one italic
-label — *as stored* against *what we build* — carries the ownership the old version never stated.
+The tie under a merged value is grouping by **connection**, the next cue down, which is the right
+weight for a secondary signal. Count the ties and you have the paper: none, one, two.
 
-Not in it, deliberately: Haiku 4.5 and the strict rows (Table 2 carries every row), the fire
-shares, and the flow arrows the old version spent most of its ink on.
+Column titles are the ladder — *as stored*, *+ same writer*, *+ same prompt* — and each names the
+row it merges, so a title can be traced to its row. The AUROC row is a **dot on a scale from
+chance to 1.0**, not a filled bar: position again, and a hairline plus a dot where V2 had three
+more rounded rectangles.
+
+**Cut on request, 2026-09-13:** the *as stored* / *what we build* band labels (the tint carries
+it, and the caption names it); $\rho$ (nothing near this figure explains it — it is defined in
+§3 and tabulated in Table 2); and the $B$ / $S$ symbols. $B$ and $S$ are the same classifier's
+AUROC on different corpora, and printing them under two letters made one measurement look like
+two — the three numbers are now bare under a row labelled AUROC.
 
 **Text budget — this applies to every figure, not only F4.** Every string on the canvas is a
 label, never a phrase. The row label and the cell form the phrase between them ("prompt" +
 "solve", not a cell reading "solve the problem"), and anything needing a clause goes in the
-caption. The first draft of the grid still carried "Claude Sonnet 5 writes both", "one prompt
-for both classes", "written for APPS" and "$\rho$ = 0.687 of the baseline"; all of it was cut on
-2026-09-13, taking the canvas from roughly 75 words to 40 with nothing lost that the caption
-does not already say. Height is **2.50 in**, not
-the 2.62 the tree version used: the caption grew to explain the encoding, and anything taller
-pushes the Discussion onto page 5 and breaks the four-page limit.
+caption. V2 still carried "Claude Sonnet 5 writes both", "one prompt for both classes", "written
+for APPS" and "$\rho$ = 0.687 of the baseline"; all of it is gone. Both generators are Sonnet
+models, so they are named "Sonnet 3.7" and "Sonnet 5" rather than "Claude 3.7" against "Claude
+Sonnet 5", which hid that and cost a word.
+
+Not in it, deliberately: Haiku 4.5 and the strict rows (Table 2 carries every row), the fire
+shares, and the flow arrows V1 spent most of its ink on. Height is **2.16 in**, down from V1's
+2.62: dropping the boxes, the band row and the $\rho$ row took it there, and the space went to a
+caption that now has to teach the encoding.
+
+> ⚠️ **One imprecision this figure turned up, not yet fixed in the ledger.** `RESULTS.md` §13 says
+> `PROMPT_INDEPENDENT_HONEST` is `PROMPT_INDEPENDENT` "with only the flaw sentence replaced", and
+> §13's bullet says the classes "differ in the one sentence that asks for a flaw". Printing the
+> two constants side by side, they differ in **four** places — the opening clause, the
+> correctness requirement, the "looks like ordinary code/mistake" sentence, and the description
+> of the ```` ```input ```` block. All four are about the flaw, so the substantive claim stands,
+> but "one sentence" is wrong. The caption says "the sentences that ask for a flaw".
 
 ## F2 · `f2-corpus-floors.pdf`
 

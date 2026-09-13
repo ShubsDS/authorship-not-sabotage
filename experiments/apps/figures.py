@@ -44,6 +44,7 @@ PDF_METADATA = {"CreationDate": None}
 BLUE, ORANGE = "#2a78d6", "#eb6834"
 INK, INK2, MUTED = "#0b0b0b", "#52514e", "#8c8b86"
 GRID = "#e3e2dd"
+BT_LABEL = "#174a87"  # the "what we build" label, dark enough to read at 7.5pt
 CONNECT = "#d3d2cc"   # dumbbell connector: visible against the surface, lighter than any mark
 
 # Verified on this machine 2026-09-04; see ../REPRODUCED.md
@@ -349,127 +350,114 @@ def _chiprow(ax, xc, y, items, fs):
 
 
 def fig4_constructions():
-    """How a stored pair is built, and how we rebuild it: three constructions as a property grid.
+    """How a stored pair is built, and how we rebuild it.
 
-    The encoding is the whole figure: each row is one property of the pair, a SPLIT row means the
-    honest and attack sides differ in it, a MERGED bar means they are identical. Left to right the
-    rows merge one at a time, and the separability bar under them falls. Only the backdoor row is
-    still split in the third column, which is the construction this paper argues for.
+    DESIGN, and why this is the third version. The first was a flow diagram (trees, arrows,
+    chip rows). The second drew the same content as a grid of 12 filled rounded boxes, and it
+    still read as cluttered. Three findings from the literature say why, and each one is spent
+    here:
 
-    Deliberately NOT here: Haiku 4.5 and the strict rows (Table 2 carries every row), the fire
-    shares, and the flow arrows the earlier version spent 60% of its ink on. The previous draft
-    also labelled the panels A/B/C while printing $B$ = 0.871 inside panel A.
+      Cleveland & McGill's ranking of elementary perceptual tasks (Wong, Nat Methods 7:665)
+      puts position on a common scale first and colour hue last. Version two encoded its ONE
+      claim - are the two classes the same in this property or not - in fill colour, rank 6-7.
+      Here that claim is in POSITION: a shared property is written once, centred across the
+      pair; a differing one is written twice, once under each class. One word versus two.
 
-    TEXT BUDGET: every string on this canvas is a label, never a phrase. The row label and the
-    cell form the phrase between them - "prompt" + "solve", not a cell reading "solve the
-    problem" - and anything needing a clause goes in the caption. Cut here on 2026-09-13:
-    "writes both" (the merged bar already says both), "of the baseline" twice, "the baseline",
-    "one prompt for both classes", "written for APPS", "0.5," before "chance".
+      Gestalt (Wong, Nat Methods 7:863 and 7:941): enclosure is the strongest grouping cue,
+      strong enough to override similarity, proximity and connection - so it must be spent on
+      the most important grouping, once. Version two spent it on all 12 cells plus the panel,
+      so nothing was grouped. Here the ONLY enclosure is the tint behind the two columns we
+      built, which is the one grouping a reader must not miss.
+
+      Visual completion, same source: "enables us to forgo the extraneous lines, boxes,
+      bullets and other graphical elements that tend to clutter". Every cell box is gone. The
+      rows and columns hold together on alignment alone, with two hairlines for structure.
+
+    The tie under a merged value is grouping by CONNECTION, the next cue down, which is the
+    right weight for a secondary signal. Count the ties and you have the paper: none, one, two.
     """
-    # 2.50in, not the 2.62 the tree version needed: the grid carries the same content in less
-    # height, and the caption below it grew. Anything taller pushes the Discussion onto page 5.
-    fig, ax = plt.subplots(figsize=(5.5, 2.50))
+    fig, ax = plt.subplots(figsize=(5.5, 2.16))
     ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.axis("off")
     fig.subplots_adjust(left=0.004, right=0.996, top=0.996, bottom=0.004)
 
-    NEUT, OTINT, BTINT = "#ffffff", "#fbdccd", "#cfe0f6"
-    OT, BT = "#8a3b17", "#174a87"
-    OURS_BG = "#f6f9fd"
+    OURS_BG = "#f7fafd"
+    GUT = 12.0
+    BLOCKS = [(13.5, 39.5), (42.5, 68.5), (71.5, 97.5)]
+    Y_TITLE, Y_SUB, Y_RULE = 94.0, 83.0, 77.0
+    ROWS = (67.0, 54.0, 41.0)
+    Y_RULE2, Y_SCALE, Y_NUM = 32.0, 23.0, 8.0
+    TIE_DROP = 3.4
 
-    GUT = 11.0                                    # row-label gutter
-    BLOCKS = [(13.0, 40.5), (43.0, 70.5), (73.0, 100.0)]
-    SPLIT = 1.6                                   # gap between the honest and attack halves
+    def halves(bx):
+        x0, x1 = bx
+        return x0 + (x1 - x0) * 0.25, x0 + (x1 - x0) * 0.75
 
-    Y_BAND, Y_TITLE, Y_SUB = 96.5, 88.0, 79.0
-    ROWS = (68.0, 55.5, 43.0)                     # writer, prompt, backdoor
-    CELL_H = 11.0
-    Y_BAR, Y_NUM, Y_RHO = 30.0, 18.0, 8.0
-
-    # The tint behind columns two and three is the only thing that says which of these
-    # constructions is ours. It is doing more work than any sentence in the old caption.
-    ax.add_patch(FancyBboxPatch((BLOCKS[1][0] - 1.8, 3.0),
-                                BLOCKS[2][1] - BLOCKS[1][0] + 3.6, 98.0 - 3.0,
-                                boxstyle="round,pad=0,rounding_size=1.2",
+    # The one enclosure in the figure, on the one grouping that must not be missed.
+    ax.add_patch(FancyBboxPatch((BLOCKS[1][0] - 2.4, 0.5),
+                                BLOCKS[2][1] - BLOCKS[1][0] + 4.8, 99.0,
+                                boxstyle="round,pad=0,rounding_size=1.0",
                                 fc=OURS_BG, ec="none", zorder=0))
 
-    def cell(x0, x1, yc, text, *, fill, tc, ec, fs=7.0, weight="normal"):
-        ax.add_patch(FancyBboxPatch((x0, yc - CELL_H / 2), x1 - x0, CELL_H,
-                                    boxstyle="round,pad=0,rounding_size=0.9",
-                                    fc=fill, ec=ec, lw=0.8, zorder=3))
-        ax.text((x0 + x1) / 2, yc, text, ha="center", va="center", fontsize=fs,
-                color=tc, zorder=4, linespacing=1.15, weight=weight)
+    def split(bx, y, left, right):
+        """The classes differ here: the property is written twice, once under each."""
+        lx, rx = halves(bx)
+        for x, t in ((lx, left), (rx, right)):
+            ax.text(x, y, t, ha="center", va="center", fontsize=7.5, color=INK, zorder=4)
 
-    def split(bx, yc, left, right, fs=7.0):
-        """The two classes differ in this property: two boxes, tinted as a difference."""
+    def merged(bx, y, text):
+        """Held identical: written once, centred across the pair, and tied."""
         x0, x1 = bx
-        mid = (x0 + x1) / 2
-        cell(x0, mid - SPLIT / 2, yc, left, fill=NEUT, tc=INK, ec=GRID, fs=fs)
-        cell(mid + SPLIT / 2, x1, yc, right, fill=OTINT, tc=OT, ec="none", fs=fs)
-
-    def merged(bx, yc, text, fs=7.0):
-        """Held identical across the pair: one bar, and it says so in words."""
-        cell(bx[0], bx[1], yc, text, fill=BTINT, tc=BT, ec="none", fs=fs)
+        ax.text((x0 + x1) / 2, y, text, ha="center", va="center", fontsize=7.5,
+                color=INK, zorder=4)
+        yt = y - TIE_DROP
+        ax.plot([x0 + 1.5, x1 - 1.5], [yt, yt], color=BLUE, lw=0.9, zorder=4,
+                solid_capstyle="butt")
+        for x in (x0 + 1.5, x1 - 1.5):
+            ax.plot([x, x], [yt, yt + 1.3], color=BLUE, lw=0.9, zorder=4)
 
     # --- headers ---------------------------------------------------------------------
-    ax.text((BLOCKS[0][0] + BLOCKS[0][1]) / 2, Y_BAND, "as stored", ha="center", va="center",
-            fontsize=7.5, color=MUTED, style="italic")
-    ax.text((BLOCKS[1][0] + BLOCKS[2][1]) / 2, Y_BAND, "what we build", ha="center", va="center",
-            fontsize=7.5, color=BT, style="italic")
-    for bx, ttl in zip(BLOCKS, ("human vs model", "one model, two prompts",
-                                "one model, one prompt")):
+    for bx, ttl in zip(BLOCKS, ("as stored", "+ same writer", "+ same prompt")):
         ax.text((bx[0] + bx[1]) / 2, Y_TITLE, ttl, ha="center", va="center",
                 fontsize=8.5, color=INK, weight="bold")
     for bx in BLOCKS:
-        mid = (bx[0] + bx[1]) / 2
-        ax.text((bx[0] + mid) / 2, Y_SUB, "honest", ha="center", va="center",
-                fontsize=7.0, color=MUTED)
-        ax.text((mid + bx[1]) / 2, Y_SUB, "attack", ha="center", va="center",
-                fontsize=7.0, color=MUTED)
+        lx, rx = halves(bx)
+        ax.text(lx, Y_SUB, "honest", ha="center", va="center", fontsize=7.0, color=MUTED)
+        ax.text(rx, Y_SUB, "attack", ha="center", va="center", fontsize=7.0, color=MUTED)
+        ax.plot([bx[0], bx[1]], [Y_RULE, Y_RULE], color=GRID, lw=0.8, zorder=2)
 
     # --- the three properties --------------------------------------------------------
     for y, lab in zip(ROWS, ("writer", "prompt", "backdoor")):
-        ax.text(GUT - 1.5, y, lab, ha="right", va="center", fontsize=7.5, color=INK2)
+        ax.text(GUT, y, lab, ha="right", va="center", fontsize=7.5, color=INK2)
 
-    split(BLOCKS[0], ROWS[0], "human", "Claude 3.7")
+    split(BLOCKS[0], ROWS[0], "human", "Sonnet 3.7")
     split(BLOCKS[0], ROWS[1], "none", "attack")
     for bx in BLOCKS[1:]:
-        merged(bx, ROWS[0], "Claude Sonnet 5")
+        merged(bx, ROWS[0], "Sonnet 5")
     split(BLOCKS[1], ROWS[1], "solve", "attack")
     merged(BLOCKS[2], ROWS[1], "same prompt")
     for bx in BLOCKS:
         split(bx, ROWS[2], "none", "planted")
 
-    # --- separability, on one scale, drawn rather than only printed --------------------
-    ax.text(GUT - 1.5, Y_BAR, "AUROC", ha="right", va="center", fontsize=7.5, color=INK2)
+    # --- separability: position on aligned scales, not bar length or fill -------------
+    ax.plot([GUT + 2.5, BLOCKS[2][1]], [Y_RULE2, Y_RULE2], color=GRID, lw=0.8, zorder=2)
+    ax.text(GUT, Y_SCALE, "AUROC", ha="right", va="center", fontsize=7.5, color=INK2)
     for bx, v, hue in zip(BLOCKS, (0.871, 0.751, 0.642), (ORANGE, BLUE, BLUE)):
         x0, x1 = bx
-        ax.add_patch(FancyBboxPatch((x0, Y_BAR - 2.6), x1 - x0, 5.2,
-                                    boxstyle="round,pad=0,rounding_size=0.6",
-                                    fc="white", ec=GRID, lw=0.8, zorder=3))
-        ax.add_patch(FancyBboxPatch((x0, Y_BAR - 2.6), (x1 - x0) * (v - 0.5) / 0.5, 5.2,
-                                    boxstyle="round,pad=0,rounding_size=0.6",
-                                    fc=hue, ec="none", zorder=4))
-    # The scale is defined once, under the first bar, where the eye starts. Repeating it under
-    # all three reads as three scales; putting 1.0 under the third reads as a value of the third.
-    ax.text(BLOCKS[0][0], Y_BAR - 6.4, "chance", ha="left", va="center",
+        ax.plot([x0, x1], [Y_SCALE, Y_SCALE], color=GRID, lw=0.9, zorder=2)
+        ax.plot([x0 + (x1 - x0) * (v - 0.5) / 0.5], [Y_SCALE], marker="o", ms=4.2,
+                color=hue, zorder=5, markeredgewidth=0)
+    ax.text(BLOCKS[0][0], Y_SCALE - 5.0, "chance", ha="left", va="center",
             fontsize=6.5, color=MUTED)
-    ax.text(BLOCKS[0][1], Y_BAR - 6.4, "1.0", ha="right", va="center",
+    ax.text(BLOCKS[0][1], Y_SCALE - 5.0, "1.0", ha="right", va="center",
             fontsize=6.5, color=MUTED)
 
-    # --- the numbers ------------------------------------------------------------------
-    ax.text((BLOCKS[0][0] + BLOCKS[0][1]) / 2, Y_NUM, "$B$ = 0.871", ha="center", va="center",
-            fontsize=9.5, color=INK, weight="bold")
-
-    for bx, s, r in ((BLOCKS[1], "0.751", "0.687"), (BLOCKS[2], "0.642", "0.394")):
-        xc = (bx[0] + bx[1]) / 2
-        ax.text(xc, Y_NUM, f"$S$ = {s}", ha="center", va="center",
-                fontsize=9.5, color=INK, weight="bold")
-        ax.text(xc, Y_RHO, f"$\\rho$ = {r}", ha="center", va="center",
-                fontsize=7.0, color=MUTED)
+    for bx, v in zip(BLOCKS, ("0.871", "0.751", "0.642")):
+        ax.text((bx[0] + bx[1]) / 2, Y_NUM, v, ha="center", va="center",
+                fontsize=10.0, color=INK, weight="bold")
 
     fig.savefig(f"{OUT}/f4-constructions.pdf", metadata=PDF_METADATA)
     plt.close(fig)
-    print("F4: property grid, 3 constructions; rows merge left to right, AUROC 0.871 -> 0.642")
+    print("F4: no cell boxes; one word = shared, two = differ; 0 / 1 / 2 ties left to right")
 
 
 # Every row: label, rho, lo, hi, colour. `None` bounds mean the ledger quotes no joint interval.
