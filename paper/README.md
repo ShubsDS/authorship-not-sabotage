@@ -1,7 +1,8 @@
 # paper/ — the submission
 
-Built and verified 2026-09-13 after **pass 5** — a format-convention pass against NeurIPS
-workshop norms, described below — on top of **pass 4** (a clarity pass against the cold review's
+Built and verified 2026-09-13 after **pass 6** — problem-first framing, and literature confined
+to §1 — on top of **pass 5** (format conventions), both described below, and on top of
+**pass 4** (a clarity pass against the cold review's
 weaknesses 1, 4 and 6, [`notes/12-final-review.md`](../notes/12-final-review.md) §1),
 **pass 3** (that review's M1–M10), the second pass (`notes/11-pass2-brief.md`) and the reviewer
 audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
@@ -9,6 +10,47 @@ audit ([`notes/09-review-audit.md`](../notes/09-review-audit.md)).
 pages** — the body fills page 4 with **no free body line by the probe below (N = 0)**,
 References begins on page 5, and the appendix follows the references. Nothing of the body reaches
 page 5.
+
+## Pass 6 (2026-09-13) — the problem first, the literature only in §1
+
+The paper positioned itself against the literature in almost every section, including the
+abstract's second sentence ("The field already knows these pairs leak"), and deferred to other
+work where it should have stated a finding. Three comparable papers were read for how they open
+instead: Gururangan et al.'s annotation-artifacts paper, Poliak et al.'s hypothesis-only
+baselines, and Yan et al.'s *Rethinking Backdoor Detection Evaluation*. All three follow the
+same order and cite nobody in the abstract: **how the data is built → the defect that follows
+from how it is built → the number → the mechanism → the implication.** No macro value moved, no
+used macro became unused, the rendered bibliography is unchanged at 20 entries, and the probe is
+still **N = 0**.
+
+**Citations by section, before → after:** abstract 0 → 0, §1 13 → 16, §2 6 → 5, §3 1 → **0**,
+§4 (Limitations) 2 → **0**, §5 (Recommendations) 1 → **0**.
+
+- **The abstract is 218 words, down from 264 across passes 5 and 6, and states the problem
+  before the result.** It now opens on how a stored pair is built and why that construction
+  leaks, instead of on what the field already knows. "We ask what that preprocessing leaves
+  behind" is gone; the defect is asserted.
+- **§1 is reordered: problem, then literature, then our numbers.** Paragraph 1 defines a stored
+  pair concretely and ends on "Separation credited to a monitor may be separation between two
+  authors." Paragraph 2 is the whole literature, and it is the last of it in the paper.
+  Paragraph 3 is our measurement with no citation in it.
+- **Four citations moved into §1 rather than being deleted**, so the bibliography did not
+  shrink: `gururangan2018annotation`, `poliak2018hypothesis` and `feng2019misleading` (from
+  Limitations) and `kapoor2022leakage` (from Recommendations) are now one sentence in §1 ¶2.
+- **Deference deleted, not relocated:** "This paper starts from that work", "the known-ness of
+  the mechanism is the argument, not a dent in it", "Following Kapoor & Narayanan, who treat
+  leakage as a checklist rather than a verdict", and the Feng attribution in front of the first
+  Limitation, which is now stated as our own scope claim.
+- **§2's five remaining citations are artifact provenance, not literature** — which corpus,
+  whose released split, whose monitor scores. They name the data and have to stay wherever the
+  data is named. If "no literature after §1" is ever read more strictly than that, these are the
+  ones to argue about.
+- **Self-reference and internal jargon removed from the body:** "the two carriers §1 names" now
+  names them (comment count and code length); "as our Recommendation 3 asks" and "as our arm-1
+  null shows" are gone; "Every comparison below names its split, metric and preprocessing" was a
+  promise about the document rather than a finding; the paragraph head "The negative control
+  comes free" now says what the paragraph shows.
+- The appendix keeps its citations. The complaint was about how the four-page body reads.
 
 ## Pass 5 (2026-09-13) — format conventions, no claim changed
 
