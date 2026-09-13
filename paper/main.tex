@@ -471,16 +471,14 @@
 %  sentence with the outcome sentence from notes/06 §4.4, using the \sameGen* macros.
 % =====================================================================================
 \begin{abstract}
-Trusted monitors are tuned and ranked on stored pairs of code, pairing for one programming
-problem an honest solution with a solution carrying a planted backdoor. The two classes are built
+Trusted monitors are tuned and ranked on stored pairs of code. Valid solutions to various programming
+problems are paired with solutions carrying planted backdoors. However, The two classes are built
 differently. Honest solutions are human-written, taken from an existing dataset; every backdoor
 is written by a language model. The label is therefore recoverable from authorship alone, and
 filtering to working solutions and stripping comments does not remove it. On such a split, a
 trained bag-of-words classifier scores above roughly four-fifths of the open-weight monitors
-ranked on it, and a classifier reading no code at all, only problem metadata, scores above most
-of them. The signal transfers across backdoor generators and is nearly as strong on inert
-backdoors as on working ones, so no property of a backdoor explains it. Regenerating only the
-honest half raises separability further. One model writing both classes removes between
+ranked on it, and a classifier reading no code at all scores above most
+of them.One model writing both classes removes between
 a third and nine-tenths of it, on two generators that differ because only one adopts the attack
 prompt's layout; matching that prompt removes most of the rest. An LLM monitor is inflated the same
 way, scoring \monStoredStrictAbs{} on stored pairs and \monitorStrict{} on firing backdoors
@@ -500,7 +498,7 @@ an untrusted model's output and flags sabotage \cite{greenblatt2023aicontrol}. M
 are developed, tuned and ranked almost entirely on \emph{stored} honest/attack pairs, fixed
 corpora in which each programming problem contributes an honest solution and a solution
 carrying a planted backdoor \cite{koran2026ensemble, terekhov2025controltax,
-jha2026decorrelation}. The two classes come from different authors. Honest solutions are
+jha2026decorrelation}. Honest solutions are
 human-written, taken from APPS \cite{hendrycks2021apps}; every backdoor is written by a
 language model, and the corpus records which one. Separation credited to a monitor may be
 separation between two authors.
