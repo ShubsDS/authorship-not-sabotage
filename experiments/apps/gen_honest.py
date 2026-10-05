@@ -1,34 +1,33 @@
-"""Generate the Gate S honest class with a local open-weight coder model (vLLM, offline batch).
+"""Generate the honest class with a local open-weight coder model (vLLM, offline batch).
 
-The only GPU code in this repo. Run it twice, once per arm:
+This is arm 1 in the paper: Qwen3-Coder-30B-A3B-Instruct (tag q3c30) writes the honest class
+against the stored backdoors, giving rho = 1.234 (gate_s_q3c30.json; the robustness appendix). It
+is the only GPU code in the repo and was run on a Slurm cluster through gate_s_gen.sbatch. The API
+scripts (gen_honest_api.py, gen_honest_haiku.py) import PROMPT, extract_code and already_done from
+here.
 
-    CUDA_VISIBLE_DEVICES=0 python gen_honest.py \
-        --model Qwen/Qwen2.5-Coder-7B-Instruct  --out gen_7b.jsonl
-    CUDA_VISIBLE_DEVICES=1 python gen_honest.py \
-        --model Qwen/Qwen2.5-Coder-32B-Instruct --out gen_32b.jsonl
+Generation covers all 5,000 problems, not only the 3,420 with a shipped passing solution;
+eligibility is applied at analysis time (see gate_s_pool.py).
 
-The cards are H100 NVL at 94 GB, so the 32B fits at bf16 on ONE card (~62 GB of weights). Both arms
-therefore run concurrently, one GPU each, instead of sequentially at tensor_parallel_size=2 - which
-also removes the tensor-parallel failure mode entirely.
+Requires gate_s_pool.parquet (run gate_s_pool.py first). Resumable: problem_ids already in --out
+are skipped.
 
-Generation covers all 5,000 problems, not the 3,420 with a shipped passing solution: which problems
-are eligible depends on how the harness validation lands, and that is an analysis-time filter, not a
-generation-time one (`gate_s_pool.py`).
+Protocol:
 
-Requires `gate_s_pool.parquet` (run `gate_s_pool.py` first). Resumable: problem_ids already in
-`--out` are skipped, so an interrupted allocation costs only the unfinished tail.
-
-The protocol is fixed in `../GATE-S-RUNBOOK.md` §3 and the reasons matter more than the values:
-
-  one sample per problem, no best-of-n   further selection on quality would install exactly the
-                                         selection artifact this paper audits
-  temperature 0, fixed seed              removes sampling as a free parameter a reviewer can poke
+  one sample per problem, no best-of-n   selecting on quality would add the selection artifact
+                                         the paper audits
+  temperature 0, fixed seed              removes sampling as a free parameter
   the question verbatim, tests withheld  the model gets what a human solver got, and cannot fit
                                          the checker
-  NO style instructions                  comment and identifier style is the channel under test.
-                                         Saying "no comments" or "be concise" would destroy the
-                                         measurement. Comments are stripped downstream by the same
-                                         strip_comments() applied to the human class.
+  no style instructions                  comment and identifier style is the channel under test,
+                                         so the prompt says nothing about it. Comments are
+                                         stripped downstream by the same strip_comments() applied
+                                         to the human class.
+
+Usage:
+    sbatch --export=ALL,MODEL=Qwen/Qwen3-Coder-30B-A3B-Instruct,TAG=q3c30 gate_s_gen.sbatch
+    # equivalently, on a GPU node:
+    python gen_honest.py --model Qwen/Qwen3-Coder-30B-A3B-Instruct --out gen_q3c30.jsonl --tp 2
 """
 
 from __future__ import annotations
@@ -80,7 +79,7 @@ def main() -> None:
     ap.add_argument("--model", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--tp", type=int, default=1,
-                    help="tensor_parallel_size; 1 is right on 94 GB cards, even for the 32B")
+                    help="tensor_parallel_size (gate_s_gen.sbatch passes 2)")
     ap.add_argument("--max-tokens", type=int, default=4096)
     ap.add_argument("--max-model-len", type=int, default=8192)
     ap.add_argument("--gpu-memory-utilization", type=float, default=0.90)
@@ -89,12 +88,11 @@ def main() -> None:
     ap.add_argument("--chunk", type=int, default=250,
                     help="write results to disk every N problems. vLLM's generate() is blocking "
                          "and returns everything at once, so a job killed inside one call loses "
-                         "ALL of it - that is how job 6559568 timed out with zero output despite "
-                         "this script being 'resumable'. Chunking makes resume actually work.")
+                         "all of it. Chunking makes resume work.")
     ap.add_argument("--generation-pool-only", action="store_true",
                     help="restrict to the 3,420 with a shipped passing solution. Off by default: "
-                         "eligibility is an analysis-time filter, and generating the superset means "
-                         "the harness validation cannot send us back to the GPU.")
+                         "eligibility is an analysis-time filter, and generating the superset lets "
+                         "the harness change eligibility without regenerating.")
     args = ap.parse_args()
 
     pool = pd.read_parquet("gate_s_pool.parquet")

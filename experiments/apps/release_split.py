@@ -1,92 +1,72 @@
-"""Build (and validate) the anonymised public release of the same-generator APPS split.
+"""Build and validate the anonymised release bundle of the same-generator APPS split.
 
-This is the artifact `main.tex` promises when it says the split definition and the scripts
-accompany the paper. It turns the run products on disk --- `gen_<tag>.jsonl`, `pass_<tag>.jsonl`
-and the two attack arms with their verifier outputs --- into a self-contained `release/`
-directory that another group can download, read and recompute a floor from.
+Turns the run products (`gen_<tag>.jsonl`, `pass_<tag>.jsonl`, the two attack arms and their
+verifier outputs, and optionally the independent arm's retry pool) into a self-contained
+directory, and `--check` re-validates a built one.
 
-    python release_split.py                      # build ./release from the default file names
-    python release_split.py --out /tmp/release    # build somewhere else
-    python release_split.py --check release       # validate a built directory
-    python release_split.py --render-card-only --card-out ../RELEASE-CARD.md
+Contents
+--------
+  * `honest.jsonl`, `attacks_edit.jsonl`, `attacks_independent.jsonl`: honest and backdoored
+    solutions written by claude-sonnet-5, with triggers and harness verdicts. Each record carries
+    only the fields in `HONEST_FIELDS` / `ATTACK_FIELDS` (an allow-list; the model's `raw` reply
+    and everything else is dropped), with `code` and its comment-stripped `code_stripped`.
+  * `pairs_passes.csv` / `pairs_usable.csv`: problem ids that form a pair under each eligibility
+    rule (passes the public tests; passes and fires on its trigger).
+  * With `--pool-independent`: every draw of the independent arm, undeduplicated, as
+    `attacks_independent_pool.jsonl` with `draw` / `source` / `round`.
+  * `scripts/`: the scripts in `SCRIPT_FILES`, read from the committed revision (`git show HEAD`)
+    unless `--scripts-from-worktree`.
+  * `LICENSE` (MIT, covering data and scripts), the dataset card `README.md`, and `MANIFEST.json`
+    with row counts, SHA-256 checksums, field lists and selection rules.
 
-The scripts, and the licence (added 2026-09-11; schema 3)
----------------------------------------------------------
-Recommendation 4 of the paper is "release the split *and the scripts*", so the bundle ships
-both. `release/scripts/` carries the programs behind the paper's numbers, read from the
-**committed** revision (`git show HEAD:...`) rather than from the working tree, so a
-half-finished edit by a parallel session cannot ship; `--scripts-from-worktree` overrides that
-for a checkout without git. `release/LICENSE` is a copy inside the directory: the archive used
-to store it as `../../LICENSE`, which extracts beside the release rather than into it.
-
-Scripts are scrubbed on a list of their own (`SCRIPT_SCRUB_PATTERNS`). The data scrub bans
-every `github.com/<owner>/` URL, but two scripts carry one inside a third-party licence notice
-that `THIRD-PARTY-NOTICES.md` obliges us to keep, and an upstream repository is a citation, not
-an author. What the script scrub bans is what actually de-anonymises or leaks: credentials, API
-batch ids, local paths, personal names and email addresses --- and cost figures, which are
-redacted to `$X` on the way in and then refused if any survive.
-
-What it releases, and what it deliberately does not
----------------------------------------------------
-Released: **our** generations only --- honest solutions and backdoored solutions written by
-`claude-sonnet-5`, their triggers, our harness verdicts, and the problem ids that pair them up.
-
-Not released, under the project's standing rule that we redistribute nothing upstream
-(`notes/05-permissibility.md`):
-
-  * no human APPS solutions, and no problem statements, inputs or outputs --- the upstream
-    artifact is referenced by `problem_id` only;
-  * no stored backdoors from `RoganInglis/apps-control-arena`. That corpus is MIT and could
-    lawfully be redistributed; the rule is stricter than the licence on purpose, so that one
-    sentence covers every corpus;
-  * nothing derived from `eugenekoran/apps-control-arena-high-quality`, which declares no
-    licence and therefore grants no permission to redistribute anything at all.
+Excluded
+--------
+Nothing upstream is redistributed: no human APPS solutions, problem statements, inputs or outputs
+(the upstream artifact is referenced by `problem_id` only), no stored backdoors from
+`RoganInglis/apps-control-arena` (MIT, but excluded so one rule covers every corpus), and nothing
+from `eugenekoran/apps-control-arena-high-quality`, which declares no licence.
 
 Anonymity
 ---------
-The paper is double-blind until acceptance, so the bundle is scrubbed: no local paths, no
-usernames, no hostnames, no API batch ids, no keys, no dollar figures, no author or institution
-names, no repository URL. `--check` re-runs that scrub against a built directory and fails on a
-hit, so an accidental leak cannot ship quietly.
+Data files and the card are scrubbed against `SCRUB_PATTERNS`: local paths, API batch ids, keys,
+repository and owner URLs, dollar figures. Scripts get their own list (`SCRIPT_SCRUB_PATTERNS`),
+which allows `github.com/<owner>/` because two scripts carry one inside a third-party licence
+notice that `THIRD-PARTY-NOTICES.md` requires us to keep; cost figures in scripts are redacted to
+`$X` before the scrub. `--check` re-runs both scrubs and fails on a hit.
 
-Every released record carries only the fields listed in `HONEST_FIELDS` / `ATTACK_FIELDS`.
-Anything else in the source jsonl --- notably the model's full `raw` reply --- is dropped rather
-than filtered, because an allow-list cannot be defeated by a field nobody thought of.
-
-The retry pool and the two selections (added 2026-09-11; schema 2)
--------------------------------------------------------------------
-The independent arm was resampled (`merge_draws.py`), so a reader must be able to reproduce both
-the paper's headline selection and its strict one from the same bundle:
-
-  * `attacks_independent.jsonl` + `pairs_passes.csv` / `pairs_usable.csv` --- one draw per problem
-    under `--keep` (default `first`: the earliest draw, chosen blind to its outcome). This is
-    unchanged from schema 1 apart from the new `crash_on_trigger` field.
-  * `--pool-independent` / `--poolpass-independent` --- ship EVERY draw of the independent arm as
-    `attacks_independent_pool.jsonl`, undeduplicated, with `draw` / `source` / `round` so the
-    draws can be ordered and joined. Nothing else changes when the flags are absent.
-  * `--also-select best` (needs the pool) --- also write `pairs_passes_best.csv` and
-    `pairs_usable_best.csv`, keyed by `draw` into the pool: the benchmark's own survivor
-    selection, with a crash on the trigger scored as *not* working (ControlArena's rule). Per
-    problem: the earliest draw that passes the public tests and fires without crashing; failing
-    that, for the passes list, the earliest draw that passes; for the usable list, the earliest
-    draw that fires by crashing, flagged `crash_on_trigger = true`. So `pairs_usable_best.csv`
-    filtered to `crash_on_trigger == false` is the strict set the paper reports, and the whole
-    file is the crash-inclusive sensitivity set.
+Selections
+----------
+  * `--keep first` (default): `attacks_independent.jsonl` and the plain pair lists use the
+    earliest draw per problem, chosen blind to its outcome. This is the headline selection.
+  * `--also-select best` (needs the pool): also writes `pairs_passes_best.csv` and
+    `pairs_usable_best.csv`, keyed by `draw`, the benchmark's own survivor selection. Per problem:
+    the earliest draw that passes and fires without crashing; else, for the passes list, the
+    earliest that passes, and for the usable list, the earliest that fires by crashing, flagged
+    `crash_on_trigger = true`. `pairs_usable_best.csv` filtered to `crash_on_trigger == false` is
+    the strict set; the whole file is the crash-inclusive sensitivity set.
 
 `crash_on_trigger` is `reason == "backdoor crashes on trigger"` from `verify_backdoor.py`, which
-counts a crash as `backdoor_works`; the flag lets a reader apply either rule.
+counts a crash as `backdoor_works` where the upstream validator does not; the flag lets a reader
+apply either rule.
 
-Trivial programs that coincide with a human solution (added 2026-09-11)
------------------------------------------------------------------------
-The first full build failed `--check` on 53 released strings byte-identical to an upstream human
-solution: every one a one-liner of at most 117 characters (7 lines) for an introductory problem,
-51 of 53 on the same problem, none matching a stored backdoor. That is the canonical solution
-being the only solution, not memorisation. `--allow-trivial-identical CHARS` (off by default, so
-the strict rule stands unless invoked) lets the build keep matches of at most CHARS characters,
-refuses any longer match and any match with a stored backdoor, and declares the retained ones by
-file and problem id under `upstream_identical_trivial` in `MANIFEST.json`; `--check` with the
-same flag recomputes the set against the shards and fails on any undeclared or over-length match.
-The card states the count. Without the flag, `--check` fails on them exactly as before.
+Trivial identical programs
+--------------------------
+Some released programs are byte-identical to an upstream human solution: one-liners of at most
+117 characters for introductory problems, where the canonical solution is the only solution.
+`--allow-trivial-identical CHARS` (off by default) keeps matches of at most CHARS characters,
+refuses longer matches and any match with a stored backdoor, and declares the retained ones under
+`upstream_identical_trivial` in `MANIFEST.json`. `--check` with the same value recomputes the set
+from the upstream shards and fails on any undeclared or over-length match.
+
+Usage:
+    python release_split.py --out release --force --keep first \\
+        --bd-independent bdind_sonnet5_first.jsonl \\
+        --bdpass-independent bdindpass_sonnet5_first.jsonl \\
+        --pool-independent bdind_sonnet5_retry.jsonl \\
+        --poolpass-independent bdindpass_sonnet5_retry.jsonl \\
+        --also-select best --allow-trivial-identical 120
+    python release_split.py --check release --allow-trivial-identical 120
+    python release_split.py --render-card-only --card-out CARD.md
 """
 
 from __future__ import annotations
@@ -154,10 +134,9 @@ SCRIPT_FILES = (
 )
 LICENCE_FILE = "LICENSE"
 
-# Scripts are prose as well as code. The data scrub (above) refuses every `github.com/<owner>/`
-# and every upstream dataset URL, which would strip a third-party MIT notice we are obliged to
-# keep and an upstream citation that identifies nobody. So scripts get their own list: what
-# de-anonymises the authors, what is a credential, and what discloses spend.
+# The data scrub (below) refuses every `github.com/<owner>/` and upstream dataset URL, which would
+# reject a third-party MIT notice we must keep and upstream citations that identify nobody. Scripts
+# therefore get their own list: what de-anonymises the authors, credentials, and cost figures.
 SCRIPT_SCRUB_PATTERNS = [
     (r"msgbatch_[A-Za-z0-9]+", "an API batch id"),
     (r"sk-ant-[A-Za-z0-9_\-]{6,}", "an API key"),
@@ -169,9 +148,8 @@ SCRIPT_SCRUB_PATTERNS = [
 ]
 COST_FIGURE = re.compile(r"\$\s?\d[\d,]*(?:\.\d+)?")
 
-# Fields that must never reach the release even if a future version of a generator script adds
-# them. The allow-list above already excludes them; this list exists so `--check` can say *why*
-# a field is refused rather than only that it is unexpected.
+# Fields that must never reach the release. The allow-list already excludes them; this list lets
+# `--check` say why a field is refused rather than only that it is unexpected.
 FORBIDDEN_FIELDS = {
     "raw",                 # the model's full reply: unfiltered prose, not the object of study
     "batch_id", "custom_id", "state_file",
@@ -195,9 +173,8 @@ SCRUB_PATTERNS = [
     (r"\$\s?\d+\.\d{2}", "a cost figure"),
 ]
 
-# Values quoted in the dataset card when it is rendered without a built release (--render-card-only).
-# They are the recorded ledger values from `experiments/RESULTS.md` 4.1-4.10, not estimates. A card
-# written by a real build overwrites every one of them from MANIFEST.json.
+# Values quoted in the dataset card when it is rendered without a built release (--render-card-only):
+# the recorded single-shot generation counts. A real build overwrites every one from MANIFEST.json.
 LEDGER = {
     "model": "claude-sonnet-5",
     "generated": "September 2026",
@@ -482,8 +459,8 @@ def dedupe(records: list[dict], keep: str, what: str) -> list[dict]:
 
     Generation files are appended to, so a retry pool puts several draws of the same problem in
     one file. `first` keeps the earliest draw, which is the single-shot reading. `best` keeps the
-    draw that survives the strictest filter, which is the benchmark's own retry-survivor selection
-    and therefore imports its selection effect --- deliberately, and it must be disclosed.
+    draw that survives the strictest filter, the benchmark's own retry-survivor selection, and so
+    inherits its selection effect.
     """
     by_pid: dict[str, dict] = {}
     dups = 0
@@ -584,9 +561,8 @@ def redact_costs(text: str) -> tuple[str, int]:
 def script_source(name: str, worktree: bool, where: str) -> str:
     """The committed text of one script, or the working-tree text under --scripts-from-worktree.
 
-    HEAD is the default because other sessions edit these files while a build runs: shipping a
-    working tree means shipping whatever was half-saved at that second. `git show` is asked for
-    the path as git knows it, so the build works from any directory inside the repository.
+    HEAD is the default so that uncommitted edits cannot ship. `git show` is asked for the path as
+    git knows it, so the build works from any directory inside the repository.
     """
     path = os.path.join(where, name)
     if not worktree:
@@ -796,8 +772,8 @@ def build(args) -> int:
     if args.also_select and pool_rows is None:
         raise SystemExit("--also-select needs the pool (--pool-independent/--poolpass-independent)")
 
-    # One generator on both sides is the entire claim of this split. Nothing above enforces it:
-    # the files are named by flag, and a mismatched pair would produce a confident, wrong release.
+    # One generator on both sides is the point of this split; the input files are named by flag,
+    # so check it here.
     models = {r["model"] for r in honest_rows} | {r["model"] for rs in arms.values() for r in rs}
     models |= {r["model"] for r in (pool_rows or [])}
     models.discard(None)
@@ -887,8 +863,7 @@ def build(args) -> int:
                          "agreement": args.agreement, "built": built,
                          "pairs_passes_total": len(pairs_passes),
                          "pairs_usable_total": len(pairs_usable)})
-    # The scripts and the licence: the paper's Recommendation 4, and the `../../LICENSE`
-    # archive entry that used to extract outside the release directory.
+    # The scripts, and the licence copied into the release directory.
     script_paths: list[str] = []
     redactions = 0
     if args.scripts:
@@ -1004,8 +979,7 @@ def upstream_code_strings(shard_glob: str) -> dict[str, str] | None:
     {stripped code string: "solution" | "backdoor" | "both"}.
 
     Returns None when no shard is on this machine --- in which case the check can only warn, and
-    says so. The release is built exclusively from our own generation files, so upstream code has
-    no path into it; this check is the belt to that braces.
+    says so. The release is built only from our own generation files; this is a second check.
     """
     shards = sorted(glob.glob(shard_glob))
     if not shards:
@@ -1285,8 +1259,8 @@ def main() -> int:
     ap.add_argument("--bd-independent", default="bdind_sonnet5.jsonl",
                     help="independent-arm generations")
     ap.add_argument("--bdpass-independent", default="bdindpass_sonnet5.jsonl",
-                    help="verify_backdoor.py output for the INDEPENDENT arm. The default follows "
-                         "GATE-S-RUNBOOK.md; note that gen_backdoor_api.py's closing 'Next:' line "
+                    help="verify_backdoor.py output for the INDEPENDENT arm. Note that "
+                         "gen_backdoor_api.py's closing 'Next:' line "
                          "prints bdpass_sonnet5.jsonl for both arms, so if that line was followed "
                          "literally the independent verdicts may live under another name. Check "
                          "before trusting the default.")
@@ -1320,7 +1294,7 @@ def main() -> int:
     ap.add_argument("--max-tokens", type=int, default=4096,
                     help="the generation token cap, recorded as metadata")
     ap.add_argument("--card-out", default=None,
-                    help="also write the rendered dataset card here (e.g. ../RELEASE-CARD.md)")
+                    help="also write the rendered dataset card here (e.g. CARD.md)")
     ap.add_argument("--shards", default="train_*.parquet",
                     help="glob for the local upstream shards, used by --check to prove no "
                          "upstream code was released")

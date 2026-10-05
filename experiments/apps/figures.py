@@ -1,32 +1,20 @@
-"""The paper's figures. `python figures.py` writes into ../../paper/fig/.
+"""Build the paper's figures and the F1 table into ../../paper/fig/.
 
-F1  protocol x baseline     -> LaTeX booktabs table (it is >7 rows of labelled values, which is a
-                               table, not a chart)
-F2  per-corpus floors       -> f2-corpus-floors.pdf   (included at 0.86\\linewidth)
-F3  monitors vs our floors  -> f3-monitors-vs-floors.pdf (included at 0.64\\linewidth)
-F4  the three constructions -> f4-constructions.pdf   (included at \\linewidth)
-F5  rho forest              -> f5-rho-forest.pdf      (NOT currently included in main.tex; the
-                               paper carries these rows as Table 1. Built and tracked anyway.)
+    F1  protocol x baseline table  -> f1-protocol-baseline.tex
+    F2  agentic-setting floors     -> f2-corpus-floors.pdf
+    F3  monitors vs our floors     -> f3-monitors-vs-floors.pdf
+    F4  the three constructions    -> f4-constructions.pdf
 
-REBUILD, 2026-09-13. The card/panel/badge language, the shaded retention bands and the
-null-to-value connector come from the dashboard-style draft this replaces. Three things about that
-draft do not survive the port, and all three have to stay dead:
+Every plotted value is a named constant below. Before drawing, check() asserts each one against the
+\newcommand macros in ../../paper/main.tex, so a figure cannot disagree with the text. F3 also reads
+the 24 monitor AUROCs from monitor-summary.json (written by fetch_inputs.py).
 
-  Numbers. The draft's five permutation nulls, two rho intervals and F4's leading AUROC were not
-  the measured ones. Every value below is a named constant with its ledger location beside it, and
-  nothing is typed twice. See the CHECK block at the bottom, which re-asserts them at import.
+Figures are sized at the width main.tex includes them at, so font sizes are the printed sizes. The
+paper sets in Times; Nimbus Roman (or Times New Roman) matches its metrics. Output is deterministic:
+the PDF creation date is not stamped.
 
-  Type. The paper sets in Times (ptm). The draft set in DejaVu Sans, which is what made the old
-  figures read as pasted in. Nimbus Roman is URW's Times clone and metrically identical to ptm;
-  where it is missing (this Mac) Times New Roman is the same metrics again.
-
-  Point size. Every figure is included at a FIXED fraction of the 5.5in text block, so figsize is
-  that printed width and every fontsize below is the size it lands on the page. The draft was
-  drawn at 11in wide, which would have delivered 4pt badges. Nothing here renders below 6pt.
-
-Text inside a frame is a label, never a sentence: the draft's callout boxes ("Reaches 0.802 AUROC
-from character count alone!", "20 of 24 monitors fall BELOW the No-Code floor") are claims, and
-claims belong to the caption, which already makes both.
+Usage (from experiments/apps):
+    python figures.py
 """
 
 from __future__ import annotations
@@ -50,9 +38,7 @@ plt.rcParams.update({
 
 OUT = "../../paper/fig"
 
-# Without this matplotlib stamps /CreationDate into the PDF and every rebuild differs from the last
-# by exactly those 8 bytes - identical plots that git reports as changed, and a reproducibility
-# claim no one can check by hash.
+# No /CreationDate, so rebuilds are byte-identical.
 PDF_METADATA = {"CreationDate": None}
 
 # The 5.5in NeurIPS text block, and the widths main.tex includes each figure at.
@@ -64,34 +50,24 @@ INK, INK2, MUTED, GRID = "#0b0b0b", "#52514e", "#8c8b86", "#e3e2dd"
 BLUE, ORANGE = "#2a78d6", "#eb6834"
 CONNECT = "#d3d2cc"
 
-# Card and badge palette, ported from the draft and darkened where 6pt type sits on it.
+# Card and badge palette.
 OK_BG, OK_EC, OK_TX = "#f0fdf4", "#86efac", "#166534"      # controlled / honest
 BAD_BG, BAD_EC, BAD_TX = "#fff1f2", "#fda4af", "#9f1239"   # confounded / attack
 TGT_BG, TGT_TX = "#eef2ff", "#3730a3"                      # the target signal
 TINT = "#f4f8fd"                                           # the two constructions we build
 PANEL_BG, PANEL_EC = "#fafafa", "#d1d5db"
 
-# =============================================================================================
-#  MEASURED VALUES.  Every one carries where it came from. Verified on this machine 2026-09-04
-#  (experiments/REPRODUCED.md); the Gate S rows re-read from RESULTS.md 2026-09-13.
-# =============================================================================================
-
-TFIDF_FLOOR = 0.8063                       # RESULTS.md 8.3; Koran paired train -> their 1,375 test
+# Measured values, as reported in main.tex.
+TFIDF_FLOOR = 0.8063                       # Koran paired train -> their 1,375-item test split
 TFIDF_CI = (0.7704, 0.8409)                # bootstrap over problems
 TFIDF_NULL = 0.5465                        # permutation null, 95th pct; p = 0.004975
-NOCODE_FLOOR, NOCODE_SD = 0.7715, 0.0389   # 5x5 CV *within* the test split - a real caveat
-NOCODE_CI = (0.7319, 0.8005)               # CI of the POOLED out-of-fold AUROC (0.7658), not of the
-                                           # fold mean; RESULTS.md 8.3 says so explicitly
+NOCODE_FLOOR, NOCODE_SD = 0.7715, 0.0389   # 5x5 CV within the test split; clears 20 of 24
+NOCODE_CI = (0.7319, 0.8005)               # CI of the pooled out-of-fold AUROC (0.7658)
 NOCODE_NULL = 0.5545
 NOCODE_HELDOUT = 0.7163                    # single 413-item held-out slice; clears 18 of 24
-# Never pair 0.7715 with "above 18": that count belongs to 0.7163. 0.7715 clears 20 of 24.
-# Mixing them is exactly R18's companion error, and it reached the README before this was caught.
 
-# scan/FINDINGS.md 2b, re-run by scan/matched.py 2026-09-04: all five within-task values reproduce
-# exactly. Column 4 is the number of task groups the within-task AUROC is averaged over and it is
-# NOT uniform - shade and iac rest on FIVE groups each, which the paper says out loud.
-# The nulls are the measured ones: three of the five sit BELOW chance. The draft had all five above
-# it (0.501/0.518/0.512/0.525/0.529), which is a set of numbers that appears nowhere in the ledger.
+# Agentic settings (agentic/matched.py, agentic/floors2.py): within-task chars-only AUROC,
+# permutation null, and the number of task groups the within-task AUROC averages over.
 SCAN = [
     ("bash",       0.5044, 0.4896, 247),
     ("shade",      0.6022, 0.5079, 5),
@@ -100,18 +76,8 @@ SCAN = [
     ("agentdojo",  0.8020, 0.5118, 16),
 ]
 
-# F4's three AUROCs. main.tex's own caption warns that NONE of these is the 0.806 Koran floor - they
-# are measured on the problems each construction realises, so they are a ladder, not a paired
-# comparison. The draft labelled the first panel 0.806, which is the error the caption forbids.
-#   0.871  \baselineB, n = \baselineBn 1,444   (apps/gate_s_baseline.json)
-#   0.751  \sameGenS,  n = \sameGenN   623
-#   0.642  \matchedS,  n = \matchedN   586
-# Each row carries its STATUS and nothing else. The generator names and prompt names the rows used
-# to print under each class ("human" / "Sonnet 3.7", "solve" / "attack", "none" / "planted") are
-# gone as of 2026-09-13: they were the figure answering a question - which writer, which prompt -
-# that the caption and section 2 already answer, and reading them meant reading six cells to
-# recover one bit per row. The badge IS the bit. Everything the reader needs from a row is now on
-# one line: the property, and whether it is held.
+# F4: the classifier's AUROC on each construction's own pairs (B, S and the prompt-matched S).
+# Each is measured on different problems, so they are a ladder, not a paired comparison.
 CONSTRUCTIONS = [
     dict(key="stored",  title="stored benchmark",  n="1,444 pairs", auroc=0.871, ours=False,
          writer="confounded", prompt="confounded",
@@ -126,38 +92,14 @@ CONSTRUCTIONS = [
 
 BADGE = {"confounded": (BAD_BG, BAD_TX), "controlled": (OK_BG, OK_TX), "target": (TGT_BG, TGT_TX)}
 
-# Every row: label, rho, lo, hi, colour. `None` bounds mean the ledger quotes no joint interval,
-# and then no whisker is drawn. The draft invented one for 1.234 (1.150-1.318) and mis-set two
-# more (0.113 -> 0.175 for 0.165; the edit bound -> 0.301-0.441 for 0.306-0.430).
-RHO_ROWS = [
-    ("head", "Bag-of-words classifier",       None,  None,  None,  None),
-    ("row",  "headline",                      0.687, 0.625, 0.755, BLUE),   # main.tex \sameGenRho
-    ("row",  "prompt-matched",                0.394, 0.326, 0.454, BLUE),   # \matchedRho
-    ("row",  "strict (also fires)",           0.921, 0.662, 1.089, BLUE),   # \strictRho
-    ("row",  "strict, prompt-matched",        0.697, 0.494, 0.856, BLUE),   # \matchedStrictRho
-    ("row",  "Haiku 4.5, headline",           0.095, 0.044, 0.150, BLUE),   # \haikuRho
-    ("row",  "Haiku 4.5, prompt-matched",     0.113, 0.055, 0.165, BLUE),   # RESULTS.md 15.6 (a)
-    ("head", "LLM monitor, same pairs",       None,  None,  None,  None),
-    ("row",  "Sonnet 5, wrote both",          0.145, 0.111, 0.182, ORANGE), # RESULTS.md 14, l.1764
-    ("row",  "Sonnet 5, strict",              0.717, 0.601, 0.832, ORANGE), # l.1766
-    ("row",  "Haiku 4.5, wrote neither",      0.151, 0.063, 0.242, ORANGE), # l.1765
-    ("head", "Bounds",                        None,  None,  None,  None),
-    ("row",  "edit arm (near-copies)",        0.371, 0.306, 0.430, MUTED),  # RESULTS.md 9.1 row 7
-    ("row",  "honest half regenerated",       1.234, None,  None,  INK2),   # RESULTS.md 2; no CI
-]
-
-BANDS = (0.33, 0.72)   # pre-registered before any arm ran: collapse / partial / content
-
 
 def f3dp(x):
-    """Three decimals, half-UP. Python's format() is half-to-even, which prints the no-code
-    floor's 0.7715 as 0.771 while the paper prints 0.772."""
+    """Three decimals, rounding half up (format() rounds 0.7715 to 0.771; the paper prints 0.772)."""
     return f"{math.floor(x * 1000 + 0.5) / 1000:.3f}"
 
 
 def style(ax, base=8):
-    """Hairline chrome. The grid is one shade off the surface so the reference lines and the marks
-    are the only things with weight."""
+    """Hairline axes and a faint x grid."""
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.spines["bottom"].set_color(GRID)
     ax.tick_params(axis="x", colors=INK2, labelsize=base, length=3, width=0.7)
@@ -171,23 +113,8 @@ def save(fig, name):
     plt.close(fig)
 
 
-# =============================================================================================
-#  F4  -  how a stored pair is built, and how we rebuild it
-# =============================================================================================
-#
-# Ported from the draft's three-panel card layout. Each factor row is ONE LINE - the property on
-# the left, its status on the right - and the ladder is read by scanning the badge column down each
-# panel: two confounded, then one, then none. Count them and you have the paper.
-#
-# An earlier pass wrote the values under each class as well (a shared property once and tied, a
-# differing one twice, once per class). That encoded the same one bit per row a second time, in a
-# channel that cost six cells to read, and the values themselves - which generator, which prompt -
-# are section 2's job, not this figure's. Cut 2026-09-13. If anything ever goes back into a row,
-# it has to earn its line against the badge, which already says the only thing the row asserts.
-#
-# What the draft carried that is also gone: the italic strap-lines under each header ("Standard
-# Multi-Factor Confound", "Full Factor Isolation Control"), the per-card provenance captions, and
-# "BoW: 0.806" on the first panel - a value that is the Koran-split floor, not one of these three.
+# F4: how a stored pair is built, and how we rebuild it. One panel per construction; each row is
+# a property of the pair and whether the two classes differ in it.
 
 def _measure(ax, t):
     ax.figure.canvas.draw()
@@ -215,9 +142,8 @@ def _card(ax, x, y, w, h, title, bg, ec, tc, fs=7.5, lw=0.9, r=1.0):
 
 
 def fig4_constructions():
-    # 2.45in, down from 3.15: the rows are one line each now. Every constant below is a fraction
-    # of that height, so if the figsize moves they all have to be recomputed against the POINT
-    # sizes - a y-unit here is 1.764pt and the type does not scale with the canvas.
+    # Layout constants are in axis units (0-100) of a 2.45in-tall canvas; one y-unit is 1.764pt.
+    # Changing figsize means re-deriving them, because type does not scale with the canvas.
     fig, ax = plt.subplots(figsize=(W_F4, 2.45))
     ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.axis("off")
     fig.subplots_adjust(left=0.002, right=0.998, top=0.998, bottom=0.002)
@@ -295,17 +221,8 @@ def fig4_constructions():
           + " / ".join(f"{c['auroc']:.3f}" for c in CONSTRUCTIONS))
 
 
-# =============================================================================================
-#  F3  -  the 24 monitors against the two floors, on the split they are ranked on
-# =============================================================================================
-#
-# The draft coloured each dot by whether it cleared the no-code floor. That is dropped: there are
-# TWO floors 0.035 apart, so a dot at 0.79 is below one and above the other, and a two-tone split
-# on one of them asserts a count the figure cannot support. One hue - the monitors are one
-# population, and identity is not the job here, magnitude is.
-#
-# The two shaded spans ARE kept from the draft. They are bootstrap CIs from RESULTS.md 8.3, they
-# genuinely overlap, and showing that overlap is the honest reading of "both floors clear 20 of 24".
+# F3: the 24 monitors ranked on the filtered split against our two floors, with their bootstrap
+# CIs and permutation nulls.
 
 def fig3_monitors():
     aurocs = sorted(m["test_auroc"] for m in json.load(open("monitor-summary.json")))
@@ -314,10 +231,8 @@ def fig3_monitors():
     fig, ax = plt.subplots(figsize=(W_F3, 2.50))
     style(ax, base=7.0)
 
-    # Every vertical rule STOPS at the top of the data. Drawn full height they run through the key.
+    # Rules and spans stop at the top of the data so they do not run through the legend.
     top = n + 0.8
-    # The spans stop where the rules stop. Drawn with axvspan they run full height, straight
-    # through the key - the same mistake as a full-height axvline, in a heavier weight.
     for (a, b), c in ((NOCODE_CI, ORANGE), (TFIDF_CI, BLUE)):
         ax.fill_betweenx([-0.4, top], a, b, color=c, alpha=0.10, lw=0, zorder=1)
     ax.plot([NOCODE_FLOOR] * 2, [-0.4, top], color=ORANGE, lw=1.4, zorder=3,
@@ -352,16 +267,8 @@ def fig3_monitors():
           f"below no-code held-out {sum(a < NOCODE_HELDOUT for a in aurocs)}/{n}")
 
 
-# =============================================================================================
-#  F2  -  the structural floor in five same-generator agentic settings
-# =============================================================================================
-#
-# The draft's connector is kept: a line from the permutation null to the measured value, which is
-# the quantity the reader is here for. It is drawn thin, not as a 4pt bar - at bar weight it reads
-# as a bar grown from the null, and zero is not the reference for an AUROC, 0.5 is.
-#
-# Three of the five nulls sit BELOW chance, so the connector crosses the chance rule on those rows.
-# That is the data. The draft's version had every null above chance and no row crossed.
+# F2: the structural floor in the five same-generator agentic settings. A thin connector runs from
+# each permutation null to the measured value.
 
 def fig2_corpora():
     rows = SCAN[::-1]
@@ -397,102 +304,15 @@ def fig2_corpora():
           "nulls 0.480-0.512, three of five below chance")
 
 
-# =============================================================================================
-#  F5  -  every arm's retained signal against the bands fixed before any arm ran
-# =============================================================================================
-#
-# Not currently included by main.tex - the paper carries these rows as Table 1 - but it is tracked
-# in paper/fig, so it is built here and kept correct.
-#
-# The draft's shaded retention bands and their headers are kept; they are the reader's question.
-# Its colour-by-band is not: band membership is already position, and hue is Cleveland & McGill's
-# weakest channel, so hue goes to WHICH measurement instead (classifier / LLM monitor / bound).
-# Rows the ledger gives no joint interval for get a point and no whisker, rather than an invented
-# one. The null sits to the RIGHT of rho = 1, which is the whole point of publishing it.
-
-def fig5_rho():
-    fig, ax = plt.subplots(figsize=(TEXT_W, 3.45))
-    fig.subplots_adjust(left=0.315, right=0.790, top=0.895, bottom=0.135)
-
-    XMAX, n = 1.32, len(RHO_ROWS)
-    ax.set_xlim(0, XMAX); ax.set_ylim(-0.7, n + 0.35)
-
-    lo, hi = BANDS
-    top = n - 0.42
-    rule_top = top - 0.12   # every rule stops below the band headers; drawn full height with
-                            # axvline they strike the header text through, and the rho = 1 rule
-                            # lands exactly on "(rho > 0.72)"
-    for x0, x1, fc in ((0, lo, "#fdeeee"), (lo, hi, "#fdf6e6"), (hi, XMAX, "#eef8f0")):
-        ax.fill_betweenx([-0.7, rule_top], x0, x1, color=fc, lw=0, zorder=0)
-    for b in BANDS:
-        ax.plot([b, b], [-0.7, rule_top], color=GRID, lw=0.8, zorder=1)
-    ax.plot([1.0, 1.0], [-0.7, rule_top], color=MUTED, lw=0.8, ls=(0, (3, 3)), zorder=2)
-
-    for x, lab in ((lo / 2, f"collapse\n($\\rho \\leq$ {lo:g})"),
-                   ((lo + hi) / 2, f"partial\n({lo:g} $<$ $\\rho \\leq$ {hi:g})"),
-                   ((hi + XMAX) / 2, f"content\n($\\rho >$ {hi:g})")):
-        ax.text(x, top, lab, ha="center", va="bottom", fontsize=7.2, color=INK2, style="italic",
-                linespacing=1.25)
-    ax.text(1.022, top, r"$\rho$  (95% CI, joint)", transform=ax.get_yaxis_transform(),
-            ha="left", va="bottom", fontsize=8.0, color=INK, weight="bold")
-
-    ticks, labels = [], []
-    for i, (kind, label, v, clo, chi, colour) in enumerate(RHO_ROWS):
-        y = n - 1 - i
-        if kind == "head":
-            ax.text(-0.014, y, label, transform=ax.get_yaxis_transform(), ha="right",
-                    va="center", fontsize=8.6, color=INK, weight="bold")
-            continue
-        ticks.append(y); labels.append(label)
-        if clo is not None:
-            ax.plot([clo, chi], [y, y], color=colour, lw=1.5, alpha=0.40, zorder=4,
-                    solid_capstyle="butt")
-            for e in (clo, chi):
-                ax.plot([e, e], [y - 0.17, y + 0.17], color=colour, lw=1.0, alpha=0.55, zorder=4)
-        ax.scatter([v], [y], s=28, facecolor=colour, edgecolor="white", lw=0.7, zorder=6)
-        txt = f"{v:.3f}" if clo is None else f"{v:.3f}  ({clo:.3f}–{chi:.3f})"
-        ax.text(1.022, y, txt, transform=ax.get_yaxis_transform(), ha="left", va="center",
-                fontsize=8.2, color=INK2)
-
-    ax.set_yticks(ticks); ax.set_yticklabels(labels, fontsize=8.2, color=INK2)
-    ax.spines[["top", "right", "left"]].set_visible(False)
-    ax.spines["bottom"].set_color(GRID)
-    ax.tick_params(axis="x", colors=INK2, labelsize=8.5, length=3, width=0.7)
-    ax.tick_params(axis="y", length=0)
-    ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0, 1.25])
-    ax.set_xlabel(r"$\rho$  =  share of above-chance separability that survives",
-                  fontsize=9.0, color=INK, labelpad=3)
-
-    save(fig, "f5-rho-forest.pdf")
-    rows = [r for r in RHO_ROWS if r[0] == "row"]
-    print(f"F5: {len(rows)} rows, 3 bands; "
-          f"{sum(1 for r in rows if r[3] is None)} with no published joint interval")
-
-
-# =============================================================================================
-#  F1  -  protocol x baseline, emitted as a LaTeX table (unchanged: it is >7 rows of labelled
-#         values, which is a table, not a chart, and main.tex \inputs it)
-# =============================================================================================
-# Columns: protocol, baseline, metric, value, preprocessing, against.
-#
-# Preprocessing is a column of its own (2026-09-11) because the paper's thesis is about the
-# comment channel and the table must say, row by row, whether that channel was open:
-#   "stripped"  comments removed before the baseline read the code (Koran/Jha protocol)
-#   "kept"      comments present. The DSPy matched pairwise rows and the raw-artifact length
-#               row were measured this way (matched.py / exact.py never call strip_comments;
-#               notes/06 §0.3, §1.2) and the table says so instead of hiding it.
-#   "no code"   the baseline never reads the program, so preprocessing is moot.
-#
-# Pairwise accuracies are THREE decimals (fig/CAPTIONS.md): resolution over 2,641 pairs is
-# 1/2,641 = 0.00038, so a fourth decimal is a single pair and moved by one pair between
-# machines (REPRODUCED.md). AUROCs keep four.
+# F1: protocol x baseline, emitted as a LaTeX table that main.tex \inputs.
+# Columns: protocol, baseline, metric, value, preprocessing, against. Preprocessing says whether
+# comments were stripped before the baseline read the code ("stripped" / "kept"), or whether the
+# baseline reads no code at all. Pairwise accuracies get three decimals (one pair is 1/2,641);
+# AUROCs get four.
 F1_ROWS = [
     ("Koran's exact split", "TF-IDF word 1--2gram", "AUROC", "0.8063", "stripped",
      "above 20 of 24"),
     ("\\quad same", "TF-IDF word 1--2gram", "AUROC", "0.8914", "kept", "above 22 of 24"),
-    # 0.7715 is the 5x5 CV value and it clears 20, not 18. The "above 18" count belongs to
-    # the 0.7163 held-out slice (see NOCODE_HELDOUT above and fig/CAPTIONS.md). Pairing them
-    # is R18's companion error committed against ourselves; it shipped in this table once.
     ("\\quad same, reads no code", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
      "0.7715 $\\pm$ 0.0389", "no code", "above 20 of 24"),
     ("\\quad same, held-out slice", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
@@ -504,9 +324,7 @@ F1_ROWS = [
     ("\\quad same", "difficulty only", "AUROC", "0.6823", "no code", "---"),
     ("\\quad same", "\\texttt{solution\\_passes\\_tests}", "AUROC", "0.7881", "no code", "---"),
     ("Matched pairs (P3)", "all metadata", "AUROC", "0.5000", "no code", "by construction"),
-    # RESULTS.md §6 (2026-09-11): the matched protocol re-measured with comments stripped from
-    # both classes, mean over five problem-disjoint splits. The paper reports the stripped rows;
-    # the comments-kept rows are the earlier values, kept here labelled as what they are.
+    # Matched protocol: mean over five problem-disjoint splits. Comments-kept rows are for contrast.
     ("DSPy matched pairs", "TF-IDF word 1--2gram", "pairwise", "0.897", "stripped",
      "monitor 0.69--0.81"),
     ("\\quad working backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.935", "stripped",
@@ -519,25 +337,15 @@ F1_ROWS = [
     ("\\quad working, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.979", "kept", "---"),
     ("\\quad inert, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.955", "kept", "---"),
     ("\\quad transfer, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.994", "kept", "---"),
-    # This row used to read "0.8255 | and 0.4726 once filtered": a pairwise accuracy with an
-    # AUROC from another split in its Against cell, under the pairwise heading. The 0.4726
-    # contrast lives in the AUROC block above, where it belongs; this row stands alone.
     ("\\quad same, raw artifact", "code length only", "pairwise", "0.826", "kept", "---"),
 ]
 
 
 def fig1_table():
-    """Emit F1 as a LaTeX table that FITS NeurIPS's 5.5in text block.
+    """Write F1 as a LaTeX table that fits the 5.5in text block.
 
-    The first version of this table was 5 columns of `l` and overflowed the text block by
-    ~104pt, with the rules running off the page edge. Three things fix it, and all three
-    have to stay:
-      - the Metric column is gone; rows are grouped under an AUROC / pairwise subheading
-        instead, which is also a clearer statement of "not comparable across protocols";
-      - Protocol, Baseline and Against are p{} columns, so long cells wrap instead of
-        pushing the table wider;
-      - \\footnotesize plus @{} at both edges reclaims the outer tabcolsep.
-    Requires \\usepackage{array} in the preamble for the >{\\raggedright} column.
+    Rows are grouped under AUROC / pairwise subheadings instead of a metric column; the text
+    columns are p{} so long cells wrap. Needs \\usepackage{array} for >{\\raggedright}.
     """
     auroc = [r for r in F1_ROWS if r[2] == "AUROC"]
     pairw = [r for r in F1_ROWS if r[2] != "AUROC"]
@@ -546,15 +354,8 @@ def fig1_table():
         # drop the metric cell (index 2); it is carried by the group heading now
         return [" & ".join((r[0], r[1], r[3], r[4], r[5])) + " \\\\" for r in rows]
 
-    # Widths tuned against the actual 5.5in block. Five columns now (preprocessing added
-    # 2026-09-11); the p{} widths still sum to 0.740\linewidth as they did with four, and
-    # the extra column pair of \tabcolsep is what the tighter Against column pays for:
-    #   col 1 no longer has to hold ", comments stripped" - that moved to the new column -
-    #          so "Koran's exact split" fits at 0.255 with room; longer protocol names wrap;
-    #   col 2 must hold \texttt{solution_passes_tests}, which is unbreakable and was
-    #          7.7pt too wide at 0.205. Do not narrow it;
-    #   col 4 (preprocessing) holds "stripped" / "kept" / "no code" on one line at 0.090;
-    #   col 5 (against) wraps freely and takes the remaining slack.
+    # Widths are tuned to the 5.5in block. Column 2 must fit \texttt{solution_passes_tests},
+    # which cannot break, so do not narrow it.
     col = ("@{}"
            ">{\\raggedright\\arraybackslash}p{0.255\\linewidth}"
            ">{\\raggedright\\arraybackslash}p{0.225\\linewidth}"
@@ -593,17 +394,7 @@ def fig1_table():
           f"5 columns, sized to fit a 5.5in text block")
 
 
-
-# =============================================================================================
-#  CHECK  -  the figures against main.tex's macros
-# =============================================================================================
-#
-# The draft this file replaces shipped five wrong permutation nulls, two wrong rho intervals, one
-# invented interval and an AUROC the paper's own caption forbids. None of those was catchable by
-# reading the script; all of them are catchable by asserting it against the numbers the prose
-# already quotes. main.tex's \newcommand block is that independent copy, so the figures are checked
-# against it at import and the run fails loudly rather than drawing a wrong number.
-
+# check(): assert every plotted value against main.tex's \newcommand macros.
 PAPER_TEX = "../../paper/main.tex"
 
 
@@ -625,8 +416,7 @@ def check():
     bad = []
 
     def eq(macro, got, dp=None):
-        # NB: half-up, not Python's round(), which is half-to-EVEN and turns the no-code floor's
-        # 0.7715 into 0.771 while the paper prints 0.772.
+        # Round half up, as the paper does.
         if macro not in m:
             bad.append(f"{macro}: absent from main.tex"); return
         want = m[macro]
@@ -634,8 +424,7 @@ def check():
         if abs(want - got_r) > 5e-4:
             bad.append(f"{macro}: main.tex {want} vs figures.py {got_r}")
 
-    # F4's ladder. main.tex:556 says none of the three is the Koran floor; that is what the
-    # first row asserts.
+    # F4's ladder. None of the three is the Koran-split floor.
     eq("baselineB", CONSTRUCTIONS[0]["auroc"])
     eq("sameGenS", CONSTRUCTIONS[1]["auroc"], 3)
     eq("matchedS", CONSTRUCTIONS[2]["auroc"], 3)
@@ -652,17 +441,6 @@ def check():
     # F2's two named settings.
     scan = {r[0]: r[1] for r in SCAN}
     eq("bashFloor", scan["bash"], 3); eq("agentdojoFloor", scan["agentdojo"], 3)
-
-    # F5, against Table 1's macros. The three the draft got wrong (haikuMatchedRho's upper bound,
-    # the edit bound and the 1.234 row) are not in main.tex; RESULTS.md locations are on the rows.
-    rho = {r[1]: r[2:5] for r in RHO_ROWS if r[0] == "row"}
-    for label, stem in (("headline", "sameGen"), ("prompt-matched", "matched"),
-                        ("strict (also fires)", "strict"),
-                        ("strict, prompt-matched", "matchedStrict"),
-                        ("Haiku 4.5, headline", "haiku")):
-        v, lo, hi = rho[label]
-        eq(f"{stem}Rho", v); eq(f"{stem}RhoLo", lo); eq(f"{stem}RhoHi", hi)
-    eq("haikuMatchedRho", rho["Haiku 4.5, prompt-matched"][0])
 
     # F3's monitor count and the two summary values the caption quotes.
     if os.path.exists("monitor-summary.json"):
@@ -682,5 +460,4 @@ if __name__ == "__main__":
     fig2_corpora()
     fig3_monitors()
     fig4_constructions()
-    fig5_rho()
     print(f"\nwrote to {os.path.abspath(OUT)}")

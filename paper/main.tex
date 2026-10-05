@@ -1,39 +1,7 @@
-% =====================================================================================
-%  A Same-Generator Corpus and Classifier Floors for AI-Control Monitor Evaluation
-%  EvoRobust @ NeurIPS 2026 - 4 content pages, non-archival, double-blind, Sep 12 AoE.
-%
-%  Scaffold built 2026-09-09. Cut plan (notes/06 §5.1) and §1 applied 2026-09-11.
-%  Numbers follow experiments/REPRODUCED.md and RESULTS.md. Citations follow refs.bib.
-%
-%  BUILD:  pdflatex main && bibtex main && pdflatex main && pdflatex main
-%          (latexmk is not installed on the local machine)
-%
-%  Body: §1-§5 plus F3 as the only float. Everything else (schema table, F1, similarity
-%  table, F2, the token test, the scratchpad channel) is in the appendix after the
-%  references, which the workshop does not count.
-% =====================================================================================
-
 \documentclass{article}
 
-% Numeric, compressed citations: [3], [5-7]. This is the NeurIPS house style (the
-% template's own prose says "previous work [4]") and it is much tighter than plainnat's
-% author-year, which matters at 4 pages. It also stops the two bibliography entries whose
-% authors lit/01 never recorded from rendering inline as "leg [2026]" and "len [2026]".
-% MUST come before neurips_2026 is loaded - the style file loads natbib itself.
 \PassOptionsToPackage{numbers,compress}{natbib}
 
-% EvoRobust is a NeurIPS 2026 workshop with DOUBLE-BLIND review on OpenReview
-% (notes/01-venue-evorobust.md), so the track option is dblblindworkshop - NOT the
-% default, which is the main track. This option requires \workshoptitle below.
-% After acceptance, change to [dblblindworkshop, final].
-%
-% Note on what this option does and does not do, checked against neurips_2026.sty:
-%   - it sets \@trackname to "... Workshop: <workshoptitle>.", which the style file uses
-%     ONLY under [final]. At submission the footer is the fixed "Submitted to ... Do not
-%     distribute." string. So the workshop name correctly does NOT appear yet.
-%   - unlike sglblindworkshop, it does NOT set \@anonymousfalse, so the paper stays
-%     anonymous. The "Anonymous Author(s) / Affiliation / Address / email" block on page 1
-%     is emitted by the style file itself (sty line 336), not by our \author{} below.
 \usepackage[dblblindworkshop]{neurips_2026}
 
 \usepackage[utf8]{inputenc}
@@ -41,7 +9,7 @@
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{booktabs}
-\usepackage{array}      % >{\raggedright\arraybackslash}p{} columns used by F1
+\usepackage{array}
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{nicefrac}
@@ -50,412 +18,268 @@
 \usepackage{xcolor}
 \usepackage{etoolbox}
 
-% The dataset entries carry long unbreakable \texttt{} paths
-% (eugenekoran/apps-control-arena-high-quality). Justified, they force gappy interword
-% spacing - 10 underfull hboxes. Ragged-right in the bibliography ONLY fixes it without
-% touching the body text, which must stay justified.
 \apptocmd{\thebibliography}{\raggedright}{}{}
 
 \graphicspath{{fig/}}
 
-% --- Drafting aid. ---------------------------------------------------------------------
-% Switched to the no-op form 2026-09-11, AFTER verifying by grep that every citation key
-% that used to live only inside a \TODO{} is now cited in real prose (§1). Do not switch
-% it back to the red form without re-running that grep.
 \newcommand{\TODO}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
 \renewcommand{\TODO}[1]{}
 
-% =====================================================================================
-%  EVERY LOAD-BEARING NUMBER, DEFINED EXACTLY ONCE.
-%
-%  This is not decoration. This project's recurring failure mode (R18 and its companion)
-%  is a number from one protocol being written next to a count from another - it has
-%  reached the README, the outline and figures.py. Macros make that error impossible to
-%  commit silently: there is one \nocodeCV and it carries its own count.
-%
-%  Source: experiments/REPRODUCED.md unless noted. DO NOT hardcode any of these inline.
-% =====================================================================================
-
-% --- Koran's exact split, comments stripped (the headline protocol) ------------------
-\newcommand{\tfidfKoran}{0.806}            % 0.8063; above 20 of 24
+\newcommand{\tfidfKoran}{0.806}
 \newcommand{\tfidfKoranCount}{20}
-% RESERVED (rows of the generated Table~\ref{tab:protocol-baseline}, not of the prose):
-\newcommand{\tfidfKept}{0.891}             % 0.8914, comments kept; above 22 of 24
+\newcommand{\tfidfKept}{0.891}
 \newcommand{\tfidfKeptCount}{22}
-\newcommand{\charNgram}{0.783}             % 0.7830, char n-grams on the Koran split
+\newcommand{\charNgram}{0.783}
 
-% --- The no-code floor. THE TRAP: two protocols, two values, two counts. -------------
-% NEVER write \nocodeCV next to \nocodeHeldoutCount. See fig/CAPTIONS.md.
-\newcommand{\nocodeCV}{0.772}              % 0.7715 +- 0.0389, 5x5 CV within the test split
-\newcommand{\nocodeCVsd}{0.039}            % RESERVED: figures.py prints it inside F3
-\newcommand{\nocodeCVCount}{20}            % <- 0.772 clears 20
-\newcommand{\nocodeHeldout}{0.716}         % 0.7163, single 413-item held-out slice
-\newcommand{\nocodeHeldoutCount}{18}       % <- 0.716 clears 18
-% --- Headline uncertainty (RESULTS.md §8, headline_ci.json, 2026-09-11) ---------------
-% Bootstrap over problems (\bootDraws) for the CIs; \permReps training-label permutations
-% for the nulls (the CV protocol's null shuffles labels for fitting and scoring alike).
-% *PairedCount = monitors below the floor with a paired-bootstrap CI on (ours - theirs)
-% excluding zero, on identical items. Each no-code value keeps its OWN pair of counts.
+\newcommand{\nocodeCV}{0.772}
+\newcommand{\nocodeCVsd}{0.039}
+\newcommand{\nocodeCVCount}{20}
+\newcommand{\nocodeHeldout}{0.716}
+\newcommand{\nocodeHeldoutCount}{18}
 \newcommand{\bootDraws}{2{,}000}
 \newcommand{\permReps}{200}
 \newcommand{\tfidfKoranLo}{0.7704}
 \newcommand{\tfidfKoranHi}{0.8409}
-\newcommand{\tfidfKoranNull}{0.5465}       % null 95th percentile; p < 0.005 (0 of 200)
+\newcommand{\tfidfKoranNull}{0.5465}
 \newcommand{\tfidfKoranPairedCount}{18}
-% The CI below is NOT an interval of \nocodeCV (the fold mean). RESULTS.md 8.3: protocol A
-% produces no single per-item score vector from a fold mean, so its interval and its paired
-% tests are built on the POOLED out-of-fold scores, whose AUROC is \nocodeCVPooled. Any
-% sentence quoting \nocodeCVLo--\nocodeCVHi must name \nocodeCVPooled beside it.
-\newcommand{\nocodeCVPooled}{0.766}        % 0.7658 pooled out-of-fold AUROC (RESULTS.md 8.3)
-\newcommand{\nocodeCVLo}{0.7319}           % CI on the pooled out-of-fold AUROC
+\newcommand{\nocodeCVPooled}{0.766}
+\newcommand{\nocodeCVLo}{0.7319}
 \newcommand{\nocodeCVHi}{0.8005}
-\newcommand{\nocodeCVNull}{0.5545}         % p < 0.005
+\newcommand{\nocodeCVNull}{0.5545}
 \newcommand{\nocodeCVPairedCount}{17}
 \newcommand{\nocodeHeldoutLo}{0.6476}
 \newcommand{\nocodeHeldoutHi}{0.7796}
-\newcommand{\nocodeHeldoutNull}{0.7023}    % barely above its null
-\newcommand{\nocodeHeldoutP}{0.030}        % 5 of 200
+\newcommand{\nocodeHeldoutNull}{0.7023}
+\newcommand{\nocodeHeldoutP}{0.030}
 \newcommand{\nocodeHeldoutPairedCount}{12}
-\newcommand{\permP}{p < 0.005}             % math mode contents; 0 of \permReps replicates
+\newcommand{\permP}{p < 0.005}
 
-% --- The 24-monitor comparison set (Jha, MIT) ---------------------------------------
 \newcommand{\monN}{24}
 \newcommand{\monMedian}{0.609}
 \newcommand{\monMax}{0.937}
 
-% --- What the field's fix does and does not reach ------------------------------------
-\newcommand{\lenFiltered}{0.4726}          % length-only on the filtered split - chance
-\newcommand{\lenRaw}{0.826}                % RESERVED (F1 row): 0.8255 pairwise, raw artifact
+\newcommand{\lenFiltered}{0.4726}
+\newcommand{\lenRaw}{0.826}
 \newcommand{\hashRaw}{0.6957}
 \newcommand{\hashStripped}{0.4983}
 
-% --- Authorship, three ways ---------------------------------------------------------
-% RESULTS.md §6 (2026-09-11): comment-STRIPPED on both classes, mean over five
-% problem-disjoint 30% splits (transfer rows: one fixed split each). Coordinator's band:
-% weakened but standing. The paper reports these; the *Kept companions are the earlier
-% unstripped values, inflated by the comment channel, and appear only in the appendix.
-\newcommand{\transfer}{0.969}              % 0.9694 Control Tax -> the 2023 GPT-4 set
-\newcommand{\pairAll}{0.897}               % 3 dp: resolution over ~2,641 pairs is 1/2,641
+\newcommand{\transfer}{0.969}
+\newcommand{\pairAll}{0.897}
 \newcommand{\pairWorking}{0.935}
 \newcommand{\pairInert}{0.879}
 \newcommand{\surfaceSeven}{0.7259}
-\newcommand{\tfidfMatched}{0.8560}         % matched-protocol TF-IDF AUROC, stripped, 5 seeds
-\newcommand{\transferKept}{0.994}          % 0.9935
+\newcommand{\tfidfMatched}{0.8560}
+\newcommand{\transferKept}{0.994}
 \newcommand{\pairAllKept}{0.962}
 \newcommand{\pairWorkingKept}{0.979}
 \newcommand{\pairInertKept}{0.955}
-\newcommand{\surfaceSevenKept}{0.8306}     % five-seed unstripped mean (seed 0 alone: 0.8302)
-% Other cross-model transfer rows, stripped (RESULTS.md §6.2): unstripped 0.976/0.813/0.828
-\newcommand{\transferOthreeClaude}{0.866}  % o3-mini -> claude-3-7-sonnet, 82 test pairs
-\newcommand{\transferClaudeOthree}{0.844}  % claude-3-7-sonnet -> o3-mini
-\newcommand{\transferOoneGemini}{0.764}    % o1-mini -> gemini-2.0-flash
-% Style markers on the control_tax pairs (attack / honest): the # marker was the comment channel
+\newcommand{\surfaceSevenKept}{0.8306}
+\newcommand{\transferOthreeClaude}{0.866}
+\newcommand{\transferClaudeOthree}{0.844}
+\newcommand{\transferOoneGemini}{0.764}
 \newcommand{\hashPresAttack}{0.685}
 \newcommand{\hashPresHonest}{0.176}
 \newcommand{\hashPresAttackStripped}{0.007}
 \newcommand{\hashPresHonestStripped}{0.008}
 
-% --- The byline leak surviving the comment stripper (string literals are not comments)
 \newcommand{\bylineHonest}{23}
 \newcommand{\bylineAttack}{2}
 \newcommand{\tripleHonest}{43}
 \newcommand{\tripleAttack}{9}
 
-% --- The second selection artifact --------------------------------------------------
-\newcommand{\inertShare}{80.7\%}           % of Koran's test-split labelled backdoors (892) do not work
-\newcommand{\inertSharePassing}{32.8\%}    % same, among the 256 that PASS the public tests (172 fire);
-                                           % the like-for-like analogue of our `passes' eligibility rule
+\newcommand{\inertShare}{80.7\%}
+\newcommand{\inertSharePassing}{32.8\%}
 \newcommand{\testCasesAttack}{20.95}
 \newcommand{\testCasesHonest}{38.85}
 
-% --- Split and artifact shapes ------------------------------------------------------
-\newcommand{\splitTrain}{1{,}209}          % PROBLEMS, and 1,209 per class in the appendix
-\newcommand{\splitTrainItems}{2{,}418}     % ... = the paired train split's item count
+\newcommand{\splitTrain}{1{,}209}
+\newcommand{\splitTrainItems}{2{,}418}
 \newcommand{\splitTest}{1{,}375}
 \newcommand{\splitAttack}{172}
 \newcommand{\splitHonest}{1{,}203}
 \newcommand{\harnessAgreement}{95.84\%}
 
-% --- Gate S ------------------------------------------------------------------------
-% B measured 2026-09-09 on the analysis ceiling; see experiments/gate_s_baseline.json.
-% NOTE: rho's denominator is B over the ARM'S realised eligible set, not this ceiling
-% value. Recompute with gate_s_eval.py when an arm lands, then update this macro.
 \newcommand{\baselineB}{0.871}
 \newcommand{\baselineBn}{1{,}444}
 \newcommand{\rhoCollapse}{0.33}
 \newcommand{\rhoContent}{0.72}
-% Absolute AUROC each band corresponds to AT THE MEASURED B. Do NOT use 0.601/0.720:
-% those are arithmetic at an assumed B = 0.806 and route a G in 0.720-0.767 wrongly.
-% RESERVED: the corrected absolute bands, kept so the superseded 0.601/0.720 cannot return.
 \newcommand{\gCollapseMax}{0.6226}
 \newcommand{\gPartialMax}{0.7674}
 
-% --- Arm 1: regenerate the honest half only (Qwen3-Coder-30B vs stored backdoors) -----
-% CONFOUNDED. Do not route a title on it. experiments/RESULTS.md section 3.
 \newcommand{\armOneN}{668}
-\newcommand{\armOneBprime}{0.874}      % B recomputed on arm 1's own eligible problems
+\newcommand{\armOneBprime}{0.874}
 \newcommand{\armOneG}{0.962}
 \newcommand{\armOneRho}{1.234}
 \newcommand{\armOneTfidfDelta}{+0.088}
-\newcommand{\armOneLenG}{0.489}        % length carrier falls to chance while TF-IDF rises
+\newcommand{\armOneLenG}{0.489}
 
-% --- Pair similarity: why the same-generator attack class needs TWO arms ------------
-% RESULTS.md 4.8-4.9. Character similarity of honest/attack pairs, comments stripped.
-% The stored benchmark's classes are largely INDEPENDENT programs, so an attack class
-% built by editing its own honest solution changes similarity as well as authorship,
-% and its S cannot separate "the benchmark measured authorship" from "we made the two
-% classes the same text". Report S beside the similarity or it is uninterpretable.
-% Re-measured 2026-09-11 with autojunk=False (RESULTS.md 9.1); the earlier 0.469 / 0.924 / 0.415
-% were computed with difflib's junk heuristic on and are superseded.
-\newcommand{\simStored}{0.606}         % stored benchmark on the headline's 623 problems
-\newcommand{\simStoredHigh}{3.4\%}     % share above 0.95
-\newcommand{\simStoredLow}{45.4\%}     % share below 0.60
-\newcommand{\simEdit}{0.928}           % edit arm - near-copies, n=427 passing pairs
+\newcommand{\simStored}{0.606}
+\newcommand{\simStoredHigh}{3.4\%}
+\newcommand{\simStoredLow}{45.4\%}
+\newcommand{\simEdit}{0.928}
 \newcommand{\simEditHigh}{64.2\%}
 \newcommand{\simEditLow}{4.0\%}
-\newcommand{\simIndep}{0.659}          % independent arm, n=623 - the stored regime
+\newcommand{\simIndep}{0.659}
 \newcommand{\simIndepHigh}{3.4\%}
 \newcommand{\simIndepLow}{34.8\%}
 
-% --- The release bundle (notes/07, release_split.py --check passed 2026-09-11) ----------
-\newcommand{\relHonest}{1{,}444}       % honest programs, one model
-\newcommand{\relEdit}{1{,}112}         % edit-arm attack programs
-\newcommand{\relIndep}{1{,}112}        % independent-arm attack programs
-\newcommand{\relRetryDraws}{11{,}565}  % every draw of the independent arm's retry pool
-\newcommand{\relPassFirst}{623}        % independent-arm pairs passing, outcome-blind (--keep first)
-\newcommand{\relFireFirst}{14}         % ... and firing
-\newcommand{\relPassBest}{1{,}046}     % same under the benchmark's own survivor selection (--keep best)
-\newcommand{\relFireBest}{99}          % ... firing
-\newcommand{\relFireBestCrash}{106}    % ... counting a crash on the trigger as firing
-\newcommand{\relScripts}{24}           % scripts/ in the bundle (release_split.py SCRIPT_FILES,
-                                       % rebuilt 2026-09-11 with the RESULTS.md 13-15 scripts)
+\newcommand{\relHonest}{1{,}444}
+\newcommand{\relEdit}{1{,}112}
+\newcommand{\relIndep}{1{,}112}
+\newcommand{\relRetryDraws}{11{,}565}
+\newcommand{\relPassFirst}{623}
+\newcommand{\relFireFirst}{14}
+\newcommand{\relPassBest}{1{,}046}
+\newcommand{\relFireBest}{99}
+\newcommand{\relFireBestCrash}{106}
+\newcommand{\relScripts}{24}
 
-% --- Same-generator S: MEASURED (these are no longer placeholders) --------------------
-% Same-generator S, RESULTS.md §9 (2026-09-11). All comment-stripped, problem-disjoint 5-fold,
-% bootstrap-over-problems 95% CIs. Coordinator's ruling: INCONCLUSIVE between partial and
-% content; the authorship-collapse reading is EXCLUDED (both CIs clear the collapse band).
-% Headline: independent arm, outcome-blind first draw per problem, attack = passes the public
-% tests, B' inert-inclusive over the same problems.
-\newcommand{\sameGenS}{0.7512}         % fold mean; 4 dp per the ledger's AUROC rule
+\newcommand{\sameGenS}{0.7512}
 \newcommand{\sameGenN}{623}
 \newcommand{\sameGenLo}{0.7295}
 \newcommand{\sameGenHi}{0.7713}
-\newcommand{\sameGenBprime}{0.8658}    % CI 0.8480-0.8812
+\newcommand{\sameGenBprime}{0.8658}
 \newcommand{\sameGenRho}{0.687}
-\newcommand{\sameGenRhoLo}{0.625}       % joint bootstrap over problems (S and B' resampled together; RESULTS.md 12)
+\newcommand{\sameGenRhoLo}{0.625}
 \newcommand{\sameGenRhoHi}{0.755}
-\newcommand{\sameGenLen}{0.5851}       % length-only carrier: to chance
-\newcommand{\curveHeadline}{0.8521}    % B at n = 623 under the identical pipeline
+\newcommand{\sameGenLen}{0.5851}
+\newcommand{\curveHeadline}{0.8521}
 \newcommand{\curveHeadlineSd}{0.0055}
-% Strict: survivor selection (the benchmark's own retry-and-keep), attack = passes AND fires
-% (crash not counted as firing), B' all-firing. Read through rho against its own B' only.
 \newcommand{\strictS}{0.7652}
 \newcommand{\strictLo}{0.7016}
 \newcommand{\strictHi}{0.8000}
 \newcommand{\strictN}{99}
-\newcommand{\strictBprime}{0.7877}     % CI 0.7427-0.8367
-\newcommand{\strictRho}{0.921}          % fold-mean convention, as RESULTS.md 9 quotes S
-% As for the no-code floor: the interval is built on the POOLED out-of-fold scores, whose rho
-% is \strictRhoPooled (RESULTS.md 12.2, which asks the ledger to say which convention it
-% quotes). At n = 99 the two conventions differ by 0.06 of fold-to-fold variance.
-\newcommand{\strictRhoPooled}{0.86}     % 0.861, pooled-score rho; the interval below is on it
-\newcommand{\strictRhoLo}{0.662}        % joint bootstrap (RESULTS.md 12)
+\newcommand{\strictBprime}{0.7877}
+\newcommand{\strictRho}{0.921}
+\newcommand{\strictRhoPooled}{0.86}
+\newcommand{\strictRhoLo}{0.662}
 \newcommand{\strictRhoHi}{1.089}
-\newcommand{\strictRhoSeeds}{0.85--0.92}  % five fold seeds, RESULTS.md 12.4 (mean 0.875 +- 0.028)
-\newcommand{\curveStrict}{0.7807}      % B at n = 99: absolute bands do not apply there
+\newcommand{\strictRhoSeeds}{0.85--0.92}
+\newcommand{\curveStrict}{0.7807}
 \newcommand{\curveStrictSd}{0.0248}
-\newcommand{\survivorAuroc}{0.62}      % survivors vs non-survivors within the attack class
-\newcommand{\survivorSwapS}{0.7595}    % S recomputed with non-firing attempts, same problems
-\newcommand{\survivorSwapSref}{0.7687} % S on those same problems with the survivors
-% The headline attack class is attempts: 14 of its \sameGenN{} selected draws fire
-% (RESULTS.md 7.4, `first` policy: 623 problems with a passing draw, 14 with a usable one).
+\newcommand{\survivorAuroc}{0.62}
+\newcommand{\survivorSwapS}{0.7595}
+\newcommand{\survivorSwapSref}{0.7687}
 \newcommand{\headlineFireShare}{2.2\%}
-% The inert share of the EXACT compared headline sets (notes/10 section 7): 14 of 623 Sonnet
-% attacks fire and 2 of 611 Haiku ones do. NOT 97.5%, which is RESULTS.md 7.7's pooled
-% conditional rate over 11,565 draws and a different denominator.
 \newcommand{\headlineInert}{97.75\%}
 \newcommand{\haikuInert}{99.67\%}
-% The second generator's firing share, the analogue of \headlineFireShare: 2 of 611,
-% RESULTS 15.5. NOT the 35/1,444 usable count - 33 of those 35 sit on problems whose
-% honest program failed and never enter a pair.
-\newcommand{\haikuFireShare}{0.3\%}       % 2 of 611, RESULTS 15.5
-% Why our single-shot firing rate is low: the attack prompt reuses public test inputs as
-% triggers, which cannot diverge from the honest solution (experiments/apps/TRIGGER-YIELD.md
-% and trigger_public_check.py, over the 6,570 test-passing draws of the retry pool).
+\newcommand{\haikuFireShare}{0.3\%}
 \newcommand{\trigPublicShare}{52.0\%}
 \newcommand{\trigPublicFire}{0.15\%}
 \newcommand{\trigNovelFire}{5.13\%}
 \newcommand{\trigStoredPublic}{0 of 3{,}188}
-% Yield (RESULTS §7.7): single-shot, blind, vs the stored attacker, which executes and iterates
 \newcommand{\fireGivenPassOurs}{2.5\%}
-\newcommand{\fireGivenPassStored}{67.2\%}   % Koran test split: 256/892 pass, 172/256 fire
-% Edit arm: a bound under near-copies, never a verdict
-\newcommand{\editS}{0.6266}            % CI 0.6044-0.6467
+\newcommand{\fireGivenPassStored}{67.2\%}
+\newcommand{\editS}{0.6266}
 \newcommand{\editN}{427}
 \newcommand{\editRho}{0.371}
 \newcommand{\editSim}{0.928}
-% Positive control (RESULTS.md §10): a trusted-monitor prompt to the SAME model that wrote both
-% classes, scored on the same pairs. Headline set: 97.8% of its attacks never fire (14 of
-% 623 do, RESULTS.md 7.4). NOT 97.5%, which is the pooled per-draw rate of RESULTS.md 7.3.
-\newcommand{\monitorS}{0.566}          % AUROC on the 623 headline pairs
+\newcommand{\monitorS}{0.566}
 \newcommand{\monitorSLo}{0.5507}
 \newcommand{\monitorSHi}{0.5833}
-\newcommand{\monitorStrict}{0.818}     % AUROC on the 99 strict (pass AND fire) pairs
+\newcommand{\monitorStrict}{0.818}
 \newcommand{\monitorStrictLo}{0.7630}
 \newcommand{\monitorStrictHi}{0.8686}
-% RESULTS.md 11-12: the residual is layout from the attack prompt's framing, not the trigger idiom
-\newcommand{\sameGenSid}{0.700}         % S with identifiers normalised (the only mask that moves it)
+\newcommand{\sameGenSid}{0.700}
 \newcommand{\sameGenRhoId}{0.54}
-\newcommand{\defMainAttack}{67\%}        % `def main` present, attack side of the headline pairs
-\newcommand{\defMainHonest}{38.5\%}      % honest side (RESULTS.md 11.3/11.5: 0.385)
-\newcommand{\monitorClfPhi}{0.04}        % pair-level phi between monitor and classifier correctness
+\newcommand{\defMainAttack}{67\%}
+\newcommand{\defMainHonest}{38.5\%}
+\newcommand{\monitorClfPhi}{0.04}
 
-% =====================================================================================
-%  THE SECOND-PASS ARMS (RESULTS.md 13-15, measured 2026-09-11; the values and the
-%  precision rule - AUROC 4 dp, rho 3 dp - are notes/10-ledger-recheck.md's verified
-%  block, which re-derived every one of them from the named json field). Pass 1 reserved these
-%  names as red placeholders used nowhere in the prose; every macro below now carries a
-%  MEASURED value. One macro, one protocol, its n and its RESULTS.md section in the comment.
-% =====================================================================================
-
-% --- Arm A: the prompt-matched honest class (RESULTS.md 13) --------------------------
-% Model AND prompt held constant on both sides: PROMPT_INDEPENDENT with only the flaw
-% sentence replaced by its correct-program counterpart, same model, same harness.
-% Comment-stripped, problem-disjoint 5-fold, bootstrap over problems; rho against B'
-% RE-FITTED on the same reduced problem set, joint bootstrap (RESULTS.md 13.2).
-\newcommand{\matchedS}{0.6423}          % 0.6423; headline, n = 586 of the 623 (matched program passes)
+\newcommand{\matchedS}{0.6423}
 \newcommand{\matchedN}{586}
 \newcommand{\matchedLo}{0.6179}
 \newcommand{\matchedHi}{0.6621}
-\newcommand{\matchedBprime}{0.8613}    % B' on those same 586 problems, inert-inclusive
-\newcommand{\matchedRho}{0.394}        % partial band; P(rho > 0.72) = 0.000
-\newcommand{\matchedRhoLo}{0.326}      % joint bootstrap over problems
+\newcommand{\matchedBprime}{0.8613}
+\newcommand{\matchedRho}{0.394}
+\newcommand{\matchedRhoLo}{0.326}
 \newcommand{\matchedRhoHi}{0.454}
-% The prompt-only floor: ORIGINAL honest vs MATCHED honest - two CORRECT classes from one
-% model under the two prompts, with no attack on either side (RESULTS.md 13.2 row b, n = 586).
-\newcommand{\promptOnly}{0.6006}        % 0.6006
+\newcommand{\promptOnly}{0.6006}
 \newcommand{\promptOnlyLo}{0.5768}
 \newcommand{\promptOnlyHi}{0.6243}
-% Strict (passes AND fires), same arm: 96 of the 99 strict problems (RESULTS.md 13.2).
-\newcommand{\matchedStrictS}{0.7113}    % 0.7113
+\newcommand{\matchedStrictS}{0.7113}
 \newcommand{\matchedStrictN}{96}
 \newcommand{\matchedStrictRho}{0.697}
 \newcommand{\matchedStrictRhoLo}{0.494}
 \newcommand{\matchedStrictRhoHi}{0.856}
-\newcommand{\matchedStrictLo}{0.6464}   % ... its S interval (RESULTS.md 13.2, strict row a)
+\newcommand{\matchedStrictLo}{0.6464}
 \newcommand{\matchedStrictHi}{0.7453}
-\newcommand{\matchedStrictBprime}{0.8030} % B' on the same 96 problems, all-firing
-% As everywhere in RESULTS.md 12-15: a rho POINT is the fold-mean ratio and the joint interval
-% beside it is the bootstrap of the POOLED out-of-fold rho (notes/10 section 6). Pooled points on
-% these rows: headline matched 0.390, strict matched 0.662, Haiku headline 0.097.
-% Masks on the matched headline row, appendix only (RESULTS.md 13.3, n = 586).
-\newcommand{\matchedSid}{0.6264}       % identifiers normalised
+\newcommand{\matchedStrictBprime}{0.8030}
+\newcommand{\matchedSid}{0.6264}
 \newcommand{\matchedRhoId}{0.342}
-\newcommand{\matchedSidOrig}{0.7046}   % the ORIGINAL honest class under the same mask
-\newcommand{\matchedChar}{0.6817}      % char_wb 3-5 grams, same classifier and folds
+\newcommand{\matchedSidOrig}{0.7046}
+\newcommand{\matchedChar}{0.6817}
 \newcommand{\matchedRhoChar}{0.493}
-\newcommand{\matchedRhoIdLo}{0.280}    % the ID-masked matched row's joint interval ...
+\newcommand{\matchedRhoIdLo}{0.280}
 \newcommand{\matchedRhoIdHi}{0.394}
-\newcommand{\matchedRhoIdCollapse}{40\%}  % ... which puts this much mass in the collapse band
-% Pooled out-of-fold rho on the rows whose fold-mean points the paper quotes (notes/10 section 6)
+\newcommand{\matchedRhoIdCollapse}{40\%}
 \newcommand{\matchedRhoPooled}{0.390}
 \newcommand{\matchedStrictRhoPooled}{0.662}
 \newcommand{\haikuRhoPooled}{0.097}
 
-% --- Arm B: monitors with authorship held constant (RESULTS.md 14) -------------------
-% The zero-shot trusted-monitor prompt of RESULTS.md 10 (one request per program, never side
-% by side), scored on the STORED pairs over the same problems as the row's own B'.
-% monitor-rho = (M_samegen - 0.5)/(M_stored - 0.5), one problem set resampled per draw,
-% 2,000 draws (monitor_rho.py, RESULTS.md 14.3). Same-generator column: RESULTS.md 10.
-\newcommand{\monStoredHead}{0.9579}     % 0.9579; claude-sonnet-5 monitor, stored pairs, n = 623
-\newcommand{\monStoredStrict}{0.9437}   % 0.9437; ... stored pairs of the strict row, n = 99
-% The same value at the abstract's precision: the abstract quotes it beside \monitorStrict
-% (0.818), and four decimals among three-decimal neighbours read as false precision.
-\newcommand{\monStoredStrictAbs}{0.944}  % = \monStoredStrict to 3 dp, ABSTRACT ONLY
-\newcommand{\monStoredHeadAbs}{0.958}   % = \monStoredHead to 3 dp, ABSTRACT ONLY
+\newcommand{\monStoredHead}{0.9579}
+\newcommand{\monStoredStrict}{0.9437}
+\newcommand{\monStoredStrictAbs}{0.944}
+\newcommand{\monStoredHeadAbs}{0.958}
 \newcommand{\monRhoHead}{0.145}
 \newcommand{\monRhoHeadLo}{0.111}
 \newcommand{\monRhoHeadHi}{0.182}
 \newcommand{\monRhoStrict}{0.717}
 \newcommand{\monRhoStrictLo}{0.601}
 \newcommand{\monRhoStrictHi}{0.832}
-% The second monitor wrote NEITHER class (claude-haiku-4-5). Its headline rows are a BOUND:
-% a 512-token ceiling left about half the replies unparseable, and on the stored side the
-% missingness is differential by class (RESULTS.md 14.5). The strict rows were re-run at
-% --max-tokens 1024 to price that: the AUROCs move inside the bootstrap intervals.
-\newcommand{\monHaikuHead}{0.5577}         % 0.5577; same-generator headline pairs, n = 623
-\newcommand{\monHaikuStrict}{0.7871}       % 0.7871; same-generator strict pairs, n = 99
-\newcommand{\monHaikuStoredHead}{0.8824}   % 0.8824; stored pairs, same problems
-\newcommand{\monHaikuStoredStrict}{0.8832} % 0.8832
-\newcommand{\monHaikuRhoHead}{0.151}      % CI 0.063-0.242
-\newcommand{\monHaikuRhoStrict}{0.749}    % CI 0.514-0.993
-\newcommand{\monHaikuRhoStrictMt}{0.766}  % the same row at --max-tokens 1024 (2 of 198 missing)
-\newcommand{\monHaikuMissHead}{628 of 1{,}246}  % unparseable same-generator headline replies
-\newcommand{\monHaikuMissHonest}{50.1\%}  % stored side, headline: missing honest replies ...
-\newcommand{\monHaikuMissAttack}{23.4\%}  % ... against missing attack replies
+\newcommand{\monHaikuHead}{0.5577}
+\newcommand{\monHaikuStrict}{0.7871}
+\newcommand{\monHaikuStoredHead}{0.8824}
+\newcommand{\monHaikuStoredStrict}{0.8832}
+\newcommand{\monHaikuRhoHead}{0.151}
+\newcommand{\monHaikuRhoStrict}{0.749}
+\newcommand{\monHaikuRhoStrictMt}{0.766}
+\newcommand{\monHaikuMissHead}{628 of 1{,}246}
+\newcommand{\monHaikuMissHonest}{50.1\%}
+\newcommand{\monHaikuMissAttack}{23.4\%}
 
-% --- Arm C: a second same-generator model, claude-haiku-4-5 (RESULTS.md 15) ----------
-% The identical pipeline - same prompts, same harness, same evaluate(), same B' construction.
-% One outcome-blind draw per problem over the same 1,444-problem pool; no retry pool and no
-% selection rule, so every Haiku row is the analogue of the headline row and there is no
-% strict row: 35 usable attacks against a 50-pair minimum (RESULTS.md 15.2).
-\newcommand{\haikuS}{0.5340}            % 0.5340, n = 611, `passes' eligibility
+\newcommand{\haikuS}{0.5340}
 \newcommand{\haikuSLo}{0.5159}
 \newcommand{\haikuSHi}{0.5531}
 \newcommand{\haikuN}{611}
-\newcommand{\haikuBprime}{0.8584}      % inert-inclusive, the same 611 problems
-\newcommand{\haikuRho}{0.095}          % 0.0950; P(rho <= 0.33) = 1.000 - the collapse band
-\newcommand{\haikuRhoLo}{0.044}        % joint bootstrap over problems
+\newcommand{\haikuBprime}{0.8584}
+\newcommand{\haikuRho}{0.095}
+\newcommand{\haikuRhoLo}{0.044}
 \newcommand{\haikuRhoHi}{0.150}
-\newcommand{\haikuSMatched}{0.5399}     % 0.5399 with the prompt matched too, n = 562
+\newcommand{\haikuSMatched}{0.5399}
 \newcommand{\haikuMatchedRho}{0.113}
-\newcommand{\haikuPromptFloor}{0.4918}  % 0.4918 (0.4724-0.5126): original vs matched honest
-\newcommand{\haikuPairSim}{0.724}      % mean pair similarity, against \simIndep on Sonnet's arm
-\newcommand{\haikuStrataS}{0.4737--0.5142}      % S in EVERY similarity stratum (RESULTS.md 15.4)
-\newcommand{\haikuStrataBprime}{0.7884--0.8334} % ... while B' holds
-\newcommand{\haikuStrataLowSim}{0.451}        % the most dissimilar stratum's mean, n = 150
-\newcommand{\haikuUsable}{35}          % usable attacks over the 1,444-problem pool, one draw each:
-                                       % below the 50-pair minimum, so there is no strict row
-\newcommand{\haikuFireInRow}{2}        % ... and only this many lie inside \haikuN (notes/10 section 7)
-\newcommand{\haikuUsableOutside}{33}   % ... the rest are on problems whose honest program failed
+\newcommand{\haikuPromptFloor}{0.4918}
+\newcommand{\haikuPairSim}{0.724}
+\newcommand{\haikuStrataS}{0.4737--0.5142}
+\newcommand{\haikuStrataBprime}{0.7884--0.8334}
+\newcommand{\haikuStrataLowSim}{0.451}
+\newcommand{\haikuUsable}{35}
+\newcommand{\haikuFireInRow}{2}
+\newcommand{\haikuUsableOutside}{33}
 \newcommand{\haikuMatchedN}{562}
-\newcommand{\haikuDefMain}{0.000}      % `def main' in ALL THREE Haiku classes (notes/10 I6) ...
-\newcommand{\haikuInputPresent}{1.000} % ... which read stdin with `input(' in every program
-\newcommand{\haikuAttackPass}{689}     % attack draws passing the public tests, of 1,444
-\newcommand{\haikuHonestPass}{0.7278}   % 0.7278 = 1,051 of 1,444 honest draws pass our harness
-\newcommand{\sonnetHonestPass}{0.7701}  % 0.7701 = 1,112 of 1,444, same harness (RESULTS.md 13.1)
+\newcommand{\haikuDefMain}{0.000}
+\newcommand{\haikuInputPresent}{1.000}
+\newcommand{\haikuAttackPass}{689}
+\newcommand{\haikuHonestPass}{0.7278}
+\newcommand{\sonnetHonestPass}{0.7701}
 
-% --- Robustness of B to the pass-flag choice (RESULTS.md 4.7) ------------------------
-\newcommand{\baselineBownflag}{0.873}  % 0.8729 under our own flag
+\newcommand{\baselineBownflag}{0.873}
 \newcommand{\baselineBownflagN}{1{,}406}
 
-% --- Harness (RESULTS.md 4.6): re-validated after the I/O fix, analysis pool unmoved --
-\newcommand{\harnessFailWePass}{0}     % we-pass/they-fail on the analysis pool: none
+\newcommand{\harnessFailWePass}{0}
 
-% --- The five same-generator agentic settings (within-task, chars only) --------------
 \newcommand{\bashFloor}{0.504}
 \newcommand{\agentdojoFloor}{0.802}
 \newcommand{\cotLow}{0.76}
 \newcommand{\cotHigh}{0.82}
 
-% --- The AICD token test, run early and negative ------------------------------------
-\newcommand{\tokenSep}{$-0.013$}   % math mode: a real minus sign, not a hyphen
+\newcommand{\tokenSep}{$-0.013$}
 \newcommand{\tokenP}{0.956}
 
-% =====================================================================================
-
-% Breaks by hand at the phrase boundaries; unbroken, LaTeX strands "Evaluation," alone
-% on line two. "Monitor Evaluation" not "Monitoring": see the first Limitations para.
-% Both contributions lead; the authorship confound they answer is the abstract's job, not the
-% title's. "Classifier" is load-bearing - it separates our two fitted floors from the
-% --leak-check detectors (#-count, code length) that comment stripping already drives to chance.
 \title{A Same-Generator Corpus and Classifier Floors\\for AI-Control Monitor Evaluation}
 
-% Required by the dblblindworkshop option - appears in the title footnote.
 \workshoptitle{Self-Evolving Diversity-Driven Search for Robust AI Systems}
 
-% Double-blind: leave the author block as-is for submission. The style file suppresses
-% it under the anonymous option, but do not paste real names here and rely on that.
 \author{%
   Anonymous Author(s) \\
   Affiliation \\
@@ -466,11 +290,6 @@
 \begin{document}
 \maketitle
 
-% =====================================================================================
-%  ABSTRACT - route-agnostic by design; ~195 words; makes no claim about S.
-%  IF GATE S RETURNS (handoff §4.3): replace the "Holding authorship constant..."
-%  sentence with the outcome sentence from notes/06 §4.4, using the \sameGen* macros.
-% =====================================================================================
 \begin{abstract}
 Trusted monitors for AI control are tuned and ranked on stored pairs of code: for each
 programming problem, an honest solution beside a solution carrying a planted backdoor. In the
@@ -492,11 +311,7 @@ classes from one model under one prompt, and define the negative class by honest
 attack failure.
 \end{abstract}
 
-% =====================================================================================
 \section{Introduction}
-% notes/06 §5.2, pasted 2026-09-11. Paragraph three deliberately carries no transfer or
-% inert VALUE: those go in only after the stripped re-check (handoff §4.2).
-% =====================================================================================
 
 The backbone protocol of AI control is trusted monitoring, where a weaker trusted model reads
 an untrusted model's output and flags sabotage \cite{greenblatt2023aicontrol}. Monitors
@@ -543,12 +358,8 @@ measurement is of one APPS-derived family plus five agentic settings
 (appendix~\ref{app:agentic}). ControlArena, the evaluation framework most of these corpora are
 exported from, generates both classes live and is not implicated.
 
-% =====================================================================================
 \section{Setup}
-% Budget: ~300 words. The schema table is Table~\ref{tab:schema} in the appendix.
-% =====================================================================================
 
-% --- F1: the construction, conceptual, before any result. Generated by figures.py.
 \begin{figure}[t]\centering
 \includegraphics[width=0.85\linewidth]{f4-constructions.pdf}
 \caption{\textbf{How a stored pair is built, and how we rebuild it.} Each row is one property of
@@ -612,12 +423,8 @@ $\rho = (S - 0.5)/(B' - 0.5)$ & the share of above-chance separability that surv
 \end{tabular}
 \end{table}
 
-% =====================================================================================
 \section{Results}
 \label{sec:results}
-% Budget: ~780 words. F1 is Table~\ref{tab:protocol-baseline} in the appendix; F3 is the
-% one body float.
-% =====================================================================================
 
 Comment stripping succeeds on comment count and code length, driving both to chance
 (Table~\ref{tab:protocol-baseline}, appendix). Two baselines on that same split do not move;
@@ -642,10 +449,6 @@ in 152 of \splitTrain{} attack samples against 1 of \splitTrain{} honest ones. A
 unstripped values, inflated by the comment channel, are in appendix~\ref{app:stripped},
 and a token-level version of the last test does not replicate (appendix~\ref{app:token}).
 
-% --- Gate S outcome, in three paragraphs plus Table~\ref{tab:gates} (notes/12 §1: the
-%     single highest-value change of the cold review). EVERY row-level number now lives in
-%     the table or its caption; the prose keeps the reading and the mechanism. Nothing left
-%     the paper - the clauses cut here (retention, the edit-arm bound) are in app:robust.
 Holding the writer constant removes between a third and nine-tenths of the above-chance
 separability (Table~\ref{tab:gates}, whose $B'$ is refitted on each row's own problems and
 includes inert attacks): the two generators return $\rho = \sameGenRho{}$
@@ -723,10 +526,7 @@ cases (\testCasesAttack{} against
 \testCasesHonest{}), so problem difficulty correlates with the label, which the
 no-code floor's \nocodeCV{} reads.
 
-% =====================================================================================
 \section{Limitations}
-% Budget: three paragraphs. Disclosures owed by notes/05 are in the second.
-% =====================================================================================
 
 A high floor is evidence about a corpus, not about results computed on it. Ours show the
 label is recoverable without reading a backdoor, not that any monitor
@@ -748,15 +548,7 @@ fall on opposite classes, so $B$ carries a small
 execution-environment channel the same-generator arm does not
 (appendix~\ref{app:harness}).
 
-% =====================================================================================
 \section{Discussion}
-% Prose, not a checklist. None of the five papers this paper is submitted alongside ends on a
-% bulleted list: Feng closes with Discussion then a four-sentence Conclusion, Koran, Terekhov
-% and Little each carry a Discussion. The checklist register came from kapoor2022leakage,
-% which is meta-science rather than an empirical venue paper. The run-in \paragraph labels
-% this section used to carry were cut with the rest of the body's: every join is now a
-% transition sentence, so do not reintroduce them here or in sections 2-4.
-% =====================================================================================
 
 These results imply one rule for construction: one model should write both classes under one
 prompt framing, and one harness should verify both. Matched construction is precedented in
@@ -774,16 +566,10 @@ Stored pairs remain the cheapest way to develop a monitor, and nothing here argu
 abandoning them, only that a score on one describes two authors until the construction rules
 that reading out.
 
-% =====================================================================================
 \bibliographystyle{plainnat}
 \bibliography{refs}
 
-% =====================================================================================
-%  APPENDIX - not counted against the four content pages.
-% =====================================================================================
 \appendix
-% Appendix floats are numbered A1, A2, ... so the body's Table 1 / Figure 1 stay Table 1 /
-% Figure 1. Before this the body referenced Tables 2 and 3 (both here) before Table 1.
 \setcounter{table}{0}\renewcommand{\thetable}{A\arabic{table}}
 \setcounter{figure}{0}\renewcommand{\thefigure}{A\arabic{figure}}
 \section{Supplementary tables and figures}
@@ -798,8 +584,6 @@ two views of this one artifact, since every problem in the filtered release
 \cite{koran2026highquality} is also in \cite{inglis2025appscontrolarena}, byte-identical
 except a re-validated \texttt{backdoor\_works}.
 
-% The sub-field list must WRAP - as a plain `l' column it overflowed the 5.5in text block
-% and the rules ran off the page edge.
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
 \caption{The confound is legible in the dataset schema, with no measurement at all.
@@ -820,7 +604,6 @@ struct & sub-fields \\
 \end{tabular}
 \end{table}
 
-% --- F3: the monitor comparison (the only body float) ----------------------------------
 \begin{figure}[h]\centering
 \includegraphics[width=0.64\linewidth]{f3-monitors-vs-floors.pdf}
 \caption{\textbf{Two floors against the \monN{} open-weight monitors ranked on the same
@@ -860,7 +643,6 @@ no-code floor reaches \nocodeCV{} (CI \nocodeCVLo{}--\nocodeCVHi{} on the pooled
 \nocodeCVPooled{}; null \nocodeCVNull{}, $\permP$), above \nocodeCVCount{} and
 \nocodeCVPairedCount{} respectively.
 
-% --- F1: generated by experiments/apps/figures.py; do not hand-edit -----------------
 \input{fig/f1-protocol-baseline}
 
 \subsection{Comment stripping on the matched-protocol numbers}

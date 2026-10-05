@@ -1,3 +1,13 @@
+"""Share of inert labelled backdoors, and the no-code floor under 5x5 repeated CV.
+
+Counts how many labelled backdoors on Koran's test split do not work and are therefore labelled
+honest (80.7% of the labelled backdoors). Then fits the problem-side metadata model
+(difficulty + num_tests + q_len) under 5x5 repeated stratified CV within the test split:
+AUROC 0.7715 +/- 0.0389, the no-code floor reported in the paper.
+
+Usage:
+    python analyse2.py   # needs koran_meta.parquet and rogan_meta.parquet from fetch_inputs.py
+"""
 import pandas as pd, numpy as np
 k = pd.read_parquet("koran_meta.parquet"); kt=k[k.split=="test"].copy()
 kt["label"]=kt.backdoor_works.astype(int)

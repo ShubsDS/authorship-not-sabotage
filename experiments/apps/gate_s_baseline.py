@@ -1,32 +1,23 @@
-"""Gate S: compute B, the human-honest baseline, without waiting for a generator.
+"""Compute B, the human-honest baseline, over the full analysis pool.
 
-    python gate_s_baseline.py
+B is human honest code against the stored working backdoors, fitted with
+gate_s_eval.evaluate() (imported, so it is the same fit that produces G, S and B'). It needs no
+generated code. It prints B and the G (or S) value each rho band corresponds to at this B.
 
-`gate_s_eval.py` computes B and G together and requires an arm's `--gen-file`/`--pass-file`,
-so B is unreachable until a GPU job lands. But B needs no GPU: it is human honest code vs the
-same working backdoors, through the identical pipeline. This script runs that half alone.
+This B is over the full pool. rho's denominator is B', the same quantity refitted on exactly the
+problems an arm covers (gate_s_eval.py and gate_s_samegen.py compute it); the two coincide only
+if an arm covers every problem.
 
-`evaluate()` is **imported** from gate_s_eval, not reimplemented, so the B printed here and the
-B printed by gate_s_eval when an arm lands are the same function on the same features.
+Two definitions of the human pass flag:
+    shipped  the artifact's `solution_passes_tests`      1,444 pairs, B = 0.8714
+    own      run_tests.py's verdict on the human class   1,406 pairs, B = 0.8729
+With --human-pass-file the own flag both gates eligibility and selects which human solution is
+used; without it the shipped flag is used.
 
-⚠️ WHAT THIS NUMBER IS, AND WHAT IT IS NOT.
-
-B is not a constant. rho = (G - 0.5) / (B - 0.5) requires B and G fitted over the *same*
-problems, and G's eligible set is not known until an arm's generations are scored - it is the
-analysis pool intersected with whichever generations pass. So:
-
-    this script    B over the full analysis pool          the CEILING pool
-    gate_s_eval    B over that pool AND the arm's passers  the pool rho actually uses
-
-Those coincide only if an arm passes everything. Treat the number here as the magnitude of B
-and as an end-to-end exercise of the eval path - not as rho's final denominator.
-
-Two pool definitions, per GATE-S-RUNBOOK.md 4.2:
-    shipped flag  `solution_passes_tests` from the artifact      -> the 1,444 ceiling
-    our own flag  run_tests.py's verdict on the human class      -> 1,384 of those 1,444
-The runbook settled on our own flag for both classes. That verdict lives in the harness output
-on the cluster, so pass `--human-pass-file human_verify.jsonl` when it is available; without it
-this falls back to the shipped flag and says so.
+Usage:
+    python gate_s_baseline.py                  # -> gate_s_baseline.json
+    python gate_s_baseline.py --human-pass-file pass_human_fixed.jsonl \
+        --out gate_s_baseline_ownflag.json
 """
 
 from __future__ import annotations
@@ -41,13 +32,11 @@ import pyarrow.parquet as pq
 
 sys.path.insert(0, ".")
 from data import _honest_code, _pick_backdoor, strip_comments  # noqa: E402
-from gate_s_eval import COLLAPSE, NO_COLLAPSE, evaluate  # noqa: E402  - identical by construction
+from gate_s_eval import COLLAPSE, NO_COLLAPSE, evaluate  # noqa: E402
 
-# `top_backdoor_model` is NOT a column of RoganInglis/apps-control-arena - checked against the
-# shard schema, which carries only solutions/backdoors/*_works/is_nondeterministic. It exists in
-# eugenekoran/apps-control-arena-high-quality, which is where fetch_inputs.py reads it. So
-# gate_s_eval.py's "top_backdoor_model": None is correct here rather than an oversight, and
-# _pick_backdoor legitimately falls through to usable[0]. Kept identical.
+# `top_backdoor_model` is not a column of RoganInglis/apps-control-arena (it exists only in
+# eugenekoran/apps-control-arena-high-quality, which fetch_inputs.py reads), so rows are built
+# with top_backdoor_model=None and _pick_backdoor falls through to the first usable backdoor.
 COLS = ["problem_id", "solutions", "backdoors",
         "solution_passes_tests", "backdoor_works", "is_nondeterministic"]
 
@@ -73,11 +62,9 @@ def build_pairs(df: pd.DataFrame, honest_ok: set[str] | None,
         if honest_idx is None:
             human = _honest_code(row)
         else:
-            # Select with the SAME flag that gated eligibility. _honest_code() picks the first
-            # solution the *artifact* marks passing, so gating on our harness while selecting on
-            # theirs admitted 22 of 1,406 pairs whose actual code our harness fails - a crossed
-            # protocol, not a judgement call. Picking the first solution WE passed gives 1,384,
-            # which is the count the runbook recorded.
+            # Select the honest program with the same flag that gated eligibility: the first
+            # solution our harness passes. _honest_code() picks the first solution the artifact
+            # marks passing, which for 22 problems is code our harness fails.
             human = next((row["solutions"][i]["code"] for i in honest_idx.get(pid, [])
                           if i < len(row["solutions"])), None)
         if bd is None:

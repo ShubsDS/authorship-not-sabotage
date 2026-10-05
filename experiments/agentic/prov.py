@@ -1,3 +1,13 @@
+"""Which generator wrote each class in the RoganInglis APPS datasets.
+
+Counts backdoors by (source, model) in RoganInglis/apps-control-arena and shows that the honest
+`solutions` structs carry no model field (they are the human-written APPS solutions). Also lists
+the columns of RoganInglis/control-tax and RoganInglis/apps-backdoors. Reads the parquet files
+over HTTPS; nothing is written.
+
+Usage:
+    python prov.py
+"""
 import fsspec, pyarrow.parquet as pq, pandas as pd, numpy as np, collections
 fs=fsspec.filesystem("https"); B="https://huggingface.co/datasets/"
 def rd(urls,cols):

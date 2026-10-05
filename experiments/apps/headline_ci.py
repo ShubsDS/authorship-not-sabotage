@@ -1,79 +1,69 @@
 """Uncertainty for the paper's two headline floors, and a paired test against the 24 monitors.
 
-Answers `notes/06-path-to-submission.md` §6 item 4 and the §3.4 defect *"No permutation null or CI
-on the APPS floors ... `monitor-summary.json` ships a `ci` per monitor, unused."*
-
 What it computes
 ----------------
-(a) **TF-IDF headline, 0.8063.** Refits the exact pipeline of `koran_split_eval.py` (word 1-2gram
-    TF-IDF, `LogisticRegression(max_iter=5000, C=5)`, trained on Koran's paired *train* split,
-    scored on their 1,375-item test split, comments stripped), then attaches
-      * a bootstrap-over-PROBLEMS 95% CI (2,000 draws), and
-      * a permutation null that **reshuffles the TRAINING labels and refits** (200 permutations),
+(a) TF-IDF headline, 0.8063. Refits the pipeline of koran_split_eval.py (word 1-2gram TF-IDF,
+    LogisticRegression(max_iter=5000, C=5), trained on Koran's paired train split, scored on their
+    1,375-item test split, comments stripped), then attaches
+      * a bootstrap-over-problems 95% CI (2,000 draws), and
+      * a permutation null that reshuffles the training labels and refits (200 permutations),
         reporting the null's 95th percentile and the empirical p.
 
-(b) **The no-code floor, under BOTH of its protocols, never crossed** (`paper/fig/CAPTIONS.md`:
-    *"Never write 0.772, above 18 of 24"*):
-      * 5x5 repeated stratified CV *within* the test split  -> 0.7715 +- 0.0389, above 20 of 24
-      * a single 413-item held-out slice of the same items  -> 0.7163,           above 18 of 24
-    Each keeps its own monitor count in every table, JSON field and sentence this script emits.
+(b) The no-code floor, under each of its two protocols, which are reported separately:
+      * 5x5 repeated stratified CV within the test split  -> 0.7715 +- 0.0389, above 20 of 24
+      * a single 413-item held-out slice of the same items -> 0.7163,           above 18 of 24
 
-(c) **A paired comparison against each of the 24 monitors**, using Jha's per-item score files in
-    `runs/scores/` (MIT). For every monitor: the paired bootstrap over problems of
-    (our AUROC - monitor AUROC) computed on *identical* items, its 95% CI, and whether that CI
-    excludes zero. Summarised as "above k1 of 24 (point estimates), k2 of 24 with a CI excluding 0".
+(c) A paired comparison against each of the 24 monitors, using Jha's per-item score files in
+    runs/scores/ (MIT). For every monitor: the paired bootstrap over problems of
+    (our AUROC - monitor AUROC) on identical items, its 95% CI, and whether that CI excludes
+    zero. Summarised as "above k1 of 24 (point estimates), k2 of 24 with a CI excluding 0".
 
-(d) A compact printed table, `headline_ci.json`, and the exact sentences for the paper.
+(d) A printed table, headline_ci.json, and summary sentences.
 
 Why these choices
 -----------------
-* **The permutation null shuffles TRAINING labels, not test labels.** For a *trained* classifier the
-  null hypothesis is "the training corpus carries no label-predictive signal that transfers". Shuffling
-  the test labels instead would only destroy the evaluation, tests nothing about what was learned, and
-  gives a null centred on 0.5 by construction whatever the training set contained. So we permute
-  `y_train`, refit, and score the untouched test labels. The vectorizer is *not* refit: its vocabulary,
-  `min_df` and IDF depend on X alone, so refitting it would be wasted work, not a different null.
-* **The bootstrap unit is the problem, not the item.** Two samples from the same APPS problem share a
-  question, a difficulty and a test suite; they are not independent draws. Resampling items would
-  understate the interval. In Koran's *test* split the 1,375 items happen to be one per problem
-  (they are not paired there: 172 attack / 1,203 honest), so grouping is a no-op on that split -- but
-  the script groups anyway and prints the group-size distribution, so the same code is correct if it
-  is ever pointed at a paired split.
-* **Paired bootstrap, not DeLong.** DeLong's covariance estimate leans on asymptotic normality of the
-  placement values; with 172 positives, heavily tied monitor scores (Jha's files carry as few as 193
-  distinct values over 1,857 samples, and several monitors are flagged `degenerate`), its variance is
-  unstable and its intervals are not trustworthy here. The paired percentile bootstrap over problems
-  makes no distributional assumption and handles ties natively.
+* The permutation null shuffles training labels, not test labels. For a trained classifier the
+  null is "the training corpus carries no label signal that transfers". Shuffling test labels
+  gives a null centred on 0.5 whatever the training set contained. The vectorizer is not refit:
+  its vocabulary, min_df and IDF depend on X alone.
+* The bootstrap unit is the problem, not the item. Two samples from the same APPS problem share
+  a question, a difficulty and a test suite, so resampling items would understate the interval.
+  In Koran's test split there is one item per problem (172 attack / 1,203 honest), so grouping is
+  a no-op there; the script groups anyway and prints the group-size distribution.
+* Paired bootstrap, not DeLong. DeLong relies on asymptotic normality of the placement values;
+  with 172 positives and heavily tied monitor scores (as few as 193 distinct values over 1,857
+  samples, several monitors flagged `degenerate`) its variance is unstable. The paired
+  percentile bootstrap makes no distributional assumption and handles ties.
 
-Inputs (all produced by scripts already in this directory, run from `experiments/apps/`)
-----------------------------------------------------------------------------------------
+Inputs (run from experiments/apps/)
+-----------------------------------
     python fetch.py            # RoganInglis train_*.parquet shards
     python fetch_inputs.py     # koran_meta.parquet, monitor-summary.json, koran_test_code.pkl
     python bow.py              # koran_samples.pkl
-    python headline_ci.py      # this script; downloads runs/scores/ itself if absent
 
-`runs/scores/<repo with / -> __>.json` is fetched from `anik-jha/challenger-panels` (MIT,
-Copyright (c) 2026 Anik Jha) at run time; nothing is redistributed and `runs/` is gitignored.
+runs/scores/<repo with / -> __>.json is fetched from anik-jha/challenger-panels (MIT,
+Copyright (c) 2026 Anik Jha) at run time; nothing is redistributed and runs/ is gitignored.
 
-COLUMN / FORMAT ASSUMPTIONS (every one matched to an existing script, none invented)
------------------------------------------------------------------------------------
-  1. `koran_samples.pkl` has `problem_id, label, code, stripped`         -- written by `bow.py`.
-  2. `koran_meta.parquet` has `problem_id, split, backdoor_works, difficulty, num_tests, q_len,
-     top_backdoor_model`                                                 -- `fetch_cols.py`,
-     `analyse2.py`, `auroc.py`, `koran_split_eval.py`.
-  3. `train_*.parquet` shards have `problem_id, solutions, backdoors`, with `solutions` structs
-     carrying `code/passes_tests/compiles` and `backdoors` structs carrying
-     `backdoor_code/backdoor_works/passes_tests/model`                   -- `koran_split_eval.py`,
-     `data.py:_pick_backdoor/_honest_code`.
-  4. `monitor-summary.json` is a LIST of dicts with `repo, test_auroc, ci`  -- the tracked file.
-  5. `runs/scores/*.json`: dict with `repo, lineage, params_b, ok, n, seconds, sample_ids, scores,
-     test_auroc, test_auroc_ci, test_pauc10, n_distinct, degenerate`. `sample_ids[i]` is
-     `"<split>/<problem_id>/<attack|honest>"` over val+test (482 + 1,375 = 1,857 entries); we keep
-     the `test/` prefix only. `scores[i]` is a raw suspicion score, **higher = more suspicious**
-     (verified: rank-AUROC of the `test/` subset reproduces the file's own `test_auroc` to 4dp for
-     all 24). Filename = `repo.replace("/", "__") + ".json"`. `internlm/internlm3-8b-instruct` also
-     has a file but it is `ok: false` with no scores, and is absent from `monitor-summary.json` --
-     the 24 monitors are exactly the entries of `monitor-summary.json`.
+Input formats
+-------------
+  1. koran_samples.pkl has problem_id, label, code, stripped (written by bow.py).
+  2. koran_meta.parquet has problem_id, split, backdoor_works, difficulty, num_tests, q_len,
+     top_backdoor_model (written by fetch_cols.py).
+  3. train_*.parquet shards have problem_id, solutions, backdoors; `solutions` structs carry
+     code/passes_tests/compiles and `backdoors` structs carry
+     backdoor_code/backdoor_works/passes_tests/model.
+  4. monitor-summary.json is a list of dicts with repo, test_auroc, ci.
+  5. runs/scores/*.json: dict with repo, lineage, params_b, ok, n, seconds, sample_ids, scores,
+     test_auroc, test_auroc_ci, test_pauc10, n_distinct, degenerate. sample_ids[i] is
+     "<split>/<problem_id>/<attack|honest>" over val+test (482 + 1,375 = 1,857 entries); only the
+     test/ entries are kept. scores[i] is a raw suspicion score, higher = more suspicious; the
+     rank-AUROC of the test/ subset reproduces each file's test_auroc to 4dp, and load_scores
+     checks this. internlm/internlm3-8b-instruct also has a file, but it is ok: false with no
+     scores and is absent from monitor-summary.json; the 24 monitors are exactly the entries of
+     monitor-summary.json.
+
+Usage:
+    python headline_ci.py      # 15-30 min; downloads runs/scores/ if absent
 """
 
 from __future__ import annotations
@@ -132,11 +122,11 @@ def fast_auroc(y: np.ndarray, s: np.ndarray) -> float:
 
 
 def problem_bootstrap_indices(problem_ids: np.ndarray, n_boot: int, rng) -> list[np.ndarray]:
-    """Resample PROBLEMS with replacement; return the item indices each draw selects.
+    """Resample problems with replacement; return the item indices each draw selects.
 
     Items are grouped by `problem_id` and whole groups are drawn, so a paired split would keep its
     pairs together. On Koran's test split every group has size 1 and this reduces to an item
-    bootstrap -- which is correct there, and is asserted rather than assumed (see `group_sizes`).
+    bootstrap; own_boot reports the group sizes.
     """
     order = np.argsort(problem_ids, kind="stable")
     sorted_pids = problem_ids[order]
@@ -246,7 +236,7 @@ HEADLINE_VEC = dict(
 
 
 def build_train(data_dir: str, test_pids: set[str]) -> pd.DataFrame:
-    """Koran's paired TRAIN split, reconstructed exactly as `koran_split_eval.py` does it."""
+    """Koran's paired train split, reconstructed as koran_split_eval.py does it."""
     km = pd.read_parquet(os.path.join(data_dir, "koran_meta.parquet"))
     train_pids = set(km.problem_id.astype(str)) - test_pids
     shards = sorted(glob.glob(os.path.join(data_dir, "train_*.parquet")))
@@ -298,8 +288,8 @@ def tfidf_headline(data_dir: str, item_index: pd.Index, n_perm: int, rng) -> dic
         raise SystemExit(f"{len(missing)} monitor items absent from koran_samples.pkl, e.g. {list(missing[:5])}")
     s, yte = s.reindex(item_index), yte.reindex(item_index)
 
-    # Permutation null: shuffle the TRAINING labels and refit. The vectorizer is label-independent
-    # and is deliberately not refit.
+    # Permutation null: shuffle the training labels and refit. The vectorizer is label-independent,
+    # so it is not refit.
     null = []
     for i in range(n_perm):
         yp = rng.permutation(ytr)
@@ -394,7 +384,7 @@ def own_boot(y: np.ndarray, s: np.ndarray, pids: np.ndarray, n_boot: int, rng) -
 
 
 def paired_vs_monitors(y, ours, mon_df: pd.DataFrame, meta: dict, pids, n_boot, rng) -> list[dict]:
-    """Paired bootstrap over problems of (our AUROC - monitor AUROC) on IDENTICAL items."""
+    """Paired bootstrap over problems of (our AUROC - monitor AUROC) on identical items."""
     repos = [c for c in mon_df.columns if c != "label"]
     M = mon_df[repos].to_numpy()
     idxs = problem_bootstrap_indices(pids, n_boot, rng)

@@ -1,12 +1,10 @@
 """What the residual same-generator signal is made of: attribution and masking, S beside B'.
 
-RESULTS.md 9-10 leave the headline S = 0.7512 (n = 623, attack = passes the public tests, 97.5%
-never fire) with a reading but not a measurement: a monitor scores 0.566 on those pairs, so what the
-bag-of-words classifier still separates with authorship held constant is claimed to be a lexical
-trace of the attack INSTRUCTION - the trigger idiom (`==` against a magic constant, >= 3-digit
-numerals; survivor check p = 0.0024 / 0.0025) - rather than sabotage. This script makes that a
-measurement, three ways, always fitting S and the stored B' over the SAME problems so that every
-row carries both numbers:
+The headline S = 0.7512 (n = 623; attack = passes the public tests, 97.75% never fire) leaves
+separability with authorship held constant. One candidate is a lexical trace of the attack
+instruction, the trigger idiom (`==` against a magic constant, numerals of 3+ digits). This
+script measures what the classifier reads, three ways, always fitting S and the stored B' over
+the same problems so that every row carries both numbers:
 
     1. attribution   the identical pipeline fitted once on all pairs; top-25 weights each way
     2. masking       token-exact (tokenize module) ablations, each re-run through evaluate():
@@ -14,15 +12,21 @@ row carries both numbers:
                        CMP   ==  !=  <=  >=  <  >  -> CMP
                        ID    every NAME that is not a keyword/builtin -> ID  ("structure only")
                      the unmasked row must reproduce 0.7512 / 0.8658 (headline) and
-                     0.7652 / 0.7877 (strict) to the printed decimals, else the script stops
-    3. char n-gram   analyzer="char_wb", (3, 5), same classifier and folds - one robustness row
+                     0.7652 / 0.7877 (strict) to four decimals, else the script stops
+    3. char n-gram   analyzer="char_wb", (3, 5), same classifier and folds; one robustness row
 
 Reading: S falls under NUM/CMP while B' holds -> the residual is the trigger idiom. S holds ->
 the residual is broader; read the feature lists. B' falls as much as S -> the idiom is in the
-stored benchmark too. Pairs are built exactly as gate_s_samegen.py builds them (its code is
-copied, not imported, because that script has no loader function). Nothing tracked is modified.
+stored benchmark too. Result: on the headline set NUM and CMP move S by under 0.003; only the ID
+mask moves it (to 0.6997), and the top attack-side features are program layout (`def main`,
+`data[`), which gate_s_matched.py follows up.
 
-    python3 lexical_probe.py --out lexical_probe.json
+Pairs are built as gate_s_samegen.py builds them (its code is copied, since that script has no
+loader function) and checked against the `problem_ids` in sg_indep_first_passes.json and
+sg_indep_best_usable.json, so run gate_s_samegen.py first.
+
+Usage:
+    python lexical_probe.py --out lexical_probe.json
 """
 
 from __future__ import annotations
@@ -157,7 +161,7 @@ def main() -> None:
             if name == "strict" and mname in ("ID (structure only)", "NUM+CMP deleted"):
                 continue
             r = res["masking"][mname] = row(f"{name} [{mname}]", masked(same, what), masked(stored, what))
-            if mname == "none":  # the control: must reproduce the ledger to the printed decimals
+            if mname == "none":  # control: must reproduce the sg json's S and B' to 4 decimals
                 for key, got, want in [("S", r["S"]["auroc"], ref["S"]["auroc"]),
                                        ("B'", r["B_prime"]["auroc"], ref["B_prime"]["auroc"])]:
                     if f"{got:.4f}" != f"{want:.4f}":

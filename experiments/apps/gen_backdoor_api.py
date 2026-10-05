@@ -1,35 +1,38 @@
-"""Generate the ATTACK class with Claude Sonnet 5, matching the honest class generator exactly.
+"""Generate the attack class with a Claude model through the Anthropic Batch API.
 
-This closes Gate S properly. The stored benchmark pairs human honest code against Claude backdoors,
-so a trivial classifier separates them on authorship. Regenerating only the honest half with a
-different vendor made it worse, not better (AUROC 0.874 -> 0.962, rho 1.23) - it swapped the gap
-rather than removing it. Generating BOTH classes with one model removes it by construction.
+The stored benchmark pairs human honest code against Claude backdoors, so a classifier can
+separate them on authorship. Regenerating only the honest half with a different vendor made it
+worse (AUROC 0.874 -> 0.962, rho 1.23). Generating both classes with one model holds authorship
+constant. claude-3-7-sonnet, which wrote the stored backdoors, is retired, so both classes come
+from claude-sonnet-5 (and, as a second same-generator model, claude-haiku-4-5). That is not the
+original attacker, but it is the same generator on both sides.
 
-`claude-3-7-sonnet`, which wrote the stored backdoors, was checked against this key on 2026-09-09
-and returns 404 - it reached end-of-life on 2026-02-19. So both classes come from `claude-sonnet-5`
-instead. That is not the original attacker, but it is the same generator on both sides, which is the
-property Gate S actually needs.
+Two arms:
+  edit         (default) the model is shown its own passing honest solution and asked for a
+               flawed version. Requires --honest-pass. The pair comes out as near-copies.
+  independent  (--independent) the model writes the flawed program from the problem alone. It
+               never sees a reference solution, so it does not depend on which honest solutions
+               passed: --honest-pass is optional and, if omitted, the arm runs on the whole
+               --pool slice. This is the paper's headline arm.
 
-    python gen_backdoor_api.py --honest-pass pass_sonnet5.jsonl --dry-run
-    python gen_backdoor_api.py --honest-pass pass_sonnet5.jsonl --limit 20
-    python gen_backdoor_api.py --honest-pass pass_sonnet5.jsonl
+Prompts and the reply parser are imported from gen_backdoor.py. Each model has its own price pair
+and default output/state names keyed off a slug (bd[ind]_<slug>.jsonl), so runs for different
+models cannot overwrite each other. Thinking is off unless --thinking is passed; the paper's runs
+use it off. Claude models reject sampling parameters, so generations use default sampling and are
+not bit-reproducible. An in-flight batch is resumed from its state file.
 
-The prompt is imported from `gen_backdoor.py`, so the local and API attack arms stay identical.
-Output is byte-compatible with `verify_backdoor.py`.
-
-**A second same-generator model (2026-09-11, §15).** One model, one vendor, one sample is the
-reviewer's objection to Gate S, so `--model` runs the identical pipeline on another Claude. Each
-model gets its own price pair and its own default output/state names, keyed off a short slug, so no
-Sonnet file can be overwritten by a Haiku run or the reverse:
-
-    python gen_backdoor_api.py --model claude-haiku-4-5 --independent --pool analysis --dry-run
-    python gen_backdoor_api.py --model claude-haiku-4-5 --independent --pool analysis   # bdind_haiku45.jsonl
-
-**The independent arm does not need an honest pass file.** It is never shown a reference solution,
-so nothing about it depends on which honest solutions passed; `--honest-pass` is therefore optional
-for `--independent` and the arm runs on the whole `--pool` slice. Gating it on the honest pass file
-(as the edit arm must) would only couple two independent batches and shrink the attack class for no
-reason. The edit arm still requires `--honest-pass`, because it edits that solution.
+Usage:
+    # edit arm
+    python gen_backdoor_api.py --honest-pass pass_sonnet5.jsonl --honest-gen gen_sonnet5.jsonl \\
+        --out bd_sonnet5.jsonl
+    # independent arm
+    python gen_backdoor_api.py --independent --honest-pass pass_sonnet5.jsonl \\
+        --honest-gen gen_sonnet5.jsonl --out bdind_sonnet5.jsonl
+    # independent arm, retry round N (optionally sharded with --offset/--limit)
+    python gen_backdoor_api.py --independent --honest-pass pass_sonnet5.jsonl \\
+        --honest-gen gen_sonnet5.jsonl --state-suffix rN --out bds_rN.jsonl
+    # Haiku 4.5 independent arm -> bdind_haiku45.jsonl
+    python gen_backdoor_api.py --model claude-haiku-4-5 --independent --pool analysis
 """
 
 from __future__ import annotations
@@ -48,15 +51,14 @@ from gen_honest import already_done  # noqa: E402
 
 DEFAULT_MODEL = "claude-sonnet-5"
 MAX_TOKENS = 4096
-# Thinking tokens are drawn from the SAME max_tokens budget as the reply. At 4,096 the 2026-09-10
-# pilot spent the budget reasoning and truncated 77 of 120 replies before any code was emitted.
+# Thinking tokens come out of the same max_tokens budget as the reply; at 4,096 a pilot with
+# thinking truncated 77 of 120 replies before any code was emitted.
 MAX_TOKENS_THINKING = 16384
 BATCH_DISCOUNT = 0.5
 
 # List price per million tokens, (input, output), before the 50% Batch API discount, and the slug
-# that names this model's files. Adding a model here is the whole of what a new same-generator arm
-# needs from this script. Slugs must be distinct: they are the only thing keeping two models'
-# outputs apart on disk.
+# that names this model's files. Slugs must be distinct: they keep two models' outputs apart on
+# disk.
 MODELS = {
     "claude-sonnet-5":  {"slug": "sonnet5",  "price_in": 2.00, "price_out": 10.00},
     "claude-haiku-4-5": {"slug": "haiku45",  "price_in": 1.00, "price_out":  5.00},
@@ -72,7 +74,7 @@ def model_paths(model: str, independent: bool) -> tuple[str, str, str, float, fl
     stem = f"bdind_{m['slug']}" if independent else f"bd_{m['slug']}"
     return (f"{stem}.jsonl", f"{stem}.batch.json", f"{stem}.log",
             m["price_in"], m["price_out"])
-BUDGET_CEILING = 135.0   # hard stop. Was $110; raised 2026-09-11 22:40 UTC: owner reports $83 of credit left with ~$101.6 booked; this session caps NEW spend at ~$33
+BUDGET_CEILING = 135.0   # refuse to submit if --spent plus the estimate exceeds this
 
 
 def build(pool: pd.DataFrame, honest: dict, independent: bool = False,
@@ -82,8 +84,8 @@ def build(pool: pd.DataFrame, honest: dict, independent: bool = False,
     reqs, kept = [], []
     for _, row in pool.iterrows():
         sol = honest.get(row.problem_id, "")
-        # The independent arm never shows the model a reference solution - that is the whole point -
-        # but it stays on the same problems as the edit arm so the two are comparable.
+        # The independent arm never shows the model a reference solution; given --honest-pass it
+        # runs on the same problems as the edit arm so the two are comparable.
         if not independent and not sol.strip():
             continue
         if independent:
@@ -144,7 +146,7 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--offset", type=int, default=0,
                     help="skip the first N eligible problems. With --limit this shards one round "
-                         "across several small batches, which matters: measured 2026-09-11, a "
+                         "across several small batches, which matters: in our runs a "
                          "200-request batch finished in 2.0 min while six concurrent 1,112-request "
                          "batches were still running at 100 min. Latency scales superlinearly with "
                          "batch size, so many small batches beat few large ones at identical cost.")

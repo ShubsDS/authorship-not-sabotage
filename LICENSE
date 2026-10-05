@@ -22,9 +22,6 @@ SOFTWARE.
 
 ---
 
-This licence covers the code, the split definition and the generated data produced by
-this project. It does not cover third-party material redistributed here; see
-THIRD-PARTY-NOTICES.md, which reproduces the upstream licence of the one third-party
-file this repository carries. Upstream corpora are not redistributed and are referenced
-by problem id only; notes/05-permissibility.md records their licences, including the
-ones that declare none.
+This licence covers the code, the split definition and the generated data produced by this
+project. It does not cover third-party material; see THIRD-PARTY-NOTICES.md. Upstream corpora are
+not redistributed and are referenced by problem id only.

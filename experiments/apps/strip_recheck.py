@@ -1,29 +1,23 @@
-"""Re-run the matched-protocol and transfer numbers WITH the field's comment stripper.
+"""Matched-pair and transfer numbers with and without comment stripping, side by side.
 
-Why this script exists (2026-09-11). `matched.py`, `exact.py` and `transfer.py` never call
-`strip_comments`, so six reported numbers are measured on code with comments left in:
+A '#'-count detector scores 0.6957 before stripping and 0.4983 after (Jha's leak check), so
+comments alone carry label signal. This script runs the same protocol on raw code and on code
+with comments stripped from both classes, and backs the comment-stripping appendix table:
 
-    TF-IDF AUROC 0.9425 · pairwise 0.9621 · working 0.9787 vs inert 0.9543
-    surface-7 0.8302 · length 0.8255 within-pair · transfer 0.9935 (and the three cross-model rows)
+  * matched protocol on control_tax pairs (zip(solutions, backdoors) pairing, RandomState(seed)
+    problem-disjoint 30% test split): TF-IDF AUROC, pairwise accuracy overall and on working
+    vs inert backdoors, a 7-feature surface model, and code length;
+  * cross-generator transfer: train on control_tax pairs, test on apps-source pairs, plus three
+    cross-model rows;
+  * per-class style-marker means.
 
-Two of those - the inert-vs-working contrast and the cross-generator transfer - are two of the
-three legs the paper's "authorship, not sabotage" reading stands on when the same-generator
-control is absent. The field's own published check says a detector reading nothing but the
-number of '#' characters scores 0.6957 before stripping and 0.4983 after (Jha, `--leak-check`).
-So a reviewer can read those two legs as resting on the one channel the field already patched.
-This script settles it: the identical protocol, stripped and unstripped, side by side.
+Stripping uses strip_comments from data.py (Jha's port of the anchor paper's stripper).
 
-Protocol is copied from `matched.py` / `transfer.py` line for line (same pair construction,
-same RandomState(0) problem-disjoint 30% split, same vectorizer, same LR), with two additions:
-`strip_comments` from `data.py` (Jha's own port of the anchor's stripper) applied to BOTH
-classes, and an optional `--seeds N` to repeat the split so the pairwise numbers carry a spread.
+Usage:
+    python strip_recheck.py              # seed 0 only
+    python strip_recheck.py --seeds 5    # mean +/- sd over five problem-disjoint splits (~3 min)
 
-    python strip_recheck.py              # both preprocessings, seed 0 - the like-for-like table
-    python strip_recheck.py --seeds 5    # adds mean +/- sd over five problem-disjoint splits
-
-Needs the three `train_*.parquet` shards from `fetch.py`. CPU, a few minutes.
-NOT yet run on the real shards in the session that wrote it (HuggingFace was unreachable
-from that sandbox); it was exercised end to end on a synthetic shard with the same schema.
+Needs the train_*.parquet shards from fetch.py. CPU only.
 """
 import argparse, glob, re
 import numpy as np, pandas as pd, pyarrow.parquet as pq
@@ -41,7 +35,7 @@ def load_pairs(shard_glob="train_*.parquet"):
     for _, r in df.iterrows():
         for src in ["control_tax", "apps"]:
             bds = [b for b in r.backdoors if b["source"] == src]
-            # zip(solutions, backdoors) is the DSPy tutorial's pairing, as in matched.py/transfer.py
+            # zip(solutions, backdoors) is the DSPy trusted-monitor tutorial's pairing.
             for sol, bd in zip(r.solutions, bds):
                 rows.append(dict(pid=str(r.problem_id), src=src, honest=sol["code"],
                                  attack=bd["backdoor_code"], bd_works=bool(bd["backdoor_works"]),
@@ -76,7 +70,7 @@ def longform(d):
 
 
 def matched_protocol(ct, seed):
-    """matched.py's block, parameterised by seed. Returns a dict of the six numbers."""
+    """The matched protocol on one problem-disjoint 30% split. Returns a dict of its numbers."""
     rng = np.random.RandomState(seed)
     pids = np.array(list(ct.pid.unique()), dtype=object); rng.shuffle(pids)
     te_p = set(pids[:int(0.3 * len(pids))])
@@ -103,7 +97,7 @@ def matched_protocol(ct, seed):
 
 
 def transfer_protocol(p):
-    """transfer.py's block: train control_tax -> test apps-source, plus three cross-model rows."""
+    """Train control_tax -> test apps-source, plus three cross-model rows."""
     ct, ap = p[p.src == "control_tax"], p[p.src == "apps"]
 
     def fit(tr):

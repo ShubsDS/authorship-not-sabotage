@@ -1,36 +1,31 @@
-"""Gate S honest classes from Claude Haiku 4.5 — the second same-generator model (§15).
+"""Generate the honest classes with Claude Haiku 4.5, the second same-generator model.
 
-Gate S as it stands rests on one model, one vendor, one sample; `gen_honest_api.py` +
-`gen_backdoor_api.py` gave Claude Sonnet 5 both sides of the pair and returned S = 0.7512 against
-B' = 0.8658 (ρ = 0.687). The sharpest remaining objection is that a single generator's idiolect
-could carry the whole residual. This script runs the identical honest-side pipeline on
-`claude-haiku-4-5`, so the two models are comparable row for row.
+The Sonnet 5 same-generator pair (gen_honest_api.py + gen_backdoor_api.py) gives S = 0.7512
+against B' = 0.8658 (rho = 0.687). A single generator's idiolect could carry the whole residual,
+so this script runs the same honest-side pipeline on claude-haiku-4-5, making the two models
+comparable row for row. It writes two honest classes, matching the Sonnet arm: the plain class
+(gen_honest.PROMPT -> gen_haiku45.jsonl) and the prompt-matched class
+(PROMPT_INDEPENDENT_HONEST -> genm_haiku45.jsonl).
 
-Two honest classes, matching the Sonnet arm exactly:
+This is a separate script rather than gen_honest_api.py --model because that file's
+build_requests/collect read module-level MODEL, PRICE_IN/PRICE_OUT and STATE_FILE; calling them
+here would stamp "model": "claude-sonnet-5" into Haiku records, and gate_s_samegen.py refuses
+when the honest and attack files disagree on model. The batch loop is therefore copied, and the
+prompts and parsers (gen_honest.PROMPT, gen_honest.extract_code,
+gen_backdoor.PROMPT_INDEPENDENT_HONEST, gen_backdoor.extract) are imported so they cannot drift.
 
-    python gen_honest_haiku.py --dry-run              # gen_haiku45.jsonl,  gen_honest.PROMPT
-    python gen_honest_haiku.py
-    python gen_honest_haiku.py --matched --dry-run    # genm_haiku45.jsonl, PROMPT_INDEPENDENT_HONEST
-    python gen_honest_haiku.py --matched
+Protocol, the same as the Sonnet arm:
+  * max_tokens = 4096.
+  * Thinking disabled.
+  * Default sampling. Claude models reject temperature/top_p/top_k, so generations are not
+    bit-reproducible.
+  * One draw per problem, no best-of-n.
 
-**Why a wrapper and not `gen_honest_api.py --model`.** That file belongs to the Sonnet arm and is
-owned by another worker. Its `build_requests`/`collect` are importable without side effects (the
-module body only does a `sys.path.insert` and three imports) but they close over module-level
-`MODEL`, `PRICE_IN`/`PRICE_OUT` and `STATE_FILE`, none of which is a parameter — calling them here
-would stamp `"model": "claude-sonnet-5"` into Haiku records and price them at Sonnet rates. That is
-not a cosmetic problem: `gate_s_samegen.py` refuses outright when the honest and attack files
-disagree on `model`, so the run would die at analysis time with a confusing message. So the batch
-loop is copied and the *prompts and parsers* are imported, which is where drift would actually
-matter: `gen_honest.PROMPT`, `gen_honest.extract_code`, `gen_backdoor.PROMPT_INDEPENDENT_HONEST`
-and `gen_backdoor.extract` are the same objects both arms use.
-
-Protocol, identical to the Sonnet arm and stated rather than buried:
-  * `max_tokens = 4096`, the same ceiling as every other arm.
-  * **Thinking disabled.** The object of study is the emitted code.
-  * **Default sampling.** These models reject `temperature`/`top_p`/`top_k` with a 400, so there is
-    no temperature-0 setting to match the vLLM arms with; neither Claude arm is bit-reproducible.
-  * One draw per problem, no best-of-n — further selection would install the selection artifact
-    this paper audits.
+Usage:
+    python gen_honest_haiku.py --dry-run              # cost estimate, submits nothing
+    python gen_honest_haiku.py                        # -> gen_haiku45.jsonl
+    python gen_honest_haiku.py --matched --problem-ids sg_haiku45_indep_passes.json
+                                                      # -> genm_haiku45.jsonl
 """
 
 from __future__ import annotations
@@ -58,7 +53,7 @@ OUT = "gen_haiku45.jsonl"
 OUT_MATCHED = "genm_haiku45.jsonl"
 STATE_FILE = "gen_haiku45.batch.json"
 STATE_FILE_MATCHED = "genm_haiku45.batch.json"
-BUDGET_CEILING = 135.0   # the project ceiling, mirrored from gen_backdoor_api.py
+BUDGET_CEILING = 135.0   # refuse to submit if --spent plus the estimate exceeds this
 
 
 def build_requests(pool: pd.DataFrame, thinking: bool, matched: bool = False):
@@ -68,7 +63,7 @@ def build_requests(pool: pd.DataFrame, thinking: bool, matched: bool = False):
     reqs = []
     for _, row in pool.iterrows():
         # `.replace` for the matched prompt (its body contains braces, so `.format` would raise);
-        # `.format` for the plain one. Both exactly as the Sonnet arm substitutes them.
+        # `.format` for the plain one, as in the Sonnet arm.
         body = (PROMPT_INDEPENDENT_HONEST.replace("<question>", row.question) if matched
                 else PROMPT.format(question=row.question))
         reqs.append(Request(custom_id=f"p{row.problem_id}",
@@ -98,13 +93,13 @@ def estimate(pool: pd.DataFrame, spent_so_far: float, matched: bool) -> float:
     print(f"WORST CASE            ${worst:.2f}   (every reply hits max_tokens={MAX_TOKENS})")
     print(f"already spent         ${spent_so_far:.2f}")
     print(f"projected total       ${spent_so_far + cost:.2f}  (ceiling ${BUDGET_CEILING:.0f})")
-    print("The Sonnet honest arm came in 72% over a 600-token/problem estimate (§4.2); the estimate")
+    print("The Sonnet honest arm came in 72% over a 600-token/problem estimate; the estimate")
     print("here assumes 700 and is still the uncertain half. The worst case is what gates the run.")
     return cost
 
 
 def collect(client, batch_id: str, out_path: str, matched: bool) -> float:
-    """One JSONL record per result. Results arrive in arbitrary order — key by custom_id."""
+    """One JSONL record per result. Results arrive in arbitrary order, so key by custom_id."""
     n_ok = n_err = n_trunc = n_nocode = n_noinput = 0
     tok_in = tok_out = 0
     with open(out_path, "a") as fh:
@@ -119,8 +114,8 @@ def collect(client, batch_id: str, out_path: str, matched: bool) -> float:
             msg = result.result.message
             text = "".join(b.text for b in msg.content if b.type == "text")
             # The matched prompt asks for two fenced blocks, so it is parsed with the attack arm's
-            # own parser; the `input` block is stored as `check_input` and is NOT a trigger and is
-            # not used downstream — it is an input the model claims to have checked.
+            # own parser; the `input` block is stored as `check_input`. It is not a trigger and is
+            # not used downstream; it is an input the model says it checked.
             check_input = ""
             if matched:
                 code, check_input = extract_two_blocks(text)

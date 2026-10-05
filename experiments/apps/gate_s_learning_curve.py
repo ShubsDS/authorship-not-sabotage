@@ -1,42 +1,30 @@
-"""The matched-n learning curve of B: is a low S a collapse, or is it underfitting?
+"""Learning curve of B at matched n: is a lower S a real drop, or underfitting at small n?
 
-    python gate_s_learning_curve.py                                    # the curve alone
-    python gate_s_learning_curve.py --human-pass-file human_verify.jsonl
-    python gate_s_learning_curve.py --match-problems gate_s_samegen_sonnet5_independent_passes.json
+S is fitted on a few hundred pairs; B = 0.8714 on 1,444. With fewer pairs each training fold
+sees fewer documents and min_df=3 keeps less of the vocabulary, so a lower S is confounded with
+underfitting until B is measured at the same n through the same code. This script subsamples
+the B pool, refits, and reports B at each n (S's own n is added to the grid). With
+--match-problems it also refits B once over exactly the problem ids a gate_s_samegen.py json
+records, which holds the problems fixed as well as the sample size.
 
-S is fitted on a few hundred pairs; B = 0.8714 was fitted on 1,444. At n = 125 each training
-fold sees ~200 documents against 2,310, and `min_df=3` keeps a fraction of the vocabulary, so a
-low S is confounded with underfitting until B is measured at the same n through the same code.
-That is all this script does: subsample the B pairs, refit, and report the curve.
+Pairs come from gate_s_baseline.build_pairs() and the fit from gate_s_eval.evaluate(), both
+imported, so only the number of pairs changes. Inputs, in experiments/apps/: train_*.parquet
+(python fetch.py); optionally --human-pass-file for the own-flag pool; optionally a
+gate_s_samegen.py json carrying `problem_ids`.
 
-Nothing here is a new pipeline. `build_pairs()` and the pool loading come from
-`gate_s_baseline.py` and `evaluate()` from `gate_s_eval.py`, both imported, so every point on
-this curve is the same function that produced B and S. Only the number of pairs changes.
+For the headline arm it prints: at n = 623, B under the identical pipeline is 0.8521 +/- 0.0055,
+so the drop to S is not attributable to sample size; B over S's own 623 problems is 0.8658.
 
-What it needs (in the working directory, i.e. `experiments/apps/`):
-    train_*.parquet             the artifact shards (`python fetch.py`)
-    human_verify.jsonl          optional; run_tests.py's verdict on the human class. Pass it so
-                                the curve uses the same pool definition as B under our own flag
-                                (1,406 pairs), not the shipped flag (1,444).
-    a gate_s_samegen_*.json     optional; with --match-problems B is ALSO recomputed over exactly
-                                the problem ids S used. That json must carry `problem_ids`
-                                (gate_s_samegen.py writes it); if it does not, this script says so
-                                and falls back to matching n only.
+If B at S's n stays well above S, the drop is not a sample-size effect. If B itself falls toward
+S at that n, the full-pool rho bands do not apply and the problem-matched B' is the denominator.
 
-Outputs `gate_s_learning_curve.json` and a table, and ends with the one sentence the paper needs:
+Cost: CPU only, but slow. The default grid at 30 draws is ~180 refits, each with evaluate()'s
+2,000-resample bootstrap; expect 20-45 min on the 1,444-pair pool. --boot 500 cuts most of that
+and changes only the reported CI widths. Every draw is seeded (--seed).
 
-    At n = <S's n>, B under the identical pipeline is X +/- Y, so a collapse to S
-    is / is not attributable to sample size.
-
-Cost: CPU only, but not instant. The default grid at 30 draws is ~180 refits, each carrying
-evaluate()'s 2,000-resample bootstrap: 12 min on a 625-pair synthetic pool, so budget 20-45 min on
-the real 1,444-pair one. `--boot 500` cuts most of that and moves only the reported CI width.
-Every draw is seeded (`--seed`), so the table is reproducible.
-
-⚠️ Read the curve, not just its endpoint. If B at S's n is still near 0.85, a low S is a real
-collapse. If B itself falls toward 0.75 at that n, the pre-registered rho bands were computed at
-a sample size the arm never had, and the honest denominator is the problem-matched B' that
-gate_s_samegen.py fits - which is what --match-problems reports.
+Usage:
+    python gate_s_learning_curve.py --match-problems sg_indep_first_passes.json \
+        --out lc_first_passes.json
 """
 
 from __future__ import annotations
@@ -70,10 +58,8 @@ def _quiet_evaluate(pairs: pd.DataFrame, label: str, n_boot: int) -> dict:
 def load_pool(human_pass_file: str | None) -> pd.DataFrame:
     """The B pool, exactly as gate_s_baseline.main() builds it.
 
-    The pair construction itself is `build_pairs()`, imported. Only the shard read and the
-    --human-pass-file parse are restated here, because gate_s_baseline keeps them inline in
-    main() and nothing in this branch may refactor that file. If they are ever factored out,
-    delete this function and call it instead - the two must not drift.
+    The pair construction is `build_pairs()`, imported. The shard read and the --human-pass-file
+    parse are restated from gate_s_baseline.main(), which keeps them inline; keep the two in sync.
     """
     shards = sorted(glob.glob("train_*.parquet"))
     if not shards:
@@ -230,7 +216,7 @@ def main() -> None:
     print(f"\n{'=' * 100}")
     if s_n is None:
         print("FOR THE PAPER (no --match-problems given, so S's n is not known here):")
-        # the two candidate S sizes: ~125 strict pairs, 335 test-passing independent-arm pairs
+        # Fixed fallback sizes; the reported arms are n = 623 (headline) and n = 99 (strict).
         shown: list[int] = []
         for n in (125, 335):
             p = nearest_point(points, n)

@@ -1,19 +1,20 @@
 # Third-party notices
 
-This repository redistributes one third-party file. Its licence and copyright notice travel
-with it, as that licence requires.
+## Redistributed
 
----
+### `experiments/apps/monitor-summary.json`
 
-## `experiments/apps/monitor-summary.json`
+Source: [`anik-jha/challenger-panels`](https://github.com/anik-jha/challenger-panels), path
+`runs/x0/monitor-summary.json`. Licence: MIT. The validation and test AUROC / pAUC of 24 monitors
+on the 1,375-item filtered split, used as the comparison set in Figure F3. These are not our
+measurements.
 
-**Source:** `https://github.com/anik-jha/challenger-panels`, path `runs/x0/monitor-summary.json`
-(repository pushed 2026-08-17; file fetched and verified against the upstream copy).
-**Licence:** MIT.
-**What it is:** 24 monitors' validation and test AUROC / pAUC on the 1,375-item split, used as the
-comparison set for figure F3. Nothing in it is our measurement; the paper cites it as Jha's.
+### `experiments/apps/data.py`
 
-Upstream licence, reproduced in full as MIT requires:
+A copy of `src/data.py` from the same repository (MIT), imported so that the split reconstruction
+is the upstream one.
+
+Upstream licence, reproduced as MIT requires:
 
 ```
 MIT License
@@ -39,21 +40,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
----
-
-## Not redistributed, but relied on
-
-These are fetched at run time by scripts in `experiments/` and are **not** stored in this
-repository. Their licences are recorded in `notes/05-permissibility.md`, including the two that
-declare none.
+## Fetched at run time, not redistributed
 
 | Artifact | Licence |
 |---|---|
 | `RoganInglis/apps-control-arena` | MIT |
-| `anik-jha/challenger-panels` (`runs/scores/`, `runs/x2`) | MIT |
-| `eugenekoran/apps-control-arena-high-quality` | ⚠️ none declared |
-| `adityaasinha28/control_arena_{bash,shade,iac,rogue_eval,agentdojo}` | ⚠️ none declared |
+| `anik-jha/challenger-panels` (`runs/scores/`) | MIT |
+| `eugenekoran/apps-control-arena-high-quality` | none declared |
+| `adityaasinha28/control_arena_{bash,shade,iac,rogue_eval,agentdojo}` | none declared |
 
-> A corpus that declares no licence grants no permission to redistribute. This repository therefore
-> stores none of their contents; `experiments/apps/koran_test_code.pkl` did until 2026-09-09 and was
-> purged from git history on 2026-09-10 (`notes/05-permissibility.md`).
+A corpus that declares no licence grants no permission to redistribute, so this repository stores
+none of their contents and the paper reports aggregates only.

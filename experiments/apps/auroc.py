@@ -1,3 +1,13 @@
+"""Metadata-only (no-code) AUROCs on Koran's test split, with RoganInglis as a positive control.
+
+Fits a logistic regression on problem-side and pipeline-side metadata columns of
+koran_meta.parquet, scored on a stratified 30% held-out slice (random_state=0). The problem-side
+set (difficulty + num_tests + q_len) is the no-code floor's held-out protocol, AUROC 0.7163.
+Also prints single-column AUROCs and the same fits on rogan_meta.parquet with label has_backdoor.
+
+Usage:
+    python auroc.py      # needs koran_meta.parquet and rogan_meta.parquet from fetch_inputs.py
+"""
 import pandas as pd, numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression

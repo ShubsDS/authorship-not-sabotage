@@ -1,25 +1,28 @@
-"""The prompt-matched rows for the Haiku 4.5 same-generator arm (RESULTS.md §15).
+"""Prompt-matched rows for the Haiku 4.5 same-generator arm.
 
-`gate_s_matched.py` (Worker A) defines the arm and computes it for Sonnet 5. Its `SETS`, and the
-`load()` that backs them, name `gen_sonnet5.jsonl` / `pass_sonnet5.jsonl` / `bdind_sonnet5_*.jsonl`
-directly, so it cannot be pointed at another model with a flag. Rather than edit another worker's
-file mid-flight, this script **imports A's helpers** — `frame`, `rho_block`, `similarity`,
-`presence`, `stored_frame` — so the two models' rows are produced by the same code, and supplies
-its own Haiku loader. `gate_s_eval.evaluate()` is untouched, as everywhere else in the ledger.
+gate_s_matched.py defines the prompt-matched arm and computes it for Sonnet 5, but its loader
+names the Sonnet 5 files directly. This script imports its helpers (`frame`, `rho_block`,
+`similarity`, `presence`, `stored_frame`) so both models' rows come from the same code, and
+supplies a Haiku loader. gate_s_eval.evaluate() is used unchanged.
 
-Two numbers, defined exactly as A defines them:
+Two numbers, defined as in gate_s_matched.py:
 
-    (a) S_matched    matched honest (PROMPT_INDEPENDENT_HONEST) vs the SAME attack draws. Model
-                     AND prompt held constant; only the sentence asking for a flaw differs.
+    (a) S_matched    matched honest (PROMPT_INDEPENDENT_HONEST) vs the same attack draws. Model
+                     and prompt held constant; only the sentence asking for a flaw differs.
     (b) prompt-only  original honest vs matched honest. Two correct classes by one model that
-                     differ in nothing but the prompt — how much of the residual framing alone
-                     can manufacture.
+                     differ only in the prompt: how much of the residual framing alone can
+                     produce.
 
-`S_original_same_problems` is the §15 headline row re-fitted on the reduced problem set, because
-(a) is only comparable against the original honest class on the SAME problems, not against the
-full-set headline.
+`S_original_same_problems` is the Haiku 4.5 headline row refitted on the reduced problem set,
+because (a) is comparable only with the original honest class on the same problems. The
+original honest class on the full set is refitted first as a control and must reproduce the sg
+json to four decimals.
 
-    python3 gate_s_matched_haiku.py --sg-json sg_haiku45_indep_passes.json
+Prints S_matched 0.5399 on 562 problems, prompt-only 0.4918.
+
+Usage:
+    python gate_s_matched_haiku.py --sg-json sg_haiku45_indep_passes.json \
+        --out gate_s_matched_haiku45.json
 """
 
 from __future__ import annotations
@@ -36,14 +39,14 @@ import pyarrow.parquet as pq
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from data import _honest_code, _pick_backdoor, strip_comments  # noqa: E402
 from gate_s_eval import evaluate  # noqa: E402 - the identical fit used for B, S and B'
-from gate_s_matched import frame, jsonl_code, passers, presence  # noqa: E402 - A's loaders
+from gate_s_matched import frame, jsonl_code, passers, presence  # noqa: E402
 from gate_s_matched import rho_block, similarity, stored_frame  # noqa: E402
 
 
 def load_haiku(sg_json: str, bdpass_path: str, elig: str, inert: bool,
                gen: str, hon_pass_file: str, bd_path: str,
                matched_gen: str, matched_pass: str):
-    """The §15 pairs, rebuilt and checked against the problem_ids gate_s_samegen.py recorded."""
+    """The Haiku 4.5 pairs, rebuilt and checked against the json's problem_ids."""
     pids = json.load(open(sg_json))["problem_ids"]
     honest = jsonl_code(gen)
     hon_pass = passers(hon_pass_file)
@@ -97,7 +100,7 @@ def main() -> None:
     ref = json.load(open(args.sg_json))
     keep = [p for p in pids if p in matched]
     dropped = [p for p in pids if p not in matched]
-    print(f"\n=== haiku45: {len(pids)} §15 problems, matched honest passes on {len(keep)} "
+    print(f"\n=== haiku45: {len(pids)} same-generator problems, matched honest passes on {len(keep)} "
           f"({len(dropped)} dropped)   B' rule = {ref['b_prime_attack_rule']}")
 
     out = {"tag": "haiku45", "sg_json": args.sg_json, "eligibility": args.eligibility,
@@ -107,8 +110,8 @@ def main() -> None:
            "dropped_problem_ids": dropped,
            "ledger": {"S": ref["S"]["auroc"], "B_prime": ref["B_prime"]["auroc"]}}
 
-    # Control: the ORIGINAL honest class on the FULL §15 set must reproduce the committed json.
-    print("control (original honest, all §15 problems):")
+    # Control: the original honest class on the full problem set must reproduce the sg json.
+    print("control (original honest, all same-generator problems):")
     ctl_S = evaluate(frame(pids, honest, attack), "S  haiku45 original (control)")
     ctl_B = evaluate(stored_frame(pids, stored), "B' haiku45 (control)")
     for key, got, want in [("S", ctl_S["auroc"], ref["S"]["auroc"]),
@@ -157,7 +160,7 @@ def main() -> None:
                     f"(joint {blk['rho_ci95_joint'][0]:.3f}-{blk['rho_ci95_joint'][1]:.3f})")
         print(txt)
     print()
-    line("control original (all §15)", out["control_original_full"])
+    line("control original (all)", out["control_original_full"])
     line("(a) S_matched", out["S_matched"])
     line("    S_original same problems", out["S_original_same_problems"])
     line("(b) prompt-only floor", out["prompt_only"], bp=False)

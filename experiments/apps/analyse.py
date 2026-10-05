@@ -1,3 +1,14 @@
+"""Lineage and label checks on the Koran artifact.
+
+A: the filtered Koran release is a subset of the RoganInglis artifact, with every shared column
+identical except backdoor_works. B-C: test-split label counts and per-column metadata marginals,
+including num_tests by label (20.95 for attacks vs 38.85 for honest items). D: has_backdoor
+versus backdoor_solution_passes_tests versus backdoor_works on each split (892 labelled, 256
+passing, 172 that fire on the test split).
+
+Usage:
+    python analyse.py    # needs koran_meta.parquet and rogan_meta.parquet from fetch_inputs.py
+"""
 import pandas as pd, numpy as np
 pd.set_option("display.width",200)
 

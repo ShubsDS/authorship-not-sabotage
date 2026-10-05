@@ -1,3 +1,16 @@
+"""Metadata-only floors on the full RoganInglis artifact under sample-construction protocols P0-P4.
+
+Prints problem-level marginals, then fits a logistic regression on problem metadata (difficulty,
+solution flags, log counts and lengths) to predict has_backdoor on a stratified 30% held-out
+set of problems. That one score is then assigned to every sample from a problem, and its AUROC
+is computed under five ways of building the honest and attack sets (P0-P4). These are the
+metadata rows of the protocol x baseline table in the appendix. Under P3 (both classes from the
+same backdoored problems) the two classes get identical scores, so the AUROC is 0.5000 by
+construction.
+
+Usage:
+    python floors.py     # needs the train_*.parquet shards from fetch.py
+"""
 import pyarrow.parquet as pq, glob, numpy as np, pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -28,7 +41,7 @@ bl = pd.DataFrame([b for bs in df.backdoors for b in bs])
 print("backdoor rows", len(bl)); print(bl.groupby("source")[["backdoor_works","passes_tests","compiles"]].agg(["mean","size"]))
 print("models:", bl.model.value_counts().to_dict())
 
-# ---- problem-level metadata floor (round-16 number) ----
+# ---- problem-level metadata floor ----
 X = pd.get_dummies(df[["difficulty"]]).astype(float)
 X["solution_passes_tests"] = df.solution_passes_tests.astype(float)
 X["solution_compiles"] = df.solution_compiles.astype(float)

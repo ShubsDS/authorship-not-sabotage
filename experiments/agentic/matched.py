@@ -1,3 +1,15 @@
+"""Structural-feature AUROCs on the five ControlArena agentic settings, pooled and within task.
+
+For each setting: a gradient-boosted model on six transcript counts (characters, lines, words,
+assistant/tool/tool-call turns) under 5-fold CV with ungrouped folds, the same under folds
+grouped by main task, and a within-task Mann-Whitney AUROC on character count alone, pooled
+over tasks weighted by pair count. The within-task chars-only column (bash 0.504 to agentdojo
+0.802) is the appendix figure on the agentic corpora. AUROCs are reported direction-free,
+max(a, 1 - a).
+
+Usage:
+    python matched.py    # needs ca_<setting>.parquet from fetch_scan.py
+"""
 import pandas as pd, numpy as np
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import GroupKFold
@@ -15,7 +27,7 @@ for s in ["bash","shade","iac","rogue_eval","agentdojo"]:
     F=pd.DataFrame({"chars":t.str.len(),"lines":t.str.count("\n"),"words":t.str.count(r"\S+"),
                     "na":t.str.count(r"\[ASSISTANT\]"),"nt":t.str.count(r"\[TOOL\]"),"ntc":t.str.count(r"\[TOOL CALLS\]")})
     task=ei["main_task_description"].fillna("").values
-    pooled=cvg(F.values,y,np.arange(len(y))%5)  # random folds
+    pooled=cvg(F.values,y,np.arange(len(y))%5)  # ungrouped folds (row index mod 5)
     grouped=cvg(F.values,y,task)
     # within-task: Mann-Whitney AUROC on chars, computed per task, weighted by pair count
     num=0.0; den=0.0; used=0

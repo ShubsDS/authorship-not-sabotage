@@ -1,39 +1,3 @@
-% Bibliography for "What Survives the Filter?" / "Authorship, Not Sabotage"
-%
-% ============================== PROVENANCE ==============================
-% Every entry was completed on 2026-09-10 from the arXiv API (a single id_list
-% query, HTTP 200, 40 KB, 16/16 entries returned - not a throttled stub, per R3).
-% NOTHING below was written from memory. R1: a fabricated reference is a desk-reject.
-%
-% This replaces a draft in which 18 of 28 entries carried partial author lists
-% copied from lit/01. lit/01 recorded those works by short title or surname
-% because that was all a research note needed. SIX turned out to be wrong rather
-% than merely incomplete - see "CORRECTIONS TO lit/01" below. Anything taken on
-% trust from a note is worth re-fetching before it reaches a PDF.
-%
-% SYNTAX: "%" is not a comment character inside a BibTeX entry, only between
-% entries - so every note sits above its entry. Never write an at-sign in a
-% comment here; BibTeX reads it as the start of an entry.
-%
-% ======================= CORRECTIONS TO lit/01 =========================
-% 1. 2506.05296 "Control Tax" -> full title is "Control Tax: The Price of Keeping
-%    AI in Check", and it is a 2025 paper. lit/01 and the draft both said 2026.
-% 2. 2608.16190 "Decorrelation Is Not Complementarity" -> the title continues
-%    ": Skill, Not Lineage, Governs Trusted-Monitor Ensembles".
-% 3. 2607.09786 -> author is Bryce Little. lit/01 recorded NO author for the
-%    paper we credit with owning the scratchpad-regex instrument.
-% 4. 2602.10153 -> authors are Sreevatsa, Prasanna and Rushing. lit/01 had none.
-% 5. 2602.02079 (AICD) -> lit/01's "Paul" and "Wang" are not surnames. They are
-%    Indraneil Paul and Yuxia Wang. Citing "Paul et al." would have been wrong.
-% 6. 2607.06596 (Pinto) -> has a venue lit/01 did not record: accepted at the
-%    COLM 2026 AI Measurement Science workshop. First name is Lucas.
-% Also: 2510.09462's preprint is 2025 (ICLR 2026 is the venue), and 1808.04926's
-% title - guessed in the draft and marked CHECK BEFORE CITING - is confirmed.
-% =======================================================================
-
-% ---------------------------------------------------------------- 1. Paragraph one
-% The six mandatory first-paragraph citations (PLAN.md section 4, "Never cut").
-
 @article{koran2026ensemble,
   title  = {Ensemble Monitoring for {AI} Control: Diverse Signals Outweigh More Compute},
   author = {Koran, Eugene and Yun, Yejun and Tetef, Samantha and Arnav, Benjamin and
@@ -96,8 +60,6 @@
   archivePrefix = {arXiv}
 }
 
-% -------------------------------------------------- Cited against ourselves (S5)
-
 @inproceedings{feng2019misleading,
   title     = {Misleading Failures of Partial-input Baselines},
   author    = {Feng, Shi and Wallace, Eric and Boyd-Graber, Jordan},
@@ -107,8 +69,6 @@
   eprint    = {1905.05778},
   archivePrefix = {arXiv}
 }
-
-% ------------------------------------------------- 2. Nearest in-field neighbours
 
 @inproceedings{pinto2026calibration,
   title     = {Calibration-Family Overfit: Why Trusted Sabotage Monitors Don't
@@ -160,8 +120,6 @@
   eprint = {2504.10374},
   archivePrefix = {arXiv}
 }
-
-% ------------------------------------------- 3. Out-of-field: the method and shape
 
 @inproceedings{poliak2018hypothesis,
   title     = {Hypothesis Only Baselines in Natural Language Inference},
@@ -225,7 +183,6 @@
   archivePrefix = {arXiv}
 }
 
-% Cite v2, not v1 - lit/01 is explicit, and v2 carries the ACM DOI.
 @article{wang2025solvedissues,
   title  = {Are ``Solved Issues'' in {SWE}-bench Really Solved Correctly?
             An Empirical Study},
@@ -237,10 +194,6 @@
   archivePrefix = {arXiv}
 }
 
-% WARNING (lit/01 section 4): its headline is that leakage is MINIMAL on average -
-% 4.8% Python, 2.8% Java, 0.7% C/C++. Do NOT pair with SWE-Bench+ as though both
-% report heavy leakage. It supports "measure leakage per benchmark", not
-% "leakage is pervasive".
 @article{zhou2025lessleak,
   title  = {{LessLeak}-Bench: A First Investigation of Data Leakage in {LLMs} Across
             83 Software Engineering Benchmarks},
@@ -253,10 +206,6 @@
   archivePrefix = {arXiv}
 }
 
-% ------------------------------------- 4. AI-code detection: the borrowed mechanism
-
-% lit/01 WITHDREW an earlier "EACL 2026" attribution as unsourced - the abs page
-% states no venue at all. Do NOT reinstate it.
 @article{orel2026aicd,
   title  = {{AICD} Bench: A Challenging Benchmark for {AI}-Generated Code Detection},
   author = {Orel, Daniil and Azizov, Dilshod and Paul, Indraneil and Wang, Yuxia and
@@ -278,7 +227,6 @@
   archivePrefix = {arXiv}
 }
 
-% The missing space in "Models,Prompts" is in the official arXiv title - do not "fix" it.
 @article{demirok2025multiaigcd,
   title  = {{MultiAIGCD}: A Comprehensive dataset for {AI} Generated Code Detection
             Covering Multiple Languages, Models,Prompts, and Scenarios},
@@ -288,9 +236,6 @@
   eprint = {2507.21693},
   archivePrefix = {arXiv}
 }
-
-% ------------------------------------------------------------------- 5. Artifacts
-% Cited as datasets/software, not papers. ControlArena itself has no paper (lit/01 S2).
 
 @inproceedings{hendrycks2021apps,
   title     = {Measuring Coding Challenge Competence With {APPS}},
@@ -330,10 +275,9 @@
                   \textbf{No licence declared.} 1{,}500 rows each.}
 }
 
-% URL verified 2026-09-10: HTTP 200. The underscore variant is a 404.
 @misc{controlarena,
   title        = {{ControlArena}},
   author       = {{UK AI Security Institute}},
   howpublished = {\url{https://github.com/UKGovernmentBEIS/control-arena}},
-  note         = {Software; no accompanying paper (lit/01 section 2).}
+  note         = {Software.}
 }

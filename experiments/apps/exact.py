@@ -1,3 +1,13 @@
+"""Within-pair "longer code is the attack" baseline against TF-IDF, on control_tax pairs.
+
+Pairs honest solutions with control_tax backdoors by zip(solutions, backdoors), as the
+DSPy trusted-monitor tutorial does, then reports problem-disjoint 5-fold pairwise accuracy for
+TF-IDF and for the rule "the longer program is the attack", and TF-IDF trained on only 200
+pairs (the tutorial's train size).
+
+Usage:
+    python exact.py      # needs the train_*.parquet shards from fetch.py
+"""
 import pyarrow.parquet as pq, glob, numpy as np, pandas as pd, re
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer

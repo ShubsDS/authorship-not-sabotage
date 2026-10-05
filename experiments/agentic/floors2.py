@@ -1,3 +1,12 @@
+"""Structural-only AUROCs on the five agentic settings, with label-permutation nulls.
+
+Single-feature AUROCs (direction-free) for six transcript counts, then a gradient-boosted model
+on all six under stratified 5-fold CV, compared with the mean over three label permutations.
+These are the permutation nulls for the appendix figure on the agentic corpora.
+
+Usage:
+    python floors2.py    # needs ca_<setting>.parquet from fetch_scan.py
+"""
 import pandas as pd, numpy as np, re
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import StratifiedKFold

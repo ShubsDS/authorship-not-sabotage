@@ -1,15 +1,15 @@
-"""Pull the five ControlArena agentic settings as `ca_<setting>.parquet`.
+"""Download the five ControlArena agentic settings as ca_<setting>.parquet.
 
-`matched.py`, `floors.py`, `floors2.py` and `cot.py` all read these and **nothing produced them** —
-the same missing-producer hole that `../apps/fetch_inputs.py` fixes on the APPS side. Run this first.
+matched.py, floors2.py and cot.py read these files; run this first.
 
+None of the five datasets declares a licence, so nothing is redistributed: they are fetched at
+run time and .gitignore keeps the parquets out. The paper reports aggregates only.
+
+rogue_eval ships its 1,500 rows under a `test` split where the other four use `train`; all
+splits are concatenated.
+
+Usage:
     python fetch_scan.py
-
-⚠️ None of the five declares a licence (`../../notes/05-permissibility.md`). We redistribute nothing:
-this fetches them at run time and `.gitignore` keeps the parquets out. The paper reports aggregates
-only and says the licences are absent.
-
-⚠️ `rogue_eval` ships its 1,500 rows under a **`test`** split where the other four use `train`.
 """
 
 from __future__ import annotations

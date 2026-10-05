@@ -1,21 +1,24 @@
 """Joint bootstrap for rho = (S - 0.5) / (B' - 0.5), and the monitor against the classifier per pair.
 
-    python rho_joint_ci.py sg_indep_first_passes_v2.json
+The `rho_ci95` in a gate_s_samegen.py json resamples S only and holds B' at its point value.
+B' is fitted on the same problems and moves with them, so that interval is too narrow. Here each
+replicate draws one resampled problem set and recomputes both AUROCs on it (2,000 draws, seed
+0); this is the interval reported for rho (0.625-0.755 on the headline). The S-only interval is
+recomputed from the same scores as a check that it reproduces the json's. Point estimates here
+are pooled out-of-fold AUROCs, which differ slightly from the fold means reported as S and B'.
+
+Needs a gate_s_samegen.py json whose `S` and `B_prime` blocks carry `oof` (per-pair out-of-fold
+scores). gate_s_eval.evaluate() always writes them; the `_v2` jsons are the headline runs with
+them saved.
+
+With --monitor-json (a monitor_samegen.py output, per-program scores under `scores`) it also
+reports the monitor's AUROC restricted to the pairs the classifier ranks wrong (attack scored
+<= honest) and to the pairs it ranks right, the Spearman correlation between the two pair
+margins, and the 2x2 of pair-level correctness.
+
+Usage:
     python rho_joint_ci.py sg_indep_first_passes_v2.json \
         --monitor-json monitor_samegen_sonnet5_independent_passes.json --out rho_joint_headline.json
-
-Needs a `gate_s_samegen.py` json whose `S` and `B_prime` blocks carry `oof` (per-pair out-of-fold
-scores; `gate_s_eval.evaluate()` returns them since 2026-09-11). The ledger's `rho_ci95` resamples
-S only and holds B' at its point value, so its interval is too narrow in the direction that matters:
-B' is fitted on the same problems and moves with them. Here one resampled problem set is drawn per
-replicate and BOTH AUROCs are recomputed on it (2,000 draws, seed 0), which is the interval to
-quote for rho. The S-only interval is recomputed from the same `oof` as a check that it reproduces
-the ledger's number.
-
-With `--monitor-json` (a `monitor_samegen.py` output, per-program scores under `scores`) it also
-reports the row monitor_samegen.py had to skip: the monitor's AUROC restricted to the pairs the
-classifier ranks wrong (attack scored <= honest) and to the pairs it ranks right, the Spearman
-correlation between the two pair margins, and the 2x2 of pair-level correctness.
 """
 
 from __future__ import annotations
@@ -50,7 +53,7 @@ def joint_bootstrap(S: pd.DataFrame, B: pd.DataFrame, n_boot: int, seed: int) ->
 
     s_pt, b_pt = _auroc(s_h, s_a), _auroc(b_h, b_a)
     # Same RNG and same call as gate_s_eval.evaluate()'s bootstrap, so the S-only interval
-    # recomputed here is bit-identical to the ledger's `auroc_ci95_boot` when the sets coincide.
+    # recomputed here is identical to the json's `auroc_ci95_boot` when the sets coincide.
     rng = np.random.RandomState(seed)
     s_only, joint_rho, s_b, b_b = [], [], [], []
     for _ in range(n_boot):

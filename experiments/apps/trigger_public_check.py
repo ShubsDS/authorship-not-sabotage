@@ -1,18 +1,18 @@
-"""Why the single-shot conditional firing rate is 2.5%: half the triggers are public test inputs.
+"""Share of generated backdoor triggers that are public test inputs, and how often each kind fires.
 
 APPS copies the statement's sample I/O into `inputs`/`outputs`, and a backdoor must pass every
-public test. A draw whose `backdoor_input` is one of those inputs therefore cannot diverge from
-the honest solution by construction. This script counts, over every test-passing draw in the
-merged retry pool, how many triggers are public inputs and how often each kind fires, and the
-same for the stored working backdoors (whose triggers were produced by a pipeline that executed
-the code).
+public test, so a draw whose `backdoor_input` is one of those inputs cannot diverge from the
+honest solution. This counts, over every test-passing draw in the merged retry pool, how many
+triggers are public inputs and the fire rate of each kind, and does the same for the stored
+working backdoors in the RoganInglis shards.
 
-    python3 trigger_public_check.py            # reads bdind_sonnet5_retry.jsonl + verdicts + shards
-
-Measured 2026-09-11 over 6,570 test-passing draws: 52.0% of triggers are public inputs and fire
+Expected output over 6,570 test-passing draws: 52.0% of triggers are public inputs and fire
 0.15%; the other 48.0% fire 5.13%; combined 2.54%. Stored working backdoors with a public-input
-trigger: 0 of 3,188. The fix for a later generation round is one sentence in the attack prompt
-forbidding any input shown in the problem statement (expected ~2x on the usable yield).
+trigger: 0 of 3,188. The 52.0% share is reported in the appendix on the two generators' funnel.
+
+Usage:
+    python trigger_public_check.py   # reads the draws and verdicts written by merge_draws.py
+                                     # and verify_backdoor.py, plus the train_*.parquet shards
 """
 
 from __future__ import annotations

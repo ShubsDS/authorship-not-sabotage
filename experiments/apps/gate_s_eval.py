@@ -1,20 +1,30 @@
-"""Gate S: rebuild the pairs with an LLM-written honest class and route the title.
+"""Cross-generator arm: B and G over the same problems, and the shared evaluate() pipeline.
 
-    python gate_s_eval.py --pass-file pass_32b.jsonl --gen-file gen_32b.jsonl --label 32B
+"Gate S" is this repo's name for the control that tests whether the stored benchmark's
+separability is authorship: refit the same bag-of-words classifier with the authorship gap
+removed and compare it with B. Every gate_s_* script imports `evaluate()` from this file, so B,
+G, S and B' are all the same fit.
 
-The point of the script is a like-for-like comparison, so it fits the *same* pipeline twice over
-the *same* problems, changing only who wrote the honest code:
+This script runs the cross-generator arm. It regenerates the honest class with an LLM and fits
+the pipeline twice over the same problems, changing only who wrote the honest code:
 
-    B   human honest  vs LLM attack   the baseline
-    G   LLM honest    vs LLM attack   the control
+    B   human honest  vs stored LLM backdoor   the baseline
+    G   LLM honest    vs stored LLM backdoor   the arm
 
-and routes on the fraction of signal retained, rho = (G - 0.5) / (B - 0.5).
+and reports rho = (G - 0.5) / (B - 0.5) against the bands fixed before any arm ran (collapse
+<= 0.33, content > 0.72). With Qwen3-Coder-30B as the honest generator (n = 668) it prints
+B = 0.8739, G = 0.9616, rho = 1.234: the substitute generator replaced the authorship gap with a
+larger one, so this arm cannot separate authorship from content. gate_s_samegen.py, where one
+model writes both classes, is the control that can. The `title` field in the output is the
+working title each band was tied to when the bands were fixed.
 
-Why B is recomputed here rather than taken as the published 0.806: that number is TF-IDF trained on
-Koran's paired train split and scored on their exact 1,375-item test split, a protocol whose honest
-class *is* the human code. It cannot be reconstructed once the honest class is regenerated. 0.806
-remains the headline for the stored benchmark and is untouched by this script.
-See `../GATE-S-RUNBOOK.md` §5.
+B is recomputed here rather than taken from the published 0.806. That number is TF-IDF trained
+on Koran's paired train split and scored on their 1,375-item test split, whose honest class is
+the human code, so it cannot be reconstructed once the honest class is regenerated.
+
+Usage:
+    python gate_s_eval.py --gen-file gen_q3c30.jsonl --pass-file pass_q3c30.jsonl \
+        --label q3c30 --out gate_s_q3c30.json
 """
 
 from __future__ import annotations
@@ -40,7 +50,7 @@ COLLAPSE, NO_COLLAPSE = 0.33, 0.72
 
 
 def surface_features(code: str) -> list[float]:
-    """The seven features from matched.py, kept identical so the rows are comparable."""
+    """Seven surface counts: length, newlines, `if`, 3+ digit numerals, `==`, `%`, `#`."""
     return [len(code), code.count("\n"), len(re.findall(r"\bif\b", code)),
             len(re.findall(r"\d{3,}", code)), code.count("=="), code.count("%"),
             len(re.findall(r"#", code))]
@@ -48,17 +58,16 @@ def surface_features(code: str) -> list[float]:
 
 def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2000,
              seed: int | None = None) -> dict:
-    """Problem-disjoint 5-fold over honest/attack pairs. Returns AUROC and pairwise accuracy.
+    """Problem-disjoint 5-fold TF-IDF + logistic regression over honest/attack pairs.
 
-    Also returns the pooled out-of-fold AUROC with a bootstrap-over-problems 95% CI
-    (`auroc_ci95_boot`). The existing fields are unchanged, so B = 0.8714 (sd 0.0085) still
-    reproduces; the CI is an addition, not a replacement.
+    `pairs` has one row per problem with columns problem_id, honest, attack. Returns the
+    fold-mean AUROC (`auroc`, the number reported as B, G, S and B'; B = 0.8714, sd 0.0085) and
+    its across-fold sd, pairwise accuracy, the length-only and surface-7 AUROCs, the pooled
+    out-of-fold AUROC with a 95% CI from a bootstrap over problems (`auroc_ci95_boot`, RNG seed
+    0), and the per-pair out-of-fold scores under `oof` for reuse downstream (rho_joint_ci.py).
 
-    `seed` (default None) keeps the deterministic GroupKFold assignment every published number
-    used; an integer shuffles the problem-to-fold assignment (GroupKFold shuffle=True) for a
-    seed-robustness check. The bootstrap RNG is fixed at 0 regardless. The per-pair out-of-fold
-    scores are returned under `oof` so downstream scripts (joint rho bootstrap, monitor-vs-
-    classifier on the same pairs) can reuse the fit; nothing else about the output changed.
+    `seed=None` keeps the deterministic GroupKFold assignment used for every reported number; an
+    integer shuffles the problem-to-fold assignment, for the fold-seed robustness check.
     """
     groups = pairs.problem_id.values
     n_splits = min(n_splits, len(np.unique(groups)))
@@ -66,11 +75,10 @@ def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2
                   min_df=3, max_features=50000, sublinear_tf=True)
 
     aurocs, pairaccs, len_aurocs, surf_aurocs = [], [], [], []
-    # Out-of-fold scores per pair, kept so a bootstrap over PROBLEMS can be run afterwards. The
-    # across-fold sd below is the spread of five estimates on n/5 pairs each, not a standard
-    # error: simulated against a true 95% CI it comes out ~1.9x too wide, so a "+/-2sd" rule
-    # declares a true collapse at n=125 only ~27% of the time. Resampling problems gives a
-    # correctly sized interval from the same fit.
+    # Out-of-fold scores per pair, for the bootstrap over problems below. The across-fold sd is
+    # the spread of five estimates on n/5 pairs each, not a standard error; in simulation a
+    # +/-2 sd interval is about 1.9x wider than the true 95% CI, so the bootstrap interval is the
+    # one to quote.
     oof_h = np.full(len(pairs), np.nan)
     oof_a = np.full(len(pairs), np.nan)
     splitter = (GroupKFold(n_splits) if seed is None
@@ -117,7 +125,6 @@ def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2
         "pairwise_acc": float(np.mean(pairaccs)),
         "length_only_auroc": float(np.mean(len_aurocs)),
         "surface7_auroc": float(np.mean(surf_aurocs)),
-        # Additive (2026-09-11): the pooled out-of-fold score of every pair, and the fold seed.
         "fold_seed": seed,
         "oof": [{"problem_id": str(p), "score_honest": float(h), "score_attack": float(a)}
                 for p, h, a in zip(pairs.problem_id.values, oof_h, oof_a)],
@@ -182,15 +189,10 @@ def main() -> None:
 
     rho = (G["auroc"] - 0.5) / (B["auroc"] - 0.5) if B["auroc"] > 0.5 else float("nan")
 
-    # rho > 1 means the classifier separates the regenerated pairs BETTER than the stored ones.
-    # The pre-registered bands assumed rho in [0, 1] - that a substitute generator can only remove
-    # signal - and that assumption is wrong. A different-vendor generator does not remove the
-    # authorship gap, it REPLACES it, and the replacement can be larger than the original.
-    #
-    # Reading such an arm as "no collapse -> content" would be a straight error: it is not evidence
-    # that the backdoors are separable on content, it is evidence that this arm cannot tell the two
-    # hypotheses apart. Only a generator close to the attacker's own lineage can shrink the gap
-    # rather than swap it.
+    # rho > 1 means the regenerated pairs separate better than the stored ones. The bands assume
+    # rho in [0, 1], i.e. that a substitute generator can only remove signal; a different-vendor
+    # generator can instead replace the authorship gap with a larger one. Such an arm cannot tell
+    # authorship from content, so it is reported as confounded rather than read as content.
     import math
     sd = math.sqrt(G["auroc_sd"] ** 2 + B["auroc_sd"] ** 2)
     excess_sd = (G["auroc"] - B["auroc"]) / sd if sd > 0 else 0.0
@@ -216,8 +218,8 @@ def main() -> None:
           "removed, authorship gap)")
     print(f"  bands: <= {COLLAPSE} collapse | <= {NO_COLLAPSE} partial | > {NO_COLLAPSE} content")
     print(f"  {verdict}\n  title: {title}")
-    print("\nRoute the title on the arm whose generator is closest to the attacker's lineage "
-          "(PLAN.md §3). A cross-vendor arm bounds the effect; it does not decide it.")
+    print("\nRoute the title on the arm whose generator is closest to the attacker's lineage. "
+          "A cross-vendor arm bounds the effect; it does not decide it.")
 
     if args.out:
         json.dump({"arm": args.label, "B": B, "G": G, "rho": rho,

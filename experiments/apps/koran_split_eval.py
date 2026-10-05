@@ -1,10 +1,16 @@
-"""Train bag-of-words on Koran et al. (2605.15377)'s paired train split; score their exact 1,375-item test split.
-Requires K1's data.py (Jha's strip_comments/_pick_backdoor/_honest_code port), koran_meta.parquet, koran_samples.pkl,
-monitor-summary.json (Jha's runs/x0) and the RoganInglis parquet shards. Output on 2026-09-03:
+"""Train bag-of-words on Koran et al. (2605.15377)'s paired train split; score their 1,375-item test split.
+
+The stripped word 1-2gram row is the paper's TF-IDF headline. Uses strip_comments, _pick_backdoor
+and _honest_code from data.py (a verbatim copy of anik-jha/challenger-panels src/data.py, MIT).
+Expected output:
   [stripped] word1-2: AUROC=0.8063 pAUC@10%=0.3243 TPR@10%FPR=0.4767; monitors below it: 20/24
   [stripped] char3-5: AUROC=0.7830 ... 20/24
   [code    ] word1-2: AUROC=0.8914 pAUC@10%=0.6320 TPR@10%FPR=0.7558; 22/24
   [code    ] char3-5: AUROC=0.8778 ... 22/24
+
+Usage:
+    python koran_split_eval.py   # needs koran_meta.parquet, koran_samples.pkl,
+                                 # monitor-summary.json and the train_*.parquet shards
 """
 import pandas as pd, numpy as np, sys, json, glob, pyarrow.parquet as pq
 sys.path.insert(0,".")

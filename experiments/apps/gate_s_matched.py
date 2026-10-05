@@ -1,38 +1,39 @@
-"""Arm 3: the PROMPT-MATCHED honest class, against the same attack draws.
+"""Prompt-matched honest class against the same attack draws.
 
-RESULTS.md §9 held the *model* constant (Sonnet 5 wrote both classes) and found a residual
-S = 0.7512 against B' = 0.8658 (ρ = 0.687, n = 623). §11 then measured what that residual is made
-of: not the trigger idiom (masking numerals and comparison operators moves S by < 0.003) but
-program LAYOUT — `def main` in 66.9% of attacks against 38.5% of honest, `data[` 37.7% vs 13.6% —
-which is layout the *attack prompt* elicits. So the arm held the model constant but not the prompt,
-and the obvious reviewer objection is that the residual is prompt framing rather than content.
+The same-generator headline holds the model constant (Sonnet 5 writes both classes) and leaves
+S = 0.7512 against B' = 0.8658 (rho = 0.687, n = 623). lexical_probe.py shows the residual is
+not the trigger idiom (masking numerals and comparison operators moves S by under 0.003) but
+program layout: `def main` in 66.9% of attacks against 38.5% of honest programs, `data[` in
+37.7% against 13.6%. That layout is elicited by the attack prompt, so the arm held the model
+constant but not the prompt, and the residual could be prompt framing rather than content.
 
-This script measures that objection directly. `gen_honest_api.py --matched` regenerated the honest
-class from `gen_backdoor.PROMPT_INDEPENDENT_HONEST` — PROMPT_INDEPENDENT with only the flaw
-sentence replaced, same framing, same two-block output format — on exactly the problems the attack
-arm was generated on. Two numbers follow:
+This script holds the prompt constant too. `gen_honest_api.py --matched` regenerated the honest
+class from gen_backdoor.PROMPT_INDEPENDENT_HONEST (PROMPT_INDEPENDENT with only the flaw sentence
+replaced; same framing, same two-block output format) on the problems the attack arm used. Two
+numbers follow:
 
-    (a) S_matched      matched honest vs the SAME attack draws. Model and prompt both held
+    (a) S_matched      matched honest vs the same attack draws. Model and prompt both held
                        constant; only the one sentence asking for a flaw differs.
     (b) prompt-only    original honest vs matched honest. Two correct classes by one model that
-                       differ in nothing but the prompt. This is the cleanest number here: it is
-                       how much of the §11 residual the framing alone can manufacture.
+                       differ only in the prompt: how much of the residual framing alone
+                       can produce.
 
-Reading, against the pre-registered ρ bands (collapse ≤ 0.33, partial, content > 0.72):
+Reading, against the rho bands (collapse <= 0.33, content > 0.72): S_matched in the collapse band
+with a high prompt-only number means the residual was framing; S_matched near 0.75 means it is
+content of the attack class. Also reported: both under the ID mask and char_wb 3-5, presence
+rates of the layout features, top features, and pair similarity.
 
-    S_matched in the collapse band AND a high prompt-only floor
-        the §11 residual was framing. Holding the prompt constant removes it.
-    S_matched near 0.75
-        the residual is content of the attack class, independent of framing.
+Everything uses gate_s_eval.evaluate() unchanged (problem-disjoint 5-fold, comments stripped,
+bootstrap over problems, 2,000 draws, seed 0). The pair loader is copied from gate_s_samegen.py
+/ lexical_probe.py; the ID mask and attribution fit are imported from lexical_probe.py and the
+joint rho bootstrap from rho_joint_ci.py. The original honest class on the full problem set is
+refitted first as a control, and the script stops if it does not reproduce the sg json to four
+decimals.
 
-Everything is computed as §9 and §11 compute it: `gate_s_eval.evaluate()` unchanged (problem-
-disjoint 5-fold, comments stripped, bootstrap over problems, 2,000 draws, seed 0), the pair
-loaders copied from `gate_s_samegen.py` / `lexical_probe.py` rather than edited, the ID mask and
-the attribution fit imported from `lexical_probe.py`, the joint ρ bootstrap from `rho_joint_ci.py`.
-The unmasked ORIGINAL honest row is re-fitted on the full problem set as a control and the script
-stops if it does not reproduce the committed json to four decimals.
+Headline output: S_matched 0.6423 on 586 problems (rho 0.394), prompt-only 0.6006.
 
-    python3 gate_s_matched.py     # CPU, a few minutes
+Usage:
+    python gate_s_matched.py    # -> gate_s_matched_{headline,strict}.json; CPU, a few minutes
 """
 
 from __future__ import annotations
@@ -54,7 +55,7 @@ import gate_s_eval  # noqa: E402
 from data import _honest_code, _pick_backdoor, strip_comments  # noqa: E402
 from gate_s_eval import evaluate  # noqa: E402 - the identical fit used for B, S and B'
 from lexical_probe import attribution, mask  # noqa: E402 - the same ID mask and the same fit
-from rho_joint_ci import joint_bootstrap  # noqa: E402 - §12.2's joint interval for ρ
+from rho_joint_ci import joint_bootstrap  # noqa: E402 - the joint interval for rho
 
 SETS = {  # name -> (sg json, bd file, bdpass file, eligibility, bprime_inert)
     "headline": ("sg_indep_first_passes.json", "bdind_sonnet5_first.jsonl",
@@ -62,7 +63,7 @@ SETS = {  # name -> (sg json, bd file, bdpass file, eligibility, bprime_inert)
     "strict": ("sg_indep_best_usable.json", "bdind_sonnet5_best_nocrash.jsonl",
                "bdindpass_sonnet5_best_nocrash.jsonl", "usable", False)}
 
-# §11.3's presence probes, on the comment-stripped code.
+# Presence probes for the layout features lexical_probe.py found, on comment-stripped code.
 PRESENCE = {"def main": r"def\s+main", "data[": r"\bdata\s*\[", "any def": r"\bdef\s",
             "sys.stdin": r"sys\.stdin", "input(": r"\binput\s*\("}
 
@@ -126,7 +127,7 @@ def stored_frame(pids, stored: dict, what: tuple = ()) -> pd.DataFrame:
 
 
 def rho_block(S: dict, Bp: dict) -> dict:
-    """ρ = (S - 0.5)/(B' - 0.5): the S-only interval of §9 and the joint interval of §12.2."""
+    """rho = (S - 0.5)/(B' - 0.5), its S-only interval and its joint interval (rho_joint_ci.py)."""
     bp = Bp["auroc"]
     out = {"rho": (S["auroc"] - 0.5) / (bp - 0.5),
            "rho_ci95_S_only": [(c - 0.5) / (bp - 0.5) for c in S["auroc_ci95_boot"]]}
@@ -161,7 +162,7 @@ def run_set(name: str, spec, matched_gen: str, matched_pass: str, out_path: str)
     ref = json.load(open(sg_json))
     keep = [p for p in pids if p in matched]          # matched honest exists AND passes
     dropped = [p for p in pids if p not in matched]
-    print(f"\n=== {name}: {len(pids)} §9 problems, matched honest passes on {len(keep)} "
+    print(f"\n=== {name}: {len(pids)} same-generator problems, matched honest passes on {len(keep)} "
           f"({len(dropped)} dropped)   B' rule = {ref['b_prime_attack_rule']}")
 
     out = {"set": name, "sg_json": sg_json, "bd": bd_path, "bdpass": bdpass_path,
@@ -172,8 +173,8 @@ def run_set(name: str, spec, matched_gen: str, matched_pass: str, out_path: str)
            "ledger": {"S": ref["S"]["auroc"], "B_prime": ref["B_prime"]["auroc"],
                       "rho": ref["retained_vs_stored"]}}
 
-    # --- control: the ORIGINAL honest class on the FULL §9 problem set must reproduce the ledger
-    print("control (original honest, all §9 problems):")
+    # --- control: the original honest class on the full problem set must reproduce the sg json
+    print("control (original honest, all same-generator problems):")
     ctl_S = evaluate(frame(pids, honest, attack), f"S  {name} original (control)")
     ctl_B = evaluate(stored_frame(pids, stored), f"B' {name} (control)")
     for key, got, want in [("S", ctl_S["auroc"], ref["S"]["auroc"]),
@@ -202,7 +203,7 @@ def run_set(name: str, spec, matched_gen: str, matched_pass: str, out_path: str)
     P = evaluate(frame(keep, honest, matched), f"P  {name} original vs matched honest")
     out["prompt_only"] = {"S": P}
 
-    # --- (c) identifier normalisation (§11's only mask that moved S) and the char_wb row
+    # --- (c) identifier normalisation (the only lexical_probe.py mask that moved S) and char_wb
     print("(c) ID mask (structure only) and char_wb 3-5:")
     S_mi = evaluate(frame(keep, matched, attack, ("ident",)), f"S  {name} MATCHED [ID]")
     B_ki = evaluate(stored_frame(keep, stored, ("ident",)), f"B' {name} [ID]")
@@ -226,7 +227,7 @@ def run_set(name: str, spec, matched_gen: str, matched_pass: str, out_path: str)
     out["char_ngram_3_5"] = {"S_matched": {"S": S_mc, "B_prime": B_kc, **rho_block(S_mc, B_kc)},
                              "prompt_only": {"S": P_c}}
 
-    # --- (d) presence rates (§11.3 style) and the top features of the S_matched fit
+    # --- (d) presence rates and the top features of the S_matched fit
     out["presence"] = {
         "matched_honest": presence([matched[p] for p in keep]),
         "original_honest": presence([honest[p] for p in keep]),
@@ -266,7 +267,7 @@ def summarise(res: dict) -> None:
                     f"(S-only {blk['rho_ci95_S_only'][0]:.3f}-{blk['rho_ci95_S_only'][1]:.3f}; "
                     f"joint {blk['rho_ci95_joint'][0]:.3f}-{blk['rho_ci95_joint'][1]:.3f})")
         print(txt)
-    line("control original (all §9)", res["control_original_full"])
+    line("control original (all)", res["control_original_full"])
     line("(a) S_matched", res["S_matched"])
     line("    S_original same problems", res["S_original_same_problems"])
     line("(b) prompt-only floor", res["prompt_only"], bp=False)

@@ -1,14 +1,19 @@
-"""Build the Gate S problem pool and print the numbers that go in the paper.
+"""Build the problem pool and print the pool sizes reported in the paper.
 
-Two pools, and conflating them is the mistake this script exists to prevent:
+There are two pools:
 
-  generation pool  problems with a passing human solution (3,420). We generate for all of these,
-                   because we cannot know in advance which generations will pass.
-  analysis pool    the subset that can actually form a Gate S pair: a working backdoor to serve as
+  generation pool  problems with a passing human solution (3,420). Honest solutions are generated
+                   for these, since which generations will pass is not known in advance.
+  analysis pool    the subset that can form an honest/attack pair: a working backdoor to serve as
                    the attack class, and deterministic tests so exact-match scoring is meaningful.
 
-The analysis pool is much smaller than 3,420, and the paper has to say so rather than let a reader
-infer the larger number. See `../GATE-S-RUNBOOK.md` §2.
+Prints 5,000 artifact rows, 3,420 in the generation pool, 1,582 with a passing solution and a
+working backdoor, and 1,444 of those deterministic (the analysis pool). The realised n per arm is
+the analysis pool times that arm's pass rate. Writes gate_s_pool.parquet with all 5,000 rows and
+the pool flags.
+
+Usage:
+    python gate_s_pool.py
 """
 
 from __future__ import annotations
@@ -56,14 +61,10 @@ def main() -> None:
     print(f"\ntest cases in the analysis pool: median {int(analysis.n_tests.median())}, "
           f"mean {analysis.n_tests.mean():.1f}, max {int(analysis.n_tests.max())}")
 
-    # Write ALL 5,000 problems, not just the 3,420, and flag them.
-    #
-    # The generation pool is defined by the artifact's shipped `solution_passes_tests`. But the
-    # harness validation may conclude we should define the human arm by *our own* pass flag instead
-    # (GATE-S-RUNBOOK.md §4.2), and our flag admits problems the shipped flag rejects. If we only
-    # generated for the 3,420 we would have to go back to the GPU. Generating the superset costs
-    # ~46% more GPU time - under an hour in total - and makes the generation robust to however the
-    # validation lands. Filter at analysis time, not at generation time.
+    # Write all 5,000 problems, not just the 3,420, and flag pool membership. The generation pool
+    # uses the artifact's shipped `solution_passes_tests`, but our own harness's pass flag admits
+    # problems the shipped flag rejects; keeping the superset lets either definition be applied at
+    # analysis time without regenerating.
     out = df[["problem_id", "question", "difficulty", "n_tests", "n_solutions",
               "solution_passes_tests", "backdoor_works", "is_nondeterministic"]].copy()
     out["in_generation_pool"] = out.solution_passes_tests

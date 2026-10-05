@@ -1,20 +1,18 @@
-"""Is a low S just near-copies? S re-fitted inside pair-similarity strata.
+"""S refitted inside pair-similarity strata: is a low S just near-copies?
 
-§9.1 demotes the edit arm to "a bound, not a verdict" because its honest/attack pairs are
-near-copies (mean 0.928): when the two programs are almost the same text, a trivial classifier has
-nothing to separate and a low S says nothing about authorship. The independent arm exists to avoid
-that, and its Sonnet pairs sit in the stored benchmark's regime (0.659 against 0.606).
+When the honest and attack programs are almost the same text, a trivial classifier has little to
+separate and a low S says nothing about authorship; this is why the edit arm (mean pair
+similarity 0.928) is only a bound. The Sonnet 5 independent arm's pairs sit near the stored
+benchmark's (0.659 against 0.606), but the Haiku 4.5 arm's are more self-similar (0.724, with
+12.6% above 0.95 against Sonnet's 3.4%), so its low S (0.534) needs the same check.
 
-The Haiku 4.5 arm (§15) returns a much lower S, so the same question has to be asked of it before
-the collapse can be read: its pairs are more self-similar than Sonnet's (0.724 vs 0.659, with 12.6%
-above 0.95 against Sonnet's 3.3%), because a smaller model has less output diversity and, asked
-twice for a program for the same problem, more often writes the same one.
+This refits S with gate_s_eval.evaluate() unchanged inside similarity strata (difflib ratio,
+autojunk=False, comment-stripped) and on the pairs below cuts of 0.95, 0.90 and 0.80. B' is
+refitted on the same subset each time, so rho stays like-for-like. Strata under 50 pairs are not
+fitted. On Haiku 4.5, S stays between 0.47 and 0.53 in every stratum and subset.
 
-This script re-fits S with `gate_s_eval.evaluate()` unchanged inside similarity strata, and on the
-pairs BELOW a cut, so the collapse can be read off the subset where the two programs are genuinely
-different texts. B' is re-fitted on the same subset each time, so rho stays like-for-like.
-
-    python3 sim_stratified_s.py sg_haiku45_indep_passes.json --gen gen_haiku45.jsonl \
+Usage:
+    python sim_stratified_s.py sg_haiku45_indep_passes.json --gen gen_haiku45.jsonl \
         --bd bdind_haiku45.jsonl --out sim_strata_haiku45.json
 """
 
@@ -33,7 +31,7 @@ import pyarrow.parquet as pq
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from data import _honest_code, _pick_backdoor, strip_comments  # noqa: E402
-from gate_s_eval import evaluate  # noqa: E402 - unchanged, as everywhere in the ledger
+from gate_s_eval import evaluate  # noqa: E402 - the identical fit used for S and B'
 
 CUTS = [(0.0, 0.60), (0.60, 0.80), (0.80, 0.95), (0.95, 1.01)]
 

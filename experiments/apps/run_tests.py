@@ -1,28 +1,27 @@
 """Execute Python solutions against the shipped APPS `inputs`/`outputs` test cases.
 
-The first thing in this repo that runs code. See `../GATE-S-RUNBOOK.md` §4 for the design
-rationale; the two decisions that shape it are:
+This is our harness, applied to both classes. Two decisions shape it:
 
   * Problem 0 ships 565 test cases and problem 1 ships 278, so one subprocess per test case is
-    millions of launches. We fork **once per solution**, loop the cases in-process against a
-    patched `sys.stdin`, and **stop at the first failure**.
+    millions of launches. We fork once per solution, loop the cases in-process against a patched
+    `sys.stdin`, and stop at the first failure.
   * A hung solution has to be killable. Each solution runs in its own `multiprocessing.Process`
-    which the parent hard-kills after a wall-clock budget; inside it, each case additionally gets
-    an interval timer.
-
-Usage
------
-    python run_tests.py --solutions human --out human_verify.jsonl
-    python run_tests.py --solutions gen_32b.jsonl --out pass_32b.jsonl
+    which the parent hard-kills after a wall-clock budget; inside it, each case also gets an
+    interval timer.
 
 `--solutions human` reads the shipped human solutions out of the parquet shards and compares our
-verdict against the artifact's own `passes_tests` flag. That comparison is the harness's
-validation and it runs *before* anything is generated: if our checker is stricter than the one
-upstream used, the LLM honest class gets filtered harder than the human class and Gate S measures
-our checker instead of authorship.
+verdict against the artifact's own `passes_tests` flag. That comparison validates the harness: if
+our checker were stricter than the upstream one, the generated honest class would be filtered
+differently from the human class and the comparison would measure the checker, not authorship.
 
-Sandboxing is timeouts + address-space limits + a scratch cwd, which is the bar the standard APPS
-and HumanEval harnesses use. It is not a container, and the paper says so.
+Sandboxing is timeouts, an address-space limit and a scratch cwd, the bar the standard APPS and
+HumanEval harnesses use. It is not a container. The harness uses the fork start method and reads
+/proc/self/status for the memory limit, so it targets Linux; on macOS the memory limit is skipped
+and only the time limits apply.
+
+Usage:
+    python run_tests.py --solutions human --out human_verify.jsonl
+    python run_tests.py --solutions gen_sonnet5.jsonl --out pass_sonnet5.jsonl --workers 8
 """
 
 from __future__ import annotations
@@ -44,26 +43,19 @@ import pandas as pd
 import pyarrow.parquet as pq
 
 # Resource limits. Module-level because the forked children read them, CLI-overridable because they
-# are a *measurement choice*, not a constant.
+# are a measurement choice.
 #
-# The first pass used 4 s / 60 s / 4 GiB and that was too tight in a way that biased the answer: 346
-# timeouts and 207 MemoryErrors were 41% of all disagreements with the artifact's own flags. APPS
-# solutions legitimately do things like `[0] * (10**7 + 1)` twice, and a problem with 43 test cases
-# legitimately takes more than 4 s per case. A limit that fails a correct solution makes our harness
-# look stricter than it is - and in Gate S it would shrink the human arm specifically, since the
-# generated class is modern code that does not do this.
+# Tighter limits (4 s / 60 s / 4 GiB) failed correct human solutions: timeouts and MemoryErrors made
+# up 41% of disagreements with the artifact's own flags. APPS solutions legitimately allocate
+# `[0] * (10**7 + 1)` and can take more than 4 s per case. A limit that fails correct code shrinks the
+# human arm specifically, since the generated class rarely does this.
 PER_CASE_TIMEOUT = 10.0
 PER_SOLUTION_BUDGET = 150.0
-# Headroom ON TOP OF whatever the forked child already inherits - NOT an absolute cap.
-#
-# RLIMIT_AS limits total virtual address space, and a child forked from a worker inherits the
-# worker's entire mapping, which is 13.6 GiB once the 743 MB artifact is loaded into pandas. An
-# absolute 8 GiB cap was therefore already exceeded before the solution ran a single line: small
-# allocations still succeeded inside existing arenas, but any large new one - `[0] * (10**7 + 1)`,
-# which old competitive-programming code does constantly - failed instantly with MemoryError.
-#
-# That cost 74 of 234 disagreements in the 2026-09-04 validation, and it failed HUMAN code
-# specifically, which is the same arm-shrinking asymmetry as the fractions.gcd finding.
+# Headroom on top of whatever the forked child already inherits, not an absolute cap. RLIMIT_AS
+# limits total virtual address space, and a child forked from a worker inherits the worker's whole
+# mapping (13.6 GiB once the 743 MB artifact is loaded into pandas). An absolute 8 GiB cap would be
+# exceeded before the solution ran, so any large new allocation would fail with MemoryError, and
+# that failure falls mostly on human code.
 MEM_HEADROOM = 8 << 30  # 8 GiB of usable space for the solution itself
 
 
@@ -131,12 +123,10 @@ def _run_solution(code: str, inputs: list[str], outputs: list[str], conn) -> Non
     real_stdin = sys.stdin
     for i, (case_in, case_out) in enumerate(zip(inputs, outputs)):
         result["n_cases_run"] = i + 1
-        # Wrap real byte buffers rather than StringIO. StringIO has no `.buffer`, so the standard
-        # competitive-programming fast-I/O idiom `sys.stdin.buffer.read()` raised AttributeError
-        # and failed the solution instantly, whatever it computed. That penalised an *idiom*, and
-        # idiom is exactly the channel this paper measures - a harness that fails one class more
-        # than another on style would bias the very quantity under test. TextIOWrapper exposes
-        # `.buffer` natively, so both the text and binary paths work.
+        # Wrap real byte buffers rather than StringIO. StringIO has no `.buffer`, so the common
+        # fast-I/O idiom `sys.stdin.buffer.read()` would raise AttributeError and fail the solution
+        # whatever it computed. Failing an idiom would bias the style channel this paper measures.
+        # TextIOWrapper exposes `.buffer`, so both the text and binary paths work.
         raw_out = io.BytesIO()
         buf = io.TextIOWrapper(raw_out, encoding="utf-8", newline="")
         try:
@@ -219,10 +209,9 @@ def run_one(code: str, inputs: list[str], outputs: list[str], ctx) -> dict:
     return result
 
 
-# The artifact, loaded once in the parent *before* the workers fork, so they inherit it
-# copy-on-write. Nothing about a problem travels through the queue except its row index: sending
-# the test arrays instead makes the parent the bottleneck and starves every worker. Measured, not
-# guessed - the version that pickled test data per problem kept 13 workers busy 12% of the time.
+# The artifact, loaded once in the parent before the workers fork, so they inherit it
+# copy-on-write. Only a problem's row index travels through the queue: pickling the test arrays
+# per problem makes the parent the bottleneck (13 workers were busy 12% of the time).
 _DF = None
 
 
@@ -326,7 +315,7 @@ def report_human(records: list[dict]) -> None:
     print("""
 Reading: >=98% means the harness is faithful, report the rate in the paper.
 90-98% means use OUR pass flag for both classes rather than the shipped column.
-<90% means debug before generating anything (GATE-S-RUNBOOK.md §4.2).""")
+<90% means debug before generating anything.""")
 
 
 def report_generated(records: list[dict], label: str) -> None:

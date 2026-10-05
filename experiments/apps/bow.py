@@ -1,3 +1,15 @@
+"""Rebuild Koran's 1,375-item test split as code samples and run the comment-leak check.
+
+Reconstructs one sample per test problem (the designated working backdoor, or the first passing
+honest solution) with data.py, a verbatim copy of anik-jha/challenger-panels src/data.py (MIT).
+Prints the '#'-count AUROC before and after comment stripping (0.6957 -> 0.4983, the leak check
+cited in the Introduction), held-out TF-IDF AUROCs on a 70/30 split of the test items, and the
+code-length AUROC (0.4726). Writes koran_samples.pkl, which koran_split_eval.py, token_test.py
+and headline_ci.py read.
+
+Usage:
+    python bow.py        # needs koran_test_code.pkl from fetch_inputs.py
+"""
 import pandas as pd, numpy as np, sys, re
 sys.path.insert(0,".")
 from data import strip_comments, _pick_backdoor, _honest_code

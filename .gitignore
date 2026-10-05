@@ -1,68 +1,44 @@
-# data pulled at run time — never committed, all of it is public and re-fetchable
+# Datasets and caches fetched or derived at run time
 *.parquet
+*.pkl
 *.eval
 data/
 runs/
-.venv/
-__pycache__/
-*.pyc
-.DS_Store
 
-# Derived data caches. These were tracked until 2026-09-09, which contradicted three
-# separate statements that we redistribute nothing (notes/05, experiments/README).
-# koran_test_code.pkl in particular held the `solutions`/`backdoors` code structs of
-# eugenekoran/apps-control-arena-high-quality — a corpus that declares NO LICENCE — as a
-# 24 MB blob. Both are rebuilt by `fetch_inputs.py` then `bow.py`; nothing is lost.
-# NOTE: untracking does not rewrite history. They remain in earlier commits.
-*.pkl
-
-# LaTeX build products
-paper/*.aux
-paper/*.log
-paper/*.out
-paper/*.bbl
-paper/*.blg
-paper/*.pdf
-!paper/main.pdf
-paper/*.fls
-paper/*.fdb_latexmk
-paper/*.synctex.gz
-# NOTE: paper/*.pdf ignores LaTeX's intermediate output - paper/fig/*.pdf (F2, F3) is a
-# different path and stays tracked, which is intended.
-#
-# main.pdf is EXEMPTED as of 2026-09-11, one day out: the built paper is the artifact
-# being submitted, and having the exact bytes in the repo beside the source that made them
-# is worth more now than keeping the tree free of build products. Consequence to know
-# about: it is tracked, so every rebuild shows as a diff even when only the PDF timestamp
-# moved. Rebuild deliberately before committing, not incidentally.
-
-# Gate S run products — regenerable, and the generations are large
+# Generation and verification products (large; shipped in the release bundle instead)
 *.jsonl
 *.log
-gate_s_pool.parquet
-paper/fig/*.png
-.venv-gpu/
-
-# credentials - never in this repo. The key lives outside the working tree entirely.
-*.env
-.env*
-*secret*
-*credential*
-*api_key*
-*.key
-
-# batch state files carry provider batch ids, not secrets, but they are run state.
-# The second pattern matters: --state-suffix writes bd_<tag>.batch.<suffix>.json, which
-# *.batch.json does not match, so six of them turned up untracked on 2026-09-11.
 *.batch.json
 *.batch.*.json
-
-# release_split.py output: build it outside the repo, but guard the in-tree path too, because
-# pairs_*.csv, README.md and MANIFEST.json there are not covered by the *.jsonl rule.
 experiments/apps/release/
 same-generator-apps-split.zip
 
-# Editor swap files
+# Paper build products
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.out
+paper/*.pdf
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+
+# Python and environments
+__pycache__/
+*.pyc
+.venv/
+.venv-gpu/
+
+# Credentials
+.env*
+*.env
+*.key
+*secret*
+*credential*
+*api_key*
+
+# OS and editors
+.DS_Store
 *.swp
 *.swo
 *~

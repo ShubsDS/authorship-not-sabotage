@@ -1,13 +1,13 @@
 #!/bin/bash
-# Gate S, stage 2 of 2: EXECUTION and EVALUATION. No GPU required.
+# Execution and evaluation of the open-weight honest class (arm 1). No GPU required.
 #
 # Runs every generated program against the test cases that ship with its problem, keeps the ones
-# that pass all of them, then fits the word-frequency classifier twice — once separating the
-# human-written honest code from the backdoored code, once separating the model-written honest code
-# from the same backdoored code — and reports how much of the signal survived. That ratio routes
-# the paper's title.
+# that pass all of them, then fits the word-frequency classifier twice: once separating the
+# human-written honest code from the backdoored code (B), once separating the model-written honest
+# code from the same backdoored code (G). Writes gate_s_${TAG}.json with both AUROCs and their
+# ratio rho (1.234 for q3c30).
 #
-# Submit it chained to the generation job so it starts by itself:
+# Submit from experiments/apps (create logs/ there first), chained to the generation job:
 #   sbatch --dependency=afterok:<gen_job_id> gate_s_check.sbatch
 #
 #SBATCH --job-name=gate-s-check
@@ -15,12 +15,12 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=02:00:00
-#SBATCH --output=/u/fvc9ch/ai-safety/authorship-not-sabotage/experiments/apps/check_%x_%j.log
+#SBATCH --output=logs/%x-%j.out
 
 set -euo pipefail
 
-REPO=/u/fvc9ch/ai-safety/authorship-not-sabotage
-TAG="${TAG:-q38}"
+REPO="${REPO:-$SLURM_SUBMIT_DIR/../..}"
+TAG="${TAG:-q3c30}"
 
 cd "$REPO/experiments/apps"
 echo "=== $(date) | node $(hostname) | tag $TAG ==="
@@ -35,7 +35,7 @@ fi
 echo "=== executing generated solutions against the shipped tests ==="
 python run_tests.py --solutions "gen_${TAG}.jsonl" --out "pass_${TAG}.jsonl" --workers 14
 
-echo "=== fitting the classifier twice and routing the title ==="
+echo "=== fitting the classifier twice ==="
 python gate_s_eval.py --gen-file "gen_${TAG}.jsonl" --pass-file "pass_${TAG}.jsonl" \
                      --label "$TAG" --out "gate_s_${TAG}.json"
 

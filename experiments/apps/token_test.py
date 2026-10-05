@@ -1,6 +1,4 @@
-"""The token-level confirmation: is our classifier keying on the identifiers AICD Bench named?
-
-`PLAN.md` §1 (Sep 8, CPU) and `../../paper/OUTLINE.md` §3, "Authorship, four ways".
+"""Token-level test: does the classifier key on the identifiers AICD Bench named?
 
 AICD Bench (`2602.02079`) Appendix D.1 reports, for AI-generated vs human-written code in general:
 
@@ -8,18 +6,20 @@ AICD Bench (`2602.02079`) Appendix D.1 reports, for AI-generated vs human-writte
      tests, and index. In contrast, human-written code tended to use shorter, organic identifiers
      like li, nums, pos, a1, and cur."
 
-Those ten tokens are named in *their* paper, in advance of this test, which is what makes this
-confirmatory rather than a fishing expedition. In our corpus the attack class is LLM-written and the
-honest class is human-written, so if the mechanism really is authorship the prediction is directional
-and specific:
+The ten tokens are fixed in advance by that paper, so the test is confirmatory. In our corpus the
+attack class is LLM-written and the honest class is human-written, so if the signal is authorship
+the prediction is:
 
-    AICD's LLM identifiers  -> positive coefficients (push toward the ATTACK class)
-    AICD's human identifiers -> negative coefficients (push toward the HONEST class)
+    AICD's LLM identifiers   -> positive coefficients (toward the attack class)
+    AICD's human identifiers -> negative coefficients (toward the honest class)
 
-The test reports that either way, with a permutation null over vocabulary-matched tokens so a
-"they're all near the top" result cannot come from the tokens simply being common.
+The classifier is the stripped word 1-2gram TF-IDF model trained on Koran's paired train split.
+Separation is the difference in mean coefficient percentile between the two token groups,
+compared with a permutation null over random identifier sets of the same sizes. The result is
+negative: separation -0.013, two-sided p = 0.956 (the token-test appendix).
 
-    python token_test.py
+Usage:
+    python token_test.py   # needs koran_meta.parquet, koran_samples.pkl and the train shards
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ from sklearn.linear_model import LogisticRegression
 sys.path.insert(0, ".")
 from data import _honest_code, _pick_backdoor, strip_comments  # noqa: E402
 
-# Pre-registered from AICD Bench App. D.1 via `../../lit/01-verified-bibliography.md` §4.
+# Fixed in advance from AICD Bench (2602.02079) Appendix D.1.
 AICD_LLM = ["answer", "output", "result", "tests", "index"]
 AICD_HUMAN = ["li", "nums", "pos", "a1", "cur"]
 N_PERM = 10000

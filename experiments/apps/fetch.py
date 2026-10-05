@@ -1,3 +1,11 @@
+"""Download the RoganInglis/apps-control-arena parquet shards (MIT, 5,000 rows).
+
+Writes train_0000{0,1,2}.parquet in the working directory. Most scripts in this directory read
+these shards.
+
+Usage:
+    python fetch.py
+"""
 import requests, json, sys
 r = requests.get("https://datasets-server.huggingface.co/parquet?dataset=RoganInglis/apps-control-arena", timeout=60)
 print(r.status_code)

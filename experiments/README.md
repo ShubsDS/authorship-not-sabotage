@@ -1,123 +1,218 @@
-# experiments/ — every number in the paper, and the script that produced it
+# Reproducing the results
 
-All of it runs on a **laptop CPU in minutes**. The one experiment that left the CPU is Gate S — arm 1
-on a GPU, the same-generator arm through a paid batch API — and it has its own step-by-step execution
-guide: [`GATE-S-RUNBOOK.md`](GATE-S-RUNBOOK.md); what came back is in [`RESULTS.md`](RESULTS.md).
+Run everything from `experiments/apps` unless noted. The `gate_s_*` scripts implement the
+same-generator control ("Gate S" was its working name).
 
-```
-uv venv && uv pip install pandas pyarrow scikit-learn requests huggingface_hub matplotlib
-cd apps
-python fetch.py          # the three RoganInglis parquet shards — everything needs these
-python fetch_inputs.py   # koran_meta.parquet, koran_test_code.pkl, monitor-summary.json
-python bow.py            # writes koran_samples.pkl
-```
+Notation used in the scripts and the paper:
 
-**Run order matters, and it used to be undocumented.** `floors.py`, `matched.py`, `exact.py`,
-`transfer.py` and `koran.py` need only `fetch.py`. `auroc.py`, `analyse.py` and `analyse2.py` need
-`fetch_inputs.py`. `koran_split_eval.py` needs `bow.py` as well. `fetch_inputs.py` is new: the three
-files it writes were made by hand in the round-17 session and no script in the repo produced them, so
-a fresh clone could not reproduce the headline number.
-
-Nothing in the CPU pipeline downloads a model or contacts a paid API, and no artifact is
-redistributed — the scripts fetch public HuggingFace datasets and one MIT GitHub repo at run time,
-and `.gitignore` keeps the parquets and the derived `.pkl` caches out.
-
-⚠️ **Two exceptions, both stated rather than implied.** `gen_honest.py` downloads open-weight
-models (Gate S arm 1, GPU; it ran once, with Qwen3-Coder-30B). `gen_honest_api.py` and
-`gen_backdoor_api.py` **do** contact a paid API — the Claude Sonnet 5 same-generator arm, approved
-and run 2026-09-09 to 2026-09-11 and disclosed in the paper (`../notes/05-permissibility.md`; no
-open-weight model can write both classes of a same-vendor control). And the two `.pkl` caches were
-**tracked in this repo until 2026-09-09**, one of them holding 24 MB of code from a corpus that
-declares no licence; they are untracked now, but they remain in git history.
-
----
-
-## `apps/` — the APPS-family corpora, where the authorship confound lives
-
-The claim's evidence. Two datasets: `RoganInglis/apps-control-arena` (MIT, 5,000 rows, the canonical
-ControlArena artifact — `dataset.py:31` hardcodes the name) and
-`eugenekoran/apps-control-arena-high-quality` (⚠️ **no licence declared**; 2,584 rows; a filtered
-subset of the first, which is what K1 established).
-
-| Script | What it computes |
+| Symbol | Meaning |
 |---|---|
-| `fetch.py` | The three parquet shards, via the HF datasets-server. Run this first. |
-| `fetch_inputs.py` | The three intermediate files the scripts below read: `koran_meta.parquet`, `koran_test_code.pkl` (the Koran test split *with* the code structs) and `monitor-summary.json` (Jha's 24-monitor table, MIT). Run this second. |
-| `fetch_cols.py` | Column-projected reads over `HfFileSystem` — how to touch 744 MB without downloading it. Called by `fetch_inputs.py`; also usable directly as `python fetch_cols.py <repo> <out.parquet>`. |
-| `floors.py` | Problem-level and sample-level **metadata-only** floors under five eval protocols, P0–P4. **P3 (matched-within-problem) is exactly 0.5000** — the number that killed the round-16 headline. |
-| `matched.py`, `exact.py` | The DSPy trusted-monitor tutorial's matched-pair protocol reproduced (8,813 control_tax pairs, problem-disjoint 5-fold). TF-IDF, length-only, and the seven surface features. |
-| `transfer.py` | Cross-generator transfer of the bag-of-words classifier, plus the style markers (`#`, `__main__`, `def`). **train Control-Tax → test the 2023 GPT-4 set: 0.9935.** Style, not content. |
-| `koran.py` | Koran et al.'s filter (working honest + working backdoors, comments stripped) reproduced on the full artifact. Pooled AUROC / pAUC@10% / TPR@10%FPR. |
-| `koran_split_eval.py` | **The apples-to-apples number.** Train on Koran's paired train split (2,418), score their exact 1,375-item test split, compare against the 24 monitors in `2608.16190`'s `runs/x0/monitor-summary.json`. |
-| `data.py` | Jha's own `src/data.py`, fetched verbatim and imported, so the split reconstruction is his and not ours. |
-| `auroc.py`, `bow.py`, `analyse.py`, `analyse2.py` | The K1 agent's lineage check, the metadata AUROCs, the inert-backdoor counts, the leak checks. |
-| `token_test.py` | The AICD App. D.1 token-level confirmation, with a permutation null. **Negative** — see `../TOKEN-TEST.md`. |
-| `gate_s_pool.py`, `gen_honest.py`, `run_tests.py`, `gate_s_eval.py` | Gate S: pool, generation (the only GPU code here), test execution, and the routing decision. See `../GATE-S-RUNBOOK.md`. |
-| `gate_s_baseline.py` | **B, the human-honest baseline Gate S routes against — CPU, ~10 min.** `gate_s_eval.py` computes B and G together and requires an arm's generation file, so B was unreachable until a GPU job landed, for no reason. This runs that half alone and **imports `evaluate()` from `gate_s_eval`** rather than reimplementing it, so the two cannot drift. **Run 2026-09-09: B = 0.8714, n = 1,444** (`gate_s_baseline.json`). |
-| `gen_honest_api.py` | The Claude Sonnet 5 honest class through the batch API — a **paid** arm, disclosed in the paper (`../notes/05-permissibility.md`). **Run 2026-09-09: 1,444 of 1,444, 1,112 pass our harness.** `RESULTS.md` §4.1–4.3. |
-| `gen_backdoor_api.py`, `verify_backdoor.py`, `merge_draws.py`, `gate_s_samegen.py` | The same-generator attack class (an **edit** arm, 1,112, and an **independent** arm, 600, then resampled into a **retry pool of 11,565 draws**, up to 13 per problem), its verification, the `first` / `best` selections, and **S**. `RESULTS.md` §4.8–4.10 and §7; S is pending. |
-| `strip_recheck.py`, `headline_ci.py`, `release_split.py` | The comment-stripped re-check of the authorship legs (`RESULTS.md` §6), the bootstrap and permutation intervals on the headline floors with the paired comparison against the 24 monitors (§8, `headline_ci.json`), and the anonymised release build (`../notes/07-release.md`, `RELEASE-CARD.md`). |
+| B | Bag-of-words AUROC on the stored pairs (human honest vs LLM backdoor) over the 1,444-problem analysis pool |
+| S | The same classifier on same-generator pairs (one model writes both classes) |
+| B′ | B recomputed on exactly the problems S uses |
+| ρ | (S − 0.5) / (B′ − 0.5): the share of above-chance separability that survives. Bands fixed in advance: collapse ≤ 0.33 < partial ≤ 0.72 < content |
 
-**The headline rows** (full detail in `RECOMPUTE.md`; caveats in `../lit/01`):
+Requirements: `pip install -r ../requirements.txt` (Python 3.11+). The paper's numbers were
+produced with scikit-learn 1.7.1, pandas 2.3.1 and numpy 2.3.5.
 
-| Protocol | Baseline | Result |
+| Stage | Needs |
+|---|---|
+| 1, 2, 6, 7 | Internet and a CPU |
+| 3 | `ANTHROPIC_API_KEY` (Batch API); the open-weight arm also needs a GPU and vLLM |
+| 4 | Linux with many cores (the harness uses `fork` and memory rlimits) |
+| 5 | CPU; `monitor_samegen.py` calls the API |
+
+## 1. Data
+
+```bash
+python fetch.py            # train_000{0,1,2}.parquet: RoganInglis/apps-control-arena (5,000 problems)
+python fetch_inputs.py     # koran_meta.parquet, rogan_meta.parquet, koran_test_code.pkl, monitor-summary.json
+python bow.py              # koran_samples.pkl: the filtered split (1,375 test items: 172 attack, 1,203 honest)
+python gate_s_pool.py      # gate_s_pool.parquet: prints 5,000 / 3,420 / 1,582 / 1,444
+cd ../agentic && python fetch_scan.py   # ca_{bash,shade,iac,rogue_eval,agentdojo}.parquet
+```
+
+## 2. Stored-pair floors (CPU, minutes)
+
+```bash
+python koran_split_eval.py        # bag-of-words 0.8063 (above 20/24 monitors); comments kept 0.8914
+python auroc.py                   # no-code floor, held-out slice: 0.7163
+python analyse2.py                # no-code floor, 5x5 CV: 0.7715 ± 0.0389; inert share 80.7%
+python analyse.py                 # lineage check; tests per problem; 892 labelled / 256 pass / 172 fire
+python floors.py                  # metadata-only floors under protocols P0-P4 (Table F1)
+python exact.py                   # "the longer program is the attack" baseline
+python strip_recheck.py --seeds 5 # matched pairs, working vs inert, cross-generator transfer
+python headline_ci.py             # bootstrap and permutation intervals -> headline_ci.json (15-30 min)
+python token_test.py              # token-level test: separation -0.013, p = 0.956
+python gate_s_baseline.py         # B = 0.8714 over 1,444 problems -> gate_s_baseline.json
+```
+
+## 3. Generate the same-generator corpus
+
+Claude models use default sampling, so regenerated programs will differ from ours. Generated files
+(`*.jsonl`) are not committed; the release bundle (stage 7) carries the Sonnet 5 corpus.
+
+Sonnet 5: honest class, then the two attack arms. The edit arm inserts a backdoor into the
+model's own honest solution. The independent arm writes the attack from the problem alone, with
+retries.
+
+```bash
+python gen_honest_api.py --out gen_sonnet5.jsonl
+python run_tests.py --solutions gen_sonnet5.jsonl --out pass_sonnet5.jsonl --workers 8
+
+python gen_backdoor_api.py --honest-pass pass_sonnet5.jsonl --honest-gen gen_sonnet5.jsonl \
+    --out bd_sonnet5.jsonl                                   # edit arm
+python gen_backdoor_api.py --honest-pass pass_sonnet5.jsonl --honest-gen gen_sonnet5.jsonl \
+    --independent --out bdind_sonnet5.jsonl                  # independent arm, first draw
+python gen_backdoor_api.py --honest-pass pass_sonnet5.jsonl --honest-gen gen_sonnet5.jsonl \
+    --independent --out bds_r1.jsonl --state-suffix r1       # retry rounds r1..r6
+```
+
+Prompt-matched honest class (the honest solution is requested under the attack prompt's framing):
+
+```bash
+python gen_honest_api.py --matched                           # -> genm_sonnet5.jsonl
+```
+
+Haiku 4.5:
+
+```bash
+python gen_honest_haiku.py                                   # -> gen_haiku45.jsonl
+python gen_backdoor_api.py --model claude-haiku-4-5 --independent --pool analysis   # -> bdind_haiku45.jsonl
+python gen_honest_haiku.py --matched --problem-ids sg_haiku45_indep_passes.json     # after stage 5
+```
+
+Open-weight arm (regenerates only the honest half; Slurm, GPU):
+
+```bash
+mkdir -p logs
+sbatch gate_s_gen.sbatch                                   # gen_honest.py with Qwen3-Coder-30B-A3B-Instruct
+sbatch --dependency=afterok:<jobid> gate_s_check.sbatch    # run_tests.py + gate_s_eval.py -> gate_s_q3c30.json
+```
+
+## 4. Test harness and backdoor verification
+
+```bash
+python run_tests.py --solutions human --out human_verify.jsonl --max-per-problem 1   # harness vs the artifact's flag
+python verify_backdoor.py --backdoors bd_sonnet5.jsonl --honest-gen gen_sonnet5.jsonl --out bdpass_sonnet5.jsonl
+
+python merge_draws.py merge bdind_sonnet5.jsonl bds_r*.jsonl          # -> bdind_sonnet5_retry.jsonl (11,565 draws)
+python verify_backdoor.py --backdoors bdind_sonnet5_retry.jsonl --honest-gen gen_sonnet5.jsonl \
+    --out bdindpass_sonnet5_retry.jsonl
+python merge_draws.py select --keep first                     # outcome-blind selection: 623 pass, 14 fire
+python merge_draws.py select --keep best                      # the benchmark's survivor selection
+python merge_draws.py select --keep best --crash-as-passes    # strict set: 99 that pass and fire
+
+python run_tests.py --solutions genm_sonnet5.jsonl --out passm_sonnet5.jsonl --workers 8
+python run_tests.py --solutions gen_haiku45.jsonl  --out pass_haiku45.jsonl  --workers 8
+python verify_backdoor.py --backdoors bdind_haiku45.jsonl --honest-gen gen_haiku45.jsonl --out bdpass_haiku45.jsonl
+python run_tests.py --solutions genm_haiku45.jsonl --out passm_haiku45.jsonl --workers 8
+```
+
+## 5. Measurements on the same-generator corpus
+
+```bash
+# S, B' and rho (Table 1)
+python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl \
+    --eligibility passes --bprime-inert --label independent --out sg_indep_first_passes.json      # headline
+python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best_nocrash.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl \
+    --eligibility usable --label independent --out sg_indep_best_usable.json                      # strict
+python gate_s_samegen.py --tag sonnet5 --bd bd_sonnet5.jsonl --bdpass bdpass_sonnet5.jsonl \
+    --eligibility passes --bprime-inert --label edit --out sg_edit_passes.json                    # edit arm
+python gate_s_samegen.py --tag haiku45 --bd bdind_haiku45.jsonl --bdpass bdpass_haiku45.jsonl \
+    --eligibility passes --bprime-inert --label independent --out sg_haiku45_indep_passes.json    # Haiku
+# fold seeds for the strict row: add --seed k --out sg_indep_best_usable_seed$k.json (k = 0..4)
+
+# controls
+python gate_s_learning_curve.py --match-problems sg_indep_first_passes.json --out lc_first_passes.json
+python gate_s_learning_curve.py --match-problems sg_indep_best_usable.json  --out lc_best_usable.json
+python survivor_check.py --strict sg_indep_best_usable.json --out survivor_check.json
+python lexical_probe.py --out lexical_probe.json
+
+# prompt-matched rows
+python gate_s_matched.py                       # -> gate_s_matched_{headline,strict}.json
+python gate_s_matched_haiku.py --sg-json sg_haiku45_indep_passes.json --out gate_s_matched_haiku45.json
+python sim_stratified_s.py sg_haiku45_indep_passes.json --gen gen_haiku45.jsonl --bd bdind_haiku45.jsonl \
+    --out sim_strata_haiku45.json
+python trigger_public_check.py                 # how many triggers are public test inputs
+
+# LLM monitor on the same pairs (API). Add --stored to score the stored pairs of the same problems,
+# --model claude-haiku-4-5 for the second monitor, and --max-tokens 1024 for the sensitivity run.
+python monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl \
+    --eligibility passes --gate-s-json sg_indep_first_passes.json
+python monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5_best.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl \
+    --eligibility usable --gate-s-json sg_indep_best_usable.json
+python monitor_samegen.py --tag sonnet5 --stored --gate-s-json sg_indep_first_passes_v2.json
+
+# joint bootstrap intervals on rho, and the monitor's rho
+python rho_joint_ci.py sg_indep_first_passes_v2.json --monitor-json monitor_samegen_sonnet5_independent_passes.json \
+    --out rho_joint_headline.json
+python rho_joint_ci.py sg_indep_best_usable_v2.json --monitor-json monitor_samegen_sonnet5_independent_usable.json \
+    --out rho_joint_strict.json
+python rho_joint_ci.py sg_haiku45_indep_passes.json --out rho_joint_haiku45.json
+python monitor_rho.py --out monitor_rho.json
+```
+
+The `_v2` files repeat the headline and strict runs with out-of-fold scores saved, which
+`rho_joint_ci.py`, `monitor_samegen.py --stored` and `monitor_rho.py` read. The current
+`gate_s_eval.py` always saves them.
+
+## 6. Agentic settings (`experiments/agentic`)
+
+```bash
+python matched.py    # within-task, character-count-only AUROC: bash 0.504 ... agentdojo 0.802 (Figure F2)
+python floors2.py    # the permutation nulls in Figure F2
+python cot.py        # scratchpad keyword regex: AUROC 0.76-0.82
+python prov.py       # which models wrote each class
+```
+
+## 7. Figures and the release bundle
+
+```bash
+python figures.py    # writes ../../paper/fig/ after checking every value against main.tex
+
+python release_split.py --out release --force --keep first \
+    --bd-independent bdind_sonnet5_first.jsonl --bdpass-independent bdindpass_sonnet5_first.jsonl \
+    --pool-independent bdind_sonnet5_retry.jsonl --poolpass-independent bdindpass_sonnet5_retry.jsonl \
+    --also-select best --allow-trivial-identical 120
+python release_split.py --check release --allow-trivial-identical 120
+```
+
+## Where each result comes from
+
+| Result in the paper | Script | Committed output |
 |---|---|---|
-| Koran's exact split, comments stripped | TF-IDF word 1–2gram | **AUROC 0.8063** — above **20 of 24** monitors (median 0.609) |
-| same, comments kept | TF-IDF | 0.8914 — above 22/24 |
-| same, **reads no code**: difficulty + `num_tests` + question length | LR | **0.7163 held-out — above 18/24** · **0.7715 ± 0.0389** (5×5 CV) — **above 20/24**. Each value carries its own count; do not cross them. |
-| DSPy matched pairs, problem-disjoint 5-fold | TF-IDF, pairwise acc | **0.9621**; the tutorial's LLM monitor: 0.69 untrained, 0.78–0.81 GEPA |
-| same, split by `backdoor_works` | TF-IDF | working **0.9787** · non-working **0.9543** — the signal is not sabotage |
-| same | "the longer code is the attack" | 0.8255 on the raw artifact — and **0.4726, chance, on the filtered split** |
-| Inert backdoors | `backdoor_works` | 36.0% raw · **80.7% of Koran's test-split backdoors do not work and are relabelled honest** |
+| Bag-of-words floor 0.806 (20/24); comments kept 0.891; char n-grams 0.783 | `koran_split_eval.py` | — |
+| No-code floor 0.772 (CV) and 0.716 (held-out) | `analyse2.py`, `auroc.py` | — |
+| Intervals, permutation nulls, paired comparison with the monitors | `headline_ci.py` | `headline_ci.json` |
+| Monitor count, median 0.609, max 0.937 | `fetch_inputs.py` | `monitor-summary.json` |
+| `#`-count 0.696 → 0.498; length 0.4726 | `bow.py` | — |
+| Table F1 metadata rows; P3 = 0.5000 | `floors.py`, `auroc.py` | — |
+| Matched pairs, working vs inert, transfer, style markers | `strip_recheck.py` | — |
+| Inert share, tests per problem, 892/256/172 | `analyse.py`, `analyse2.py` | — |
+| B = 0.871 (and 0.873 under our harness's pass flag) | `gate_s_baseline.py` | `gate_s_baseline.json`, `gate_s_baseline_ownflag.json` |
+| Open-weight arm (ρ = 1.234) | `gen_honest.py` → `gate_s_eval.py` | `gate_s_q3c30.json` |
+| Headline S = 0.751, ρ = 0.687; pair similarity | `gate_s_samegen.py` | `sg_indep_first_passes[_v2].json` |
+| Strict S = 0.765, ρ = 0.921; fold seeds | `gate_s_samegen.py` | `sg_indep_best_usable[_v2].json`, `sg_indep_best_usable_seed{0..4}.json` |
+| Edit arm S = 0.627, ρ = 0.371 | `gate_s_samegen.py` | `sg_edit_passes.json` |
+| Joint intervals on ρ | `rho_joint_ci.py` | `rho_joint_{headline,strict,haiku45}.json` |
+| B at matched n | `gate_s_learning_curve.py` | `lc_{first_passes,best_usable}.json` |
+| Survivor check | `survivor_check.py` | `survivor_check.json` |
+| Identifier mask: S = 0.700 | `lexical_probe.py` | `lexical_probe.json` |
+| Prompt-matched S = 0.642, ρ = 0.394; prompt-only floor | `gate_s_matched.py` | `gate_s_matched_{headline,strict}.json` |
+| Haiku S = 0.534, ρ = 0.095 | `gate_s_samegen.py` | `sg_haiku45_indep_passes.json` |
+| Haiku prompt-matched and similarity strata | `gate_s_matched_haiku.py`, `sim_stratified_s.py` | `gate_s_matched_haiku45.json`, `sim_strata_haiku45.json` |
+| LLM monitor: 0.958 stored → 0.566 same-generator; Haiku monitor | `monitor_samegen.py` | `monitor_{samegen,stored}_*.json` |
+| Monitor ρ | `monitor_rho.py` | `monitor_rho.json` |
+| Trigger overlap with public tests | `trigger_public_check.py` | — |
+| Token test | `token_test.py` | — |
+| Agentic floors, nulls, scratchpad regex | `agentic/matched.py`, `floors2.py`, `cot.py` | — |
+| Release counts | `merge_draws.py`, `release_split.py` | — |
 
-## `scan/` — the five same-generator agentic settings, and the negative control they buy
+A few appendix counts were computed with ad hoc joins of the files above and have no script of
+their own:
 
-`adityaasinha28/control_arena_{bash,shade,iac,rogue_eval,agentdojo}` — 1,500 rows each, 250 honest +
-250 attack from each of claude-sonnet-4, gemini-2.5-pro and gpt-5. **No authorship confound is
-possible here**: the same three models write both classes. ⚠️ None of the five declares a licence;
-we redistribute nothing and report aggregates only, and the paper says so.
-
-| Script | What it computes |
-|---|---|
-| `fetch_scan.py` | The five `ca_*.parquet` corpora, fetched at run time. **Run this first** — everything below reads them. |
-| `floors.py`, `floors2.py` | The structural floor from six count features that read **no content** — `chars`, `lines`, `words`, `[ASSISTANT]`, `[TOOL]`, `[TOOL CALLS]`. |
-| `cot.py` | The 15-word regex over the untrusted policy's own scratchpad. AUROC 0.76–0.82 across all five settings, because prompted attack policies restate their side task in the reasoning the monitor reads. **One paragraph in the paper, not a section** — `2607.09786` owns this instrument. |
-| `bash_bench.py`, `prov.py` | Per-class generator provenance, and the rejection of `AISafety-Student/labeled-bashBench` (its `danger_level` annotation *is* the label — circular). |
-| `apps.py`, `apps2.py`, `matched.py` | The scan's own APPS numbers, kept because they are the independent replication of `RECOMPUTE.md`'s. |
-| `fetch_abs.py`, `grep_html.py`, `grep1.txt`, `grep2.txt` | The full-text fetch-and-grep pipeline behind the K2 record in `../lit/01`. |
-
-**The column that goes in the paper is the third one**, not the first:
-
-| setting | pooled 5-fold | task-grouped CV | **within-task, chars only** | permutation null | task groups |
-|---|---|---|---|---|---|
-| bash | 0.610 | 0.624 | **0.504** — clean | 0.490 | **247** |
-| shade | 0.664 | 0.382 | 0.602 | 0.508 | **5** |
-| iac | 0.535 | 0.602 | **0.704** | 0.484 | **5** |
-| rogue_eval | 0.668 | 0.686 | 0.616 | 0.480 | 25 |
-| agentdojo | 0.932 | 0.866 | **0.802** — leaky | 0.512 | 16 |
-
-⚠️ **The last column is not decoration.** `shade` and `iac` average their within-task AUROC over
-**five** task groups; `bash` averages over 247. Those numbers are not equally solid and the paper
-says so. It is also why `shade`'s task-grouped CV is 0.382 — with five groups, `GroupKFold(5)` puts
-one entire task in each fold. Re-run 2026-09-04 (`../REPRODUCED.md`); the within-task column
-reproduces exactly, the task-grouped column moves in the third decimal across scikit-learn versions.
-
-The scan attacked its own pooled numbers and they partly broke on task composition. That is why the
-within-task column is the honest one, and why **both outcomes already sit inside one table**: bash is
-clean, agentdojo leaks from character count alone.
-
-## The standing reports
-
-- **`RESULTS.md` — the Gate S results ledger.** Every number produced by an actual run, with the
-  command that produced it, and superseded rows kept rather than overwritten. **Start here for
-  what has been measured**; `GATE-S-RUNBOOK.md` is what to run, `RESULTS.md` is what came back.
-
-- `K1-artifact-lineage.md` — which artifact is which, and who wrote each class. **PASS**: one dataset
-  and one derived copy, honest code human-written, every backdoor LLM-written, and the confound is a
-  property of the **stored-pair** protocol (ControlArena's *live* evals generate both classes).
-- `RECOMPUTE.md` — the coordinator's recompute of every load-bearing figure on the full artifact.
-  Where a subagent number and this file disagree, this file wins.
-- `TOKEN-TEST.md` — the AICD App. D.1 token test, **run 2026-09-04 and negative**. The mechanism
-  stays borrowed. Also carries the by-product finding that string literals survive the field's
-  comment stripper, author bylines included.
-- `GATE-S-RUNBOOK.md` — the step-by-step execution guide for the one GPU experiment.
+- harness agreement 95.84%: `human_verify.jsonl` restricted to the analysis pool
+- the firing shares 97.75% / 99.67%: verdicts joined with the problem ids in the `sg_*.json` files
+- the `def main` shares
+- the byline and docstring counts in the token-test appendix

@@ -1,3 +1,12 @@
+"""Read a column subset of a HuggingFace APPS-control dataset into one metadata parquet.
+
+Drops `question` (keeping its length as `q_len`) and never reads the code structs, which are
+most of the download size. Adds a `split` column (train/test) from the shard name. Called by
+fetch_inputs.py for both the Koran and RoganInglis datasets.
+
+Usage:
+    python fetch_cols.py <hf dataset id> <out.parquet>
+"""
 import pyarrow.parquet as pq
 from huggingface_hub import HfFileSystem
 fs = HfFileSystem()

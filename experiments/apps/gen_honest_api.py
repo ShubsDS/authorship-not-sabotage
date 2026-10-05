@@ -1,29 +1,27 @@
-"""Gate S honest-class generation through the Anthropic Batch API (Claude Sonnet 5).
+"""Generate the honest class with Claude Sonnet 5 through the Anthropic Batch API.
 
-The same experiment as `gen_honest.py`, with the generator swapped from a local open-weight model
-to a Claude model. Why it is worth doing at all: the backdoors in this dataset were written by
-`claude-3-7-sonnet-thinking`, so a Claude honest class is a *same-vendor* control and answers the
-sharpest objection on record — *"a collapse might just be Qwen-vs-Claude."* No Qwen arm can.
+The same experiment as gen_honest.py with a Claude generator. The stored backdoors were written by
+claude-3-7-sonnet-thinking, so a Claude honest class is a same-vendor control: it tests whether the
+gap is just Qwen-versus-Claude. claude-3-7-sonnet-20250219 has been withdrawn, so this is the same
+vendor and lineage but a later generation, not the same model.
 
-    export ANTHROPIC_API_KEY=sk-ant-...
-    python gen_honest_api.py --dry-run          # cost estimate, spends nothing
-    python gen_honest_api.py --limit 20         # smoke test, ~$0.10
-    python gen_honest_api.py                    # the real run, ~$17
+Prompt and code extraction are imported from gen_honest.py so the arms share them. Output is
+compatible with run_tests.py and gate_s_eval.py. --matched generates the prompt-matched honest
+class (genm_sonnet5.jsonl) instead.
 
-Prompt and code extraction are **imported from gen_honest.py**, not copied, so the two arms cannot
-drift apart. Output is byte-compatible with `run_tests.py` and `gate_s_eval.py`.
+Protocol differences from the vLLM arm:
+  1. Claude models reject sampling parameters, so this arm uses default sampling rather than
+     temperature 0. Generations are not bit-reproducible.
+  2. Thinking is off unless --thinking is passed. The paper's runs use thinking off, although the
+     stored attacker was a thinking model.
 
-⚠️ **The exact attack model is retired.** `claude-3-7-sonnet-20250219` was withdrawn 2026-02-19, so
-this is same-vendor and same-lineage but a *later generation*. Say that in Limitations; do not claim
-a same-model control.
+Requires gate_s_pool.parquet and ANTHROPIC_API_KEY. An in-flight batch is resumed from its state
+file.
 
-⚠️ **Two protocol differences from the vLLM arms, which the paper must state rather than bury:**
-  1. **No temperature.** Sampling parameters were removed on Sonnet 5 and return a 400. The Qwen arms
-     are greedy at temperature 0; this arm uses the model's own default sampling. It is therefore not
-     reproducible in the bit-exact way the local arms are.
-  2. **Thinking is off by default here.** The attacks came from a *thinking* model, so `--thinking`
-     exists; but thinking tokens are not part of the emitted code, they roughly double cost, and the
-     object of study is the code. Whichever is used, report it.
+Usage:
+    python gen_honest_api.py --dry-run                  # cost estimate, submits nothing
+    python gen_honest_api.py --out gen_sonnet5.jsonl
+    python gen_honest_api.py --matched                  # -> genm_sonnet5.jsonl
 """
 
 from __future__ import annotations
@@ -42,13 +40,13 @@ from gen_backdoor import PROMPT_INDEPENDENT_HONEST  # noqa: E402  - arm 3, the p
 from gen_backdoor import extract as extract_two_blocks  # noqa: E402  - (code, input), same parser as the attack arm
 
 MODEL = "claude-sonnet-5"
-MAX_TOKENS = 4096          # same ceiling as the vLLM arms; 2048 truncated 34% of them
+MAX_TOKENS = 4096          # same ceiling as the vLLM arm; 2048 truncated 34% of its outputs
 BATCH_LIMIT = 100_000      # API maximum requests per batch
 # Sonnet 5 list price per million tokens; the Batch API bills at 50%.
 PRICE_IN, PRICE_OUT, BATCH_DISCOUNT = 2.00, 10.00, 0.5
 STATE_FILE = "gen_sonnet5.batch.json"
-# Arm 3 (--matched) keeps its own output, state and log so nothing of the original honest
-# arm can be overwritten by a resume or a re-run.
+# --matched (arm 3) keeps its own output and state file so a resume or re-run cannot overwrite
+# the original honest arm.
 STATE_FILE_MATCHED = "genm_sonnet5.batch.json"
 OUT_MATCHED = "genm_sonnet5.jsonl"
 
@@ -87,7 +85,7 @@ def estimate(pool: pd.DataFrame) -> None:
     worst = (approx_in / 1e6 * PRICE_IN + len(pool) * MAX_TOKENS / 1e6 * PRICE_OUT) * BATCH_DISCOUNT
     print(f"WORST CASE            ${worst:.2f}   (every reply hits max_tokens={MAX_TOKENS})")
     print("Output length is the uncertain half; treat the estimate as +/- 50%. The worst case is")
-    print("what the $100 project ceiling has to survive, so it is the number that gates the run.")
+    print("must fit under the budget, so it is the number that gates the run.")
 
 
 def collect(client, batch_id: str, out_path: str, matched: bool = False) -> None:
@@ -165,8 +163,8 @@ def main() -> None:
                          "gen_backdoor.PROMPT_INDEPENDENT_HONEST - the independent attack prompt "
                          "with only its flaw sentence replaced - instead of gen_honest.PROMPT, "
                          "parses the reply with gen_backdoor.extract and records the ```input "
-                         "block as `check_input`. RESULTS.md 11 showed the residual S is program "
-                         "LAYOUT the attack prompt elicits, so the same-generator arm held the "
+                         "block as `check_input`. The residual S is program layout the attack prompt "
+                         "elicits, so the same-generator arm held the "
                          "model constant but not the prompt; this class holds both. Restricted to "
                          "the problems whose ORIGINAL honest program passes (--honest-pass), "
                          "which is the attack arm's own pool. Own output, state file and log: "

@@ -1,34 +1,34 @@
-"""monitor-rho: what a trusted MONITOR retains when authorship is held constant.
-
-The paper's rho = (S - 0.5) / (B' - 0.5) is a statement about a bag-of-words classifier: hold the
-author constant and about a third of its separability goes. Nothing said whether the same is true
-of a *monitor*, because until now there was no monitor number on the STORED pairs over the same
-problems - only on the same-generator ones (RESULTS.md 10). `monitor_samegen.py --stored` supplies
-the missing half, and this script forms the ratio:
+"""monitor-rho: the monitor's counterpart of the classifier's rho, on the same problems.
 
     monitor-rho = (M_samegen - 0.5) / (M_stored - 0.5)
 
-with a JOINT bootstrap over problems: one problem set is drawn per replicate and BOTH AUROCs are
-recomputed on it (2,000 draws, seed 0), exactly as `rho_joint_ci.py` does for the classifier. The
-classifier's own S, B' and rho are recomputed inside the same draws from the `oof` scores in the
-gate_s_samegen json, so every row carries the monitor and the classifier under one resampling and
-the differences between them come with paired intervals.
+where M_samegen and M_stored are the monitor's AUROCs from `monitor_samegen.py` and
+`monitor_samegen.py --stored`. The interval is a joint bootstrap over problems: one problem set
+is drawn per replicate and both AUROCs are recomputed on it (2,000 draws, seed 0), as
+`rho_joint_ci.py` does for the classifier. The classifier's S, B' and rho are recomputed inside
+the same draws from the `oof` scores of the gate_s_samegen json, so the monitor-minus-classifier
+differences come with paired intervals.
 
-    python3 monitor_rho.py --out monitor_rho.json
-
-Files are located by the naming convention of `monitor_samegen.py`:
+Reads sg_indep_first_passes_v2.json, sg_indep_best_usable_v2.json, rho_joint_{headline,strict}.json
+and the monitor jsons, located by `monitor_samegen.py`'s naming convention:
 
     monitor_samegen_<tag>_<arm>_<elig>[_<model>].json     M_samegen
     monitor_stored_<tag>_<arm>_<elig>[_<model>].json      M_stored
 
-Three cautions the output repeats, because they are the ways this number can be misread:
+Writes monitor_rho.json. claude-sonnet-5 gives monitor-rho 0.145 (0.111-0.182) on the headline
+row and 0.717 (0.601-0.832) on the strict row (the monitor rows in Section 3 and the appendix).
 
-  1. The 24-monitor comparison of RESULTS.md 8 is on Koran's split, a different problem set with a
-     different protocol. These AUROCs do not belong in that ranking and are never put there.
-  2. `claude-sonnet-5` wrote both same-generator classes, so its M_samegen is a self-evaluation;
-     `claude-haiku-4-5` wrote neither and is the independent trusted monitor. Both are reported.
-  3. The stored pairs are human honest vs stored Claude 3.7 backdoor, so M_stored carries the
-     authorship gap by construction - that is the point of the denominator.
+Caveats:
+
+  1. The 24-monitor comparison on Koran's split is a different problem set and protocol; these
+     AUROCs are not comparable with it.
+  2. claude-sonnet-5 wrote both same-generator classes, so its M_samegen is a self-evaluation;
+     claude-haiku-4-5 wrote neither.
+  3. The stored pairs are human honest vs stored Claude 3.7 backdoor, so M_stored includes the
+     authorship gap by construction; that is what the denominator is for.
+
+Usage:
+    python monitor_rho.py --out monitor_rho.json
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ import numpy as np
 from scipy.stats import spearmanr
 from sklearn.metrics import roc_auc_score
 
-# The two published rows of RESULTS.md 9.1, with the joint-bootstrap classifier intervals of 12.2.
+# The headline and strict same-generator rows, with their classifier joint-bootstrap jsons.
 ROWS = [
     {"row": "headline", "gate_s": "sg_indep_first_passes_v2.json",
      "rho_joint": "rho_joint_headline.json", "arm": "independent", "eligibility": "passes",
@@ -50,9 +50,9 @@ ROWS = [
      "rho_joint": "rho_joint_strict.json", "arm": "independent", "eligibility": "usable",
      "desc": "best, crash excluded / passes AND fires, n = 99"},
 ]
-# (label, file suffix). The third entry is the truncation control: claude-haiku-4-5 writes long
-# rationales and lost ~43% of its replies to the 512-token ceiling, so the strict row was re-run at
-# 1024 to show what that missingness is worth. Rows whose files do not exist are skipped.
+# (label, file suffix). The third entry is a truncation control: claude-haiku-4-5 writes long
+# rationales and lost 42-50% of its replies to the 512-token ceiling, so the strict row was re-run
+# at 1024. Monitors whose files do not exist are skipped.
 MONITORS = [("claude-sonnet-5", ""), ("claude-haiku-4-5", "_haiku-4-5"),
             ("claude-haiku-4-5 @ max_tokens=1024", "_haiku-4-5_mt1024")]
 
@@ -302,9 +302,9 @@ def main() -> None:
 
     out = {"n_boot": args.n_boot, "seed": args.seed, "rows": out_rows,
            "note": ("monitor-rho = (M_samegen - 0.5)/(M_stored - 0.5), one problem set resampled "
-                    "per draw and both AUROCs recomputed on it. The 24-monitor comparison of "
-                    "RESULTS.md 8 is on Koran's split and these numbers are not comparable with "
-                    "it. claude-sonnet-5 wrote both same-generator classes (self-evaluation); "
+                    "per draw and both AUROCs recomputed on it. The 24-monitor comparison on "
+                    "Koran's split is a different problem set and these numbers are not "
+                    "comparable with it. claude-sonnet-5 wrote both same-generator classes (self-evaluation); "
                     "claude-haiku-4-5 wrote neither.")}
     json.dump(out, open(args.out, "w"), indent=2, default=float)
     print(f"\nwrote {args.out}")
