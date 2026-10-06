@@ -106,155 +106,196 @@ def r2(x):
     return f"{math.floor(x * 100 + 0.5) / 100:.2f}"
 
 
-# --- Figure 2: the floors among the monitors ------------------------------------------------
+AGENTIC = [("bash", 0.5044), ("shade", 0.6022), ("iac", 0.7041), ("rogue_eval", 0.6158),
+           ("agentdojo", 0.8020)]
+
+
+
+# ===========================================================================================
+# Visual system (modelled on the figures of flagship alignment papers): one message per panel,
+# values printed on the marks, a centred title naming the quantity, light grid, no spines but the
+# baseline, Arial throughout to match the Helvetica of Figure 1.
+# ===========================================================================================
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "Liberation Sans", "DejaVu Sans"],
+    "pdf.fonttype": 42,
+    "axes.linewidth": 0.8, "axes.edgecolor": "#3A3F47",
+    "xtick.major.width": 0.8, "ytick.major.width": 0, "xtick.major.size": 0, "ytick.major.size": 0,
+    "xtick.color": "#3A3F47", "ytick.color": "#6B7280",
+})
+INK, INK2, MUTED, GRID = "#1F2328", "#6B7280", "#A3A9B2", "#E9ECEF"
+STORED = "#E07B39"
+REBUILT = "#3567B5"
+MONBAR = "#D3D8DE"
+FS = 8.5
+
+
+def base(ax):
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(labelsize=FS - 0.5, pad=3)
+    ax.grid(axis="y", color=GRID, lw=0.8, zorder=0)
+    ax.set_axisbelow(True)
+
+
+def ptitle(ax, text, letter=None):
+    ax.set_title(text, fontsize=FS + 0.5, weight="bold", color=INK, pad=8)
+    if letter:
+        from matplotlib.transforms import blended_transform_factory
+        tr = blended_transform_factory(ax.figure.transFigure, ax.transAxes)
+        x = ax.get_position().x0 - (0.075 if letter == "a" else 0.045)
+        ax.text(x, 1.035, letter, transform=tr, fontsize=FS + 1.5, weight="bold",
+                color=INK, ha="left", va="bottom")
+
+
+def short(repo):
+    n = repo.split("/")[-1]
+    for cut in ("-Instruct-2506", "-Instruct-v0.3", "-Instruct", "-instruct", "-it", "-Chat", "-reap25"):
+        n = n.replace(cut, "")
+    return n
+
+
+# --- Figure 2: the leaderboard ------------------------------------------------------------------
 
 def fig2_floors():
-    aurocs = sorted(m["test_auroc"] for m in json.load(open("monitor-summary.json")))
-    n = len(aurocs)
-    fig, ax = plt.subplots(figsize=(TEXT_W, 1.25))
-    fig.subplots_adjust(left=0.03, right=0.97, top=0.97, bottom=0.33)
-    style(ax, grid=None)
-    ax.spines["left"].set_visible(False)
-    ax.set_yticks([])
-
-    # dot histogram: monitors in bins of 0.02, stacked upwards
-    width, step = 0.02, 1.0
-    stacks = {}
-    for a in aurocs:
-        b = round(math.floor(a / width) * width + width / 2, 4)
-        stacks[b] = stacks.get(b, 0) + 1
-        ax.scatter([b], [stacks[b] * step], s=40, color=MONITOR, lw=0, zorder=3)
-    top = max(stacks.values()) + 0.9
-
-    ax.axvline(0.5, color=MUTED, lw=0.7, ls=(0, (2, 2)), zorder=1)
-    ax.text(0.5, top + 0.25, "chance", ha="center", va="bottom", fontsize=FS - 0.5, color=MUTED)
-    for v, c, lab, ha, dx in ((META_FLOOR, META, f"metadata classifier {r3(META_FLOOR)}", "right", -0.006),
-                              (LEX_FLOOR, LEX, f"lexical classifier {r3(LEX_FLOOR)}", "left", 0.006)):
-        ax.plot([v, v], [0.3, top], color=c, lw=1.6, zorder=4, solid_capstyle="butt")
-        ax.text(v + dx, top + 0.25, lab, ha=ha, va="bottom", fontsize=FS, color=c)
-    below = sum(a < LEX_FLOOR for a in aurocs)
-    ax.set_xlim(0.40, 1.0); ax.set_ylim(0.2, top + 1.1)
-    ax.set_xticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-    ax.set_xlabel("AUROC on the filtered test split (1,375 programs, comments removed)",
-                  fontsize=FS, color=INK)
+    mons = json.load(open("monitor-summary.json"))
+    rows = [(short(m["repo"]), m["test_auroc"], "mon") for m in mons]
+    rows += [("Lexical classifier", LEX_FLOOR, "lex"), ("Metadata classifier", META_FLOOR, "meta")]
+    rows.sort(key=lambda r: -r[1])
+    fig, ax = plt.subplots(figsize=(TEXT_W, 2.05))
+    fig.subplots_adjust(left=0.065, right=0.995, top=0.86, bottom=0.07)
+    base(ax)
+    for i, (name, v, kind) in enumerate(rows):
+        col = {"mon": MONBAR, "lex": REBUILT, "meta": STORED}[kind]
+        ax.bar(i, v - 0.5, bottom=0.5, width=0.74, color=col, lw=0, zorder=2)
+        if kind != "mon":
+            ax.text(i, v + 0.012, r3(v), ha="center", va="bottom", fontsize=FS - 0.5,
+                    weight="bold", color=col)
+    # direct labels for our two bars and for the strongest monitor
+    lex_i = next(i for i, r in enumerate(rows) if r[2] == "lex")
+    meta_i = next(i for i, r in enumerate(rows) if r[2] == "meta")
+    from matplotlib.patches import Patch
+    leg = ax.legend(handles=[Patch(color=REBUILT, label="lexical classifier (cannot see backdoors)"),
+                             Patch(color=STORED, label="metadata classifier (never reads code)"),
+                             Patch(color=MONBAR, label="24 published monitors")],
+                    loc="upper right", frameon=False, fontsize=FS - 0.5, handlelength=1.0,
+                    handleheight=0.9, labelspacing=0.45, borderaxespad=0.2)
+    for t in leg.get_texts():
+        t.set_color(INK)
+    ax.axhline(0.5, color="#3A3F47", lw=0.8, zorder=3)
+    ax.text(len(rows) - 0.4, 0.505, "chance", ha="right", va="bottom", fontsize=FS - 1.5, color=INK2)
+    ax.set_xlim(-0.7, len(rows) - 0.3); ax.set_ylim(0.4, 1.0)
+    ax.set_xticks([]); ax.spines["bottom"].set_visible(False)
+    ax.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    ax.set_ylabel("AUROC", fontsize=FS, color=INK, labelpad=4)
+    ptitle(ax, "AUROC on the filtered test split")
     save(fig, "fig2-floors.pdf")
-    print(f"Fig 2: {n} monitors, median {statistics.median(aurocs):.3f}, max {aurocs[-1]:.3f}, "
-          f"{below} below the lexical floor, {sum(a < META_FLOOR for a in aurocs)} below metadata")
+    a = sorted(m["test_auroc"] for m in mons)
+    print(f"Fig 2: {len(a)} monitors, median {statistics.median(a):.3f}, "
+          f"{sum(x < LEX_FLOOR for x in a)} below lexical, {sum(x < META_FLOOR for x in a)} below metadata")
 
 
-# --- Figure 3: stored against rebuilt, and the audit budget --------------------------------
+# --- Figure 3: stored against rebuilt, and the audit budget ----------------------------------
 
-ROW_NAMES = {
-    ("all attempts", "Sonnet"): "Sonnet 5, all attempts",
-    ("all attempts, shared prompt", "Sonnet"): "Sonnet 5, all attempts, shared prompt",
-    ("verified", "Sonnet"): "Sonnet 5, working backdoors",
-    ("verified, shared prompt", "Sonnet"): "Sonnet 5, working, shared prompt",
-    ("all attempts", "Haiku"): "Haiku 4.5, all attempts",
-    ("all attempts, shared prompt", "Haiku"): "Haiku 4.5, all attempts, shared prompt",
-}
-MON_NAMES = {
-    ("all attempts", "Sonnet"): "Sonnet 5 monitor, all attempts",
-    ("verified", "Sonnet"): "Sonnet 5 monitor, working backdoors",
-    ("verified", "Haiku"): "Haiku 4.5 monitor, working backdoors",
-}
+GROUPS = [("all\nattempts", 0), ("shared\nprompt", 1), ("working\nbackdoors", 2),
+          ("all\nattempts", 4), ("shared\nprompt", 5)]
 
 
 def fig3_rebuilt():
     audit = {(r["monitor"], r["row"], r["pairs"]): r
              for r in json.load(open("audit_budget.json"))["rows"]}
-    fig = plt.figure(figsize=(TEXT_W, 2.7))
-    ax = fig.add_axes([0.375, 0.15, 0.28, 0.74])
-    axc = fig.add_axes([0.775, 0.15, 0.215, 0.74])
+    fig = plt.figure(figsize=(TEXT_W, 2.55))
+    ax = fig.add_axes([0.095, 0.27, 0.49, 0.59])
+    cx = fig.add_axes([0.70, 0.27, 0.285, 0.59])
 
-    # (a) dumbbells: stored AUROC to rebuilt AUROC, one row per comparison
-    rows = [("Lexical classifier", None, None)]
-    rows += [(None, ROW_NAMES[(r[0], r[1])], r) for r in CLF_ROWS]
-    rows += [("LLM monitor", None, None)]
-    rows += [(None, MON_NAMES[(r[0], r[1])], r) for r in MON_ROWS]
-    n = len(rows)
-    style(ax, grid="x")
-    ax.spines["left"].set_visible(False)
-    ax.axvline(0.5, color=MUTED, lw=0.7, ls=(0, (2, 2)), zorder=1)
-    ticks, labels = [], []
-    for i, (grp, name, r) in enumerate(rows):
-        y = n - 1 - i
-        if grp:
-            ax.text(-0.03, y - 0.1, grp, transform=ax.get_yaxis_transform(), ha="right",
-                    va="center", fontsize=FS, color=INK, weight="bold")
-            continue
-        b, s = r[2], r[3]
-        ax.plot([s[0], b[0]], [y, y], color="#c9cdd3", lw=2.2, zorder=2, solid_capstyle="round")
-        ax.scatter([b[0]], [y], s=30, color=STORED, lw=0, zorder=3)
-        ax.scatter([s[0]], [y], s=30, color=SONNET, lw=0, zorder=3)
-        ticks.append(y); labels.append(name)
-    ax.set_yticks(ticks); ax.set_yticklabels(labels, fontsize=FS - 0.5, color=INK)
-    ax.tick_params(axis="y", length=0)
-    ax.set_xlim(0.45, 1.0); ax.set_ylim(-0.6, n - 0.4)
-    ax.set_xticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-    ax.set_xlabel("AUROC", fontsize=FS, color=INK)
-    ax.text(0.505, -0.55, "chance", ha="left", va="bottom", fontsize=FS - 1.5, color=MUTED)
-    from matplotlib.lines import Line2D
-    handles = [Line2D([], [], marker="o", ls="", color=STORED, markersize=5.5, label="stored pairs"),
-               Line2D([], [], marker="o", ls="", color=SONNET, markersize=5.5, label="rebuilt pairs")]
-    leg = fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.515, 1.0), ncol=2,
-                     frameon=False, fontsize=FS - 0.5, handletextpad=0.3, columnspacing=1.6)
+    # (a) grouped bars from chance, value on each bar, rho under each group
+    base(ax)
+    w = 0.36
+    for g, (lab, k) in enumerate(GROUPS):
+        b, s, rho = CLF_ROWS[k][2], CLF_ROWS[k][3], CLF_ROWS[k][4]
+        for dx, val, col in ((-w / 2 - 0.02, b, STORED), (w / 2 + 0.02, s, REBUILT)):
+            ax.bar(g + dx, val[0] - 0.5, bottom=0.5, width=w, color=col, lw=0, zorder=2)
+            ax.plot([g + dx, g + dx], [val[1], val[2]], color=INK, lw=0.7, zorder=3)
+            ax.text(g + dx, val[2] + 0.012, f"{val[0]:.2f}", ha="center", va="bottom",
+                    fontsize=FS - 1.2, color=INK)
+        ax.text(g, 0.452, f"keeps {100 * rho[0]:.0f}%", ha="center", va="center",
+                fontsize=FS - 1.2, color=INK2)
+    ax.axhline(0.5, color="#3A3F47", lw=0.8, zorder=3)
+    ax.set_xticks(range(len(GROUPS)))
+    ax.set_xticklabels([g[0] for g in GROUPS], fontsize=FS - 1, color=INK, linespacing=1.15)
+    ax.tick_params(axis="x", pad=13)
+    for x0, x1, name in ((0, 2, "Claude Sonnet 5"), (3, 4, "Claude Haiku 4.5")):
+        ax.annotate("", xy=(x0 - 0.38, -0.30), xytext=(x1 + 0.38, -0.30), xycoords=("data", "axes fraction"),
+                    textcoords=("data", "axes fraction"),
+                    arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.8))
+        ax.text((x0 + x1) / 2, -0.37, name, transform=ax.get_xaxis_transform(), ha="center",
+                va="top", fontsize=FS - 0.5, color=INK, weight="bold")
+    ax.set_xlim(-0.6, len(GROUPS) - 0.4); ax.set_ylim(0.43, 1.0)
+    ax.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    ax.spines["bottom"].set_visible(False)
+    ax.set_ylabel("AUROC", fontsize=FS, color=INK, labelpad=4)
+    ptitle(ax, "Lexical classifier, stored vs. rebuilt pairs", "a")
+    from matplotlib.patches import Patch
+    leg = ax.legend(handles=[Patch(color=STORED, label="stored pairs"),
+                             Patch(color=REBUILT, label="rebuilt pairs")],
+                    loc="upper right", ncol=2, frameon=False, fontsize=FS - 1,
+                    handlelength=1.0, handleheight=0.8, columnspacing=1.0, borderaxespad=0.1)
     for t in leg.get_texts():
         t.set_color(INK)
-    tag(ax, "a", x=-1.30, y=1.02)
 
-    # (b) catch rate against audit budget, Sonnet 5 monitor
-    style(axc)
-    for key, c, ls, lab, ly in ((("sonnet5", "strict", "stored"), STORED, "-", "stored, verified", None),
-                                (("sonnet5", "strict", "samegen"), SONNET, "-", "rebuilt, verified", None),
-                                (("sonnet5", "headline", "stored"), STORED, (0, (2, 1.5)), "stored, all", None),
-                                (("sonnet5", "headline", "samegen"), SONNET, (0, (2, 1.5)), "rebuilt, all", None)):
+    # (b) catch rate against audit budget, Sonnet 5 monitor, working backdoors
+    base(cx)
+    cx.grid(axis="x", color=GRID, lw=0.8, zorder=0)
+    cx.spines["left"].set_visible(False)
+    for key, c, lab in ((("sonnet5", "strict", "stored"), STORED, "stored pairs"),
+                        (("sonnet5", "strict", "samegen"), REBUILT, "rebuilt pairs")):
         cur = audit[key]["curve"]
         x = [100 * p["budget"] for p in cur]
-        y = [p["point"] for p in cur]
-        if ls == "-":
-            axc.fill_between(x, [p["ci95"][0] for p in cur], [p["ci95"][1] for p in cur],
-                             color=c, alpha=0.14, lw=0, zorder=1)
-        axc.plot(x, y, color=c, lw=1.4 if ls == "-" else 1.0, ls=ls, zorder=3)
-    axc.set_xlim(1, 20); axc.set_ylim(0, 1)
-    axc.set_xticks([1, 5, 10, 20]); axc.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
-    axc.set_yticklabels(["0", "25%", "50%", "75%", "100%"])
-    axc.set_xlabel("audit budget (%)", fontsize=FS, color=INK)
-    axc.set_ylabel("backdoors caught", fontsize=FS, color=INK, labelpad=2)
-    tag(axc, "b", x=-0.42, y=1.02)
+        y = [100 * p["point"] for p in cur]
+        cx.fill_between(x, [100 * p["ci95"][0] for p in cur], [100 * p["ci95"][1] for p in cur],
+                        color=c, alpha=0.14, lw=0, zorder=1)
+        cx.plot(x, y, color=c, lw=1.8, zorder=3)
+        cx.text(19.6, y[-1] + (5 if c == STORED else -6), lab, color=c, fontsize=FS - 1,
+                va="bottom" if c == STORED else "top", ha="right", weight="bold")
+    st = 100 * audit[("sonnet5", "strict", "stored")]["catch@0.05"]["point"]
+    rb = 100 * audit[("sonnet5", "strict", "samegen")]["catch@0.05"]["point"]
+    for v, c in ((st, STORED), (rb, REBUILT)):
+        cx.scatter([5], [v], s=22, color=c, zorder=5, lw=0)
+        cx.text(5.6, v + (5 if c == STORED else -5), f"{v:.0f}%", color=c, fontsize=FS - 1,
+                ha="left", va="bottom" if c == STORED else "top", weight="bold")
+    cx.set_xlim(0, 20); cx.set_ylim(0, 100)
+    cx.set_xticks([0, 5, 10, 15, 20]); cx.set_xticklabels(["0%", "5%", "10%", "15%", "20%"])
+    cx.set_yticks([0, 25, 50, 75, 100]); cx.set_yticklabels(["0", "25%", "50%", "75%", "100%"])
+    cx.tick_params(axis="x", pad=3)
+    cx.set_xlabel("honest programs audited", fontsize=FS - 0.5, color=INK, labelpad=3)
+    ptitle(cx, "Backdoors caught", "b")
     save(fig, "fig3-rebuilt.pdf")
-    v = (audit[("sonnet5", "strict", "stored")]["catch@0.05"],
-         audit[("sonnet5", "strict", "samegen")]["catch@0.05"])
-    print(f"Fig 3: catch at 5%: stored {v[0]['point']:.3f} {v[0]['ci95']}, "
-          f"rebuilt {v[1]['point']:.3f} {v[1]['ci95']}")
+    print(f"Fig 3: catch at 5%: stored {st:.1f}, rebuilt {rb:.1f}")
 
 
-# --- Appendix figure: agentic settings -----------------------------------------------------
-
-AGENTIC = [("bash", 0.5044), ("shade", 0.6022), ("iac", 0.7041), ("rogue_eval", 0.6158),
-           ("agentdojo", 0.8020)]
-
+# --- Appendix figure ---------------------------------------------------------------------
 
 def figA1_agentic():
     nulls = json.load(open("../agentic/within_task_null.json"))
-    rows = AGENTIC[::-1]
-    fig, ax = plt.subplots(figsize=(0.82 * TEXT_W, 1.5))
-    fig.subplots_adjust(left=0.27, right=0.96, top=0.97, bottom=0.24)
-    style(ax, grid="x")
-    ax.spines["left"].set_visible(False)
+    rows = AGENTIC
+    fig, ax = plt.subplots(figsize=(0.8 * TEXT_W, 1.9))
+    fig.subplots_adjust(left=0.09, right=0.99, top=0.84, bottom=0.17)
+    base(ax)
     for i, (s, v) in enumerate(rows):
         p95 = nulls[s]["null_p95"]
-        ax.fill_between([0.5, p95], i - 0.22, i + 0.22, color=SHADE, lw=0, zorder=1)
-        ax.scatter([v], [i], s=28, color=LEX, lw=0, zorder=3)
-        ax.text(max(v, p95) + 0.01, i, r3(v), va="center", fontsize=FS - 0.5, color=INK)
-    ax.axvline(0.5, color=MUTED, lw=0.7, ls=(0, (2, 2)), zorder=2)
-    ax.set_yticks(range(len(rows)))
-    ax.set_yticklabels([f"{s.replace('_', ' ')}  ({nulls[s]['n_tasks']} tasks)" for s, _ in rows],
-                       fontsize=FS - 0.5, color=INK)
-    ax.tick_params(axis="y", length=0)
-    ax.set_xlim(0.45, 0.90); ax.set_ylim(-0.6, len(rows) - 0.4)
-    ax.set_xlabel("AUROC from transcript length alone, within each task", fontsize=FS, color=INK)
+        ax.bar(i, v - 0.5, bottom=0.5, width=0.55, color=REBUILT, lw=0, zorder=2)
+        ax.plot([i - 0.36, i + 0.36], [p95, p95], color=INK, lw=1.0, ls=(0, (2, 1.5)), zorder=3)
+        ax.text(i, max(v, p95) + 0.008, f"{v:.3f}", ha="center", va="bottom", fontsize=FS - 1, color=INK)
+    ax.axhline(0.5, color="#3A3F47", lw=0.8, zorder=3)
+    ax.set_xticks(range(len(rows)))
+    ax.set_xticklabels([f"{s.replace('_', ' ')}\n{nulls[s]['n_tasks']} tasks" for s, _ in rows],
+                       fontsize=FS - 1, color=INK, linespacing=1.15)
+    ax.spines["bottom"].set_visible(False)
+    ax.set_ylim(0.45, 0.87); ax.set_yticks([0.5, 0.6, 0.7, 0.8])
+    ax.set_ylabel("AUROC", fontsize=FS, color=INK, labelpad=4)
+    ptitle(ax, "Transcript length alone, within each task")
     save(fig, "figA1-agentic.pdf")
-    print("Fig A1: " + ", ".join(f"{s} {v:.3f} (p {nulls[s]['p']:.3f})" for s, v in AGENTIC))
+    print("Fig A1 done")
 
 
 # --- Appendix tables -----------------------------------------------------------------------
@@ -290,20 +331,20 @@ def tab_baselines():
         "% generated by experiments/apps/figures.py; do not edit by hand",
         "\\begin{table}[h]\\centering\\small",
         "\\caption{\\textbf{Every baseline we ran on the stored pairs.} Values are AUROC except in "
-        "the last group. The last column counts the 24 published monitors that score below the "
-        "baseline on the same test set. Rows with comments kept are shown only for contrast.}",
+        "the last group, which reports pairwise accuracy. \\emph{Below} counts the 24 published "
+        "monitors that score lower on the same test set.}",
         "\\label{tab:baselines}",
-        "\\begin{tabular}{@{}l c r r@{}}",
+        "\\begin{tabular}{@{}l l S[table-format=1.3] r@{}}",
         "\\toprule",
-        "Baseline & Comments & Value & Monitors below \\\\",
+        "Baseline & Comments & {Value} & Below \\\\",
         "\\midrule",
     ]
     first = True
     for g, b, c, v, m in BASELINES:
         if g:
             if not first:
-                lines.append("\\addlinespace[3pt]")
-            lines.append(f"\\multicolumn{{4}}{{@{{}}l}}{{\\emph{{{g}}}}} \\\\")
+                lines.append("\\addlinespace[4pt]")
+            lines.append(f"\\multicolumn{{4}}{{@{{}}l}}{{\\textbf{{{g}}}}} \\\\[1pt]")
             first = False
         else:
             lines.append(f"\\quad {b} & {c} & {v} & {m} \\\\")
@@ -312,29 +353,35 @@ def tab_baselines():
 
 
 def tab_rebuilt():
-    def ci(t):
-        return f"{r3(t[0])} {{\\color{{gray}}\\scriptsize[{r2(t[1])}, {r2(t[2])}]}}"
+    def cell(t):
+        return f"{r3(t[0])}\\,\\ci{{{r2(t[1])}}}{{{r2(t[2])}}}"
     lines = [
         "% generated by experiments/apps/figures.py; do not edit by hand",
         "\\begin{table}[h]\\centering\\small",
         "\\caption{\\textbf{The lexical classifier on stored and rebuilt pairs of the same "
-        "problems.} \\emph{Working} counts backdoors that change the output on their trigger. Brackets are 95\\% "
-        "bootstrap intervals over problems.}",
+        "problems.} \\emph{Working} counts backdoors that change the output on their trigger. "
+        "Grey brackets are 95\\% bootstrap intervals over problems, and $\\rho$ is the share of "
+        "separability above chance that survives.}",
         "\\label{tab:rebuilt}",
-        "\\setlength{\\tabcolsep}{4pt}",
-        "\\begin{tabular}{@{}l l r r l l l@{}}",
+        "\\setlength{\\tabcolsep}{5pt}",
+        "\\begin{tabular}{@{}l r r l l l@{}}",
         "\\toprule",
-        "Writer & Backdoors & Pairs & Working & Stored $B'$ & Rebuilt $S$ & Retained $\\rho$ \\\\",
+        " & & & \\multicolumn{2}{c}{AUROC} & \\\\",
+        "\\cmidrule(lr){4-5}",
+        "Backdoors & Pairs & Working & Stored $B'$ & Rebuilt $S$ & Kept $\\rho$ \\\\",
         "\\midrule",
     ]
     prev = None
     for lab, gen, b, s, rho, n, fire in CLF_ROWS:
-        if prev and gen != prev:
-            lines.append("\\addlinespace[3pt]")
-        name = {"Sonnet": "Sonnet 5", "Haiku": "Haiku 4.5"}[gen] if gen != prev else ""
+        if gen != prev:
+            if prev:
+                lines.append("\\addlinespace[4pt]")
+            name = {"Sonnet": "Claude Sonnet 5 writes both classes",
+                    "Haiku": "Claude Haiku 4.5 writes both classes"}[gen]
+            lines.append(f"\\multicolumn{{6}}{{@{{}}l}}{{\\textbf{{{name}}}}} \\\\[1pt]")
         shown = lab.replace("verified", "working backdoors").replace("working backdoors, shared", "working, shared")
-        lines.append(f"{name} & {shown} & {n} & {fire if fire is not None else ''} & {ci(b)} & "
-                     f"{ci(s)} & {ci(rho)} \\\\")
+        fires = "" if fire is None else str(fire)
+        lines.append(f"\\quad {shown} & {n} & {fires} & {cell(b)} & {cell(s)} & {cell(rho)} \\\\")
         prev = gen
     lines += ["\\bottomrule", "\\end{tabular}", "\\end{table}"]
     open(f"{OUT}/tabA-rebuilt.tex", "w").write("\n".join(lines) + "\n")
