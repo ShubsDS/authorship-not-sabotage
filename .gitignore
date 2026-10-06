@@ -42,3 +42,8 @@ __pycache__/
 *.swp
 *.swo
 *~
+
+# Local working files
+.template/
+.render/
+.orig/

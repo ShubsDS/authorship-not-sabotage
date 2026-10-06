@@ -130,6 +130,7 @@ SCRIPT_FILES = (
     "gen_honest_haiku.py",         # the second generator's honest and matched-honest classes
     "gate_s_matched_haiku.py",     # ... its prompt-matched rows (imports gate_s_matched's helpers)
     "sim_stratified_s.py",         # S inside pair-similarity strata: the near-copy control
+    "audit_budget.py",             # monitor catch rate at a fixed audit budget
     "release_split.py",            # this file: the bundle is reproducible from the bundle
 )
 LICENCE_FILE = "LICENSE"
