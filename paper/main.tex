@@ -20,7 +20,7 @@
 \sisetup{detect-weight=true}
 
 \apptocmd{\thebibliography}{\raggedright}{}{}
-\hypersetup{colorlinks=true,linkcolor=[HTML]{2F66B3},citecolor=[HTML]{2F66B3},urlcolor=[HTML]{2F66B3}}
+\hypersetup{colorlinks=true,linkcolor=[HTML]{8F6F10},citecolor=[HTML]{8F6F10},urlcolor=[HTML]{8F6F10}}
 \graphicspath{{fig/}}
 \setlist{itemsep=1pt,topsep=3pt,leftmargin=1.3em}
 
@@ -119,12 +119,7 @@ while leaving the authors themselves unchanged.
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{fig1-schematic.pdf}
-  \caption{\textbf{A stored pair differs in author as well as in backdoor.} The top row is a real
-  pair from the stored corpus (problem 755, comments removed), in which a person wrote three lines
-  and GPT-4o wrote the backdoored version, adding a \texttt{main} function and a guard on the entry
-  point. The bottom row is an illustrative rebuilt pair for the same problem, in which one model
-  writes both programs in the same layout and only the highlighted lines differ. The AUROCs are measured over the 623 problems
-  of Section~\ref{sec:rebuilt}.}
+  \caption{\textbf{Three stored pairs, as they appear in the corpus.} Each honest solution was written by a person and each backdoored solution by a language model; comments are removed and the backdoor is highlighted. Beyond the backdoor, the models change the style of the program: they add spaces around operators (problem 4253), wrap the code in a \texttt{main} function with an entry point guard (755), or build the special case from \texttt{if}, \texttt{==} and \texttt{and} (4254). All three are real pairs from the corpus \cite{inglis2025appscontrolarena}.}
   \label{fig:schematic}
 \end{figure}
 
@@ -142,15 +137,7 @@ evaluate an LLM monitor on both kinds of pair at a fixed audit budget, the quant
 protocol depends on, and find that stored pairs overstate how many working backdoors it catches by
 about a quarter of all backdoors.
 
-Authorship is a large and easily exploited signal in the stored corpora, large enough that
-classifiers blind to backdoors would rank near the top of a published leaderboard. It does not
-account for everything a monitor detects, and on working backdoors much of the stored signal remains
-when the author is held fixed, so the right conclusion is that stored pairs mix several signals, not
-that they measure authorship alone. We also find that the standard split defines its honest class partly by which attacks failed,
-which ties the label to how hard each problem was to attack. These findings lead to concrete changes
-in how stored pair benchmarks are built and reported, which we set out in
-Section~\ref{sec:discussion}. We release the rebuilt corpus, including every attempt of its retry
-pool, with the scripts that produce every number in this paper.
+Authorship is therefore a large signal in the stored corpora but not the only one, and on working backdoors much of the stored signal survives when the author is held fixed. We also find that the standard split defines its honest class partly by which attacks failed. We close with four changes to how stored pair benchmarks are built and reported (Section~\ref{sec:discussion}) and release the rebuilt corpus with the scripts behind every number in this paper.
 
 \section{Related work}
 \label{sec:related}
@@ -187,10 +174,8 @@ The confound we study is also the target of a separate literature. Programmers c
 from their coding style \cite{caliskan2015stylometry}, and code written by language models can be
 detected with trained classifiers \cite{nguyen2024gptsniffer}, statistics of model likelihood
 \cite{mitchell2023detectgpt, yang2023zeroshot} and simple lexical features \cite{suh2025detecting,
-orel2026aicd}. Benchmarks for that task match their two classes on problem and length so that
-detectors cannot rely on those differences \cite{guo2025codemirage, demirok2025multiaigcd}. Backdoor
-benchmarks face the same issue from the other side, since for them recognising the author is a
-nuisance, and they have not yet adopted this kind of matching.
+orel2026aicd}. Benchmarks for that task match their classes on problem and length
+\cite{guo2025codemirage, demirok2025multiaigcd}, a practice backdoor benchmarks have not adopted.
 
 \section{Setup}
 \label{sec:setup}
@@ -246,8 +231,15 @@ than isolating the causal effect of authorship (Section~\ref{sec:discussion}).
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{fig2-floors.pdf}
-  \caption{\textbf{Classifiers that cannot see a backdoor rank fifth and sixth of 26.} AUROC on the filtered test split of the 24 published monitors \cite{jha2026decorrelation} (grey) and of our two baselines. The lexical classifier reads only the words in the code, and the metadata classifier reads only the problem's difficulty, number of tests and statement length. Bars start at chance.}
+  \caption{\textbf{Classifiers that cannot see a backdoor rank fifth and sixth of 26.} AUROC on the filtered test split of the 24 published monitors \cite{jha2026decorrelation} (grey) and of our two baselines (gold). The lexical classifier reads only the words in the code, and the metadata classifier reads only the problem's difficulty, number of tests and statement length. Bars start at chance.}
   \label{fig:floors}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fig3-features.pdf}
+  \caption{\textbf{What the lexical classifier reads.} The eight word or word pair features with the largest weight towards each class, with bar length proportional to the weight. \textbf{(a)}~On stored pairs, the backdoored side is marked by the tokens of added special cases and the honest side by the idioms of people writing competitive programs. \textbf{(b)}~On rebuilt pairs, both sides are written by Sonnet~5, and the backdoored side is marked by the program layout the attack prompt elicits.}
+  \label{fig:features}
 \end{figure}
 
 On the filtered test split the lexical classifier reaches an AUROC of \lexFloor{} (95\% interval
@@ -262,15 +254,7 @@ less secure than the lexical one. On a single held out slice of the test set it 
 \metaHeldout{}, close to its own null, so we treat it as a diagnostic of how the split was labelled
 (Section~\ref{sec:label}) and use the lexical classifier as our main baseline.
 
-Several observations show that the lexical classifier is reading authorship rather than backdoors.
-Trained on the backdoors written by one attacker model, it identifies those written by another with
-a pairwise accuracy of 0.969, so it has learned something the attackers share. It separates inert
-backdoors, which never change a program's output, almost as well as working ones (0.879 against
-0.935), although an inert backdoor gives a sabotage detector nothing to find. Its most useful features are habits of style of the kind visible in
-Figure~\ref{fig:schematic}. The entry-point guard \texttt{\_\_main\_\_} appears in 152 of the
-1{,}209 backdoored training solutions and in one honest solution. Removing comments does remove the
-channel it targets, since a detector that counts \texttt{\#} characters falls from 0.696 to chance,
-but it leaves these differences untouched.
+Several observations show that the lexical classifier is reading authorship more than sabotage. Trained on the backdoors written by one attacker model, it identifies those written by another with a pairwise accuracy of 0.969, so it has learned something the attackers share. It separates inert backdoors, which never change a program's output, almost as well as working ones (0.879 against 0.935), although an inert backdoor gives a sabotage detector nothing to find. Its weights show what it uses instead (Figure~\ref{fig:features}a). On the backdoored side the strongest features are \texttt{and}, \texttt{==} and \texttt{if}, the tokens of an added special case, which inert backdoors contain as well. On the honest side they are the idioms of people writing competitive programs, such as \texttt{for i}, \texttt{while} and bare calls to \texttt{input}. Style markers of the model are just as visible in the raw programs (Figure~\ref{fig:schematic}). The entry point guard \texttt{\_\_main\_\_} appears in 152 of the 1{,}209 backdoored training solutions and in one honest solution. Removing comments does remove the channel it targets, since a detector that counts \texttt{\#} characters falls from 0.696 to chance, but it leaves these differences untouched.
 
 \subsection{The label records which attacks failed}
 \label{sec:label}
@@ -289,8 +273,8 @@ metadata classifier exploits.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{fig3-rebuilt.pdf}
-  \caption{\textbf{Holding the author fixed.} \textbf{(a)}~AUROC of the lexical classifier on stored pairs and on rebuilt pairs of the same problems, with 95\% bootstrap intervals and the share of separability above chance that survives (\emph{keeps}). \emph{All attempts} keeps every rebuilt backdoor that passes the public tests, as the benchmark does, \emph{shared prompt} gives both classes the attack prompt, and \emph{working backdoors} keeps only those that change the output on their trigger. \textbf{(b)}~Share of working backdoors the Sonnet~5 monitor catches when the most suspicious fraction of honest programs is audited, with 95\% bootstrap bands.}
+  \includegraphics[width=\linewidth]{fig4-rebuilt.pdf}
+  \caption{\textbf{Holding the author fixed.} \textbf{(a)}~AUROC of the lexical classifier on stored pairs (grey) and on rebuilt pairs of the same problems (gold), with 95\% bootstrap intervals and the share of separability above chance that survives (\emph{keeps}). \emph{All attempts} keeps every rebuilt backdoor that passes the public tests, as the benchmark does, \emph{shared prompt} gives both classes the attack prompt, and \emph{working backdoors} keeps only those that change the output on their trigger. \textbf{(b)}~Share of working backdoors the Sonnet~5 monitor catches when the most suspicious fraction of honest programs is audited, with 95\% bootstrap bands.}
   \label{fig:rebuilt}
 \end{figure}
 
@@ -301,7 +285,8 @@ separability on Sonnet~5 pairs and $\rho = \rhoHaiAll{}$ on Haiku~4.5 pairs
 (Figure~\ref{fig:rebuilt}a). The drop is not a matter of sample size, because on random subsets of
 the stored pairs with the same number of problems the classifier still reaches 0.851. The two models
 differ because they respond differently to the attack prompt. Asked for a backdoor, Sonnet~5
-switches to the layout shown in the bottom row of Figure~\ref{fig:schematic}, with \texttt{def main}
+switches to a layout built around \texttt{def main} and a \texttt{data} list read from standard
+input (Figure~\ref{fig:features}b), with \texttt{def main}
 in 67\% of its backdoored programs and 38.5\% of its honest ones, while Haiku~4.5 never uses it in
 either class. Giving both classes the attack prompt tests this directly. Sonnet~5 then falls to
 $\rho = \rhoSonShared{}$ and Haiku~4.5 stays at $\rho = \rhoHaiShared{}$. On Sonnet~5 the prompt
@@ -331,7 +316,7 @@ problems enter the comparison.
 We gave every program to a prompted monitor (Appendix~\ref{app:monitor}), using Sonnet~5, which
 wrote both classes, and Haiku~4.5, which wrote neither. Across all attempts the Sonnet~5 monitor
 falls from an AUROC of \storedMonSonAll{} on stored pairs to \rebuiltMonSonAll{} on rebuilt pairs,
-but most of that fall reflects attempts with nothing to find. The monitor gives them a mean suspicion
+but most of that fall reflects attempts with nothing to find (Figure~\ref{fig:scores}). The monitor gives them a mean suspicion
 of 6.9 out of 100, against 78.8 for the stored backdoors. On working backdoors the fall is smaller,
 from \storedMonSonVer{} to \rebuiltMonSonVer{} ($\rho = \rhoMonSonVer{}$), and the Haiku~4.5 monitor
 shows a similar ratio of \rhoMonHaiVer{} (Appendix~\ref{app:monitor}). The monitor's errors are unrelated to the classifier's
@@ -350,12 +335,10 @@ comparison cannot separate the two.
 \section{Discussion}
 \label{sec:discussion}
 
-Stored pairs are cheap, reproducible and convenient for developing monitors, and our results do not
-argue against using them. They do show that a score on stored pairs mixes the monitor's
-ability to recognise sabotage with its ability to recognise who wrote the code and with the
-difficulty of the problems that ended up in each class. In the standard split the second and third
-are strong enough that classifiers with no notion of program behaviour outscore most published
-monitors, and the catch rate that matters for safety is lower on pairs that share an author.
+Stored pairs are cheap and reproducible, and our results do not argue against using them. They do
+show that a score on stored pairs mixes the detection of sabotage with the recognition of authors
+and of problem difficulty, strongly enough that classifiers blind to program behaviour outscore
+most published monitors.
 
 Our estimates come with limitations. Rebuilding the corpus changes more than the author, because our
 two models differ from the ten stored attackers in how they write backdoors and how often those
@@ -368,15 +351,7 @@ family of APPS corpora and five agentic settings in which the same models write 
 weaker structural baseline remains (Appendix~\ref{app:agentic}). Finally, a strong baseline is
 evidence about a corpus, and none of our results corrects a specific published monitor score.
 
-These findings suggest four changes for anyone building or using stored pair benchmarks. Reports of
-monitor performance should include a lexical baseline and a metadata baseline, each against a
-permutation null, so that readers can see how much of a score the corpus gives away. Both classes
-should be written by one model from one prompt, so that the requested backdoor is the only intended
-difference between them. The honest class should be defined by honesty and sampled independently of
-whether attacks on a problem succeeded. And results should be reported separately for working
-backdoors and for all attempts, together with the catch rate at a fixed audit budget, since that is
-the number a control protocol depends on. The rebuilt corpus, every attempt of its retry pool, the
-selection rules and the scripts are released under the MIT licence (Appendix~\ref{app:harness}).
+We suggest four changes for stored pair benchmarks. Report a lexical and a metadata baseline beside every monitor score, each against a permutation null. Have one model write both classes from one prompt. Define the honest class by honesty, independently of whether attacks on a problem succeeded. And report working backdoors separately from all attempts, with the catch rate at a fixed audit budget. The rebuilt corpus, its retry pool and the scripts are released under the MIT licence (Appendix~\ref{app:harness}).
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
@@ -516,6 +491,13 @@ Table~\ref{tab:audit} gives the Sonnet~5 monitor's catch rate at three budgets.
   \end{tabular}
 \end{table}
 
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{figA1-scores.pdf}
+  \caption{\textbf{Suspicion scores from the Sonnet~5 monitor.} Share of honest programs (grey) and backdoored programs (gold outline) in each score band, with the mean score of the backdoored programs. Almost all rebuilt attempts score as low as honest code, because they contain no working backdoor. Rebuilt working backdoors spread across the range, while stored ones sit near the top.}
+  \label{fig:scores}
+\end{figure}
+
 \section{Agentic settings}
 \label{app:agentic}
 
@@ -531,7 +513,7 @@ to \cite{little2026length} for a proper treatment.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.66\linewidth]{figA1-agentic.pdf}
+  \includegraphics[width=0.66\linewidth]{figA2-agentic.pdf}
   \caption{\textbf{A structural baseline where both classes share their authors.} AUROC from transcript length alone, computed within each task. Dashed lines mark the 95th percentile of a permutation null of the same statistic (1{,}000 permutations).}
   \label{fig:agentic}
 \end{figure}

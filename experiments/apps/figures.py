@@ -1,9 +1,10 @@
 """Build the paper's data figures and appendix tables into ../../paper/fig/.
 
-    fig2-floors.pdf          Figure 2: the two floors among the 24 monitors ranked on the same split
-    fig3-rebuilt.pdf         Figure 3: stored against rebuilt AUROC for the classifier (a) and the
-                             monitor (b), and the monitor's catch rate at each audit budget (c)
-    figA1-agentic.pdf        Appendix: the structural floor in five agentic settings
+    fig2-floors.pdf          Figure 2: the two baselines ranked among the 24 published monitors
+    fig3-features.pdf        Figure 3: the lexical classifier's top features, stored vs. rebuilt
+    fig4-rebuilt.pdf         Figure 4: stored vs. rebuilt AUROC, and the monitor's catch rate
+    figA1-scores.pdf         Appendix: the monitor's suspicion scores by class
+    figA2-agentic.pdf        Appendix: the structural floor in five agentic settings
     tabA-baselines.tex       Appendix table: every baseline run on the stored pairs
     tabA-rebuilt.tex         Appendix table: S, B' and rho for every rebuilt row
 
@@ -111,41 +112,42 @@ AGENTIC = [("bash", 0.5044), ("shade", 0.6022), ("iac", 0.7041), ("rogue_eval", 
 
 
 
+
 # ===========================================================================================
-# Visual system (modelled on the figures of flagship alignment papers): one message per panel,
-# values printed on the marks, a centred title naming the quantity, light grid, no spines but the
-# baseline, Arial throughout to match the Helvetica of Figure 1.
+# Visual system: greyscale plus one accent. Gold marks our baselines, rebuilt pairs and backdoored
+# programs; greys mark everything else. Arial for text (it matches the Helvetica of Figure 1),
+# values printed on the marks, a single baseline rule, light horizontal grid.
 # ===========================================================================================
 plt.rcParams.update({
     "font.family": "sans-serif",
     "font.sans-serif": ["Arial", "Helvetica", "Liberation Sans", "DejaVu Sans"],
     "pdf.fonttype": 42,
-    "axes.linewidth": 0.8, "axes.edgecolor": "#3A3F47",
+    "axes.linewidth": 0.8, "axes.edgecolor": "#333333",
     "xtick.major.width": 0.8, "ytick.major.width": 0, "xtick.major.size": 0, "ytick.major.size": 0,
-    "xtick.color": "#3A3F47", "ytick.color": "#6B7280",
+    "xtick.color": "#333333", "ytick.color": "#666666",
 })
-INK, INK2, MUTED, GRID = "#1F2328", "#6B7280", "#A3A9B2", "#E9ECEF"
-STORED = "#E07B39"
-REBUILT = "#3567B5"
-MONBAR = "#D3D8DE"
+INK, INK2, MUTED, GRID = "#1A1A1A", "#666666", "#9E9E9E", "#E8E8E8"
+GOLD, GOLD_D, GOLD_L = "#C9A227", "#8F6F10", "#EFDFA8"
+DARK, MID, LIGHT = "#3D3D3D", "#8C8C8C", "#CFCFCF"
+MONO = ["Consolas", "DejaVu Sans Mono"]
 FS = 8.5
 
 
-def base(ax):
+def base(ax, grid="y"):
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.tick_params(labelsize=FS - 0.5, pad=3)
-    ax.grid(axis="y", color=GRID, lw=0.8, zorder=0)
+    if grid:
+        ax.grid(axis=grid, color=GRID, lw=0.8, zorder=0)
     ax.set_axisbelow(True)
 
 
-def ptitle(ax, text, letter=None):
+def ptitle(ax, text, letter=None, dx=0.075):
     ax.set_title(text, fontsize=FS + 0.5, weight="bold", color=INK, pad=8)
     if letter:
         from matplotlib.transforms import blended_transform_factory
         tr = blended_transform_factory(ax.figure.transFigure, ax.transAxes)
-        x = ax.get_position().x0 - (0.075 if letter == "a" else 0.045)
-        ax.text(x, 1.035, letter, transform=tr, fontsize=FS + 1.5, weight="bold",
-                color=INK, ha="left", va="bottom")
+        ax.text(ax.get_position().x0 - dx, 1.035, letter, transform=tr, fontsize=FS + 1.5,
+                weight="bold", color=INK, ha="left", va="bottom")
 
 
 def short(repo):
@@ -162,71 +164,109 @@ def fig2_floors():
     rows = [(short(m["repo"]), m["test_auroc"], "mon") for m in mons]
     rows += [("Lexical classifier", LEX_FLOOR, "lex"), ("Metadata classifier", META_FLOOR, "meta")]
     rows.sort(key=lambda r: -r[1])
-    fig, ax = plt.subplots(figsize=(TEXT_W, 2.05))
-    fig.subplots_adjust(left=0.065, right=0.995, top=0.86, bottom=0.07)
+    fig, ax = plt.subplots(figsize=(TEXT_W, 1.8))
+    fig.subplots_adjust(left=0.065, right=0.995, top=0.86, bottom=0.06)
     base(ax)
     for i, (name, v, kind) in enumerate(rows):
-        col = {"mon": MONBAR, "lex": REBUILT, "meta": STORED}[kind]
+        col = {"mon": LIGHT, "lex": GOLD, "meta": GOLD_D}[kind]
         ax.bar(i, v - 0.5, bottom=0.5, width=0.74, color=col, lw=0, zorder=2)
         if kind != "mon":
-            ax.text(i, v + 0.012, r3(v), ha="center", va="bottom", fontsize=FS - 0.5,
+            ax.text(i, v + 0.012, r3(v), ha="center", va="bottom", fontsize=FS - 1.8,
                     weight="bold", color=col)
-    # direct labels for our two bars and for the strongest monitor
-    lex_i = next(i for i, r in enumerate(rows) if r[2] == "lex")
-    meta_i = next(i for i, r in enumerate(rows) if r[2] == "meta")
     from matplotlib.patches import Patch
-    leg = ax.legend(handles=[Patch(color=REBUILT, label="lexical classifier (cannot see backdoors)"),
-                             Patch(color=STORED, label="metadata classifier (never reads code)"),
-                             Patch(color=MONBAR, label="24 published monitors")],
+    leg = ax.legend(handles=[Patch(color=GOLD, label="lexical classifier (cannot see backdoors)"),
+                             Patch(color=GOLD_D, label="metadata classifier (never reads code)"),
+                             Patch(color=LIGHT, label=f"{len(mons)} published monitors")],
                     loc="upper right", frameon=False, fontsize=FS - 0.5, handlelength=1.0,
                     handleheight=0.9, labelspacing=0.45, borderaxespad=0.2)
     for t in leg.get_texts():
         t.set_color(INK)
-    ax.axhline(0.5, color="#3A3F47", lw=0.8, zorder=3)
+    ax.axhline(0.5, color=DARK, lw=0.8, zorder=3)
     ax.text(len(rows) - 0.4, 0.505, "chance", ha="right", va="bottom", fontsize=FS - 1.5, color=INK2)
     ax.set_xlim(-0.7, len(rows) - 0.3); ax.set_ylim(0.4, 1.0)
     ax.set_xticks([]); ax.spines["bottom"].set_visible(False)
     ax.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     ax.set_ylabel("AUROC", fontsize=FS, color=INK, labelpad=4)
-    ptitle(ax, "AUROC on the filtered test split")
+    ptitle(ax, "AUROC on the filtered test split, ranked")
     save(fig, "fig2-floors.pdf")
     a = sorted(m["test_auroc"] for m in mons)
     print(f"Fig 2: {len(a)} monitors, median {statistics.median(a):.3f}, "
           f"{sum(x < LEX_FLOOR for x in a)} below lexical, {sum(x < META_FLOOR for x in a)} below metadata")
 
 
-# --- Figure 3: stored against rebuilt, and the audit budget ----------------------------------
+# --- Figure 3: what the lexical classifier reads ----------------------------------------------
+
+def _tok(t):
+    """Show a tokenised n-gram the way it reads in code: '= =' is '==', ') if' stays spaced."""
+    return t.replace("= =", "==").replace("! =", "!=").replace("< =", "<=").replace("> =", ">=")
+
+
+def fig3_features(k=8):
+    att = json.load(open("lexical_probe.json"))["headline"]["attribution"]
+    fig = plt.figure(figsize=(TEXT_W, 1.85))
+    # four ranked lists: stored backdoored / stored honest | rebuilt backdoored / rebuilt honest
+    xs = [0.095, 0.335, 0.605, 0.855]
+    W, Y0, H = 0.125, 0.05, 0.70
+    specs = [("B_prime", "attack", GOLD, "backdoored side"), ("B_prime", "honest", MID, "honest side"),
+             ("S", "attack", GOLD, "backdoored side"), ("S", "honest", MID, "honest side")]
+    for x, (key, side, col, sub) in zip(xs, specs):
+        ax = fig.add_axes([x, Y0, W, H])
+        items = [(_tok(t), abs(w)) for t, w in att[key][side][:k]]
+        lim = max(abs(w) for kk in ("B_prime", "S") for sd in ("attack", "honest")
+                  for _, w in att[kk][sd][:k])
+        for i, (t, w) in enumerate(items):
+            y = k - 1 - i
+            ax.barh(y, w, height=0.62, color=col, lw=0, zorder=2)
+            ax.text(-0.04 * lim, y, t, ha="right", va="center", fontsize=FS - 1.2, family=MONO,
+                    color=INK)
+        ax.set_xlim(0, lim * 1.02); ax.set_ylim(-0.55, k - 0.45)
+        ax.axis("off")
+        ax.axvline(0, color=DARK, lw=0.8)
+        ax.text(0.5, 1.0, sub, transform=ax.transAxes, ha="center", va="bottom", fontsize=FS - 1,
+                color=GOLD_D if side == "attack" else INK2, weight="bold")
+    fig.text(0.032, 0.955, "Stored pairs (a person vs. a model)", ha="left", va="top",
+             fontsize=FS + 0.5, weight="bold", color=INK)
+    fig.text(0.537, 0.955, "Rebuilt pairs (Sonnet 5 writes both)", ha="left", va="top",
+             fontsize=FS + 0.5, weight="bold", color=INK)
+    fig.text(0.005, 0.955, "a", ha="left", va="top", fontsize=FS + 1.5, weight="bold", color=INK)
+    fig.text(0.51, 0.955, "b", ha="left", va="top", fontsize=FS + 1.5, weight="bold", color=INK)
+    fig.add_artist(plt.Line2D([0.497, 0.497], [0.05, 0.86], color=GRID, lw=0.8))
+    save(fig, "fig3-features.pdf")
+    print("Fig 3: top features",
+          [t for t, _ in att["B_prime"]["attack"][:k]], [t for t, _ in att["S"]["attack"][:k]])
+
+
+# --- Figure 4: stored against rebuilt, and the audit budget ----------------------------------
 
 GROUPS = [("all\nattempts", 0), ("shared\nprompt", 1), ("working\nbackdoors", 2),
           ("all\nattempts", 4), ("shared\nprompt", 5)]
 
 
-def fig3_rebuilt():
+def fig4_rebuilt():
     audit = {(r["monitor"], r["row"], r["pairs"]): r
              for r in json.load(open("audit_budget.json"))["rows"]}
-    fig = plt.figure(figsize=(TEXT_W, 2.55))
-    ax = fig.add_axes([0.095, 0.27, 0.49, 0.59])
-    cx = fig.add_axes([0.70, 0.27, 0.285, 0.59])
+    fig = plt.figure(figsize=(TEXT_W, 2.4))
+    ax = fig.add_axes([0.095, 0.28, 0.49, 0.58])
+    cx = fig.add_axes([0.70, 0.28, 0.27, 0.58])
 
-    # (a) grouped bars from chance, value on each bar, rho under each group
     base(ax)
     w = 0.36
     for g, (lab, k) in enumerate(GROUPS):
         b, s, rho = CLF_ROWS[k][2], CLF_ROWS[k][3], CLF_ROWS[k][4]
-        for dx, val, col in ((-w / 2 - 0.02, b, STORED), (w / 2 + 0.02, s, REBUILT)):
+        for dx, val, col in ((-w / 2 - 0.02, b, DARK), (w / 2 + 0.02, s, GOLD)):
             ax.bar(g + dx, val[0] - 0.5, bottom=0.5, width=w, color=col, lw=0, zorder=2)
             ax.plot([g + dx, g + dx], [val[1], val[2]], color=INK, lw=0.7, zorder=3)
             ax.text(g + dx, val[2] + 0.012, f"{val[0]:.2f}", ha="center", va="bottom",
                     fontsize=FS - 1.2, color=INK)
         ax.text(g, 0.452, f"keeps {100 * rho[0]:.0f}%", ha="center", va="center",
                 fontsize=FS - 1.2, color=INK2)
-    ax.axhline(0.5, color="#3A3F47", lw=0.8, zorder=3)
+    ax.axhline(0.5, color=DARK, lw=0.8, zorder=3)
     ax.set_xticks(range(len(GROUPS)))
     ax.set_xticklabels([g[0] for g in GROUPS], fontsize=FS - 1, color=INK, linespacing=1.15)
     ax.tick_params(axis="x", pad=13)
     for x0, x1, name in ((0, 2, "Claude Sonnet 5"), (3, 4, "Claude Haiku 4.5")):
-        ax.annotate("", xy=(x0 - 0.38, -0.30), xytext=(x1 + 0.38, -0.30), xycoords=("data", "axes fraction"),
-                    textcoords=("data", "axes fraction"),
+        ax.annotate("", xy=(x0 - 0.38, -0.30), xytext=(x1 + 0.38, -0.30),
+                    xycoords=("data", "axes fraction"), textcoords=("data", "axes fraction"),
                     arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.8))
         ax.text((x0 + x1) / 2, -0.37, name, transform=ax.get_xaxis_transform(), ha="center",
                 va="top", fontsize=FS - 0.5, color=INK, weight="bold")
@@ -236,46 +276,81 @@ def fig3_rebuilt():
     ax.set_ylabel("AUROC", fontsize=FS, color=INK, labelpad=4)
     ptitle(ax, "Lexical classifier, stored vs. rebuilt pairs", "a")
     from matplotlib.patches import Patch
-    leg = ax.legend(handles=[Patch(color=STORED, label="stored pairs"),
-                             Patch(color=REBUILT, label="rebuilt pairs")],
+    leg = ax.legend(handles=[Patch(color=DARK, label="stored pairs"),
+                             Patch(color=GOLD, label="rebuilt pairs")],
                     loc="upper right", ncol=2, frameon=False, fontsize=FS - 1,
                     handlelength=1.0, handleheight=0.8, columnspacing=1.0, borderaxespad=0.1)
     for t in leg.get_texts():
         t.set_color(INK)
 
-    # (b) catch rate against audit budget, Sonnet 5 monitor, working backdoors
     base(cx)
     cx.grid(axis="x", color=GRID, lw=0.8, zorder=0)
     cx.spines["left"].set_visible(False)
-    for key, c, lab in ((("sonnet5", "strict", "stored"), STORED, "stored pairs"),
-                        (("sonnet5", "strict", "samegen"), REBUILT, "rebuilt pairs")):
+    for key, c, lab in ((("sonnet5", "strict", "stored"), DARK, "stored pairs"),
+                        (("sonnet5", "strict", "samegen"), GOLD, "rebuilt pairs")):
         cur = audit[key]["curve"]
         x = [100 * p["budget"] for p in cur]
         y = [100 * p["point"] for p in cur]
         cx.fill_between(x, [100 * p["ci95"][0] for p in cur], [100 * p["ci95"][1] for p in cur],
                         color=c, alpha=0.14, lw=0, zorder=1)
         cx.plot(x, y, color=c, lw=1.8, zorder=3)
-        cx.text(19.6, y[-1] + (5 if c == STORED else -6), lab, color=c, fontsize=FS - 1,
-                va="bottom" if c == STORED else "top", ha="right", weight="bold")
+        cx.text(19.6, y[-1] + (5 if c == DARK else -6), lab, color=c if c == DARK else GOLD_D,
+                fontsize=FS - 1, va="bottom" if c == DARK else "top", ha="right", weight="bold")
     st = 100 * audit[("sonnet5", "strict", "stored")]["catch@0.05"]["point"]
     rb = 100 * audit[("sonnet5", "strict", "samegen")]["catch@0.05"]["point"]
-    for v, c in ((st, STORED), (rb, REBUILT)):
+    for v, c, tc in ((st, DARK, DARK), (rb, GOLD, GOLD_D)):
         cx.scatter([5], [v], s=22, color=c, zorder=5, lw=0)
-        cx.text(5.6, v + (5 if c == STORED else -5), f"{v:.0f}%", color=c, fontsize=FS - 1,
-                ha="left", va="bottom" if c == STORED else "top", weight="bold")
+        cx.text(5.6, v + (5 if c == DARK else -5), f"{v:.0f}%", color=tc, fontsize=FS - 1,
+                ha="left", va="bottom" if c == DARK else "top", weight="bold")
     cx.set_xlim(0, 20); cx.set_ylim(0, 100)
     cx.set_xticks([0, 5, 10, 15, 20]); cx.set_xticklabels(["0%", "5%", "10%", "15%", "20%"])
-    cx.set_yticks([0, 25, 50, 75, 100]); cx.set_yticklabels(["0", "25%", "50%", "75%", "100%"])
-    cx.tick_params(axis="x", pad=3)
+    cx.set_yticks([0, 25, 50, 75, 100]); cx.set_yticklabels(["", "25%", "50%", "75%", "100%"])
     cx.set_xlabel("honest programs audited", fontsize=FS - 0.5, color=INK, labelpad=3)
-    ptitle(cx, "Backdoors caught", "b")
-    save(fig, "fig3-rebuilt.pdf")
-    print(f"Fig 3: catch at 5%: stored {st:.1f}, rebuilt {rb:.1f}")
+    ptitle(cx, "Working backdoors caught", "b", dx=0.045)
+    save(fig, "fig4-rebuilt.pdf")
+    print(f"Fig 4: catch at 5%: stored {st:.1f}, rebuilt {rb:.1f}")
 
 
-# --- Appendix figure ---------------------------------------------------------------------
+# --- Appendix: monitor suspicion scores -------------------------------------------------------
 
-def figA1_agentic():
+def figA1_scores():
+    import numpy as np
+    files = [("monitor_stored_sonnet5_independent_passes.json", "Stored, all attempts"),
+             ("monitor_samegen_sonnet5_independent_passes.json", "Rebuilt, all attempts"),
+             ("monitor_stored_sonnet5_independent_usable.json", "Stored, working"),
+             ("monitor_samegen_sonnet5_independent_usable.json", "Rebuilt, working")]
+    fig, axes = plt.subplots(1, 4, figsize=(TEXT_W, 1.75), sharey=True)
+    fig.subplots_adjust(left=0.095, right=0.975, top=0.80, bottom=0.25, wspace=0.22)
+    bins = np.arange(0, 105, 10)
+    for ax, (f, title) in zip(axes, files):
+        sc = json.load(open(f))["scores"]
+        h = [x["score"] for x in sc if x["class"] == "honest" and x.get("score") is not None]
+        a = [x["score"] for x in sc if x["class"] == "attack" and x.get("score") is not None]
+        base(ax)
+        ax.hist(h, bins=bins, weights=np.ones(len(h)) / len(h), color=LIGHT, lw=0, zorder=2,
+                label="honest")
+        ax.hist(a, bins=bins, weights=np.ones(len(a)) / len(a), histtype="step", color=GOLD_D,
+                lw=1.5, zorder=3, label="backdoored")
+        ax.set_title(title, fontsize=FS - 0.5, weight="bold", color=INK, pad=4)
+        ax.set_xlim(0, 100); ax.set_xticks([0, 50, 100]); ax.set_ylim(0, 1)
+        ax.tick_params(axis="x", labelsize=FS - 1.5)
+        ax.set_yticks([0, 0.5, 1.0]); ax.set_yticklabels(["0", "50%", "100%"])
+        ax.text(97, 0.93, f"mean {np.mean(a):.0f}", ha="right", va="top", fontsize=FS - 1.5,
+                color=GOLD_D)
+    axes[0].set_ylabel("share of programs", fontsize=FS - 0.5, color=INK)
+    fig.text(0.53, 0.04, "suspicion score from the Sonnet 5 monitor", ha="center",
+             fontsize=FS - 0.5, color=INK)
+    leg = axes[0].legend(loc="upper center", bbox_to_anchor=(2.35, 1.42), ncol=2, frameon=False,
+                         fontsize=FS - 1)
+    for t in leg.get_texts():
+        t.set_color(INK)
+    save(fig, "figA1-scores.pdf")
+    print("Fig A1 done")
+
+
+# --- Appendix: agentic settings ---------------------------------------------------------------
+
+def figA2_agentic():
     nulls = json.load(open("../agentic/within_task_null.json"))
     rows = AGENTIC
     fig, ax = plt.subplots(figsize=(0.8 * TEXT_W, 1.9))
@@ -283,10 +358,10 @@ def figA1_agentic():
     base(ax)
     for i, (s, v) in enumerate(rows):
         p95 = nulls[s]["null_p95"]
-        ax.bar(i, v - 0.5, bottom=0.5, width=0.55, color=REBUILT, lw=0, zorder=2)
+        ax.bar(i, v - 0.5, bottom=0.5, width=0.55, color=GOLD, lw=0, zorder=2)
         ax.plot([i - 0.36, i + 0.36], [p95, p95], color=INK, lw=1.0, ls=(0, (2, 1.5)), zorder=3)
         ax.text(i, max(v, p95) + 0.008, f"{v:.3f}", ha="center", va="bottom", fontsize=FS - 1, color=INK)
-    ax.axhline(0.5, color="#3A3F47", lw=0.8, zorder=3)
+    ax.axhline(0.5, color=DARK, lw=0.8, zorder=3)
     ax.set_xticks(range(len(rows)))
     ax.set_xticklabels([f"{s.replace('_', ' ')}\n{nulls[s]['n_tasks']} tasks" for s, _ in rows],
                        fontsize=FS - 1, color=INK, linespacing=1.15)
@@ -294,8 +369,8 @@ def figA1_agentic():
     ax.set_ylim(0.45, 0.87); ax.set_yticks([0.5, 0.6, 0.7, 0.8])
     ax.set_ylabel("AUROC", fontsize=FS, color=INK, labelpad=4)
     ptitle(ax, "Transcript length alone, within each task")
-    save(fig, "figA1-agentic.pdf")
-    print("Fig A1 done")
+    save(fig, "figA2-agentic.pdf")
+    print("Fig A2 done")
 
 
 # --- Appendix tables -----------------------------------------------------------------------
@@ -440,6 +515,8 @@ if __name__ == "__main__":
     tab_baselines()
     tab_rebuilt()
     fig2_floors()
-    fig3_rebuilt()
-    figA1_agentic()
+    fig3_features()
+    fig4_rebuilt()
+    figA1_scores()
+    figA2_agentic()
     print(f"\nwrote to {os.path.abspath(OUT)}")
