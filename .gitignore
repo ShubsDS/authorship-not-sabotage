@@ -47,3 +47,5 @@ __pycache__/
 .template/
 .render/
 .orig/
+paper/fig/*.aux
+paper/fig/*.log
