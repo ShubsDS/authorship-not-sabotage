@@ -22,6 +22,7 @@ import json
 import numpy as np
 
 BUDGETS = (0.02, 0.05, 0.10)
+CURVE = tuple(round(0.01 * k, 2) for k in range(1, 21))
 N_BOOT = 2000
 
 FILES = {
@@ -69,6 +70,17 @@ def summarise(by_pid: dict[str, dict[str, float]], rng: np.random.Generator) -> 
     for b in BUDGETS:
         lo, hi = np.percentile(boots[b], [2.5, 97.5])
         out[f"catch@{b:.2f}"] = {"point": catch_rate(h, a, b), "ci95": [float(lo), float(hi)]}
+
+    # The whole curve, for the figure: catch rate at every audit budget from 1% to 20%.
+    curve_boots = {b: [] for b in CURVE}
+    for _ in range(N_BOOT // 4):
+        hb, ab = split(rng.choice(pids, len(pids), replace=True))
+        if len(hb) and len(ab):
+            for b in CURVE:
+                curve_boots[b].append(catch_rate(hb, ab, b))
+    out["curve"] = [{"budget": b, "point": catch_rate(h, a, b),
+                     "ci95": [float(x) for x in np.percentile(curve_boots[b], [2.5, 97.5])]}
+                    for b in CURVE]
     return out
 
 
