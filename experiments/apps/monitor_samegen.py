@@ -6,7 +6,7 @@ classifier score on those pairs can be checked against a detector that reads pro
 
 `--stored` runs the same monitor, prompt, stripping and shuffling over the stored benchmark pairs
 on exactly the problems of a `--gate-s-json`, i.e. that row's B': the human honest program
-(`data._honest_code`, the shipped pass flag) against the stored Claude 3.7 backdoor the row's B'
+(`data._honest_code`, the shipped pass flag) against the stored backdoor the row's B'
 rule selects (`data._pick_backdoor`, or the first test-passing entry when the row was built with
 `--bprime-inert`). monitor-rho = (M_samegen - 0.5) / (M_stored - 0.5) is the monitor's
 counterpart of the classifier's rho on the same problems (`monitor_rho.py`).
@@ -580,7 +580,7 @@ def main() -> None:
                          "does not, that row is skipped with a message. Required with --stored, "
                          "which takes its problems and its B' selection rule from this file.")
     ap.add_argument("--stored", action="store_true",
-                    help="score the STORED benchmark pairs (human honest vs stored Claude 3.7 "
+                    help="score the STORED benchmark pairs (human honest vs stored "
                          "backdoor) over exactly the problems of --gate-s-json, under that row's "
                          "own B' rule, instead of the same-generator pairs. Same prompt, same "
                          "comment stripping, same shuffling; its own state and output files. This "
@@ -623,7 +623,7 @@ def main() -> None:
         # In --stored mode the attack class is the row's B', so --eligibility selects nothing; it
         # only names the file. Take the row's own value so the name cannot disagree with the row.
         args.eligibility = stored_meta.get("eligibility") or args.eligibility
-        generator = "human honest (APPS) vs stored backdoor (claude-3-7)"
+        generator = "human honest (APPS) vs stored backdoor (ten attacker models)"
         print(f"arm: {arm}   pairs: the stored benchmark's, on this row's problems")
     else:
         print(f"arm: {arm}   backdoors from {bd_path}")

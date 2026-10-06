@@ -39,7 +39,7 @@ python koran_split_eval.py        # bag-of-words 0.8063 (above 20/24 monitors); 
 python auroc.py                   # no-code floor, held-out slice: 0.7163
 python analyse2.py                # no-code floor, 5x5 CV: 0.7715 ± 0.0389; inert share 80.7%
 python analyse.py                 # lineage check; tests per problem; 892 labelled / 256 pass / 172 fire
-python floors.py                  # metadata-only floors under protocols P0-P4 (Table F1)
+python floors.py                  # metadata-only floors under protocols P0-P4 (Table A2)
 python exact.py                   # "the longer program is the attack" baseline
 python strip_recheck.py --seeds 5 # matched pairs, working vs inert, cross-generator transfer
 python headline_ci.py             # bootstrap and permutation intervals -> headline_ci.json (15-30 min)
@@ -160,16 +160,18 @@ The `_v2` files repeat the headline and strict runs with out-of-fold scores save
 ## 6. Agentic settings (`experiments/agentic`)
 
 ```bash
-python matched.py    # within-task, character-count-only AUROC: bash 0.504 ... agentdojo 0.802 (Figure F2)
-python floors2.py    # the permutation nulls in Figure F2
-python cot.py        # scratchpad keyword regex: AUROC 0.76-0.82
-python prov.py       # which models wrote each class
+python matched.py            # within-task, character-count-only AUROC: bash 0.504 ... agentdojo 0.802
+python within_task_null.py   # permutation null of that same statistic (Figure A1) -> within_task_null.json
+python floors2.py            # six-feature GBM floors with a pooled null (not plotted)
+python cot.py                # scratchpad keyword regex: AUROC 0.76-0.82
+python prov.py               # which models wrote each class
 ```
 
-## 7. Figures and the release bundle
+## 7. Audit budget, figures and the release bundle
 
 ```bash
-python figures.py    # writes ../../paper/fig/ after checking every value against main.tex
+python audit_budget.py       # catch rate at 2/5/10% audit budgets (Table A5) -> audit_budget.json
+python figures.py            # writes ../../paper/fig/ after checking every value against main.tex
 
 python release_split.py --out release --force --keep first \
     --bd-independent bdind_sonnet5_first.jsonl --bdpass-independent bdindpass_sonnet5_first.jsonl \
@@ -180,39 +182,46 @@ python release_split.py --check release --allow-trivial-identical 120
 
 ## Where each result comes from
 
+All same-generator values in the paper are pooled out-of-fold AUROCs (`auroc_pooled_oof` in the
+JSON files) with bootstrap intervals over problems; the ρ intervals are the joint bootstrap
+(`rho_ci95_joint`). The JSON files also keep the fold-mean `auroc`, which earlier drafts quoted.
+
 | Result in the paper | Script | Committed output |
 |---|---|---|
 | Bag-of-words floor 0.806 (20/24); comments kept 0.891; char n-grams 0.783 | `koran_split_eval.py` | — |
 | No-code floor 0.772 (CV) and 0.716 (held-out) | `analyse2.py`, `auroc.py` | — |
 | Intervals, permutation nulls, paired comparison with the monitors | `headline_ci.py` | `headline_ci.json` |
 | Monitor count, median 0.609, max 0.937 | `fetch_inputs.py` | `monitor-summary.json` |
-| `#`-count 0.696 → 0.498; length 0.4726 | `bow.py` | — |
-| Table F1 metadata rows; P3 = 0.5000 | `floors.py`, `auroc.py` | — |
+| `#`-count 0.696 → 0.498; length 0.473 | `bow.py` | — |
+| Table A2 metadata rows | `floors.py`, `auroc.py` | — |
 | Matched pairs, working vs inert, transfer, style markers | `strip_recheck.py` | — |
-| Inert share, tests per problem, 892/256/172 | `analyse.py`, `analyse2.py` | — |
-| B = 0.871 (and 0.873 under our harness's pass flag) | `gate_s_baseline.py` | `gate_s_baseline.json`, `gate_s_baseline_ownflag.json` |
-| Open-weight arm (ρ = 1.234) | `gen_honest.py` → `gate_s_eval.py` | `gate_s_q3c30.json` |
-| Headline S = 0.751, ρ = 0.687; pair similarity | `gate_s_samegen.py` | `sg_indep_first_passes[_v2].json` |
-| Strict S = 0.765, ρ = 0.921; fold seeds | `gate_s_samegen.py` | `sg_indep_best_usable[_v2].json`, `sg_indep_best_usable_seed{0..4}.json` |
-| Edit arm S = 0.627, ρ = 0.371 | `gate_s_samegen.py` | `sg_edit_passes.json` |
-| Joint intervals on ρ | `rho_joint_ci.py` | `rho_joint_{headline,strict,haiku45}.json` |
-| B at matched n | `gate_s_learning_curve.py` | `lc_{first_passes,best_usable}.json` |
-| Survivor check | `survivor_check.py` | `survivor_check.json` |
-| Identifier mask: S = 0.700 | `lexical_probe.py` | `lexical_probe.json` |
-| Prompt-matched S = 0.642, ρ = 0.394; prompt-only floor | `gate_s_matched.py` | `gate_s_matched_{headline,strict}.json` |
-| Haiku S = 0.534, ρ = 0.095 | `gate_s_samegen.py` | `sg_haiku45_indep_passes.json` |
-| Haiku prompt-matched and similarity strata | `gate_s_matched_haiku.py`, `sim_stratified_s.py` | `gate_s_matched_haiku45.json`, `sim_strata_haiku45.json` |
-| LLM monitor: 0.958 stored → 0.566 same-generator; Haiku monitor | `monitor_samegen.py` | `monitor_{samegen,stored}_*.json` |
+| Inert share, tests per problem, 720 of 1,203 honest items | `analyse.py`, `analyse2.py` | — |
+| Stored-pair AUROC 0.871 over 1,444 problems (0.873 under our pass flag) | `gate_s_baseline.py` | `gate_s_baseline.json`, `gate_s_baseline_ownflag.json` |
+| One-sided arm (Qwen3-Coder-30B, ρ = 1.23) | `gen_honest.py` → `gate_s_eval.py` | `gate_s_q3c30.json` |
+| Sonnet 5 all attempts: S 0.750, B′ 0.865, ρ 0.687; pair similarity | `gate_s_samegen.py`, `rho_joint_ci.py` | `sg_indep_first_passes[_v2].json`, `rho_joint_headline.json` |
+| Sonnet 5 verified: S 0.749, B′ 0.789, ρ 0.861 | `gate_s_samegen.py`, `rho_joint_ci.py` | `sg_indep_best_usable[_v2].json`, `rho_joint_strict.json` |
+| Edit arm S 0.625, ρ 0.366 | `gate_s_samegen.py` | `sg_edit_passes.json` |
+| Haiku 4.5 all attempts: S 0.534, ρ 0.097 | `gate_s_samegen.py`, `rho_joint_ci.py` | `sg_haiku45_indep_passes.json`, `rho_joint_haiku45.json` |
+| Prompt-matched rows and the prompt-only floor (0.600, 0.492) | `gate_s_matched.py`, `gate_s_matched_haiku.py` | `gate_s_matched_{headline,strict,haiku45}.json` |
+| Classifier at matched n (0.851, 0.773) | `gate_s_learning_curve.py` | `lc_{first_passes,best_usable}.json` |
+| Survivor check (0.745 vs 0.751; 0.62) | `survivor_check.py` | `survivor_check.json` |
+| Identifier and other masks | `lexical_probe.py`, `gate_s_matched.py` | `lexical_probe.json`, `gate_s_matched_headline.json` |
+| Haiku similarity strata | `sim_stratified_s.py` | `sim_strata_haiku45.json` |
+| LLM monitor AUROCs and mean scores | `monitor_samegen.py` | `monitor_{samegen,stored}_*.json` |
 | Monitor ρ | `monitor_rho.py` | `monitor_rho.json` |
-| Trigger overlap with public tests | `trigger_public_check.py` | — |
+| Catch rate at a fixed audit budget | `audit_budget.py` | `audit_budget.json` |
+| Trigger overlap with public tests (52%) | `trigger_public_check.py` | — |
 | Token test | `token_test.py` | — |
-| Agentic floors, nulls, scratchpad regex | `agentic/matched.py`, `floors2.py`, `cot.py` | — |
+| Agentic floors and their within-task nulls | `agentic/matched.py`, `agentic/within_task_null.py` | `agentic/within_task_null.json` |
+| Scratchpad regex | `agentic/cot.py` | — |
 | Release counts | `merge_draws.py`, `release_split.py` | — |
 
 A few appendix counts were computed with ad hoc joins of the files above and have no script of
 their own:
 
 - harness agreement 95.84%: `human_verify.jsonl` restricted to the analysis pool
-- the firing shares 97.75% / 99.67%: verdicts joined with the problem ids in the `sg_*.json` files
+- the firing counts 14 of 623 and 2 of 611: verdicts joined with the problem ids in the `sg_*.json` files
 - the `def main` shares
 - the byline and docstring counts in the token-test appendix
+- the stored-attack firing check in the Limitations: a 194-problem sample of the analysis pool,
+  checking whether the stored attack each B′ row uses has `backdoor_works`

@@ -1,17 +1,20 @@
-"""Build the paper's figures and the F1 table into ../../paper/fig/.
+"""Build the paper's data figures and appendix tables into ../../paper/fig/.
 
-    F1  protocol x baseline table  -> f1-protocol-baseline.tex
-    F2  agentic-setting floors     -> f2-corpus-floors.pdf
-    F3  monitors vs our floors     -> f3-monitors-vs-floors.pdf
-    F4  the three constructions    -> f4-constructions.pdf
+    fig2-floors.pdf          Figure 2: the two baselines ranked among the 24 published monitors
+    fig3-features.pdf        Figure 3: the lexical classifier's top features, stored vs. rebuilt
+    fig4-rebuilt.pdf         Figure 4: stored vs. rebuilt AUROC, and the monitor's catch rate
+    figA1-scores.pdf         Appendix: the monitor's suspicion scores by class
+    figA2-agentic.pdf        Appendix: the structural floor in five agentic settings
+    tabA-baselines.tex       Appendix table: every baseline run on the stored pairs
+    tabA-rebuilt.tex         Appendix table: S, B' and rho for every rebuilt row
 
-Every plotted value is a named constant below. Before drawing, check() asserts each one against the
-\newcommand macros in ../../paper/main.tex, so a figure cannot disagree with the text. F3 also reads
-the 24 monitor AUROCs from monitor-summary.json (written by fetch_inputs.py).
+Figure 1 is a TikZ schematic in main.tex. Every value plotted or tabulated here is a named constant
+below, and check() asserts the ones the text quotes against the \\newcommand macros in
+../../paper/main.tex before anything is drawn. Figure 2 also reads monitor-summary.json, Figure 3c
+reads audit_budget.json and the appendix figure reads ../agentic/within_task_null.json.
 
-Figures are sized at the width main.tex includes them at, so font sizes are the printed sizes. The
-paper sets in Times; Nimbus Roman (or Times New Roman) matches its metrics. Output is deterministic:
-the PDF creation date is not stamped.
+AUROCs for rebuilt and stored pairs are pooled cross-validated estimates with 95% bootstrap
+intervals over problems; rho intervals resample both AUROCs jointly.
 
 Usage (from experiments/apps):
     python figures.py
@@ -27,85 +30,68 @@ import statistics
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch  # noqa: E402
 
 plt.rcParams.update({
     "font.family": "serif",
     "font.serif": ["Nimbus Roman", "Times New Roman", "Times", "STIXGeneral", "DejaVu Serif"],
     "mathtext.fontset": "stix",
-    "pdf.fonttype": 42,      # TrueType, not Type 3, which some camera-ready checkers reject
+    "pdf.fonttype": 42,
+    "axes.linewidth": 0.6,
+    "xtick.major.width": 0.6, "ytick.major.width": 0.6,
+    "xtick.major.size": 2.5, "ytick.major.size": 2.5,
 })
 
 OUT = "../../paper/fig"
-
-# No /CreationDate, so rebuilds are byte-identical.
 PDF_METADATA = {"CreationDate": None}
-
-# The 5.5in NeurIPS text block, and the widths main.tex includes each figure at.
 TEXT_W = 5.5
-W_F2, W_F3, W_F4 = 0.86 * TEXT_W, 0.64 * TEXT_W, 1.00 * TEXT_W
+FS = 8.5                                    # base font size at print width
 
-# --- ink -----------------------------------------------------------------------------------
-INK, INK2, MUTED, GRID = "#0b0b0b", "#52514e", "#8c8b86", "#e3e2dd"
-BLUE, ORANGE = "#2a78d6", "#eb6834"
-CONNECT = "#d3d2cc"
+# --- palette ------------------------------------------------------------------------------
+INK, INK2, MUTED, GRID = "#1d2127", "#4f5661", "#8d939c", "#e7e9ec"
+STORED = "#c8682c"          # stored pairs: a person wrote one class, a model the other
+SONNET = "#2f66b3"          # rebuilt pairs, Claude Sonnet 5
+HAIKU = "#2b9a8a"           # rebuilt pairs, Claude Haiku 4.5
+LEX = "#2f66b3"             # the lexical classifier
+META = "#c8682c"            # the metadata classifier
+MONITOR = "#a7adb5"         # published monitors
+SHADE = "#e3e7ec"
 
-# Card and badge palette.
-OK_BG, OK_EC, OK_TX = "#f0fdf4", "#86efac", "#166534"      # controlled / honest
-BAD_BG, BAD_EC, BAD_TX = "#fff1f2", "#fda4af", "#9f1239"   # confounded / attack
-TGT_BG, TGT_TX = "#eef2ff", "#3730a3"                      # the target signal
-TINT = "#f4f8fd"                                           # the two constructions we build
-PANEL_BG, PANEL_EC = "#fafafa", "#d1d5db"
+# --- measured values (as reported in main.tex) ---------------------------------------------
+LEX_FLOOR = 0.8063          # trained on the split's training problems, scored on its test set
+META_FLOOR = 0.7715         # 5x5 cross-validation within the test set
+META_HELDOUT = 0.7163
 
-# Measured values, as reported in main.tex.
-TFIDF_FLOOR = 0.8063                       # Koran paired train -> their 1,375-item test split
-TFIDF_CI = (0.7704, 0.8409)                # bootstrap over problems
-TFIDF_NULL = 0.5465                        # permutation null, 95th pct; p = 0.004975
-NOCODE_FLOOR, NOCODE_SD = 0.7715, 0.0389   # 5x5 CV within the test split; clears 20 of 24
-NOCODE_CI = (0.7319, 0.8005)               # CI of the pooled out-of-fold AUROC (0.7658)
-NOCODE_NULL = 0.5545
-NOCODE_HELDOUT = 0.7163                    # single 413-item held-out slice; clears 18 of 24
-
-# Agentic settings (agentic/matched.py, agentic/floors2.py): within-task chars-only AUROC,
-# permutation null, and the number of task groups the within-task AUROC averages over.
-SCAN = [
-    ("bash",       0.5044, 0.4896, 247),
-    ("shade",      0.6022, 0.5079, 5),
-    ("iac",        0.7041, 0.4841, 5),
-    ("rogue_eval", 0.6158, 0.4801, 25),
-    ("agentdojo",  0.8020, 0.5118, 16),
+# Rebuilt rows: label, generator, stored AUROC B' (pt, lo, hi), rebuilt AUROC S (pt, lo, hi),
+# rho (pt, lo, hi), pairs, firing attacks.
+CLF_ROWS = [
+    ("all attempts",                 "Sonnet", (0.8646, 0.8482, 0.8811), (0.7504, 0.7295, 0.7713), (0.687, 0.625, 0.755), 623, 14),
+    ("all attempts, shared prompt",  "Sonnet", (0.8614, 0.8443, 0.8782), (0.6411, 0.6179, 0.6621), (0.390, 0.326, 0.454), 586, None),
+    ("verified",                     "Sonnet", (0.7889, 0.7410, 0.8339), (0.7488, 0.7016, 0.8000), (0.861, 0.662, 1.089), 99, 99),
+    ("verified, shared prompt",      "Sonnet", (0.7910, 0.7475, 0.8358), (0.6926, 0.6464, 0.7453), (0.662, 0.494, 0.856), 96, 96),
+    ("all attempts",                 "Haiku",  (0.8564, 0.8392, 0.8726), (0.5344, 0.5159, 0.5531), (0.097, 0.044, 0.150), 611, 2),
+    ("all attempts, shared prompt",  "Haiku",  (0.8540, 0.8353, 0.8716), (0.5391, 0.5197, 0.5581), (0.110, 0.055, 0.165), 562, None),
 ]
-
-# F4: the classifier's AUROC on each construction's own pairs (B, S and the prompt-matched S).
-# Each is measured on different problems, so they are a ladder, not a paired comparison.
-CONSTRUCTIONS = [
-    dict(key="stored",  title="stored benchmark",  n="1,444 pairs", auroc=0.871, ours=False,
-         writer="confounded", prompt="confounded",
-         pill=(BAD_BG, "#fecdd3", "#be123c")),
-    dict(key="samegen", title="same-generator",    n="623 pairs",   auroc=0.751, ours=True,
-         writer="controlled", prompt="confounded",
-         pill=("#eff6ff", "#bfdbfe", "#1d4ed8")),
-    dict(key="matched", title="prompt-matched",    n="586 pairs",   auroc=0.642, ours=True,
-         writer="controlled", prompt="controlled",
-         pill=(OK_BG, "#bbf7d0", "#15803d")),
+MON_ROWS = [
+    ("all attempts", "Sonnet", (0.9579, 0.9466, 0.9683), (0.5662, 0.5507, 0.5833), (0.145, 0.111, 0.182)),
+    ("verified",     "Sonnet", (0.9437, 0.9086, 0.9724), (0.8182, 0.7630, 0.8686), (0.717, 0.601, 0.832)),
+    ("verified",     "Haiku",  (0.8765, 0.8238, 0.9238), (0.7883, 0.7237, 0.8494), (0.766, 0.588, 0.963)),
 ]
-
-BADGE = {"confounded": (BAD_BG, BAD_TX), "controlled": (OK_BG, OK_TX), "target": (TGT_BG, TGT_TX)}
-
-
-def f3dp(x):
-    """Three decimals, rounding half up (format() rounds 0.7715 to 0.771; the paper prints 0.772)."""
-    return f"{math.floor(x * 1000 + 0.5) / 1000:.3f}"
+COLOR = {"Sonnet": SONNET, "Haiku": HAIKU}
 
 
-def style(ax, base=8):
-    """Hairline axes and a faint x grid."""
-    ax.spines[["top", "right", "left"]].set_visible(False)
-    ax.spines["bottom"].set_color(GRID)
-    ax.tick_params(axis="x", colors=INK2, labelsize=base, length=3, width=0.7)
-    ax.tick_params(axis="y", colors=INK2, labelsize=base, length=0)
-    ax.grid(axis="x", color=GRID, lw=0.5, zorder=0)
+def style(ax, grid="both"):
+    ax.spines[["top", "right"]].set_visible(False)
+    for s in ("left", "bottom"):
+        ax.spines[s].set_color(MUTED)
+    ax.tick_params(colors=INK2, labelsize=FS - 0.5)
+    if grid:
+        ax.grid(axis=grid if grid != "both" else "both", color=GRID, lw=0.5, zorder=0)
     ax.set_axisbelow(True)
+
+
+def tag(ax, s, x=-0.16, y=1.04):
+    ax.text(x, y, s, transform=ax.transAxes, fontsize=FS + 1, weight="bold", color=INK,
+            ha="left", va="bottom")
 
 
 def save(fig, name):
@@ -113,288 +99,370 @@ def save(fig, name):
     plt.close(fig)
 
 
-# F4: how a stored pair is built, and how we rebuild it. One panel per construction; each row is
-# a property of the pair and whether the two classes differ in it.
-
-def _measure(ax, t):
-    ax.figure.canvas.draw()
-    return t.get_window_extent().transformed(ax.transData.inverted())
+def r3(x):
+    return f"{math.floor(x * 1000 + 0.5) / 1000:.3f}"
 
 
-def _badge(ax, x_right, y, text, bg, tx, fs=6.0):
-    """Pill badge, right-aligned to x_right. Text first, box measured to it, so it cannot crop."""
-    t = ax.text(0, y, text, ha="center", va="center", fontsize=fs, color=tx, zorder=6)
-    bb = _measure(ax, t)
-    padx, pady = 1.5, 1.7
-    t.set_x(x_right - padx - bb.width / 2)
-    bb = _measure(ax, t)
-    ax.add_patch(FancyBboxPatch((bb.x0 - padx, bb.y0 - pady), bb.width + 2 * padx,
-                                bb.height + 2 * pady,
-                                boxstyle="round,pad=0,rounding_size=1.4",
-                                fc=bg, ec="none", zorder=5))
+def r2(x):
+    return f"{math.floor(x * 100 + 0.5) / 100:.2f}"
 
 
-def _card(ax, x, y, w, h, title, bg, ec, tc, fs=7.5, lw=0.9, r=1.0):
-    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle=f"round,pad=0,rounding_size={r}",
-                                fc=bg, ec=ec, lw=lw, zorder=3))
-    ax.text(x + w / 2, y + h / 2, title, ha="center", va="center", fontsize=fs,
-            color=tc, weight="bold", zorder=4)
+AGENTIC = [("bash", 0.5044), ("shade", 0.6022), ("iac", 0.7041), ("rogue_eval", 0.6158),
+           ("agentdojo", 0.8020)]
 
 
-def fig4_constructions():
-    # Layout constants are in axis units (0-100) of a 2.45in-tall canvas; one y-unit is 1.764pt.
-    # Changing figsize means re-deriving them, because type does not scale with the canvas.
-    fig, ax = plt.subplots(figsize=(W_F4, 2.45))
-    ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.axis("off")
-    fig.subplots_adjust(left=0.002, right=0.998, top=0.998, bottom=0.002)
-
-    PW = (98.0 - 2 * 2.2) / 3
-    XS = [1.0 + i * (PW + 2.2) for i in range(3)]
-    Y_PANEL, H_PANEL = 2.0, 93.0
-    Y_HEAD, Y_N = 95.0, 87.8
-    Y_PROB, H_PROB = 73.0, 10.8
-    Y_CARD, H_CARD = 55.5, 12.5
-    Y_RULE = 52.0
-    ROW_Y, ROW_H = (40.5, 30.3, 20.1), 8.5
-    Y_PILL, H_PILL = 3.4, 13.6
-
-    for col, x in zip(CONSTRUCTIONS, XS):
-        cx = x + PW / 2
-        lx, rx = x + PW * 0.26, x + PW * 0.74      # the honest and attack half-columns
-
-        ax.add_patch(FancyBboxPatch((x, Y_PANEL), PW, H_PANEL,
-                                    boxstyle="round,pad=0,rounding_size=1.6",
-                                    fc=TINT if col["ours"] else PANEL_BG, ec=PANEL_EC,
-                                    lw=1.0, zorder=1))
-
-        # header pill, sitting on the top border
-        t = ax.text(cx, Y_HEAD, col["title"], ha="center", va="center", fontsize=8.5,
-                    color=INK, weight="bold", zorder=6)
-        bb = _measure(ax, t)
-        ax.add_patch(FancyBboxPatch((bb.x0 - 3.0, bb.y0 - 2.2), bb.width + 6.0, bb.height + 4.4,
-                                    boxstyle="round,pad=0,rounding_size=2.2",
-                                    fc="#ffffff", ec="#9ca3af", lw=1.0, zorder=5))
-        ax.text(cx, Y_N, col["n"], ha="center", va="center", fontsize=6.5, color=MUTED, zorder=4)
-
-        # the shared problem, as a stacked deck
-        pw = PW * 0.62
-        for dx, fc, ec in ((1.1, "#e5e7eb", "#cbd5e1"), (0.55, "#f3f4f6", "#cbd5e1")):
-            ax.add_patch(FancyBboxPatch((cx - pw / 2 + dx, Y_PROB - dx), pw, H_PROB,
-                                        boxstyle="round,pad=0,rounding_size=0.9",
-                                        fc=fc, ec=ec, lw=0.7, zorder=2))
-        _card(ax, cx - pw / 2, Y_PROB, pw, H_PROB, "problem $i$", "#ffffff", "#9ca3af", INK,
-              fs=7.5, lw=1.0, r=0.9)
-
-        for tx in (lx, rx):
-            ax.add_patch(FancyArrowPatch((cx + (tx - cx) * 0.22, Y_PROB - 0.4),
-                                         (tx, Y_CARD + H_CARD + 0.6),
-                                         arrowstyle="-|>", mutation_scale=6, color=MUTED,
-                                         lw=0.8, zorder=2, shrinkA=0, shrinkB=0))
-
-        cw = PW * 0.40
-        _card(ax, lx - cw / 2, Y_CARD, cw, H_CARD, "honest", OK_BG, OK_EC, OK_TX)
-        _card(ax, rx - cw / 2, Y_CARD, cw, H_CARD, "attack", BAD_BG, BAD_EC, BAD_TX)
-        ax.plot([x + 1.6, x + PW - 1.6], [Y_RULE, Y_RULE], color=GRID, lw=0.8, zorder=2)
-
-        rows = (("writer", col["writer"]), ("prompt", col["prompt"]), ("backdoor", "target"))
-        for ry, (name, status) in zip(ROW_Y, rows):
-            ax.add_patch(FancyBboxPatch((x + 1.6, ry), PW - 3.2, ROW_H,
-                                        boxstyle="round,pad=0,rounding_size=0.7",
-                                        fc="#ffffff", ec="#e5e7eb", lw=0.8, zorder=2))
-            yc = ry + ROW_H / 2
-            ax.text(x + 3.0, yc, name, ha="left", va="center", fontsize=6.8,
-                    color=INK, weight="bold", zorder=4)
-            _badge(ax, x + PW - 3.0, yc, status, *BADGE[status])
-
-        pbg, pec, ptc = col["pill"]
-        ax.add_patch(FancyBboxPatch((x + 1.6, Y_PILL), PW - 3.2, H_PILL,
-                                    boxstyle="round,pad=0,rounding_size=1.1",
-                                    fc=pbg, ec=pec, lw=1.0, zorder=2))
-        ax.text(cx, Y_PILL + 9.4, "AUROC", ha="center", va="center", fontsize=6.0,
-                color=MUTED, zorder=3)
-        ax.text(cx, Y_PILL + 4.4, f"{col['auroc']:.3f}", ha="center", va="center", fontsize=10.0,
-                color=ptc, weight="bold", zorder=3)
-
-    save(fig, "f4-constructions.pdf")
-    conf = [sum(1 for k in ("writer", "prompt") if c[k] == "confounded") for c in CONSTRUCTIONS]
-    print(f"F4: {' / '.join(map(str, conf))} confounded rows left to right; AUROC ladder "
-          + " / ".join(f"{c['auroc']:.3f}" for c in CONSTRUCTIONS))
 
 
-# F3: the 24 monitors ranked on the filtered split against our two floors, with their bootstrap
-# CIs and permutation nulls.
+# ===========================================================================================
+# Visual system: greyscale plus one accent. Gold marks our baselines, rebuilt pairs and backdoored
+# programs; greys mark everything else. Arial for text (it matches the Helvetica of Figure 1),
+# values printed on the marks, a single baseline rule, light horizontal grid.
+# ===========================================================================================
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "Liberation Sans", "DejaVu Sans"],
+    "pdf.fonttype": 42,
+    "axes.linewidth": 0.8, "axes.edgecolor": "#333333",
+    "xtick.major.width": 0.8, "ytick.major.width": 0, "xtick.major.size": 0, "ytick.major.size": 0,
+    "xtick.color": "#333333", "ytick.color": "#666666",
+})
+INK, INK2, MUTED, GRID = "#1A1A1A", "#666666", "#9E9E9E", "#E8E8E8"
+GOLD, GOLD_D, GOLD_L = "#C9A227", "#8F6F10", "#EFDFA8"
+DARK, MID, LIGHT = "#3D3D3D", "#8C8C8C", "#CFCFCF"
+MONO = ["Consolas", "DejaVu Sans Mono"]
+FS = 8.5
 
-def fig3_monitors():
-    aurocs = sorted(m["test_auroc"] for m in json.load(open("monitor-summary.json")))
-    n = len(aurocs)
 
-    fig, ax = plt.subplots(figsize=(W_F3, 2.50))
-    style(ax, base=7.0)
+def base(ax, grid="y"):
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(labelsize=FS - 0.5, pad=3)
+    if grid:
+        ax.grid(axis=grid, color=GRID, lw=0.8, zorder=0)
+    ax.set_axisbelow(True)
 
-    # Rules and spans stop at the top of the data so they do not run through the legend.
-    top = n + 0.8
-    for (a, b), c in ((NOCODE_CI, ORANGE), (TFIDF_CI, BLUE)):
-        ax.fill_betweenx([-0.4, top], a, b, color=c, alpha=0.10, lw=0, zorder=1)
-    ax.plot([NOCODE_FLOOR] * 2, [-0.4, top], color=ORANGE, lw=1.4, zorder=3,
-            label=f"reads no code  {f3dp(NOCODE_FLOOR)} $\\pm$ {NOCODE_SD:.3f}")
-    ax.plot([TFIDF_FLOOR] * 2, [-0.4, top], color=BLUE, lw=1.4, zorder=3,
-            label=f"bag-of-words  {f3dp(TFIDF_FLOOR)}")
-    for v in (TFIDF_NULL, NOCODE_NULL):
-        ax.plot([v] * 2, [-0.4, top], color=MUTED, lw=0.7, ls=(0, (1, 2)), zorder=2)
-    ax.plot([], [], color=MUTED, lw=0.7, ls=(0, (1, 2)),
-            label=f"permutation nulls  {TFIDF_NULL:.3f}, {NOCODE_NULL:.3f}")
-    ax.plot([0.5] * 2, [-0.4, top], color=MUTED, lw=0.8, ls=(0, (3, 3)), zorder=2,
-            label="chance  0.500")
 
-    ax.scatter(aurocs, range(1, n + 1), s=15, facecolor=INK2, edgecolor="white",
-               linewidth=0.6, zorder=4, label=f"{n} open-weight monitors")
+def ptitle(ax, text, letter=None, dx=0.075):
+    ax.set_title(text, fontsize=FS + 0.5, weight="bold", color=INK, pad=8)
+    if letter:
+        from matplotlib.transforms import blended_transform_factory
+        tr = blended_transform_factory(ax.figure.transFigure, ax.transAxes)
+        ax.text(ax.get_position().x0 - dx, 1.035, letter, transform=tr, fontsize=FS + 1.5,
+                weight="bold", color=INK, ha="left", va="bottom")
 
-    ax.set_yticks([1, 12, n]); ax.set_yticklabels(["1", "12", str(n)])
-    ax.set_ylim(-0.4, n + 6.4)          # headroom for the key, above where the rules stop
-    ax.set_xlim(0.40, 0.98)
-    ax.set_xticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-    ax.set_xlabel("AUROC on the 1,375-item test split", fontsize=8.0, color=INK)
-    ax.set_ylabel("monitor rank (sorted)", fontsize=8.0, color=INK)
-    leg = ax.legend(loc="upper left", fontsize=6.2, frameon=False, handlelength=1.5,
-                    handletextpad=0.5, labelspacing=0.35, borderaxespad=0.15)
+
+def short(repo):
+    n = repo.split("/")[-1]
+    for cut in ("-Instruct-2506", "-Instruct-v0.3", "-Instruct", "-instruct", "-it", "-Chat", "-reap25"):
+        n = n.replace(cut, "")
+    return n
+
+
+# --- Figure 2: the leaderboard ------------------------------------------------------------------
+
+def fig2_floors():
+    mons = json.load(open("monitor-summary.json"))
+    rows = [(short(m["repo"]), m["test_auroc"], "mon") for m in mons]
+    rows += [("Lexical classifier", LEX_FLOOR, "lex"), ("Metadata classifier", META_FLOOR, "meta")]
+    rows.sort(key=lambda r: -r[1])
+    fig, ax = plt.subplots(figsize=(TEXT_W, 1.8))
+    fig.subplots_adjust(left=0.065, right=0.995, top=0.86, bottom=0.06)
+    base(ax)
+    for i, (name, v, kind) in enumerate(rows):
+        col = {"mon": LIGHT, "lex": GOLD, "meta": GOLD_D}[kind]
+        ax.bar(i, v - 0.5, bottom=0.5, width=0.74, color=col, lw=0, zorder=2)
+        if kind != "mon":
+            ax.text(i, v + 0.012, r3(v), ha="center", va="bottom", fontsize=FS - 1.8,
+                    weight="bold", color=col)
+    from matplotlib.patches import Patch
+    leg = ax.legend(handles=[Patch(color=GOLD, label="lexical classifier (cannot see backdoors)"),
+                             Patch(color=GOLD_D, label="metadata classifier (never reads code)"),
+                             Patch(color=LIGHT, label=f"{len(mons)} published monitors")],
+                    loc="upper right", frameon=False, fontsize=FS - 0.5, handlelength=1.0,
+                    handleheight=0.9, labelspacing=0.45, borderaxespad=0.2)
     for t in leg.get_texts():
         t.set_color(INK)
-    fig.tight_layout(pad=0.35)
-    save(fig, "f3-monitors-vs-floors.pdf")
-    print(f"F3: {n} monitors, median {statistics.median(aurocs):.4f}, max {aurocs[-1]:.3f}; "
-          f"below bag-of-words {sum(a < TFIDF_FLOOR for a in aurocs)}/{n}, "
-          f"below no-code CV {sum(a < NOCODE_FLOOR for a in aurocs)}/{n}, "
-          f"below no-code held-out {sum(a < NOCODE_HELDOUT for a in aurocs)}/{n}")
+    ax.axhline(0.5, color=DARK, lw=0.8, zorder=3)
+    ax.text(len(rows) - 0.4, 0.505, "chance", ha="right", va="bottom", fontsize=FS - 1.5, color=INK2)
+    ax.set_xlim(-0.7, len(rows) - 0.3); ax.set_ylim(0.4, 1.0)
+    ax.set_xticks([]); ax.spines["bottom"].set_visible(False)
+    ax.set_yticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    ax.set_ylabel("AUROC", fontsize=FS, color=INK, labelpad=4)
+    ptitle(ax, "AUROC on the filtered test split, ranked")
+    save(fig, "fig2-floors.pdf")
+    a = sorted(m["test_auroc"] for m in mons)
+    print(f"Fig 2: {len(a)} monitors, median {statistics.median(a):.3f}, "
+          f"{sum(x < LEX_FLOOR for x in a)} below lexical, {sum(x < META_FLOOR for x in a)} below metadata")
 
 
-# F2: the structural floor in the five same-generator agentic settings. A thin connector runs from
-# each permutation null to the measured value.
+# --- Figure 3: what the lexical classifier reads ----------------------------------------------
 
-def fig2_corpora():
-    rows = SCAN[::-1]
-    names = [f"{r[0]}\n({r[3]} tasks)" for r in rows]
-    vals, nulls = [r[1] for r in rows], [r[2] for r in rows]
-    y = list(range(len(rows)))
+def _tok(t):
+    """Show a tokenised n-gram the way it reads in code: '= =' is '==', ') if' stays spaced."""
+    return t.replace("= =", "==").replace("! =", "!=").replace("< =", "<=").replace("> =", ">=")
 
-    fig, ax = plt.subplots(figsize=(W_F2, 2.60))
-    style(ax, base=8.0)
-    ax.axvline(0.5, color=MUTED, lw=0.8, ls=(0, (3, 3)), zorder=2)
-    ax.text(0.503, -0.62, "chance", ha="left", va="center", fontsize=7.0, color=MUTED)
 
-    for i, (v, nv) in enumerate(zip(vals, nulls)):
-        ax.plot([nv, v], [i, i], color=CONNECT, lw=1.1, zorder=3, solid_capstyle="round")
-    ax.scatter(nulls, y, marker="d", s=26, facecolor=ORANGE, edgecolor="white", linewidth=0.7,
-               zorder=5, label="permutation null")
-    ax.scatter(vals, y, s=30, facecolor=BLUE, edgecolor="white", linewidth=0.7, zorder=6,
-               label="within-task, character count only")
-    for i, v in enumerate(vals):
-        ax.text(v + 0.010, i, f"{v:.3f}", va="center", fontsize=8.0, color=INK)
+def fig3_features(k=8):
+    att = json.load(open("lexical_probe.json"))["headline"]["attribution"]
+    fig = plt.figure(figsize=(TEXT_W, 1.85))
+    # four ranked lists: stored backdoored / stored honest | rebuilt backdoored / rebuilt honest
+    xs = [0.095, 0.335, 0.605, 0.855]
+    W, Y0, H = 0.125, 0.05, 0.70
+    specs = [("B_prime", "attack", GOLD, "backdoored side"), ("B_prime", "honest", MID, "honest side"),
+             ("S", "attack", GOLD, "backdoored side"), ("S", "honest", MID, "honest side")]
+    for x, (key, side, col, sub) in zip(xs, specs):
+        ax = fig.add_axes([x, Y0, W, H])
+        items = [(_tok(t), abs(w)) for t, w in att[key][side][:k]]
+        lim = max(abs(w) for kk in ("B_prime", "S") for sd in ("attack", "honest")
+                  for _, w in att[kk][sd][:k])
+        for i, (t, w) in enumerate(items):
+            y = k - 1 - i
+            ax.barh(y, w, height=0.62, color=col, lw=0, zorder=2)
+            ax.text(-0.04 * lim, y, t, ha="right", va="center", fontsize=FS - 1.2, family=MONO,
+                    color=INK)
+        ax.set_xlim(0, lim * 1.02); ax.set_ylim(-0.55, k - 0.45)
+        ax.axis("off")
+        ax.axvline(0, color=DARK, lw=0.8)
+        ax.text(0.5, 1.0, sub, transform=ax.transAxes, ha="center", va="bottom", fontsize=FS - 1,
+                color=GOLD_D if side == "attack" else INK2, weight="bold")
+    fig.text(0.032, 0.955, "Stored pairs (a person vs. a model)", ha="left", va="top",
+             fontsize=FS + 0.5, weight="bold", color=INK)
+    fig.text(0.537, 0.955, "Rebuilt pairs (Sonnet 5 writes both)", ha="left", va="top",
+             fontsize=FS + 0.5, weight="bold", color=INK)
+    fig.text(0.005, 0.955, "a", ha="left", va="top", fontsize=FS + 1.5, weight="bold", color=INK)
+    fig.text(0.51, 0.955, "b", ha="left", va="top", fontsize=FS + 1.5, weight="bold", color=INK)
+    fig.add_artist(plt.Line2D([0.497, 0.497], [0.05, 0.86], color=GRID, lw=0.8))
+    save(fig, "fig3-features.pdf")
+    print("Fig 3: top features",
+          [t for t, _ in att["B_prime"]["attack"][:k]], [t for t, _ in att["S"]["attack"][:k]])
 
-    ax.set_yticks(y); ax.set_yticklabels(names, fontsize=8.0, color=INK, linespacing=1.3)
-    ax.set_ylim(-0.9, len(rows) - 0.35)
-    ax.set_xlim(0.44, 0.90)
-    ax.set_xlabel("AUROC", fontsize=8.5, color=INK)
-    leg = ax.legend(loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2, fontsize=8.0,
-                    frameon=False, handletextpad=0.35, columnspacing=1.2)
+
+# --- Figure 4: stored against rebuilt, and the audit budget ----------------------------------
+
+GROUPS = [("all\nattempts", 0), ("shared\nprompt", 1), ("working\nbackdoors", 2),
+          ("all\nattempts", 4), ("shared\nprompt", 5)]
+
+
+def fig4_rebuilt():
+    audit = {(r["monitor"], r["row"], r["pairs"]): r
+             for r in json.load(open("audit_budget.json"))["rows"]}
+    fig = plt.figure(figsize=(TEXT_W, 2.4))
+    ax = fig.add_axes([0.095, 0.28, 0.49, 0.58])
+    cx = fig.add_axes([0.70, 0.28, 0.27, 0.58])
+
+    base(ax)
+    w = 0.36
+    for g, (lab, k) in enumerate(GROUPS):
+        b, s, rho = CLF_ROWS[k][2], CLF_ROWS[k][3], CLF_ROWS[k][4]
+        for dx, val, col in ((-w / 2 - 0.02, b, DARK), (w / 2 + 0.02, s, GOLD)):
+            ax.bar(g + dx, val[0] - 0.5, bottom=0.5, width=w, color=col, lw=0, zorder=2)
+            ax.plot([g + dx, g + dx], [val[1], val[2]], color=INK, lw=0.7, zorder=3)
+            ax.text(g + dx, val[2] + 0.012, f"{val[0]:.2f}", ha="center", va="bottom",
+                    fontsize=FS - 1.2, color=INK)
+        ax.text(g, 0.452, f"keeps {100 * rho[0]:.0f}%", ha="center", va="center",
+                fontsize=FS - 1.2, color=INK2)
+    ax.axhline(0.5, color=DARK, lw=0.8, zorder=3)
+    ax.set_xticks(range(len(GROUPS)))
+    ax.set_xticklabels([g[0] for g in GROUPS], fontsize=FS - 1, color=INK, linespacing=1.15)
+    ax.tick_params(axis="x", pad=13)
+    for x0, x1, name in ((0, 2, "Claude Sonnet 5"), (3, 4, "Claude Haiku 4.5")):
+        ax.annotate("", xy=(x0 - 0.38, -0.30), xytext=(x1 + 0.38, -0.30),
+                    xycoords=("data", "axes fraction"), textcoords=("data", "axes fraction"),
+                    arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.8))
+        ax.text((x0 + x1) / 2, -0.37, name, transform=ax.get_xaxis_transform(), ha="center",
+                va="top", fontsize=FS - 0.5, color=INK, weight="bold")
+    ax.set_xlim(-0.6, len(GROUPS) - 0.4); ax.set_ylim(0.43, 1.0)
+    ax.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    ax.spines["bottom"].set_visible(False)
+    ax.set_ylabel("AUROC", fontsize=FS, color=INK, labelpad=4)
+    ptitle(ax, "Lexical classifier, stored vs. rebuilt pairs", "a")
+    from matplotlib.patches import Patch
+    leg = ax.legend(handles=[Patch(color=DARK, label="stored pairs"),
+                             Patch(color=GOLD, label="rebuilt pairs")],
+                    loc="upper right", ncol=2, frameon=False, fontsize=FS - 1,
+                    handlelength=1.0, handleheight=0.8, columnspacing=1.0, borderaxespad=0.1)
     for t in leg.get_texts():
         t.set_color(INK)
-    fig.tight_layout(pad=0.35)
-    save(fig, "f2-corpus-floors.pdf")
-    print("F2: 5 settings, bash 0.504 (247 tasks) to agentdojo 0.802 (16 tasks); "
-          "nulls 0.480-0.512, three of five below chance")
+
+    base(cx)
+    cx.grid(axis="x", color=GRID, lw=0.8, zorder=0)
+    cx.spines["left"].set_visible(False)
+    for key, c, lab in ((("sonnet5", "strict", "stored"), DARK, "stored pairs"),
+                        (("sonnet5", "strict", "samegen"), GOLD, "rebuilt pairs")):
+        cur = audit[key]["curve"]
+        x = [100 * p["budget"] for p in cur]
+        y = [100 * p["point"] for p in cur]
+        cx.fill_between(x, [100 * p["ci95"][0] for p in cur], [100 * p["ci95"][1] for p in cur],
+                        color=c, alpha=0.14, lw=0, zorder=1)
+        cx.plot(x, y, color=c, lw=1.8, zorder=3)
+        cx.text(19.6, y[-1] + (5 if c == DARK else -6), lab, color=c if c == DARK else GOLD_D,
+                fontsize=FS - 1, va="bottom" if c == DARK else "top", ha="right", weight="bold")
+    st = 100 * audit[("sonnet5", "strict", "stored")]["catch@0.05"]["point"]
+    rb = 100 * audit[("sonnet5", "strict", "samegen")]["catch@0.05"]["point"]
+    for v, c, tc in ((st, DARK, DARK), (rb, GOLD, GOLD_D)):
+        cx.scatter([5], [v], s=22, color=c, zorder=5, lw=0)
+        cx.text(5.6, v + (5 if c == DARK else -5), f"{v:.0f}%", color=tc, fontsize=FS - 1,
+                ha="left", va="bottom" if c == DARK else "top", weight="bold")
+    cx.set_xlim(0, 20); cx.set_ylim(0, 100)
+    cx.set_xticks([0, 5, 10, 15, 20]); cx.set_xticklabels(["0%", "5%", "10%", "15%", "20%"])
+    cx.set_yticks([0, 25, 50, 75, 100]); cx.set_yticklabels(["", "25%", "50%", "75%", "100%"])
+    cx.set_xlabel("honest programs audited", fontsize=FS - 0.5, color=INK, labelpad=3)
+    ptitle(cx, "Working backdoors caught", "b", dx=0.045)
+    save(fig, "fig4-rebuilt.pdf")
+    print(f"Fig 4: catch at 5%: stored {st:.1f}, rebuilt {rb:.1f}")
 
 
-# F1: protocol x baseline, emitted as a LaTeX table that main.tex \inputs.
-# Columns: protocol, baseline, metric, value, preprocessing, against. Preprocessing says whether
-# comments were stripped before the baseline read the code ("stripped" / "kept"), or whether the
-# baseline reads no code at all. Pairwise accuracies get three decimals (one pair is 1/2,641);
-# AUROCs get four.
-F1_ROWS = [
-    ("Koran's exact split", "TF-IDF word 1--2gram", "AUROC", "0.8063", "stripped",
-     "above 20 of 24"),
-    ("\\quad same", "TF-IDF word 1--2gram", "AUROC", "0.8914", "kept", "above 22 of 24"),
-    ("\\quad same, reads no code", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
-     "0.7715 $\\pm$ 0.0389", "no code", "above 20 of 24"),
-    ("\\quad same, held-out slice", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
-     "0.7163", "no code", "above 18 of 24"),
-    ("\\quad same", "code length only", "AUROC", "0.4726", "stripped", "chance"),
-    ("\\quad same", "\\#-count detector", "AUROC", "0.4983", "stripped", "chance"),
-    ("\\quad same", "\\#-count detector", "AUROC", "0.6957", "kept", "---"),
-    ("Raw artifact, problem level", "all metadata", "AUROC", "0.8917", "no code", "---"),
-    ("\\quad same", "difficulty only", "AUROC", "0.6823", "no code", "---"),
-    ("\\quad same", "\\texttt{solution\\_passes\\_tests}", "AUROC", "0.7881", "no code", "---"),
-    ("Matched pairs (P3)", "all metadata", "AUROC", "0.5000", "no code", "by construction"),
-    # Matched protocol: mean over five problem-disjoint splits. Comments-kept rows are for contrast.
-    ("DSPy matched pairs", "TF-IDF word 1--2gram", "pairwise", "0.897", "stripped",
-     "monitor 0.69--0.81"),
-    ("\\quad working backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.935", "stripped",
-     "---"),
-    ("\\quad \\textbf{inert} backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.879",
-     "stripped", "not sabotage"),
-    ("\\quad transfer, cross-generator", "TF-IDF word 1--2gram",
-     "pairwise", "0.969", "stripped", "---"),
-    ("\\quad all pairs, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.962", "kept", "---"),
-    ("\\quad working, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.979", "kept", "---"),
-    ("\\quad inert, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.955", "kept", "---"),
-    ("\\quad transfer, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.994", "kept", "---"),
-    ("\\quad same, raw artifact", "code length only", "pairwise", "0.826", "kept", "---"),
+# --- Appendix: monitor suspicion scores -------------------------------------------------------
+
+def figA1_scores():
+    import numpy as np
+    files = [("monitor_stored_sonnet5_independent_passes.json", "Stored, all attempts"),
+             ("monitor_samegen_sonnet5_independent_passes.json", "Rebuilt, all attempts"),
+             ("monitor_stored_sonnet5_independent_usable.json", "Stored, working"),
+             ("monitor_samegen_sonnet5_independent_usable.json", "Rebuilt, working")]
+    fig, axes = plt.subplots(1, 4, figsize=(TEXT_W, 1.75), sharey=True)
+    fig.subplots_adjust(left=0.095, right=0.975, top=0.80, bottom=0.25, wspace=0.22)
+    bins = np.arange(0, 105, 10)
+    for ax, (f, title) in zip(axes, files):
+        sc = json.load(open(f))["scores"]
+        h = [x["score"] for x in sc if x["class"] == "honest" and x.get("score") is not None]
+        a = [x["score"] for x in sc if x["class"] == "attack" and x.get("score") is not None]
+        base(ax)
+        ax.hist(h, bins=bins, weights=np.ones(len(h)) / len(h), color=LIGHT, lw=0, zorder=2,
+                label="honest")
+        ax.hist(a, bins=bins, weights=np.ones(len(a)) / len(a), histtype="step", color=GOLD_D,
+                lw=1.5, zorder=3, label="backdoored")
+        ax.set_title(title, fontsize=FS - 0.5, weight="bold", color=INK, pad=4)
+        ax.set_xlim(0, 100); ax.set_xticks([0, 50, 100]); ax.set_ylim(0, 1)
+        ax.tick_params(axis="x", labelsize=FS - 1.5)
+        ax.set_yticks([0, 0.5, 1.0]); ax.set_yticklabels(["0", "50%", "100%"])
+        ax.text(97, 0.93, f"mean {np.mean(a):.0f}", ha="right", va="top", fontsize=FS - 1.5,
+                color=GOLD_D)
+    axes[0].set_ylabel("share of programs", fontsize=FS - 0.5, color=INK)
+    fig.text(0.53, 0.04, "suspicion score from the Sonnet 5 monitor", ha="center",
+             fontsize=FS - 0.5, color=INK)
+    leg = axes[0].legend(loc="upper center", bbox_to_anchor=(2.35, 1.42), ncol=2, frameon=False,
+                         fontsize=FS - 1)
+    for t in leg.get_texts():
+        t.set_color(INK)
+    save(fig, "figA1-scores.pdf")
+    print("Fig A1 done")
+
+
+# --- Appendix: agentic settings ---------------------------------------------------------------
+
+def figA2_agentic():
+    nulls = json.load(open("../agentic/within_task_null.json"))
+    rows = AGENTIC
+    fig, ax = plt.subplots(figsize=(0.8 * TEXT_W, 1.9))
+    fig.subplots_adjust(left=0.09, right=0.99, top=0.84, bottom=0.17)
+    base(ax)
+    for i, (s, v) in enumerate(rows):
+        p95 = nulls[s]["null_p95"]
+        ax.bar(i, v - 0.5, bottom=0.5, width=0.55, color=GOLD, lw=0, zorder=2)
+        ax.plot([i - 0.36, i + 0.36], [p95, p95], color=INK, lw=1.0, ls=(0, (2, 1.5)), zorder=3)
+        ax.text(i, max(v, p95) + 0.008, f"{v:.3f}", ha="center", va="bottom", fontsize=FS - 1, color=INK)
+    ax.axhline(0.5, color=DARK, lw=0.8, zorder=3)
+    ax.set_xticks(range(len(rows)))
+    ax.set_xticklabels([f"{s.replace('_', ' ')}\n{nulls[s]['n_tasks']} tasks" for s, _ in rows],
+                       fontsize=FS - 1, color=INK, linespacing=1.15)
+    ax.spines["bottom"].set_visible(False)
+    ax.set_ylim(0.45, 0.87); ax.set_yticks([0.5, 0.6, 0.7, 0.8])
+    ax.set_ylabel("AUROC", fontsize=FS, color=INK, labelpad=4)
+    ptitle(ax, "Transcript length alone, within each task")
+    save(fig, "figA2-agentic.pdf")
+    print("Fig A2 done")
+
+
+# --- Appendix tables -----------------------------------------------------------------------
+
+BASELINES = [
+    # (group, baseline, comments, value, monitors below)
+    ("Filtered split, trained on its training problems", None, None, None, None),
+    (None, "Lexical classifier, word unigrams and bigrams", "removed", "0.806", "20 of 24"),
+    (None, "Lexical classifier, character 3 to 5 grams", "removed", "0.783", "20 of 24"),
+    (None, "Lexical classifier, word unigrams and bigrams", "kept", "0.891", "22 of 24"),
+    ("Filtered split, cross validated within its test set", None, None, None, None),
+    (None, "Metadata classifier, 5 folds repeated 5 times", "", "0.772", "20 of 24"),
+    (None, "Metadata classifier, one held out 30\\% slice", "", "0.716", "18 of 24"),
+    (None, "Code length", "removed", "0.473", ""),
+    (None, "Count of \\texttt{\\#} characters", "removed", "0.498", ""),
+    (None, "Count of \\texttt{\\#} characters", "kept", "0.696", ""),
+    ("Full artifact, one row per problem", None, None, None, None),
+    (None, "All problem metadata", "", "0.892", ""),
+    (None, "Difficulty", "", "0.682", ""),
+    (None, "Whether the shipped solution passes", "", "0.788", ""),
+    (None, "All metadata, both classes from every problem", "", "0.500", ""),
+    ("Paired problems, pairwise accuracy over 5 splits", None, None, None, None),
+    (None, "Lexical classifier, all pairs", "removed", "0.897", ""),
+    (None, "Lexical classifier, working backdoors", "removed", "0.935", ""),
+    (None, "Lexical classifier, inert backdoors", "removed", "0.879", ""),
+    (None, "Lexical classifier, trained on one attacker, tested on another", "removed", "0.969", ""),
+    (None, "Lexical classifier, all pairs", "kept", "0.962", ""),
 ]
 
 
-def fig1_table():
-    """Write F1 as a LaTeX table that fits the 5.5in text block.
-
-    Rows are grouped under AUROC / pairwise subheadings instead of a metric column; the text
-    columns are p{} so long cells wrap. Needs \\usepackage{array} for >{\\raggedright}.
-    """
-    auroc = [r for r in F1_ROWS if r[2] == "AUROC"]
-    pairw = [r for r in F1_ROWS if r[2] != "AUROC"]
-
-    def body(rows):
-        # drop the metric cell (index 2); it is carried by the group heading now
-        return [" & ".join((r[0], r[1], r[3], r[4], r[5])) + " \\\\" for r in rows]
-
-    # Widths are tuned to the 5.5in block. Column 2 must fit \texttt{solution_passes_tests},
-    # which cannot break, so do not narrow it.
-    col = ("@{}"
-           ">{\\raggedright\\arraybackslash}p{0.255\\linewidth}"
-           ">{\\raggedright\\arraybackslash}p{0.225\\linewidth}"
-           "r"
-           ">{\\raggedright\\arraybackslash}p{0.090\\linewidth}"
-           ">{\\raggedright\\arraybackslash}p{0.170\\linewidth}"
-           "@{}")
-
+def tab_baselines():
     lines = [
-        "% F1 - generated by experiments/apps/figures.py, do not hand-edit",
-        "\\begin{table}[h]\\centering\\footnotesize",
-        "\\setlength{\\tabcolsep}{4pt}",
-        "\\caption{What the field's preprocessing leaves behind. Every row is measured under the "
-        "protocol named in column one; rows are not comparable across protocols. "
-        "\\emph{Prep.} says whether comments were stripped before the baseline read the code; "
-        "\\emph{no code} means the baseline never reads the program. The comments-kept rows are "
-        "inflated by the comment channel and are given for contrast, not as results. The matched "
-        "rows are problem-disjoint and scored against the DSPy tutorial monitor; the transfer "
-        "row runs Control Tax to the GPT-4-era set. "
-        "Pairwise accuracies are given to three decimals, their resolution over the pair count.}",
-        "\\label{tab:protocol-baseline}",
-        "\\begin{tabular}{" + col + "}",
+        "% generated by experiments/apps/figures.py; do not edit by hand",
+        "\\begin{table}[h]\\centering\\small",
+        "\\caption{\\textbf{Every baseline we ran on the stored pairs.} Values are AUROC except in "
+        "the last group, which reports pairwise accuracy. \\emph{Below} counts the 24 published "
+        "monitors that score lower on the same test set.}",
+        "\\label{tab:baselines}",
+        "\\begin{tabular}{@{}l l S[table-format=1.3] r@{}}",
         "\\toprule",
-        "Protocol & Baseline & Value & Prep. & Against \\\\",
+        "Baseline & Comments & {Value} & Below \\\\",
         "\\midrule",
-        "\\multicolumn{5}{@{}l}{\\emph{AUROC}} \\\\",
     ]
-    lines += body(auroc)
-    lines += ["\\addlinespace",
-              "\\multicolumn{5}{@{}l}{\\emph{Pairwise accuracy}} \\\\"]
-    lines += body(pairw)
+    first = True
+    for g, b, c, v, m in BASELINES:
+        if g:
+            if not first:
+                lines.append("\\addlinespace[4pt]")
+            lines.append(f"\\multicolumn{{4}}{{@{{}}l}}{{\\textbf{{{g}}}}} \\\\[1pt]")
+            first = False
+        else:
+            lines.append(f"\\quad {b} & {c} & {v} & {m} \\\\")
     lines += ["\\bottomrule", "\\end{tabular}", "\\end{table}"]
-    with open(f"{OUT}/f1-protocol-baseline.tex", "w") as fh:
-        fh.write("\n".join(lines) + "\n")
-    print(f"F1: {len(F1_ROWS)} rows ({len(auroc)} AUROC, {len(pairw)} pairwise), "
-          f"5 columns, sized to fit a 5.5in text block")
+    open(f"{OUT}/tabA-baselines.tex", "w").write("\n".join(lines) + "\n")
 
 
-# check(): assert every plotted value against main.tex's \newcommand macros.
+def tab_rebuilt():
+    def cell(t):
+        return f"{r3(t[0])}\\,\\ci{{{r2(t[1])}}}{{{r2(t[2])}}}"
+    lines = [
+        "% generated by experiments/apps/figures.py; do not edit by hand",
+        "\\begin{table}[h]\\centering\\small",
+        "\\caption{\\textbf{The lexical classifier on stored and rebuilt pairs of the same "
+        "problems.} \\emph{Working} counts backdoors that change the output on their trigger. "
+        "Grey brackets are 95\\% bootstrap intervals over problems, and $\\rho$ is the share of "
+        "separability above chance that survives.}",
+        "\\label{tab:rebuilt}",
+        "\\setlength{\\tabcolsep}{5pt}",
+        "\\begin{tabular}{@{}l r r l l l@{}}",
+        "\\toprule",
+        " & & & \\multicolumn{2}{c}{AUROC} & \\\\",
+        "\\cmidrule(lr){4-5}",
+        "Backdoors & Pairs & Working & Stored $B'$ & Rebuilt $S$ & Kept $\\rho$ \\\\",
+        "\\midrule",
+    ]
+    prev = None
+    for lab, gen, b, s, rho, n, fire in CLF_ROWS:
+        if gen != prev:
+            if prev:
+                lines.append("\\addlinespace[4pt]")
+            name = {"Sonnet": "Claude Sonnet 5 writes both classes",
+                    "Haiku": "Claude Haiku 4.5 writes both classes"}[gen]
+            lines.append(f"\\multicolumn{{6}}{{@{{}}l}}{{\\textbf{{{name}}}}} \\\\[1pt]")
+        shown = lab.replace("verified", "working backdoors").replace("working backdoors, shared", "working, shared")
+        fires = "" if fire is None else str(fire)
+        lines.append(f"\\quad {shown} & {n} & {fires} & {cell(b)} & {cell(s)} & {cell(rho)} \\\\")
+        prev = gen
+    lines += ["\\bottomrule", "\\end{tabular}", "\\end{table}"]
+    open(f"{OUT}/tabA-rebuilt.tex", "w").write("\n".join(lines) + "\n")
+
+
+# --- check(): quoted values against main.tex -----------------------------------------------
 PAPER_TEX = "../../paper/main.tex"
 
 
@@ -403,7 +471,7 @@ def _macros(path=PAPER_TEX):
     out = {}
     for name, val in re.findall(r"\\newcommand\{\\(\w+)\}\{([^{}]*)\}", open(path).read()):
         try:
-            out[name] = float(val)
+            out[name] = float(val.replace("{,}", ""))
         except ValueError:
             pass
     return out
@@ -411,53 +479,44 @@ def _macros(path=PAPER_TEX):
 
 def check():
     m = _macros()
-    if not m:
-        raise SystemExit(f"CHECK: no macros parsed from {PAPER_TEX}")
     bad = []
 
-    def eq(macro, got, dp=None):
-        # Round half up, as the paper does.
+    def eq(macro, got, dp=3):
         if macro not in m:
             bad.append(f"{macro}: absent from main.tex"); return
-        want = m[macro]
-        got_r = math.floor(got * 10 ** dp + 0.5) / 10 ** dp if dp else got
-        if abs(want - got_r) > 5e-4:
-            bad.append(f"{macro}: main.tex {want} vs figures.py {got_r}")
+        got_r = math.floor(got * 10 ** dp + 0.5) / 10 ** dp
+        if abs(m[macro] - got_r) > 5e-4:
+            bad.append(f"{macro}: main.tex {m[macro]} vs figures.py {got_r}")
 
-    # F4's ladder. None of the three is the Koran-split floor.
-    eq("baselineB", CONSTRUCTIONS[0]["auroc"])
-    eq("sameGenS", CONSTRUCTIONS[1]["auroc"], 3)
-    eq("matchedS", CONSTRUCTIONS[2]["auroc"], 3)
-    if abs(CONSTRUCTIONS[0]["auroc"] - TFIDF_FLOOR) < 5e-3:
-        bad.append("F4 panel 1 is the Koran floor; main.tex's caption says it is not")
-
-    # F3's two floors, their intervals and their nulls.
-    eq("tfidfKoran", TFIDF_FLOOR, 3); eq("tfidfKoranLo", TFIDF_CI[0]); eq("tfidfKoranHi", TFIDF_CI[1])
-    eq("tfidfKoranNull", TFIDF_NULL)
-    eq("nocodeCV", NOCODE_FLOOR, 3); eq("nocodeCVsd", NOCODE_SD, 3)
-    eq("nocodeCVLo", NOCODE_CI[0]); eq("nocodeCVHi", NOCODE_CI[1]); eq("nocodeCVNull", NOCODE_NULL)
-    eq("nocodeHeldout", NOCODE_HELDOUT, 3)
-
-    # F2's two named settings.
-    scan = {r[0]: r[1] for r in SCAN}
-    eq("bashFloor", scan["bash"], 3); eq("agentdojoFloor", scan["agentdojo"], 3)
-
-    # F3's monitor count and the two summary values the caption quotes.
+    eq("lexFloor", LEX_FLOOR); eq("metaFloor", META_FLOOR); eq("metaHeldout", META_HELDOUT)
+    names = ["SonAll", "SonShared", "SonVer", "SonVerShared", "HaiAll", "HaiShared"]
+    for nm, (lab, gen, b, s, rho, n, fire) in zip(names, CLF_ROWS):
+        eq(f"rho{nm}", rho[0]); eq(f"rho{nm}Lo", rho[1]); eq(f"rho{nm}Hi", rho[2])
+    for nm, (lab, gen, b, s, rho) in zip(["MonSonAll", "MonSonVer", "MonHaiVer"], MON_ROWS):
+        eq(f"stored{nm}", b[0]); eq(f"rebuilt{nm}", s[0]); eq(f"rho{nm}", rho[0])
     if os.path.exists("monitor-summary.json"):
         a = sorted(x["test_auroc"] for x in json.load(open("monitor-summary.json")))
-        eq("monN", float(len(a))); eq("monMedian", statistics.median(a), 3)
-        eq("monMax", a[-1], 3)
-
+        eq("monN", len(a), 0); eq("monMedian", statistics.median(a))
+        eq("monBelow", sum(x < LEX_FLOOR for x in a), 0)
+    au = {(r["monitor"], r["row"], r["pairs"]): r for r in json.load(open("audit_budget.json"))["rows"]}
+    st, rb = au[("sonnet5", "strict", "stored")]["catch@0.05"], au[("sonnet5", "strict", "samegen")]["catch@0.05"]
+    eq("catchStored", 100 * st["point"], 0); eq("catchStoredLo", 100 * st["ci95"][0], 0)
+    eq("catchStoredHi", 100 * st["ci95"][1], 0)
+    eq("catchRebuilt", 100 * rb["point"], 0); eq("catchRebuiltLo", 100 * rb["ci95"][0], 0)
+    eq("catchRebuiltHi", 100 * rb["ci95"][1], 0)
     if bad:
         raise SystemExit("CHECK FAILED against main.tex:\n  " + "\n  ".join(bad))
-    print(f"CHECK: {len(m)} macros read from main.tex; every figure value agrees")
+    print(f"CHECK: {len(m)} numeric macros read from main.tex; every quoted value agrees")
 
 
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     check()
-    fig1_table()
-    fig2_corpora()
-    fig3_monitors()
-    fig4_constructions()
+    tab_baselines()
+    tab_rebuilt()
+    fig2_floors()
+    fig3_features()
+    fig4_rebuilt()
+    figA1_scores()
+    figA2_agentic()
     print(f"\nwrote to {os.path.abspath(OUT)}")

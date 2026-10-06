@@ -42,3 +42,10 @@ __pycache__/
 *.swp
 *.swo
 *~
+
+# Local working files
+.template/
+.render/
+.orig/
+paper/fig/*.aux
+paper/fig/*.log

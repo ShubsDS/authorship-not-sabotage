@@ -1,31 +1,32 @@
-# A Same-Generator Corpus and Classifier Floors for AI-Control Monitor Evaluation
+# Who Wrote the Backdoor? Authorship Confounds in AI-Control Monitor Benchmarks
 
-Code and paper source for the EvoRobust @ NeurIPS 2026 workshop paper.
+Code, data pointers and paper source for the EvoRobust @ NeurIPS 2026 workshop paper.
 
 ## What the paper shows
 
 AI-control monitors are models that read code and flag backdoors (hidden sabotage). They are
-trained and ranked on stored pairs of programs. For each programming problem there is an honest
-solution and a solution with a backdoor. In the corpora in use, **the honest solution was written
-by a human and the backdoor by a language model.** A monitor can therefore tell the two apart by
-recognising who wrote the code, without finding any backdoor.
+trained and ranked on stored pairs of programs: for each programming problem, an honest solution
+and a solution with a backdoor. In the public corpora, **a human wrote every honest solution and a
+language model wrote every backdoor**, so a monitor can score well by recognising the author.
 
-1. **Simple classifiers that cannot see backdoors beat most monitors.** On the standard filtered,
-   comment-stripped split, a bag-of-words classifier reaches AUROC 0.806. That is above 20 of the
-   24 monitors ranked on the same split. A classifier that reads no code at all, only problem
-   metadata, reaches 0.772. The signal is almost as strong on backdoors that never work, so it
-   does not come from the sabotage.
-2. **Holding the author constant removes most of the signal.** We rebuild the corpus so that one
-   model (Claude Sonnet 5, and separately Claude Haiku 4.5) writes both the honest and the
-   backdoored solution to each problem. This removes between a third and nine-tenths of the
-   classifier's separability. Using the same prompt for both classes removes most of the rest. An
-   LLM monitor drops the same way: from 0.958 on stored pairs to 0.566 on same-generator pairs.
-3. **The label adds a second artifact.** When a problem's backdoor fails, its human solution is
-   kept as a negative. So the negative class partly records which attacks failed.
+1. **Classifiers that cannot see a backdoor beat most monitors.** On the standard filtered,
+   comment-stripped split, a bag-of-words classifier reaches AUROC 0.806 and a classifier that
+   reads only problem metadata reaches 0.772, both above 20 of the 24 monitors ranked on that
+   split. The bag-of-words signal is almost as strong on backdoors that never work.
+2. **Holding the author fixed removes much of the signal on attack attempts.** When one model
+   (Claude Sonnet 5, and separately Claude Haiku 4.5) writes both classes, the classifier keeps
+   69% and 10% of its above-chance separability, and most of the rest goes when both classes also
+   share a prompt.
+3. **On verified attacks the picture is weaker.** Most generated attacks never fire. On the 99
+   that do, the classifier keeps 86% of its separability, and a Sonnet 5 monitor auditing 5% of
+   honest programs catches 55% of them against 81% of the stored backdoors on the same problems.
+4. **The label records attack failure.** A problem whose backdoor fails contributes its human
+   solution as a negative, so the negative class partly encodes which problems were hard to
+   attack.
 
-We release the same-generator corpus. We recommend that stored-pair evaluations report a no-code
-floor and a bag-of-words floor, generate both classes with one model and one prompt, and define
-the negative class by honesty rather than by attack failure.
+We release the same-generator corpus and recommend that stored-pair evaluations report a no-code
+and a bag-of-words floor, generate both classes with one model and one prompt, define the
+negative class by honesty, and report verified attacks and a catch rate at a fixed audit budget.
 
 ## Repository layout
 
