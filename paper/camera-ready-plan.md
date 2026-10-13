@@ -140,12 +140,12 @@ c076624.
 | A6 cuts of repeated numbers and verdict words; strict-file footnote | Done | 74e84dd, d976def, 96f4595, edab7b4 |
 | A7 appendix: attacker mix, audit table, shared problems, statistics convention | Done | bd97b4b (62697b2, cdad892, 958123f, c2e679f, 854c818) |
 | A8 `figures.py`: F2 null, F3 line and legend, F4 ladder | Done | ca1c089 (1491c63, 56bcedd, 6904908, 4cb1925) |
-| A9 mechanics: `final`, author, release link, scikit-learn version | Done, except affiliation and email (placeholders) | 74e84dd (3d5c4d9, 7c4ac36, bc560fe), c047790 (d725ec5) |
+| A9 mechanics: `final`, authors, affiliations, emails, release link, scikit-learn version | Done | 74e84dd (3d5c4d9, bc560fe), c062a02, a006cf3, b6c0253, e2c16ca, c047790 (d725ec5) |
 | B 1,000-permutation nulls under one procedure | Done | ca1c089 (0f9f6bd, ec03411) |
 | B no-code floor trained outside the test split | Done: 0.298, and the paper leads with it | ca1c089 (2670852, 9307198), 5f02f3d, 7fa7ec8, 96f4595 |
 | B within-task null for F2 | Done | ca1c089 (a4e19cf) |
-| C classifier swap table | Script written and smoke-tested, not run (needs the generated jsonl on the cluster) | c047790 (b4f0a62) |
-| C strict monitor re-run with the matching attack file | Not done (API, about $1) | — |
+| C classifier swap table | Done: human honest vs our attacks 0.981 (Haiku 0.973), above B'; the classifier's drop is authorship | 49c6307, 1a9dc8b, 5cec86c, 8e3a590, b83e613, 233c7cc |
+| C strict monitor re-run with the matching attack file | Not done: needs ANTHROPIC_API_KEY (about $0.37); the three differing attacks are named and the AUROC without them (0.821) is reported | 7da3457, 20df1fa |
 | D API experiments | Skipped (cost) | — |
 | Responses to the reviews | Drafted in `response-to-reviews.md` | 809ccb4, f5809b6 |
 | READMEs | Updated to the revised claims | 666b040 |
@@ -177,11 +177,21 @@ comes from"): `pooled_stats.py`, `fire_counts.py`, `monitor_swap.py`, `audit_bud
 - Values that stay fold means, because their inputs are only on the cluster: `\sameGenLen`,
   the Haiku similarity strata, the one-sided arm, and `\baselineBownflag`.
 
+### Second round (October 13-14, 2026)
+
+- Generated files copied from the CS portal checkout (`/u/fvc9ch/ai-safety/authorship-not-sabotage`,
+  checksums verified) to run what needed them; none is committed.
+- Classifier class swap run (above). Exact fire counts: 13/586 and 2/562 (fire_counts.py). The
+  three differing strict attacks are 1701, 1972, 4434 (monitor_swap.py). The four fold-mean
+  holdouts are pooled (merge of camera-ready-cluster). shared_problems.py now reads the
+  classifier's files: 53 / 11 split, not 52 / 12 (bf2de2a).
+- Bibliography cleaned and checked against arXiv (merge of camera-ready-bib).
+
 ### Still open
 
-1. Author affiliation and email (placeholders under `% TODO(author)` in `main.tex`).
-2. Run `classifier_swap.py` on the cluster before October 29; fill `\matchedFire` exactly and
-   name the three differing strict attacks from the same files.
-3. Whether to add the camera-ready scripts to the release bundle (`release_split.py` lists 24
-   scripts and none of the new ones).
-4. Whether the release URL (github.com/ShubsDS/authorship-not-sabotage) is public by the deadline.
+1. The strict monitor re-run (needs an API key; command in `experiments/README.md`, "Pending").
+2. Whether to add the camera-ready scripts to the release bundle (`release_split.py` lists 24
+   scripts and none of the new ones), and hosting the corpus itself (the abstract's footnote
+   promises "Code and corpus").
+3. Whether the release URL (github.com/ShubsDS/authorship-not-sabotage) is public by the deadline.
+4. The title.
