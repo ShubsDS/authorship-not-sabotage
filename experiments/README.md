@@ -223,8 +223,9 @@ python release_split.py --check release --allow-trivial-identical 120
 | Result in the paper | Script | Committed output |
 |---|---|---|
 | Bag-of-words floor 0.806 (20/24); comments kept 0.891; char n-grams 0.783 | `koran_split_eval.py` | — |
-| No-code floor 0.772 (CV) and 0.716 (held-out) | `analyse2.py`, `auroc.py` | — |
-| Intervals, permutation nulls, paired comparison with the monitors | `headline_ci.py` | `headline_ci.json` |
+| No-code floor 0.766 (CV, pooled out-of-fold; 20/24) and 0.716 (held-out; 17/24 on identical items) | `headline_ci.py` (held-out point also `auroc.py`; CV fold mean `analyse2.py`) | `headline_ci.json` |
+| No-code floor trained outside the test split 0.298 (at least four tests: 0.629) | `nocode_outside.py` | `nocode_outside.json` |
+| Intervals, 1,000-permutation nulls under one procedure, paired comparison with the monitors | `headline_ci.py` | `headline_ci.json` |
 | Monitor count, median 0.609, max 0.937 | `fetch_inputs.py` | `monitor-summary.json` |
 | `#`-count 0.696 → 0.498; length 0.4726 | `bow.py` | — |
 | Table F1 metadata rows; P3 = 0.5000 | `floors.py`, `auroc.py` | — |
@@ -235,25 +236,26 @@ python release_split.py --check release --allow-trivial-identical 120
 | Headline S = 0.750, ρ = 0.687; pair similarity | `gate_s_samegen.py` (pooled points: `pooled_stats.py`) | `sg_indep_first_passes[_v2].json` |
 | Strict S = 0.749, ρ = 0.861; fold seeds | `gate_s_samegen.py` (pooled points: `pooled_stats.py`) | `sg_indep_best_usable[_v2].json`, `sg_indep_best_usable_seed{0..4}.json` |
 | Edit arm S = 0.625, ρ = 0.366 | `gate_s_samegen.py` (pooled points: `pooled_stats.py`) | `sg_edit_passes.json` |
-| Joint intervals on ρ | `rho_joint_ci.py` | `rho_joint_{headline,strict,haiku45}.json` |
-| B at matched n | `gate_s_learning_curve.py` | `lc_{first_passes,best_usable}.json` |
-| Survivor check | `survivor_check.py` | `survivor_check.json` |
+| Joint intervals on ρ: headline 0.625–0.755, strict 0.662–1.089, Haiku 0.044–0.150 | `rho_joint_ci.py` | `rho_joint_{headline,strict,haiku45}.json` |
+| B at matched n: 0.851 (n = 623), 0.773 (n = 99) | `gate_s_learning_curve.py` | `lc_{first_passes,best_usable}.json` |
+| Survivor check: survivors vs non-survivors 0.62; S with non-firing attempts 0.745 against 0.751 | `survivor_check.py` | `survivor_check.json` |
 | Identifier mask: S = 0.699 | `lexical_probe.py` (pooled points: `pooled_stats.py`) | `lexical_probe.json` |
-| Prompt-matched S = 0.641, ρ = 0.390; prompt-only floor | `gate_s_matched.py` (pooled points: `pooled_stats.py`) | `gate_s_matched_{headline,strict}.json` |
+| Prompt-matched S = 0.641, ρ = 0.390 (strict 0.693, 0.662); prompt-only floor 0.600 | `gate_s_matched.py` (pooled points: `pooled_stats.py`) | `gate_s_matched_{headline,strict}.json` |
 | Haiku S = 0.534, ρ = 0.097 | `gate_s_samegen.py` (pooled points: `pooled_stats.py`) | `sg_haiku45_indep_passes.json` |
-| Haiku prompt-matched and similarity strata | `gate_s_matched_haiku.py`, `sim_stratified_s.py` | `gate_s_matched_haiku45.json`, `sim_strata_haiku45.json` |
-| LLM monitor: 0.958 stored → 0.566 same-generator; Haiku monitor | `monitor_samegen.py` | `monitor_{samegen,stored}_*.json` |
-| Monitor ρ | `monitor_rho.py` | `monitor_rho.json` |
+| Haiku prompt-matched (S = 0.539, ρ = 0.110) and similarity strata | `gate_s_matched_haiku.py` (pooled points: `pooled_stats.py`), `sim_stratified_s.py` | `gate_s_matched_haiku45.json`, `sim_strata_haiku45.json` |
+| LLM monitor: 0.958 stored → 0.566 same-generator (strict 0.944 → 0.818); Haiku monitor | `monitor_samegen.py` | `monitor_{samegen,stored}_*.json` |
+| Monitor ρ: 0.145 headline, 0.717 strict | `monitor_rho.py` | `monitor_rho.json` |
 | Trigger overlap with public tests | `trigger_public_check.py` | — |
 | Token test | `token_test.py` | — |
-| Agentic floors, nulls, scratchpad regex | `agentic/matched.py`, `floors2.py`, `cot.py` | — |
+| Agentic floors, scratchpad regex | `agentic/matched.py`, `cot.py` | — |
+| Agentic within-task nulls (Figure F2) | `agentic/floors2.py` | `agentic/within_task_null.json` |
 | Release counts | `merge_draws.py`, `release_split.py` | — |
 | Pooled out-of-fold S, B′, ρ and joint intervals for every same-generator point; P(ρ > 0.72); macro map | `pooled_stats.py` | `pooled_stats.json` |
-| Fire counts per Table 1 row; every stored attack fires; bounds on the prompt-matched row's count | `fire_counts.py` | `fire_counts.json` |
-| Monitor class-swap table (0.958 / 0.446 / 0.974 / 0.564); batch provenance; strict file mismatch | `monitor_swap.py` | `monitor_swap.json` |
-| Catch rate at a fixed false-positive rate (audit budget) | `audit_budget.py` | `audit_budget.json` |
-| Headline vs working attacks on the 64 shared problems | `shared_problems.py` | `shared_problems.json` |
-| Stored attacking models; B per attacker; ρ with Claude attackers only (0.715) | `attacker_mix.py` | `attacker_mix.json` |
+| Fire counts per Table 2 row (14/623, 2/611, 99/99, 96/96); every stored attack fires; bounds on the prompt-matched row's count (11–13 of 586) | `fire_counts.py` | `fire_counts.json` |
+| Monitor class-swap table (0.958 / 0.446 / 0.974 / 0.564; mean suspicion 78.8 / 6.6; strict human honest vs ours 0.755); batch provenance; strict file mismatch | `monitor_swap.py` | `monitor_swap.json` |
+| Catch rate at a fixed false-positive rate (audit budget): Sonnet 5 monitor at 2%, strict 77% vs 48% (difference 0.28, 0.15–0.42), headline 85% vs 6% | `audit_budget.py` | `audit_budget.json` |
+| Headline vs working attacks on the 64 shared problems: ρ 0.82 vs 0.75 (paired difference −0.24 to +0.13) | `shared_problems.py` | `shared_problems.json` |
+| Stored attacking models; B per attacker 0.75–0.93; ρ with Claude attackers only (0.715) | `attacker_mix.py` | `attacker_mix.json` |
 | Classifier class-swap table (needs the generated files; cluster) | `classifier_swap.py` | `classifier_swap_{sonnet5,haiku45}.json` (not yet run) |
 
 A few appendix counts were computed with ad hoc joins of the files above and have no script of
