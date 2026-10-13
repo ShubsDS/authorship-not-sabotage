@@ -499,6 +499,15 @@ in 152 of \splitTrain{} attack samples against 1 of \splitTrain{} honest ones. A
 unstripped values, inflated by the comment channel, are in appendix~\ref{app:stripped},
 and a token-level version of the last test does not replicate (appendix~\ref{app:token}).
 
+The split selects on a second property besides authorship. Labelling by
+\texttt{backdoor\_works} defines the negative class by attack failure rather than by
+honesty: \inertShare{} of the test split's labelled backdoors do not work, and a
+problem whose backdoor fails contributes its human honest solution instead -- the label is
+set before any code is read. Attack problems also carry half as many test
+cases (\testCasesAttack{} against
+\testCasesHonest{}), so problem difficulty correlates with the label, which the
+no-code floor reads.
+
 Holding the writer constant removes between a third and nine-tenths of the above-chance
 separability (Table~\ref{tab:gates}, whose $B'$ is refitted on each row's own problems and
 includes inert attacks): the two generators return $\rho = \sameGenRho{}$
@@ -579,15 +588,6 @@ stored pairs and \monitorS{} on the same-generator pairs, a monitor-$\rho$ of \m
 below the classifier's \sameGenRho{}; on the strict pairs the ratio is \monRhoStrict{}, and a
 monitor that wrote neither class returns nearly the same two ratios
 (appendix~\ref{app:monitors}).
-
-The split selects on a second property besides authorship. Labelling by
-\texttt{backdoor\_works} defines the negative class by attack failure rather than by
-honesty: \inertShare{} of the test split's labelled backdoors do not work, and a
-problem whose backdoor fails contributes its human honest solution instead -- the label is
-set before any code is read. Attack problems also carry half as many test
-cases (\testCasesAttack{} against
-\testCasesHonest{}), so problem difficulty correlates with the label, which the
-no-code floor's \nocodeCV{} reads.
 
 \section{Limitations}
 
