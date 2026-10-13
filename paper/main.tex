@@ -338,7 +338,8 @@ filtered, comment-stripped split, bag-of-words reaches AUROC \tfidfKoran{}, tran
 attacking models, and is nearly as strong on backdoors that never work. A classifier reading
 only problem metadata reaches \nocodeCV{}; it reads how the label was selected, not the code. We
 rebuild the corpus with one model writing both classes on the same problems and one harness
-verifying both, and release it. Writer features then cannot separate the classes; what still
+verifying both, and release it.\footnote{Code and corpus:
+\url{https://github.com/ShubsDS/authorship-not-sabotage}.} Writer features then cannot separate the classes; what still
 does comes from what the prompts asked for, the backdoor included. The surviving share of
 stored-pair separability, $\rho$, is \sameGenRho{} (Sonnet~5) and \haikuRho{} (Haiku~4.5) on
 attempts, of which \relFireFirst{} of \sameGenN{} and \haikuFireInRow{} of \haikuN{} fire, and
