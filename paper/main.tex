@@ -602,7 +602,8 @@ We use seven public corpora, whose
 per-class provenance is the object of study: two views of one APPS-backdoor artifact
 (appendix~\ref{app:schema}) and five agentic settings (appendix~\ref{app:agentic}). In the
 APPS family the honest class is human and the
-attacks come from \storedAttackers{} named models or an unattributed source. Six of the seven
+attacks come from \storedAttackers{} named models or an unattributed source
+(appendix~\ref{app:attackers}). Six of the seven
 declare no licence \cite{koran2026highquality, sinha2026controlarenacorpora}, so we report only
 aggregates and redistribute none.
 
@@ -702,7 +703,8 @@ is not resolved (appendix~\ref{app:shared}).
 \caption{\textbf{What is left when one model writes both classes.} $S$ and $B'$ are
 bag-of-words AUROCs (5-fold, comments stripped) on the same-generator pairs and on the stored
 pairs of the same problems (human honest code, stored attacks); $\rho = (S - 0.5)/(B' - 0.5)$.
-Points are pooled out-of-fold; intervals are 95\% bootstraps over problems, joint for $\rho$;
+Points are pooled out-of-fold; intervals are 95\% bootstraps over problems, joint for $\rho$
+(appendix~\ref{app:stats});
 $P$ is the share of draws with $\rho$ above \rhoContent{}, a line fixed before any arm ran.
 \emph{Fires}: same-generator attacks that fire; every stored attack here fires.
 Prompt-matched rows reuse the attacks of the row above.}
@@ -772,7 +774,7 @@ A zero-shot Sonnet~5 monitor, which wrote both same-generator classes, scores
 \monStoredHeadAbs{} on the stored pairs and \monitorS{} on the same-generator pairs
 (appendix~\ref{app:monitors}); swapping one class at a time puts the drop in the attacks.
 On the headline problems (Table~\ref{tab:swap}),\footnote{The four cells combine scores from separate
-batches run the same day; rescoring a program returns the same score 41--72\% of the time
+batches run the same day; rescoring a program returns the same score \retestSameLo{}--\retestSameHi{} of the time
 (appendix~\ref{app:monitors}).} replacing the human honest code with ours does not
 lower the score, and replacing the stored attacks with ours lowers it to \monSwapHumanOurs{}
 and the attacks' mean suspicion from \monSuspStored{} to \monSuspOurs{}. The same holds on
@@ -780,12 +782,12 @@ working attacks: on the strict problems human honest code scores \monStoredStric
 stored attacks and \monSwapStrictHumanOurs{} against ours, and our own pairs score
 \monitorStrict{}.\footnote{Three of the \strictN{} attacks the strict monitor
 runs scored differ from the classifier's strict row; dropping any three moves \monitorStrict{}
-by at most 0.02.} The monitor's fall
+to \monStrictDropMin{}--\monStrictDropMax{} (appendix~\ref{app:monitors}).} The monitor's fall
 measures attack conspicuousness, not authorship. At a fixed audit budget of \auditFPR{} false
 positives, thresholded on each set's own honest programs, it catches \auditStrictStored{} of
 stored and \auditStrictOurs{} of same-generator attacks on the strict problems (paired
 difference \auditStrictDiff{}, 95\% CI \auditStrictDiffLo{}--\auditStrictDiffHi{}), and
-\auditHeadStored{} against \auditHeadOurs{} on the headline problems.
+\auditHeadStored{} against \auditHeadOurs{} on the headline problems (appendix~\ref{app:audit}).
 
 \section{Limitations}
 
@@ -797,7 +799,7 @@ The same-generator corpus does not isolate authorship. Rebuilding with one model
 attacks as well as their author: against the same human code, the stored attacking model alone
 moves $B$ from \bAttackerLo{} to \bAttackerHi{}, so $\rho$ is not the backdoor's share of the
 separability, nor a bound on it. It does not depend on the stored attacker (Claude attackers
-only: $\rho = \rhoClaudeOnly{}$). The class swap that would isolate authorship for the classifier, human honest code against our attacks, has not
+only: $\rho = \rhoClaudeOnly{}$; appendix~\ref{app:attackers}). The class swap that would isolate authorship for the classifier, human honest code against our attacks, has not
 been run; a value near $B'$ would put the classifier's drop on the honest side, a value near
 $S$ in the attacks, as for the monitor. The corpus is not bit-reproducible: the API hides
 sampling parameters; thinking was off.
