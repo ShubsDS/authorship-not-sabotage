@@ -363,12 +363,11 @@ jha2026decorrelation}. Honest solutions are
 human-written, taken from APPS \cite{hendrycks2021apps}, and backdoors are written by language
 models, so a detector can separate the classes without reading any backdoor.
 
-There are various known confounding variables between the human and AI solutions, such as in commenting style, so corpora are often preprocessed to mitigate them. The filtered
+There are known confounding variables between human and AI solutions, such as commenting style, so corpora are often preprocessed to mitigate them. The filtered
 release keeps only working honest solutions and working backdoors and strips every comment
 \cite{koran2026ensemble}; Control Tax reports its pass-tests pre-filter and moves its failed
 backdoors to an appendix \cite{terekhov2025controltax}; the monitor-ensemble harness of
-\cite{jha2026decorrelation} ships a \texttt{--leak-check} flag with two trivial baselines in
-it: a \texttt{\#}-count detector that falls from \hashRaw{} to \hashStripped{} once comments
+\cite{jha2026decorrelation} ships a \texttt{--leak-check} flag with two trivial baselines: a \texttt{\#}-count detector that falls from \hashRaw{} to \hashStripped{} once comments
 are stripped, and code length alone, at \lenFiltered{}. Outside AI control, bag-of-words is known to separate human-written from
 model-written code \cite{orel2026aicd}, and the benchmarks built for that task match their two
 classes on line and character count or on shared problem definitions \cite{guo2025codemirage,
