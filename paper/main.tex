@@ -370,7 +370,9 @@ each programming problem. In APPS-backdoor corpora the honest code is human-writ
 backdoor model-written, so a detector can separate them without reading any backdoor. On the
 filtered, comment-stripped split, bag-of-words reaches AUROC \tfidfKoran{}, transfers across
 attacking models, and is nearly as strong on backdoors that never work. A classifier reading
-only problem metadata reaches \nocodeCV{}; it reads how the label was selected, not the code. We
+only problem metadata, trained on problems outside the split, scores \nocodeOutside{}, below
+chance; cross-validated within the split it reaches \nocodeCV{}. The split's filter, not the
+code, sets that relation. We
 rebuild the corpus with one model writing both classes on the same problems and one harness
 verifying both, and release it.\footnote{Code and corpus:
 \url{https://github.com/ShubsDS/authorship-not-sabotage}.} Writer features then cannot separate
