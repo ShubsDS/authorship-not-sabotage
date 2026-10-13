@@ -1,0 +1,535 @@
+{
+  "n_boot": 2000,
+  "seed": 0,
+  "counts": {
+    "artifact_all_entries": {
+      "unknown": 2516,
+      "openai/o3-mini": 2261,
+      "anthropic/claude-3-7-sonnet-latest": 1864,
+      "openai/o1-mini": 1250,
+      "openai/gpt-4o": 1148,
+      "google/gemini-2.0-flash": 715,
+      "anthropic/claude-3-5-haiku-latest": 591,
+      "anthropic/claude-3-7-sonnet-thinking-latest": 517,
+      "openai/gpt-4o-mini": 367,
+      "openai/gpt-3.5-turbo": 142
+    },
+    "artifact_unknown_by_source": {
+      "apps:unknown": 2516
+    },
+    "analysis_pool_selected": {
+      "openai/o3-mini": 401,
+      "anthropic/claude-3-7-sonnet-latest": 259,
+      "openai/gpt-4o": 211,
+      "anthropic/claude-3-7-sonnet-thinking-latest": 168,
+      "openai/o1-mini": 132,
+      "unknown": 111,
+      "openai/gpt-4o-mini": 61,
+      "anthropic/claude-3-5-haiku-latest": 39,
+      "google/gemini-2.0-flash": 38,
+      "openai/gpt-3.5-turbo": 24
+    },
+    "row_headline": {
+      "openai/o3-mini": 175,
+      "anthropic/claude-3-7-sonnet-latest": 110,
+      "openai/gpt-4o": 72,
+      "anthropic/claude-3-7-sonnet-thinking-latest": 71,
+      "unknown": 60,
+      "openai/o1-mini": 60,
+      "openai/gpt-4o-mini": 28,
+      "google/gemini-2.0-flash": 19,
+      "openai/gpt-3.5-turbo": 15,
+      "anthropic/claude-3-5-haiku-latest": 13
+    },
+    "row_haiku_headline": {
+      "openai/o3-mini": 166,
+      "anthropic/claude-3-7-sonnet-latest": 113,
+      "openai/gpt-4o": 75,
+      "anthropic/claude-3-7-sonnet-thinking-latest": 73,
+      "openai/o1-mini": 64,
+      "unknown": 56,
+      "openai/gpt-4o-mini": 20,
+      "google/gemini-2.0-flash": 20,
+      "openai/gpt-3.5-turbo": 12,
+      "anthropic/claude-3-5-haiku-latest": 12
+    },
+    "row_prompt_matched": {
+      "openai/o3-mini": 163,
+      "anthropic/claude-3-7-sonnet-latest": 104,
+      "openai/gpt-4o": 68,
+      "anthropic/claude-3-7-sonnet-thinking-latest": 66,
+      "unknown": 57,
+      "openai/o1-mini": 56,
+      "openai/gpt-4o-mini": 26,
+      "google/gemini-2.0-flash": 19,
+      "openai/gpt-3.5-turbo": 14,
+      "anthropic/claude-3-5-haiku-latest": 13
+    },
+    "row_strict": {
+      "openai/o3-mini": 18,
+      "openai/o1-mini": 17,
+      "openai/gpt-4o": 16,
+      "anthropic/claude-3-7-sonnet-latest": 15,
+      "anthropic/claude-3-7-sonnet-thinking-latest": 12,
+      "unknown": 9,
+      "openai/gpt-4o-mini": 5,
+      "google/gemini-2.0-flash": 3,
+      "openai/gpt-3.5-turbo": 2,
+      "anthropic/claude-3-5-haiku-latest": 2
+    },
+    "filtered_split_test_attack_items": {
+      "anthropic/claude-3-7-sonnet-thinking-latest": 172
+    },
+    "filtered_split_train_problems": {
+      "openai/o3-mini": 424,
+      "anthropic/claude-3-7-sonnet-latest": 284,
+      "openai/gpt-4o": 235,
+      "openai/o1-mini": 132,
+      "openai/gpt-4": 89,
+      "google/gemini-2.0-flash": 45
+    },
+    "filtered_split_test_honest_items": {
+      "(none)": 1158,
+      "anthropic/claude-3-5-haiku-latest": 22,
+      "openai/gpt-4o-mini": 15,
+      "openai/gpt-3.5-turbo": 8
+    },
+    "filtered_split_attack_items_all": {
+      "openai/o3-mini": 424,
+      "anthropic/claude-3-7-sonnet-latest": 284,
+      "openai/gpt-4o": 235,
+      "anthropic/claude-3-7-sonnet-thinking-latest": 172,
+      "openai/o1-mini": 132,
+      "openai/gpt-4": 89,
+      "google/gemini-2.0-flash": 45
+    },
+    "filtered_split_n": {
+      "test_attack": 172,
+      "test_honest": 1203,
+      "train": 1209
+    },
+    "filtered_split_all_rows_named_models": [
+      "anthropic/claude-3-5-haiku-latest",
+      "anthropic/claude-3-7-sonnet-latest",
+      "anthropic/claude-3-7-sonnet-thinking-latest",
+      "google/gemini-2.0-flash",
+      "openai/gpt-3.5-turbo",
+      "openai/gpt-4",
+      "openai/gpt-4o",
+      "openai/gpt-4o-mini",
+      "openai/o1-mini",
+      "openai/o3-mini"
+    ]
+  },
+  "gpt4_is_apps_source": {
+    "n_filtered_split_problems_named_gpt4": 89,
+    "n_with_a_working_apps_source_backdoor_in_artifact": 89,
+    "n_with_a_working_named_gpt4_backdoor_in_artifact": 0
+  },
+  "B_by_model_headline_oof": {
+    "openai/o3-mini": {
+      "n": 175,
+      "B_within": 0.9057632653061225,
+      "B_fixed_honest": 0.9292364136665903,
+      "B_within_ci95": [
+        0.876374693877551,
+        0.9336489795918367
+      ],
+      "B_fixed_honest_ci95": [
+        0.9083870671864251,
+        0.946729649163036
+      ]
+    },
+    "anthropic/claude-3-7-sonnet-latest": {
+      "n": 110,
+      "B_within": 0.850909090909091,
+      "B_fixed_honest": 0.8637093243834817,
+      "B_within_ci95": [
+        0.8137995867768595,
+        0.8884318181818182
+      ],
+      "B_fixed_honest_ci95": [
+        0.8223821683934044,
+        0.8986932730191157
+      ]
+    },
+    "openai/gpt-4o": {
+      "n": 72,
+      "B_within": 0.8765432098765432,
+      "B_fixed_honest": 0.8472222222222222,
+      "B_within_ci95": [
+        0.8279224537037037,
+        0.9240017361111111
+      ],
+      "B_fixed_honest_ci95": [
+        0.8031907660067773,
+        0.8892550606384876
+      ]
+    },
+    "anthropic/claude-3-7-sonnet-thinking-latest": {
+      "n": 71,
+      "B_within": 0.8641142630430471,
+      "B_fixed_honest": 0.8388985598987181,
+      "B_within_ci95": [
+        0.8178932751438207,
+        0.9125173576671295
+      ],
+      "B_fixed_honest_ci95": [
+        0.7971135803585558,
+        0.8805671105283385
+      ]
+    },
+    "openai/o1-mini": {
+      "n": 60,
+      "B_within": 0.7519444444444444,
+      "B_fixed_honest": 0.7136971642589621,
+      "B_within_ci95": [
+        0.6844374999999999,
+        0.8197291666666666
+      ],
+      "B_fixed_honest_ci95": [
+        0.6463670411985019,
+        0.7761383092562867
+      ]
+    },
+    "unknown": {
+      "n": 60,
+      "B_within": 0.9630555555555556,
+      "B_fixed_honest": 0.9570893525949705,
+      "B_within_ci95": [
+        0.9302708333333333,
+        0.9913888888888888
+      ],
+      "B_fixed_honest_ci95": [
+        0.9404206795077582,
+        0.97097645799893
+      ]
+    },
+    "openai/gpt-4o-mini": {
+      "n": 28,
+      "B_within": 0.8443877551020409,
+      "B_fixed_honest": 0.7921348314606742,
+      "B_within_ci95": [
+        0.764030612244898,
+        0.9247448979591836
+      ],
+      "B_fixed_honest_ci95": [
+        0.7097526370098601,
+        0.8629371130474662
+      ]
+    },
+    "google/gemini-2.0-flash": {
+      "n": 19,
+      "B_within": 0.7922437673130194,
+      "B_fixed_honest": 0.8383036242291121,
+      "B_within_ci95": [
+        0.7119113573407202,
+        0.9002770083102494
+      ],
+      "B_fixed_honest_ci95": [
+        0.7370913238151559,
+        0.9171348314606742
+      ]
+    },
+    "openai/gpt-3.5-turbo": {
+      "n": 15,
+      "B_within": 0.7911111111111111,
+      "B_fixed_honest": 0.7584804708400215,
+      "B_within_ci95": [
+        0.6977777777777778,
+        0.9199999999999999
+      ],
+      "B_fixed_honest_ci95": [
+        0.6443953986088817,
+        0.8523408239700374
+      ]
+    },
+    "anthropic/claude-3-5-haiku-latest": {
+      "n": 13,
+      "B_within": 0.863905325443787,
+      "B_fixed_honest": 0.8271391529818497,
+      "B_within_ci95": [
+        0.7159763313609468,
+        0.9881656804733727
+      ],
+      "B_fixed_honest_ci95": [
+        0.6780929744412891,
+        0.9406130386467466
+      ]
+    }
+  },
+  "B_pool_refit": {
+    "n": 1444,
+    "fold_mean": 0.8713753745488771,
+    "pooled": 0.8709969037990808
+  },
+  "B_by_model_pool_refit": {
+    "openai/o3-mini": {
+      "n": 401,
+      "B_within": 0.9174631998557223,
+      "B_fixed_honest": 0.9314179924150843,
+      "B_within_ci95": [
+        0.9001553161982823,
+        0.9340748813751156
+      ],
+      "B_fixed_honest_ci95": [
+        0.9177360442384344,
+        0.9438170069977411
+      ]
+    },
+    "anthropic/claude-3-7-sonnet-latest": {
+      "n": 259,
+      "B_within": 0.8687109613750539,
+      "B_fixed_honest": 0.8742954470101284,
+      "B_within_ci95": [
+        0.8438432641135345,
+        0.8943966995125298
+      ],
+      "B_fixed_honest_ci95": [
+        0.8503026770339789,
+        0.8964697483395544
+      ]
+    },
+    "openai/gpt-4o": {
+      "n": 211,
+      "B_within": 0.8573931403158059,
+      "B_fixed_honest": 0.8537533969620983,
+      "B_within_ci95": [
+        0.8279907234788078,
+        0.8869522247927945
+      ],
+      "B_fixed_honest_ci95": [
+        0.8305989155977997,
+        0.8774088071575796
+      ]
+    },
+    "anthropic/claude-3-7-sonnet-thinking-latest": {
+      "n": 168,
+      "B_within": 0.833687641723356,
+      "B_fixed_honest": 0.8242481203007519,
+      "B_within_ci95": [
+        0.799984941893424,
+        0.8663920776643991
+      ],
+      "B_fixed_honest_ci95": [
+        0.7902222661917954,
+        0.8565879130391769
+      ]
+    },
+    "openai/o1-mini": {
+      "n": 132,
+      "B_within": 0.8140495867768596,
+      "B_fixed_honest": 0.7734827499370436,
+      "B_within_ci95": [
+        0.772324093204775,
+        0.8545124540863178
+      ],
+      "B_fixed_honest_ci95": [
+        0.7324175795349619,
+        0.8136620708469738
+      ]
+    },
+    "unknown": {
+      "n": 111,
+      "B_within": 0.9741092443795146,
+      "B_fixed_honest": 0.9582491078335954,
+      "B_within_ci95": [
+        0.9565781998214431,
+        0.9885561236912588
+      ],
+      "B_fixed_honest_ci95": [
+        0.9466420541039654,
+        0.9694922762097278
+      ]
+    },
+    "openai/gpt-4o-mini": {
+      "n": 61,
+      "B_within": 0.8551464660037624,
+      "B_fixed_honest": 0.7773148358385178,
+      "B_within_ci95": [
+        0.8000537489922064,
+        0.9075584520290245
+      ],
+      "B_fixed_honest_ci95": [
+        0.7163792516234503,
+        0.8348076835747695
+      ]
+    },
+    "anthropic/claude-3-5-haiku-latest": {
+      "n": 39,
+      "B_within": 0.8796844181459565,
+      "B_fixed_honest": 0.8472547766176575,
+      "B_within_ci95": [
+        0.8113083497698883,
+        0.9460880999342538
+      ],
+      "B_fixed_honest_ci95": [
+        0.7667705447830102,
+        0.9097281412032104
+      ]
+    },
+    "google/gemini-2.0-flash": {
+      "n": 38,
+      "B_within": 0.7977839335180055,
+      "B_fixed_honest": 0.8494314039947515,
+      "B_within_ci95": [
+        0.7361495844875345,
+        0.8698407202216064
+      ],
+      "B_fixed_honest_ci95": [
+        0.790543446566555,
+        0.9056941609564076
+      ]
+    },
+    "openai/gpt-3.5-turbo": {
+      "n": 24,
+      "B_within": 0.7534722222222222,
+      "B_fixed_honest": 0.7483264081255772,
+      "B_within_ci95": [
+        0.6684027777777778,
+        0.861111111111111
+      ],
+      "B_fixed_honest_ci95": [
+        0.6255403104801478,
+        0.851197483841182
+      ]
+    }
+  },
+  "rho_by_attacker_headline": {
+    "all": {
+      "label": "all stored attackers",
+      "n_common_problems": 623,
+      "n_boot": 2000,
+      "seed": 0,
+      "S_pooled_oof": 0.7504038605721295,
+      "B_prime_pooled_oof": 0.8646403644149239,
+      "rho_point_pooled_oof": 0.6867145961032313,
+      "S_ci95": [
+        0.7294914835016192,
+        0.7713361086133735
+      ],
+      "B_prime_ci95": [
+        0.8482195352576076,
+        0.8810504368392983
+      ],
+      "rho_ci95_joint": [
+        0.6247161073196391,
+        0.7551289415905893
+      ],
+      "rho_joint_median": 0.6856710845262664,
+      "P_rho_gt_content": 0.1655,
+      "P_rho_le_collapse": 0.0,
+      "P_rho_ge_1": 0.0,
+      "n_boot_bprime_at_or_below_chance": 0,
+      "corr_S_Bprime_over_draws": -0.014790302650204253
+    },
+    "claude": {
+      "label": "anthropic/* attackers",
+      "n_common_problems": 194,
+      "n_boot": 2000,
+      "seed": 0,
+      "S_pooled_oof": 0.7548092252099053,
+      "B_prime_pooled_oof": 0.8561483685832714,
+      "rho_point_pooled_oof": 0.7154580722172483,
+      "S_ci95": [
+        0.7187383754915506,
+        0.7909986449144436
+      ],
+      "B_prime_ci95": [
+        0.8274790094590286,
+        0.8851671272186205
+      ],
+      "rho_ci95_joint": [
+        0.6003138170165803,
+        0.839463559452976
+      ],
+      "rho_joint_median": 0.7146635317758828,
+      "P_rho_gt_content": 0.4625,
+      "P_rho_le_collapse": 0.0,
+      "P_rho_ge_1": 0.0005,
+      "n_boot_bprime_at_or_below_chance": 0,
+      "corr_S_Bprime_over_draws": 0.001869247300874553
+    },
+    "claude_3_7_sonnet_thinking": {
+      "label": "claude-3-7-sonnet-thinking only",
+      "n_common_problems": 71,
+      "n_boot": 2000,
+      "seed": 0,
+      "S_pooled_oof": 0.7719698472525293,
+      "B_prime_pooled_oof": 0.8641142630430471,
+      "rho_point_pooled_oof": 0.7469354399346226,
+      "S_ci95": [
+        0.7130504860146796,
+        0.8308916881571117
+      ],
+      "B_prime_ci95": [
+        0.8161029557627454,
+        0.9097401309264035
+      ],
+      "rho_ci95_joint": [
+        0.5697841327725034,
+        0.960811052056539
+      ],
+      "rho_joint_median": 0.7507332212097171,
+      "P_rho_gt_content": 0.6195,
+      "P_rho_le_collapse": 0.0,
+      "P_rho_ge_1": 0.011,
+      "n_boot_bprime_at_or_below_chance": 0,
+      "corr_S_Bprime_over_draws": -0.045009451398694694
+    },
+    "non_claude": {
+      "label": "non-Claude (incl. unknown)",
+      "n_common_problems": 429,
+      "n_boot": 2000,
+      "seed": 0,
+      "S_pooled_oof": 0.7486402486402486,
+      "B_prime_pooled_oof": 0.8685021272433859,
+      "rho_point_pooled_oof": 0.674732193543155,
+      "S_ci95": [
+        0.7234076238446868,
+        0.7731496650202944
+      ],
+      "B_prime_ci95": [
+        0.8478303747534517,
+        0.8876819567379008
+      ],
+      "rho_ci95_joint": [
+        0.5982065600067153,
+        0.7507906127582581
+      ],
+      "rho_joint_median": 0.6756389065767774,
+      "P_rho_gt_content": 0.13,
+      "P_rho_le_collapse": 0.0,
+      "P_rho_ge_1": 0.0,
+      "n_boot_bprime_at_or_below_chance": 0,
+      "corr_S_Bprime_over_draws": 0.0648546975585541
+    },
+    "non_claude_named": {
+      "label": "non-Claude named models",
+      "n_common_problems": 369,
+      "n_boot": 2000,
+      "seed": 0,
+      "S_pooled_oof": 0.7457127958813463,
+      "B_prime_pooled_oof": 0.852321883652441,
+      "rho_point_pooled_oof": 0.6974099744645366,
+      "S_ci95": [
+        0.7181823356173941,
+        0.7742182967222625
+      ],
+      "B_prime_ci95": [
+        0.8286653300137338,
+        0.8755697299520421
+      ],
+      "rho_ci95_joint": [
+        0.6105652115540762,
+        0.7910007767643951
+      ],
+      "rho_joint_median": 0.6976209662613279,
+      "P_rho_gt_content": 0.314,
+      "P_rho_le_collapse": 0.0,
+      "P_rho_ge_1": 0.0,
+      "n_boot_bprime_at_or_below_chance": 0,
+      "corr_S_Bprime_over_draws": 0.043703038871637484
+    }
+  }
+}

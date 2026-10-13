@@ -1,4 +1,6 @@
-# Python 3.11+. Versions are those the paper's numbers were produced with (newer ones generally work).
+# Python 3.11+. The paper's numbers were produced with scikit-learn 1.9.0 and pandas 3.0.5
+# (gate_s_baseline.json records them); the outputs written under scikit-learn 1.7.1 / pandas 2.3.1
+# reproduce under them. Newer versions generally work.
 numpy>=2.0
 pandas>=2.3
 pyarrow

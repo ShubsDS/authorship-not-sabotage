@@ -1,0 +1,965 @@
+{
+  "convention": "point = pooled out-of-fold AUROC; interval = bootstrap over problems of that same quantity; rho interval = joint bootstrap of S and B'",
+  "n_boot": 2000,
+  "seed": 0,
+  "bands": {
+    "collapse_le": 0.33,
+    "content_gt": 0.72
+  },
+  "table1": {
+    "sonnet_headline": {
+      "label": "Sonnet 5, headline",
+      "source": "sg_indep_first_passes_v2.json",
+      "n": 623,
+      "fold_mean": {
+        "S": 0.7512062967741936,
+        "B_prime": 0.8657624749219563,
+        "rho": 0.686801719689244
+      },
+      "pooled": {
+        "S": 0.7504038605721295,
+        "B_prime": 0.8646403644149239,
+        "rho": 0.6867145961032313
+      },
+      "S_ci95": [
+        0.7294914835016192,
+        0.7713361086133735
+      ],
+      "B_prime_ci95": [
+        0.8482195352576076,
+        0.8810504368392983
+      ],
+      "rho_ci95_joint": [
+        0.6247161073196391,
+        0.7551289415905893
+      ],
+      "P_rho_gt_0.72": 0.1655,
+      "P_rho_le_0.33": 0.0,
+      "P_rho_ge_1": 0.0,
+      "S_ci95_in_json": [
+        0.7294914835016192,
+        0.7713361086133735
+      ]
+    },
+    "haiku_headline": {
+      "label": "Haiku 4.5, headline",
+      "source": "sg_haiku45_indep_passes.json",
+      "n": 611,
+      "fold_mean": {
+        "S": 0.534032607135741,
+        "B_prime": 0.8583558375485827,
+        "rho": 0.09496875331667265
+      },
+      "pooled": {
+        "S": 0.5344408699215956,
+        "B_prime": 0.8563782910685442,
+        "rho": 0.09664132407821484
+      },
+      "S_ci95": [
+        0.5159071884517615,
+        0.5531224803855127
+      ],
+      "B_prime_ci95": [
+        0.8392226796778108,
+        0.8726077557919324
+      ],
+      "rho_ci95_joint": [
+        0.044490979230059235,
+        0.14995429978689867
+      ],
+      "P_rho_gt_0.72": 0.0,
+      "P_rho_le_0.33": 1.0,
+      "P_rho_ge_1": 0.0,
+      "S_ci95_in_json": [
+        0.5159071884517615,
+        0.5531224803855127
+      ]
+    },
+    "prompt_matched": {
+      "label": "Sonnet 5, prompt-matched",
+      "source": "gate_s_matched_headline.json[S_matched]",
+      "n": 586,
+      "fold_mean": {
+        "S": 0.6422819774332381,
+        "B_prime": 0.8612635095428132,
+        "rho": 0.39384541664144007
+      },
+      "pooled": {
+        "S": 0.6410558072895433,
+        "B_prime": 0.8614252932474461,
+        "rho": 0.39027652442954747
+      },
+      "S_ci95": [
+        0.6178679279898427,
+        0.6620720683991659
+      ],
+      "B_prime_ci95": [
+        0.844324045708162,
+        0.8781527740567742
+      ],
+      "rho_ci95_joint": [
+        0.3261936199330929,
+        0.4539348586013904
+      ],
+      "P_rho_gt_0.72": 0.0,
+      "P_rho_le_0.33": 0.033,
+      "P_rho_ge_1": 0.0,
+      "S_ci95_in_json": [
+        0.6178679279898427,
+        0.6620720683991659
+      ]
+    },
+    "strict": {
+      "label": "Sonnet 5, strict",
+      "source": "sg_indep_best_usable_v2.json",
+      "n": 99,
+      "fold_mean": {
+        "S": 0.7651509695290859,
+        "B_prime": 0.7877465373961219,
+        "rho": 0.9214740581363448
+      },
+      "pooled": {
+        "S": 0.7488011427405367,
+        "B_prime": 0.7888990919293951,
+        "rho": 0.8612043086703156
+      },
+      "S_ci95": [
+        0.7015585144373022,
+        0.8000255076012651
+      ],
+      "B_prime_ci95": [
+        0.7410417304356698,
+        0.8339021528415468
+      ],
+      "rho_ci95_joint": [
+        0.6616333225744082,
+        1.0887890957367135
+      ],
+      "P_rho_gt_0.72": 0.918,
+      "P_rho_le_0.33": 0.0,
+      "P_rho_ge_1": 0.1005,
+      "S_ci95_in_json": [
+        0.7015585144373022,
+        0.8000255076012651
+      ]
+    },
+    "strict_matched": {
+      "label": "Sonnet 5, strict, matched",
+      "source": "gate_s_matched_strict.json[S_matched]",
+      "n": 96,
+      "fold_mean": {
+        "S": 0.7113116343490304,
+        "B_prime": 0.8030096952908586,
+        "rho": 0.697375818771055
+      },
+      "pooled": {
+        "S": 0.6925998263888888,
+        "B_prime": 0.7910156250000001,
+        "rho": 0.6618195376584635
+      },
+      "S_ci95": [
+        0.6463758680555557,
+        0.7453396267361111
+      ],
+      "B_prime_ci95": [
+        0.7474826388888888,
+        0.8358317057291667
+      ],
+      "rho_ci95_joint": [
+        0.494029214575245,
+        0.8562380653647337
+      ],
+      "P_rho_gt_0.72": 0.2805,
+      "P_rho_le_0.33": 0.0,
+      "P_rho_ge_1": 0.001,
+      "S_ci95_in_json": [
+        0.6463758680555557,
+        0.7453396267361111
+      ]
+    }
+  },
+  "other_joint": {
+    "haiku_prompt_matched": {
+      "label": "Haiku 4.5, prompt-matched",
+      "source": "gate_s_matched_haiku45.json[S_matched]",
+      "n": 562,
+      "fold_mean": {
+        "S": 0.5399008571510483,
+        "B_prime": 0.8540466320397295,
+        "rho": 0.11269943996126137
+      },
+      "pooled": {
+        "S": 0.5390762528336774,
+        "B_prime": 0.8539880447309431,
+        "rho": 0.11038862304905878
+      },
+      "S_ci95": [
+        0.5196693225136461,
+        0.5580626828434289
+      ],
+      "B_prime_ci95": [
+        0.8352978052456276,
+        0.8715830441610414
+      ],
+      "rho_ci95_joint": [
+        0.05458108898748366,
+        0.164691780682866
+      ],
+      "P_rho_gt_0.72": 0.0,
+      "P_rho_le_0.33": 1.0,
+      "P_rho_ge_1": 0.0,
+      "S_ci95_in_json": [
+        0.5196693225136461,
+        0.5580626828434289
+      ]
+    },
+    "identifier_mask_headline": {
+      "label": "Sonnet 5 headline, identifier mask",
+      "source": "lexical_probe.json[headline][masking][ID (structure only)]",
+      "n": 623,
+      "fold_mean": {
+        "S": 0.6997278626430801,
+        "B_prime": 0.8721750676378772,
+        "rho": 0.5366503025329289
+      },
+      "pooled": {
+        "S": 0.6990807180087033,
+        "B_prime": 0.8711742745324365,
+        "rho": 0.5363537606680386
+      },
+      "S_ci95": [
+        0.6784903021933429,
+        0.7204718663124888
+      ],
+      "B_prime_ci95": [
+        0.8551426845198375,
+        0.8871981995676697
+      ],
+      "rho_ci95_joint": [
+        0.47861928536365494,
+        0.6019004272318624
+      ],
+      "P_rho_gt_0.72": 0.0,
+      "P_rho_le_0.33": 0.0,
+      "P_rho_ge_1": 0.0,
+      "S_ci95_in_json": [
+        0.6784903021933429,
+        0.7204718663124888
+      ]
+    },
+    "matched_identifier_mask": {
+      "label": "Sonnet 5 prompt-matched, identifier mask",
+      "source": "gate_s_matched_headline.json[masked_ID][S_matched]",
+      "n": 586,
+      "fold_mean": {
+        "S": 0.6264318988972603,
+        "B_prime": 0.869522320945431,
+        "rho": 0.342149558310257
+      },
+      "pooled": {
+        "S": 0.6242865379911239,
+        "B_prime": 0.8687724958939533,
+        "rho": 0.3370276779721244
+      },
+      "S_ci95": [
+        0.6034589075003786,
+        0.6444675389346409
+      ],
+      "B_prime_ci95": [
+        0.8516347016272758,
+        0.8855145371524421
+      ],
+      "rho_ci95_joint": [
+        0.27955098184900407,
+        0.3944090750319976
+      ],
+      "P_rho_gt_0.72": 0.0,
+      "P_rho_le_0.33": 0.401,
+      "P_rho_ge_1": 0.0,
+      "S_ci95_in_json": [
+        0.6034589075003786,
+        0.6444675389346409
+      ]
+    },
+    "matched_identifier_mask_original_honest": {
+      "label": "Sonnet 5 original honest on the matched problems, identifier mask",
+      "source": "gate_s_matched_headline.json[masked_ID][S_original_same_problems]",
+      "n": 586,
+      "fold_mean": {
+        "S": 0.7045933998509888,
+        "B_prime": 0.869522320945431,
+        "rho": 0.553669936169301
+      },
+      "pooled": {
+        "S": 0.7036176891984763,
+        "B_prime": 0.8687724958939533,
+        "rho": 0.5521498795751568
+      },
+      "S_ci95": [
+        0.6807160683292758,
+        0.725218042726182
+      ],
+      "B_prime_ci95": [
+        0.8516347016272758,
+        0.8855145371524421
+      ],
+      "rho_ci95_joint": [
+        0.48997708127064143,
+        0.6158571253681234
+      ],
+      "P_rho_gt_0.72": 0.0,
+      "P_rho_le_0.33": 0.0,
+      "P_rho_ge_1": 0.0,
+      "S_ci95_in_json": [
+        0.6807160683292758,
+        0.725218042726182
+      ]
+    },
+    "matched_char_ngram": {
+      "label": "Sonnet 5 prompt-matched, char 3-5-grams",
+      "source": "gate_s_matched_headline.json[char_ngram_3_5][S_matched]",
+      "n": 586,
+      "fold_mean": {
+        "S": 0.6816753078592074,
+        "B_prime": 0.868140138311545,
+        "rho": 0.4934949736598987
+      },
+      "pooled": {
+        "S": 0.6786115738098288,
+        "B_prime": 0.8673251872473762,
+        "rho": 0.48624918739792916
+      },
+      "S_ci95": [
+        0.65709221278058,
+        0.7006688706333213
+      ],
+      "B_prime_ci95": [
+        0.8500149244603896,
+        0.8841839305058882
+      ],
+      "rho_ci95_joint": [
+        0.42232906183283114,
+        0.552497163778976
+      ],
+      "P_rho_gt_0.72": 0.0,
+      "P_rho_le_0.33": 0.0,
+      "P_rho_ge_1": 0.0,
+      "S_ci95_in_json": [
+        0.65709221278058,
+        0.7006688706333213
+      ]
+    }
+  },
+  "pooled_only": {
+    "edit_arm": {
+      "label": "edit arm",
+      "source": "sg_edit_passes.json",
+      "n": 427,
+      "fold_mean": {
+        "S": 0.626577551505443,
+        "B_prime": 0.8412841842874013,
+        "rho": 0.3708860748110434
+      },
+      "pooled": {
+        "S": 0.6246318468263413,
+        "B_prime": 0.8407494145199064,
+        "rho": 0.3657580659439707
+      },
+      "S_ci95": [
+        0.6044338805126995,
+        0.6466700305491722
+      ],
+      "B_prime_ci95": [
+        0.821113481673239,
+        0.8623322400715192
+      ],
+      "rho_ci95_joint": null,
+      "note": "no per-pair oof scores in the json, so no joint interval on rho"
+    },
+    "prompt_only_sonnet": {
+      "label": "prompt-only floor, Sonnet 5",
+      "source": "gate_s_matched_headline.json[prompt_only]",
+      "n": 586,
+      "fold_mean": {
+        "S": 0.6006175226633906
+      },
+      "pooled": {
+        "S": 0.6003870167386924
+      },
+      "S_ci95": [
+        0.576833779368426,
+        0.6242976767347319
+      ]
+    },
+    "prompt_only_haiku": {
+      "label": "prompt-only floor, Haiku 4.5",
+      "source": "gate_s_matched_haiku45.json[prompt_only]",
+      "n": 562,
+      "fold_mean": {
+        "S": 0.4917992611500509
+      },
+      "pooled": {
+        "S": 0.4922002634211826
+      },
+      "S_ci95": [
+        0.47237663213485137,
+        0.5126129117539038
+      ]
+    },
+    "survivor_swap_S": {
+      "label": "S with non-firing attempts on the strict problems",
+      "source": "survivor_check.json[d_S_inert_same_problems]",
+      "n": 98,
+      "fold_mean": {
+        "S": 0.7594792243767312
+      },
+      "pooled": {
+        "S": 0.7448979591836734
+      },
+      "S_ci95": [
+        0.6986646189087881,
+        0.7928987921699292
+      ]
+    },
+    "survivor_swap_Sref": {
+      "label": "strict S on the same 98 problems",
+      "source": "survivor_check.json[d_strict_S_same_subset]",
+      "n": 98,
+      "fold_mean": {
+        "S": 0.7686537396121884
+      },
+      "pooled": {
+        "S": 0.7513536026655561
+      },
+      "S_ci95": [
+        0.7044929196168263,
+        0.8028009162848813
+      ]
+    },
+    "survivor_auroc": {
+      "label": "survivors vs non-survivors (attack side)",
+      "source": "survivor_check.json[a_attack_surv_vs_nonsurv]",
+      "fold_mean": {
+        "S": 0.6224461688797037
+      },
+      "pooled": {
+        "S": 0.6217614369673503
+      },
+      "S_ci95": [
+        0.5588049630363193,
+        0.6829324197638327
+      ]
+    },
+    "nocode_cv": {
+      "label": "no-code floor, 5x5 CV within the test split",
+      "source": "headline_ci.json[floors, protocol '5x5 CV within test']",
+      "fold_mean": {
+        "S": 0.7715
+      },
+      "pooled": {
+        "S": 0.7658
+      },
+      "S_ci95": [
+        0.7319,
+        0.8005
+      ],
+      "above_n_of_24_pooled": 20
+    },
+    "curve_headline": {
+      "label": "B at matched n = 623, mean of 30 subsamples",
+      "source": "lc_first_passes.json[points n=623]",
+      "fold_mean": {
+        "mean": 0.8521331818799862,
+        "sd": 0.005507052909130507
+      },
+      "pooled": {
+        "mean": 0.8511978405804945,
+        "sd": null
+      },
+      "note": "the json keeps the pooled mean but not its sd; --refit gives it"
+    },
+    "curve_strict": {
+      "label": "B at matched n = 99, mean of 30 subsamples",
+      "source": "lc_best_usable.json[points n=99]",
+      "fold_mean": {
+        "mean": 0.7807002308402585,
+        "sd": 0.024767876214895044
+      },
+      "pooled": {
+        "mean": 0.772921130496888,
+        "sd": null
+      },
+      "note": "the json keeps the pooled mean but not its sd; --refit gives it"
+    }
+  },
+  "strict_fold_seeds": {
+    "per_seed": {
+      "0": {
+        "fold_mean_rho": 0.9191072437454432,
+        "pooled_rho": 0.9200573579494533,
+        "pooled_S": 0.7618610345883073,
+        "pooled_B_prime": 0.7846138149168452,
+        "rho_ci95_joint": [
+          0.72525413501385,
+          1.1419044129581324
+        ]
+      },
+      "1": {
+        "fold_mean_rho": 0.8852992152978825,
+        "pooled_rho": 0.9030805260313453,
+        "pooled_S": 0.7557392102846647,
+        "pooled_B_prime": 0.7831853892459953,
+        "rho_ci95_joint": [
+          0.7047573803931415,
+          1.136887332233183
+        ]
+      },
+      "2": {
+        "fold_mean_rho": 0.8515376605345365,
+        "pooled_rho": 0.8945291479820632,
+        "pooled_S": 0.7544128150188757,
+        "pooled_B_prime": 0.7844097541067238,
+        "rho_ci95_joint": [
+          0.7016575187605365,
+          1.1243736644983238
+        ]
+      },
+      "3": {
+        "fold_mean_rho": 0.8653017291808035,
+        "pooled_rho": 0.8679014502883104,
+        "pooled_S": 0.7533925109682685,
+        "pooled_B_prime": 0.7919600040812161,
+        "rho_ci95_joint": [
+          0.674328950007542,
+          1.0898874343262903
+        ]
+      },
+      "4": {
+        "fold_mean_rho": 0.8558330090865399,
+        "pooled_rho": 0.9282768513537746,
+        "pooled_S": 0.7641057034996429,
+        "pooled_B_prime": 0.7845117845117845,
+        "rho_ci95_joint": [
+          0.7278309671776323,
+          1.1546303738133912
+        ]
+      }
+    },
+    "fold_mean_rho_range": [
+      0.8515376605345365,
+      0.9191072437454432
+    ],
+    "pooled_rho_range": [
+      0.8679014502883104,
+      0.9282768513537746
+    ],
+    "note": "seeds 0-4 shuffle the problem-to-fold assignment; the default unshuffled split is the Table 1 strict row"
+  },
+  "refit": {
+    "B": {
+      "n": 1444,
+      "fold_mean": 0.8713753745488771,
+      "fold_sd": 0.008474274154744393,
+      "pooled": 0.8709969037990808,
+      "pooled_ci95": [
+        0.8607372252936978,
+        0.8812225797262143
+      ],
+      "collapse_line_pooled": 0.6224289782536967,
+      "content_line_pooled": 0.7671177707353382
+    },
+    "curve_headline": {
+      "n": 623,
+      "draws": 30,
+      "fold_mean_mean": 0.8521331818799862,
+      "fold_mean_sd": 0.005507052909130507,
+      "pooled_mean": 0.8511978405804945,
+      "pooled_sd": 0.005477144308490132,
+      "committed_fold_mean_mean": 0.8521331818799862,
+      "committed_pooled_mean": 0.8511978405804945,
+      "reproduces_committed": true
+    },
+    "curve_strict": {
+      "n": 99,
+      "draws": 30,
+      "fold_mean_mean": 0.7807002308402585,
+      "fold_mean_sd": 0.024767876214895044,
+      "pooled_mean": 0.772921130496888,
+      "pooled_sd": 0.025271918698208794,
+      "committed_fold_mean_mean": 0.7807002308402585,
+      "committed_pooled_mean": 0.772921130496888,
+      "reproduces_committed": true
+    },
+    "sklearn": "1.9.0",
+    "pandas": "3.0.5"
+  },
+  "macro_map": {
+    "\\sameGenS": {
+      "old": "0.7512",
+      "new": "0.7504",
+      "source": "sg_indep_first_passes_v2.json"
+    },
+    "\\sameGenBprime": {
+      "old": "0.8658",
+      "new": "0.8646",
+      "source": "sg_indep_first_passes_v2.json"
+    },
+    "\\sameGenRho": {
+      "old": "0.687",
+      "new": "0.687",
+      "source": "sg_indep_first_passes_v2.json"
+    },
+    "\\sameGenRhoLo": {
+      "old": "0.625",
+      "new": "0.625",
+      "source": "sg_indep_first_passes_v2.json",
+      "note": "unchanged: already the joint bootstrap of the pooled rho"
+    },
+    "\\sameGenRhoHi": {
+      "old": "0.755",
+      "new": "0.755",
+      "source": "sg_indep_first_passes_v2.json"
+    },
+    "\\sameGenLo": {
+      "old": "0.7295",
+      "new": "0.7295",
+      "source": "sg_indep_first_passes_v2.json",
+      "note": "unchanged: already the bootstrap of the pooled S"
+    },
+    "\\sameGenHi": {
+      "old": "0.7713",
+      "new": "0.7713",
+      "source": "sg_indep_first_passes_v2.json"
+    },
+    "\\haikuS": {
+      "old": "0.5340",
+      "new": "0.5344",
+      "source": "sg_haiku45_indep_passes.json"
+    },
+    "\\haikuBprime": {
+      "old": "0.8584",
+      "new": "0.8564",
+      "source": "sg_haiku45_indep_passes.json"
+    },
+    "\\haikuRho": {
+      "old": "0.095",
+      "new": "0.097",
+      "source": "sg_haiku45_indep_passes.json"
+    },
+    "\\haikuRhoLo": {
+      "old": "0.044",
+      "new": "0.044",
+      "source": "sg_haiku45_indep_passes.json",
+      "note": "unchanged: already the joint bootstrap of the pooled rho"
+    },
+    "\\haikuRhoHi": {
+      "old": "0.150",
+      "new": "0.150",
+      "source": "sg_haiku45_indep_passes.json"
+    },
+    "\\haikuSLo": {
+      "old": "0.5159",
+      "new": "0.5159",
+      "source": "sg_haiku45_indep_passes.json",
+      "note": "unchanged: already the bootstrap of the pooled S"
+    },
+    "\\haikuSHi": {
+      "old": "0.5531",
+      "new": "0.5531",
+      "source": "sg_haiku45_indep_passes.json"
+    },
+    "\\matchedS": {
+      "old": "0.6423",
+      "new": "0.6411",
+      "source": "gate_s_matched_headline.json[S_matched]"
+    },
+    "\\matchedBprime": {
+      "old": "0.8613",
+      "new": "0.8614",
+      "source": "gate_s_matched_headline.json[S_matched]"
+    },
+    "\\matchedRho": {
+      "old": "0.394",
+      "new": "0.390",
+      "source": "gate_s_matched_headline.json[S_matched]"
+    },
+    "\\matchedRhoLo": {
+      "old": "0.326",
+      "new": "0.326",
+      "source": "gate_s_matched_headline.json[S_matched]",
+      "note": "unchanged: already the joint bootstrap of the pooled rho"
+    },
+    "\\matchedRhoHi": {
+      "old": "0.454",
+      "new": "0.454",
+      "source": "gate_s_matched_headline.json[S_matched]"
+    },
+    "\\matchedLo": {
+      "old": "0.6179",
+      "new": "0.6179",
+      "source": "gate_s_matched_headline.json[S_matched]",
+      "note": "unchanged: already the bootstrap of the pooled S"
+    },
+    "\\matchedHi": {
+      "old": "0.6621",
+      "new": "0.6621",
+      "source": "gate_s_matched_headline.json[S_matched]"
+    },
+    "\\strictS": {
+      "old": "0.7652",
+      "new": "0.7488",
+      "source": "sg_indep_best_usable_v2.json"
+    },
+    "\\strictBprime": {
+      "old": "0.7877",
+      "new": "0.7889",
+      "source": "sg_indep_best_usable_v2.json"
+    },
+    "\\strictRho": {
+      "old": "0.921",
+      "new": "0.861",
+      "source": "sg_indep_best_usable_v2.json"
+    },
+    "\\strictRhoLo": {
+      "old": "0.662",
+      "new": "0.662",
+      "source": "sg_indep_best_usable_v2.json",
+      "note": "unchanged: already the joint bootstrap of the pooled rho"
+    },
+    "\\strictRhoHi": {
+      "old": "1.089",
+      "new": "1.089",
+      "source": "sg_indep_best_usable_v2.json"
+    },
+    "\\strictLo": {
+      "old": "0.7016",
+      "new": "0.7016",
+      "source": "sg_indep_best_usable_v2.json",
+      "note": "unchanged: already the bootstrap of the pooled S"
+    },
+    "\\strictHi": {
+      "old": "0.8000",
+      "new": "0.8000",
+      "source": "sg_indep_best_usable_v2.json"
+    },
+    "\\matchedStrictS": {
+      "old": "0.7113",
+      "new": "0.6926",
+      "source": "gate_s_matched_strict.json[S_matched]"
+    },
+    "\\matchedStrictBprime": {
+      "old": "0.8030",
+      "new": "0.7910",
+      "source": "gate_s_matched_strict.json[S_matched]"
+    },
+    "\\matchedStrictRho": {
+      "old": "0.697",
+      "new": "0.662",
+      "source": "gate_s_matched_strict.json[S_matched]"
+    },
+    "\\matchedStrictRhoLo": {
+      "old": "0.494",
+      "new": "0.494",
+      "source": "gate_s_matched_strict.json[S_matched]",
+      "note": "unchanged: already the joint bootstrap of the pooled rho"
+    },
+    "\\matchedStrictRhoHi": {
+      "old": "0.856",
+      "new": "0.856",
+      "source": "gate_s_matched_strict.json[S_matched]"
+    },
+    "\\matchedStrictLo": {
+      "old": "0.6464",
+      "new": "0.6464",
+      "source": "gate_s_matched_strict.json[S_matched]",
+      "note": "unchanged: already the bootstrap of the pooled S"
+    },
+    "\\matchedStrictHi": {
+      "old": "0.7453",
+      "new": "0.7453",
+      "source": "gate_s_matched_strict.json[S_matched]"
+    },
+    "\\strictRhoPooled": {
+      "old": "0.86",
+      "new": "0.861",
+      "source": "sg_indep_best_usable_v2.json",
+      "note": "becomes \\strictRho under the new convention"
+    },
+    "\\matchedRhoPooled": {
+      "old": "0.390",
+      "new": "0.390",
+      "source": "gate_s_matched_headline.json[S_matched]",
+      "note": "becomes \\matchedRho under the new convention"
+    },
+    "\\matchedStrictRhoPooled": {
+      "old": "0.662",
+      "new": "0.662",
+      "source": "gate_s_matched_strict.json[S_matched]",
+      "note": "becomes \\matchedStrictRho under the new convention"
+    },
+    "\\haikuRhoPooled": {
+      "old": "0.097",
+      "new": "0.097",
+      "source": "sg_haiku45_indep_passes.json",
+      "note": "becomes \\haikuRho under the new convention"
+    },
+    "\\haikuSMatched": {
+      "old": "0.5399",
+      "new": "0.5391",
+      "source": "gate_s_matched_haiku45.json[S_matched]"
+    },
+    "\\haikuMatchedRho": {
+      "old": "0.113",
+      "new": "0.110",
+      "source": "gate_s_matched_haiku45.json[S_matched]",
+      "note": "joint CI 0.055-0.165"
+    },
+    "\\sameGenSid": {
+      "old": "0.700",
+      "new": "0.699",
+      "source": "lexical_probe.json[headline][masking][ID (structure only)]"
+    },
+    "\\sameGenRhoId": {
+      "old": "0.54",
+      "new": "0.54",
+      "source": "lexical_probe.json[headline][masking][ID (structure only)]",
+      "note": "pooled 0.5364, joint CI 0.479-0.602"
+    },
+    "\\matchedSid": {
+      "old": "0.6264",
+      "new": "0.6243",
+      "source": "gate_s_matched_headline.json[masked_ID][S_matched]"
+    },
+    "\\matchedRhoId": {
+      "old": "0.342",
+      "new": "0.337",
+      "source": "gate_s_matched_headline.json[masked_ID][S_matched]"
+    },
+    "\\matchedRhoIdLo": {
+      "old": "0.280",
+      "new": "0.280",
+      "source": "gate_s_matched_headline.json[masked_ID][S_matched]",
+      "note": "unchanged: already pooled"
+    },
+    "\\matchedRhoIdHi": {
+      "old": "0.394",
+      "new": "0.394",
+      "source": "gate_s_matched_headline.json[masked_ID][S_matched]"
+    },
+    "\\matchedRhoIdCollapse": {
+      "old": "40\\%",
+      "new": "40\\%",
+      "source": "gate_s_matched_headline.json[masked_ID][S_matched]",
+      "note": "P(rho <= 0.33) under the joint bootstrap; unchanged"
+    },
+    "\\matchedSidOrig": {
+      "old": "0.7046",
+      "new": "0.7036",
+      "source": "gate_s_matched_headline.json[masked_ID][S_original_same_problems]"
+    },
+    "\\matchedChar": {
+      "old": "0.6817",
+      "new": "0.6786",
+      "source": "gate_s_matched_headline.json[char_ngram_3_5][S_matched]"
+    },
+    "\\matchedRhoChar": {
+      "old": "0.493",
+      "new": "0.486",
+      "source": "gate_s_matched_headline.json[char_ngram_3_5][S_matched]"
+    },
+    "\\editS": {
+      "old": "0.6266",
+      "new": "0.6246",
+      "source": "sg_edit_passes.json"
+    },
+    "\\editRho": {
+      "old": "0.371",
+      "new": "0.366",
+      "source": "sg_edit_passes.json",
+      "note": "no per-pair oof scores in the json, so no joint interval on rho"
+    },
+    "\\promptOnly": {
+      "old": "0.6006",
+      "new": "0.6004",
+      "source": "gate_s_matched_headline.json[prompt_only]",
+      "note": "\\promptOnlyLo/Hi (0.5768-0.6243) are already the pooled bootstrap; unchanged"
+    },
+    "\\haikuPromptFloor": {
+      "old": "0.4918",
+      "new": "0.4922",
+      "source": "gate_s_matched_haiku45.json[prompt_only]",
+      "note": "pooled CI 0.4724-0.5126"
+    },
+    "\\survivorSwapS": {
+      "old": "0.7595",
+      "new": "0.7449",
+      "source": "survivor_check.json[d_S_inert_same_problems]"
+    },
+    "\\survivorSwapSref": {
+      "old": "0.7687",
+      "new": "0.7514",
+      "source": "survivor_check.json[d_strict_S_same_subset]"
+    },
+    "\\survivorAuroc": {
+      "old": "0.62",
+      "new": "0.62",
+      "source": "survivor_check.json[a_attack_surv_vs_nonsurv]"
+    },
+    "\\nocodeCV": {
+      "old": "0.772",
+      "new": "0.766",
+      "source": "headline_ci.json[floors, protocol '5x5 CV within test']",
+      "note": "already in the paper as \\nocodeCVPooled"
+    },
+    "\\curveHeadline": {
+      "old": "0.8521",
+      "new": "0.8512",
+      "source": "lc_first_passes.json[points n=623]"
+    },
+    "\\curveStrict": {
+      "old": "0.7807",
+      "new": "0.7729",
+      "source": "lc_best_usable.json[points n=99]"
+    },
+    "\\strictRhoSeeds": {
+      "old": "0.85--0.92",
+      "new": "0.87--0.93",
+      "source": "sg_indep_best_usable_seed{0..4}.json",
+      "note": "pooled rho per seed [0.92, 0.903, 0.895, 0.868, 0.928]"
+    },
+    "\\curveHeadlineSd": {
+      "old": "0.0055",
+      "new": "0.0055",
+      "source": "pooled_stats.py --refit (lc_first_passes.json draws)"
+    },
+    "\\curveStrictSd": {
+      "old": "0.0248",
+      "new": "0.0253",
+      "source": "pooled_stats.py --refit (lc_best_usable.json draws)"
+    },
+    "\\baselineB": {
+      "old": "0.871",
+      "new": "0.871",
+      "source": "pooled_stats.py --refit (gate_s_baseline.build_pairs + evaluate)",
+      "note": "pooled 0.8710 (0.8607-0.8812); fold mean 0.8714"
+    },
+    "\\gCollapseMax": {
+      "old": "0.6226",
+      "new": "0.6224",
+      "source": "derived from the pooled B"
+    },
+    "\\gPartialMax": {
+      "old": "0.7674",
+      "new": "0.7671",
+      "source": "derived from the pooled B"
+    }
+  },
+  "not_available": {
+    "\\sameGenLen (0.5851)": "length-only AUROC fold mean; its pooled value needs the program lengths, i.e. gen_sonnet5.jsonl and bdind_sonnet5_first.jsonl (re-run gate_s_samegen.py)",
+    "\\haikuStrataS, \\haikuStrataBprime": "sim_strata_haiku45.json keeps only fold means per stratum; re-run sim_stratified_s.py (needs gen_haiku45.jsonl, bdind_haiku45.jsonl) and keep evaluate()'s auroc_pooled_oof",
+    "\\armOneG, \\armOneBprime, \\armOneRho, \\armOneTfidfDelta, \\armOneLenG": "gate_s_q3c30.json predates auroc_pooled_oof; re-run gate_s_eval.py (needs gen_q3c30.jsonl, pass_q3c30.jsonl)",
+    "\\baselineBownflag (0.873)": "needs pass_human_fixed.jsonl (run_tests.py on the human class) to re-run gate_s_baseline.py --human-pass-file",
+    "edit-arm joint rho interval": "sg_edit_passes.json has pooled points but no per-pair oof; re-run gate_s_samegen.py for the edit arm",
+    "\\curveHeadlineSd, \\curveStrictSd, \\baselineB": "given by --refit (public data)"
+  }
+}
