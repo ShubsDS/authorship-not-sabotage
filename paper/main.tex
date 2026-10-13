@@ -601,12 +601,15 @@ An LLM monitor also scores lower on the same-generator corpus, and swapping one 
 time shows that the drop is in the attacks. We gave a zero-shot monitor prompt to Sonnet~5,
 which wrote both same-generator classes. Its AUROC falls from \monStoredHeadAbs{} on the
 stored pairs to \monitorS{} on the same-generator pairs. On the headline problems
-(Table~\ref{tab:swap}), replacing the human honest code with ours does not lower the score, while
+(Table~\ref{tab:swap}),\footnote{The four cells combine per-program scores from batches run
+on different days.} replacing the human honest code with ours does not lower the score, while
 replacing the stored attacks with ours lowers it to \monSwapHumanOurs{}, because our attacks
 draw far lower suspicion. The same holds on working attacks: on the strict problems human
 honest code scores \monStoredStrictAbs{} against stored attacks and \monSwapStrictHumanOurs{}
 against ours, and our honest code against ours scores
-\monitorStrict{}. The
+\monitorStrict{}.\footnote{The strict monitor runs read a slightly different attack file from
+the classifier's strict row: on some problems it holds an attack whose trigger crashes the
+program instead of returning a wrong answer. This moves \monitorStrict{} by about 0.01.} The
 monitor's fall measures how conspicuous the attacks are, not who wrote the code (a second
 monitor and the monitor's $\rho$ are in appendix~\ref{app:monitors}). At a fixed audit
 budget, a \auditFPR{} false-positive rate with the threshold set on each set's own honest
