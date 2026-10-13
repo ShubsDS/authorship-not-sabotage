@@ -266,3 +266,28 @@ their own:
 - the firing shares 97.75% / 99.67%: verdicts joined with the problem ids in the `sg_*.json` files
 - the `def main` shares
 - the byline and docstring counts in the token-test appendix
+
+## Pending (cluster)
+
+These need the generated `*.jsonl` files, which are not committed and live on the cluster.
+
+- **Classifier class swap (plan C).** `classifier_swap.py` is the experiment that isolates
+  authorship for the classifier. It adds the missing cell, human honest code against our attacks,
+  on the headline problems (commands in stage 5). Reading rule, fixed in advance in
+  `paper/camera-ready-plan.md`:
+  - near B′ (~0.87): the classifier's drop is on the honest side; the authorship reading holds
+    for the classifier;
+  - near S (~0.75): the classifier behaves like the monitor; the corpus effect is mostly the
+    attack distribution.
+
+  The rule was written for the Sonnet 5 row; the Haiku 4.5 run compares against its own B′
+  (0.856) and S (0.534). Until it runs, the paper's Limitations says the swap has not been run.
+- **Exact fire count of the prompt-matched row** (`\matchedFire`, now 11–13 of 586 from
+  `fire_counts.py`). Count the records of `bdindpass_sonnet5_first.jsonl` with `passes_tests`
+  and `backdoor_works` true whose `problem_id` is in the `problem_ids` of
+  `gate_s_matched_headline.json`.
+- **The 3 strict attacks that differ between the monitor's and the classifier's files.** Compare
+  the `draw` field per `problem_id` of `bdind_sonnet5_best.jsonl` (monitor) and
+  `bdind_sonnet5_best_nocrash.jsonl` (classifier) on the 99 strict problems. Until then
+  `monitor_swap.py` bounds the effect: dropping any 3 strict attack programs moves the monitor's
+  0.818 by at most 0.02.
