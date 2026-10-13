@@ -509,14 +509,16 @@ $\rho = (S - 0.5)/(B' - 0.5)$ & the share of above-chance separability that surv
 Comment stripping drives comment count and code length to chance
 (Table~\ref{tab:protocol-baseline}). Two other baselines do not move; we call them
 \emph{floors}: a monitor at or below a floor has shown nothing beyond what the
-corpus leaks. On the filtered, comment-stripped split, bag-of-words reaches AUROC
-\tfidfKoran{}, above \tfidfKoranCount{} of the \monN{} monitors ranked on it, and the
-no-code floor reaches \nocodeCV{}, above \nocodeCVCount{}; both are far above permutation
-nulls (Figure~\ref{fig:monitors}, appendix~\ref{app:protocol}). The floors are
-trained (bag-of-words on the split's train problems, the no-code floor cross-validated within
-the test split) and the monitors are zero-shot, so the comparison states what the corpus makes
-recoverable, not which is the better monitor. The no-code floor reads only problem metadata,
-so it measures how the label was selected, not authorship.
+corpus leaks. Bag-of-words, trained on the split's train problems and scored once on its test
+items, reaches AUROC \tfidfKoran{}. The no-code floor under the same protocol, trained on
+problems outside the test split, scores \nocodeOutside{}, below chance: outside the split every
+problem that passes the filter has a working backdoor, so the honest items are problems the
+filter removed, and the relation between test count and label reverses. Cross-validated within
+the test split it reaches \nocodeCV{}. Both \tfidfKoran{} and \nocodeCV{} are far above their
+permutation nulls (Figure~\ref{fig:monitors}, appendix~\ref{app:protocol}). The monitors are
+zero-shot, so the comparison states what the corpus makes recoverable, not which is the better
+monitor. The no-code floor reads only problem metadata, so it measures how the split's label
+was selected, not authorship.
 
 Three further measurements show that the bag-of-words classifier is not reading the backdoor
 (pairwise accuracies for the first two; appendix~\ref{app:protocol}). It transfers across
