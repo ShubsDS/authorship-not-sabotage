@@ -834,8 +834,8 @@ and the attacks' mean suspicion from \monSuspStored{} to \monSuspOurs{}. The sam
 working attacks: on the strict problems human honest code scores \monStoredStrictAbs{} against
 stored attacks and \monSwapStrictHumanOurs{} against ours, and our own pairs score
 \monitorStrict{}.\footnote{Three of the \strictN{} attacks the strict monitor
-runs scored differ from the classifier's strict row; dropping any three moves \monitorStrict{}
-to \monStrictDropMin{}--\monStrictDropMax{} (appendix~\ref{app:monitors}).} The monitor's fall
+runs scored differ from the classifier's strict row; without them the AUROC is
+\monStrictMatched{} (appendix~\ref{app:monitors}).} The monitor's fall
 measures attack conspicuousness, not authorship. At a fixed audit budget of \auditFPR{} false
 positives, thresholded on each set's own honest programs, it catches \auditStrictStored{} of
 stored and \auditStrictOurs{} of same-generator attacks on the strict problems (paired
@@ -1319,8 +1319,8 @@ what rescoring alone can produce.
 The strict monitor runs and the classifier's strict row read different attack files. They hold
 different attacks on \monStrictDiffer{} of the \strictN{} problems, where one selection kept a
 draw that fires only by crashing on its trigger and the other a later draw that fires without
-crashing. The committed files do not record which three; dropping the attack programs of any
-three problems moves \monitorStrict{} to between \monStrictDropMin{} and \monStrictDropMax{}.
+crashing: problems 1701, 1972 and 4434. Dropping those three attack programs moves
+\monitorStrict{} to \monStrictMatched{}, and dropping the three pairs to \monStrictMatchedPairs{}.
 
 \subsection{The classifier's class swap}
 \label{app:clfswap}
@@ -1483,7 +1483,7 @@ pool, and is strictly conservative there, never crediting a solution the artifac
 (\harnessFailWePass{} such cases). We use \emph{our own} flag for both classes, because a checker stricter on one class than
 the other would manufacture exactly the artifact this paper documents. $B$ does not depend on
 that choice: under the artifact's flag $B = \baselineB$ at $n = \baselineBn{}$, under ours
-$B = \baselineBownflag{}$ at $n = \baselineBownflagN{}$ (a fold mean), inside the first's
+$B = \baselineBownflag{}$ at $n = \baselineBownflagN{}$, inside the first's
 interval (\baselineBLo{}--\baselineBHi{}). We do not length-match either class; the model
 chooses its own program length. The monitor
 scores in Figure~\ref{fig:monitors} are \texttt{runs/x0/monitor-summary.json} from the MIT
