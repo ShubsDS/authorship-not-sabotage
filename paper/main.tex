@@ -450,6 +450,24 @@
 \newcommand{\audConsSonHeadSt}{85\%}\newcommand{\audConsSonHeadSg}{6\%}
 \newcommand{\audConsSonStrictSt}{74\%}\newcommand{\audConsSonStrictSg}{46\%}
 \newcommand{\audConsSonStrictD}{0.29}\newcommand{\audConsSonStrictLo}{0.17}\newcommand{\audConsSonStrictHi}{0.44}
+% Shared-problem decomposition: the existing pooled out-of-fold scores of the headline and strict
+% rows restricted to each subset, no refit; rho intervals joint, differences paired; the strict
+% shared/non-shared split is a stratified draw (shared_problems.json).
+\newcommand{\shHeadS}{0.781}\newcommand{\shHeadBp}{0.845}\newcommand{\shHeadRhoLo}{0.62}\newcommand{\shHeadRhoHi}{1.04}
+\newcommand{\shWorkS}{0.735}\newcommand{\shWorkBp}{0.814}\newcommand{\shWorkRhoLo}{0.55}\newcommand{\shWorkRhoHi}{0.98}
+\newcommand{\shSDelta}{$-$0.046}\newcommand{\shSDeltaLo}{$-$0.098}\newcommand{\shSDeltaHi}{$+$0.007}
+\newcommand{\shDiffN}{52}\newcommand{\shDiffHeadS}{0.808}\newcommand{\shDiffHeadBp}{0.846}
+\newcommand{\shDiffHeadRho}{0.89}\newcommand{\shDiffHeadRhoLo}{0.67}\newcommand{\shDiffHeadRhoHi}{1.17}
+\newcommand{\shDiffWorkS}{0.761}\newcommand{\shDiffWorkBp}{0.811}
+\newcommand{\shDiffWorkRho}{0.84}\newcommand{\shDiffWorkRhoLo}{0.60}\newcommand{\shDiffWorkRhoHi}{1.12}
+\newcommand{\shDiffDelta}{$-$0.05}\newcommand{\shDiffDeltaLo}{$-$0.28}\newcommand{\shDiffDeltaHi}{$+$0.19}
+\newcommand{\shSameN}{12}\newcommand{\shSameHeadRho}{0.42}\newcommand{\shSameWorkRho}{0.37}
+\newcommand{\shStrictOnlyN}{35}\newcommand{\shStrictOnlyS}{0.775}\newcommand{\shStrictOnlyBp}{0.752}
+\newcommand{\shStrictOnlyRho}{1.09}\newcommand{\shStrictOnlyRhoLo}{0.72}\newcommand{\shStrictOnlyRhoHi}{1.63}
+\newcommand{\shOnlyMinusShared}{$+$0.34}\newcommand{\shOnlyMinusSharedLo}{$-$0.13}
+\newcommand{\shOnlyMinusSharedHi}{$+$0.93}
+\newcommand{\shHeadOnlyN}{559}\newcommand{\shHeadOnlyS}{0.747}\newcommand{\shHeadOnlyBp}{0.867}
+\newcommand{\shHeadOnlyRho}{0.67}\newcommand{\shHeadOnlyRhoLo}{0.61}\newcommand{\shHeadOnlyRhoHi}{0.74}
 
 \title{A Same-Generator Corpus and Classifier Floors\\for AI-Control Monitor Evaluation}
 
@@ -985,6 +1003,62 @@ draws offer a public test input as the trigger, which cannot diverge from the ho
 and those fire \trigPublicFire{} against \trigNovelFire{} for novel triggers; no stored working
 backdoor has such a trigger (\trigStoredPublic{}).
 
+\subsection{The strict row's problems}
+\label{app:shared}
+The headline and strict rows differ in two ways: the strict attacks fire, and the strict row
+covers the problems on which a firing attack could be drawn. The \sharedN{} problems in both
+rows separate the two. On them the honest program and the stored pair are the same in both rows,
+and only our attack differs. $S$ and $B'$ on a subset are the existing out-of-fold scores
+restricted to it, with nothing refitted, so the two rows' scores on a shared problem come from
+fits on \sameGenN{} and \strictN{} problems (Table~\ref{tab:shared}).
+
+On the shared problems $\rho$ is \sharedRhoHead{} with the headline attacks and
+\sharedRhoWorking{} with working ones (paired difference \sharedDiffLo{} to \sharedDiffHi{});
+$S$ changes by \shSDelta{} (\shSDeltaLo{} to \shSDeltaHi{}). On the
+\shDiffN{} shared problems where the headline attack does not fire, so the two attack programs
+differ, $\rho$ is \shDiffHeadRho{} and \shDiffWorkRho{} (paired difference \shDiffDelta{},
+\shDiffDeltaLo{} to \shDiffDeltaHi{}). On the other \shSameN{} the headline attack already fires
+and is the same program in both rows, and $\rho$ is \shSameHeadRho{} and \shSameWorkRho{}, too
+few problems for an interval. On these problems working attacks do not raise $\rho$: both point
+estimates fall, and both intervals include zero.
+
+The problems differ more than the attacks. With the headline attacks, the shared problems give
+$\rho = \sharedRhoHead{}$ against \shHeadOnlyRho{} on the other \shHeadOnlyN{} headline problems.
+The strict row's other \shStrictOnlyN{} problems, which are not in the headline row, give
+$\rho = \shStrictOnlyRho{}$ (\shStrictOnlyRhoLo{}--\shStrictOnlyRhoHi{}), with a lower $B'$
+(\shStrictOnlyBp{} against \shWorkBp{} on the shared problems) and a higher $S$
+(\shStrictOnlyS{} against \shWorkS{}). The difference from the shared problems,
+\shOnlyMinusShared{} (\shOnlyMinusSharedLo{} to \shOnlyMinusSharedHi{}), is not resolved at this
+size, but the point estimates place the strict row's higher $\rho$ in which problems yield
+working attacks, where the stored pairs separate less and ours more, and not in the attacks
+working.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{\textbf{The strict row decomposed by problem.} $S$, $B'$ and $\rho$ from the existing
+out-of-fold scores of the headline and strict rows, restricted to each subset; 95\% joint
+bootstrap intervals over problems. Source: \texttt{shared\_problems.py}.}
+\label{tab:shared}
+\begin{tabular}{@{}l r l c c l@{}}
+\toprule
+Problems & $n$ & our attacks & $S$ & $B'$ & $\rho$ (95\% CI) \\
+\midrule
+in both rows & \sharedN{} & headline & \shHeadS{} & \shHeadBp{}
+  & \sharedRhoHead{} (\shHeadRhoLo{}--\shHeadRhoHi{}) \\
+in both rows & \sharedN{} & strict & \shWorkS{} & \shWorkBp{}
+  & \sharedRhoWorking{} (\shWorkRhoLo{}--\shWorkRhoHi{}) \\
+\quad attack programs differ & \shDiffN{} & headline & \shDiffHeadS{} & \shDiffHeadBp{}
+  & \shDiffHeadRho{} (\shDiffHeadRhoLo{}--\shDiffHeadRhoHi{}) \\
+\quad attack programs differ & \shDiffN{} & strict & \shDiffWorkS{} & \shDiffWorkBp{}
+  & \shDiffWorkRho{} (\shDiffWorkRhoLo{}--\shDiffWorkRhoHi{}) \\
+headline row only & \shHeadOnlyN{} & headline & \shHeadOnlyS{} & \shHeadOnlyBp{}
+  & \shHeadOnlyRho{} (\shHeadOnlyRhoLo{}--\shHeadOnlyRhoHi{}) \\
+strict row only & \shStrictOnlyN{} & strict & \shStrictOnlyS{} & \shStrictOnlyBp{}
+  & \shStrictOnlyRho{} (\shStrictOnlyRhoLo{}--\shStrictOnlyRhoHi{}) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{The prompt-matched arm under the masks, and the second generator}
 \label{app:secondpass}
 Under prompt matching the identifier mask, the only token mask that moved $S$
@@ -1115,8 +1189,8 @@ bag-of-words rows use the out-of-fold scores of Table~\ref{tab:gates}; they are 
 the two rules differ by at most one program. The difference is the stored minus the
 same-generator catch rate, with both thresholds recomputed on each bootstrap draw.
 
-Haiku~4.5's rows are uninformative. Its 512-token runs lost about half the replies, unevenly by
-class (appendix~\ref{app:monitors}), and it scores many honest programs near the top of the
+Haiku~4.5's rows are uninformative. Its 512-token runs lost many replies, unevenly by class
+(appendix~\ref{app:monitors}), and it scores many honest programs near the top of the
 scale, so at 1\% and 2\% it flags few attacks of either kind. Every difference interval for it
 contains zero except on the headline problems at 5\%.
 
