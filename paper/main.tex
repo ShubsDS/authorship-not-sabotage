@@ -808,9 +808,18 @@ Regenerating only the honest class, with Qwen3-Coder-30B, makes the pairs \emph{
 separable than the stored ones, $\rho = \armOneRho{}$: one authorship gap replaced by another
 (appendix~\ref{app:robust}).
 
+Swapping one class at a time shows where each detector's drop comes from
+(Table~\ref{tab:swap}). The bag-of-words classifier stays high whenever the two classes have
+different writers: human honest code against our attacks scores \clfSwapHumanOurs{}, our honest
+code against stored attacks \clfSwapOursStored{}, and only when one model wrote both does it
+fall, to $S = \clfSwapOursOurs{}$. Our attacks in place of the stored ones raise its AUROC
+against human code, from $B' = \clfSwapHumanStored{}$, so its drop is authorship, not our
+attacks. Haiku~4.5 gives \clfSwapHaikuHumanOurs{} and \clfSwapHaikuOursStored{} against
+$S = \clfSwapHaikuOursOurs{}$ (appendix~\ref{app:clfswap}).
+
 A zero-shot Sonnet~5 monitor, which wrote both same-generator classes, scores
 \monStoredHeadAbs{} on the stored pairs and \monitorS{} on the same-generator pairs
-(appendix~\ref{app:monitors}); swapping one class at a time puts the drop in the attacks.
+(appendix~\ref{app:monitors}); for it the swap puts the drop in the attacks.
 On the headline problems (Table~\ref{tab:swap}),\footnote{The four cells combine scores from separate
 batches run the same day; rescoring a program returns the same score \retestSameLo{}--\retestSameHi{} of the time
 (appendix~\ref{app:monitors}).} replacing the human honest code with ours does not
