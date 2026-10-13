@@ -474,16 +474,18 @@ $\rho = (S - 0.5)/(B' - 0.5)$ & the share of above-chance separability that surv
 \section{Results}
 \label{sec:results}
 
-Comment stripping succeeds on comment count and code length, driving both to chance
+Comment stripping drives comment count and code length to chance
 (Table~\ref{tab:protocol-baseline}, appendix). Two baselines on that same split do not move;
 we call them \emph{floors}: a monitor at or below a floor has shown nothing beyond what the
-corpus leaks.
-Bag-of-words reaches \tfidfKoran{} and the no-code floor reaches
-\nocodeCV{}, both far above their permutation nulls and above \tfidfKoranCount{} of the
-\monN{} monitors ranked on that split (Figure~\ref{fig:monitors}; intervals, nulls and
-paired-bootstrap counts in appendix~\ref{app:protocol}). The two are not trained alike -- the monitors are
-zero-shot, our classifiers fitted on the split's own train problems -- so the comparison states
-what the corpus makes recoverable, not that a bag of words is the better monitor.
+corpus leaks. On the filtered, comment-stripped split, bag-of-words reaches AUROC
+\tfidfKoran{}, above \tfidfKoranCount{} of the \monN{} monitors ranked on that split, and the
+no-code floor reaches \nocodeCV{}, above \nocodeCVCount{}; both are far above their
+permutation nulls (Figure~\ref{fig:monitors}; intervals, nulls and paired-bootstrap counts in
+appendix~\ref{app:protocol}). Neither floor is trained like the monitors, which are zero-shot:
+bag-of-words is fitted on the split's train problems and the no-code floor is cross-validated
+within the test split. The comparison states what the corpus makes recoverable, not that
+either floor is the better monitor. The no-code floor reads only problem metadata, so it
+measures how the label was selected (below), not authorship.
 
 Three further measurements show that the bag-of-words classifier is not reading the backdoor
 (the first two are pairwise accuracies, not AUROCs; appendix~\ref{app:protocol}).
