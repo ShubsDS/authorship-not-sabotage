@@ -359,6 +359,10 @@
 \newcommand{\tfidfKoranBoundaryCount}{2}\newcommand{\nocodeCVBoundaryCount}{1}
 \newcommand{\nocodeHeldoutClearCount}{10}\newcommand{\nocodeHeldoutBoundaryCount}{3}
 \newcommand{\nocodeOutsideFourBoundaryCount}{1}\newcommand{\nocodeHeldoutN}{413}
+% F2: within-task permutation nulls of the plotted statistic, and task-group counts
+% (../agentic/within_task_null.json; every setting but bash has p = 0.001).
+\newcommand{\bashFloorP}{0.829}\newcommand{\agenticFloorP}{0.001}
+\newcommand{\bashTasks}{247}\newcommand{\shadeTasks}{5}
 
 \title{A Same-Generator Corpus and Classifier Floors\\for AI-Control Monitor Evaluation}
 
@@ -957,27 +961,26 @@ single-shot firing rate belongs to the protocol and not to either model, since
 \subsection{The five same-generator agentic settings}
 \label{app:agentic}
 Removing the authorship gap does not remove every floor. In five settings where the same three
-models write both classes, so no authorship confound is possible, the surviving floor is
-structural: \bashFloor{} (\texttt{bash}, on its null) to \agentdojoFloor{}
-(\texttt{agentdojo}) from character count alone (Figure~\ref{fig:corpora}).
-Figure~\ref{fig:corpora} shows each setting's content-blind floor against its own
-permutation null.
+models write both classes, so no authorship confound is possible, character count alone
+separates the classes within task from \bashFloor{} (\texttt{bash}, below its null) to
+\agentdojoFloor{} (\texttt{agentdojo}; Figure~\ref{fig:corpora}).
 
 \begin{figure}[h]\centering
 \includegraphics[width=0.86\linewidth]{f2-corpus-floors.pdf}
-\caption{\textbf{The structural floor in five same-generator agentic settings.} Each
-setting's content-blind classifier (six count features, no content read) scored
-\emph{within task} against its own permutation null. No authorship confound is possible
-here: claude-sonnet-4, gemini-2.5-pro and gpt-5 write both classes in all five.
-\texttt{bash} sits on its null at \bashFloor{}; \texttt{agentdojo} reaches
-\agentdojoFloor{} from character count alone. \textbf{The task-group count beside each
-setting matters:} \texttt{shade} and \texttt{iac} average over five task groups each while
-\texttt{bash} averages over 247, so these floors are not equally well determined. We report
-the within-task column because our own pooled numbers partly broke on task composition,
-and we broke them ourselves. The permutation nulls shown were computed with a pooled
-estimator rather than the folded within-task statistic; they bound the chance level but
-are not a like-for-like null for each dot. These corpora declare no licence; we
-redistribute nothing and report aggregates only.}
+\caption{\textbf{The structural floor in five same-generator agentic settings.} Dots: each
+setting's AUROC on character count alone, computed within task: transcripts are grouped by
+main task, a Mann-Whitney AUROC is taken within every task that has both classes, pooled over
+tasks weighted by pair count, and folded to $\max(a, 1-a)$. Diamonds: the 95th percentile of a
+null that permutes the labels within each task and recomputes the same folded statistic,
+\permReps{} permutations; because the statistic is folded, the null sits above 0.5. No
+authorship confound is possible here: claude-sonnet-4, gemini-2.5-pro and gpt-5 write both
+classes in all five. \texttt{bash} sits below its null (\bashFloor{}, $p = \bashFloorP{}$);
+the other four are above theirs ($p = \agenticFloorP{}$ each), up to \agentdojoFloor{} for
+\texttt{agentdojo}. Beside each setting is its number of task groups: \texttt{shade} and
+\texttt{iac} pool over \shadeTasks{} each and \texttt{bash} over \bashTasks{}, so these floors
+are not equally well determined. We report the within-task
+statistic because a pooled one also reads which tasks each class came from. These corpora
+declare no licence; we redistribute nothing and report aggregates only.}
 \label{fig:corpora}
 \end{figure}
 
