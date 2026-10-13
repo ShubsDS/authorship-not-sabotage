@@ -842,13 +842,13 @@ A high floor is evidence about a corpus, not about results computed on it. Ours 
 label is recoverable without reading a backdoor, not that any monitor
 recovers it that way, and no number here corrects a published monitor score.
 
-The same-generator corpus does not isolate authorship. Rebuilding with one model changes the
-attacks as well as their author: against the same human code, the stored attacking model alone
-moves $B$ from \bAttackerLo{} to \bAttackerHi{}, so $\rho$ is not the backdoor's share of the
-separability, nor a bound on it. It does not depend on the stored attacker (Claude attackers
-only: $\rho = \rhoClaudeOnly{}$; appendix~\ref{app:attackers}). The class swap that would isolate authorship for the classifier, human honest code against our attacks, has not
-been run; a value near $B'$ would put the classifier's drop on the honest side, a value near
-$S$ in the attacks, as for the monitor. The corpus is not bit-reproducible: the API hides
+Rebuilding with one model changes the attacks as well as their author: against the same human
+code, the stored attacking model alone moves $B$ from \bAttackerLo{} to \bAttackerHi{}, so
+$\rho$ is not the backdoor's share of the separability, nor a bound on it. It does not depend on
+the stored attacker (Claude attackers only: $\rho = \rhoClaudeOnly{}$;
+appendix~\ref{app:attackers}). The class swap ties the classifier's drop to authorship but the
+monitor's to our attacks, so the monitor results describe attacks written under our prompt,
+which rarely fire. The corpus is not bit-reproducible: the API hides
 sampling parameters; thinking was off.
 
 Our scope is narrow in three further ways. We measure one APPS-derived corpus family and five
