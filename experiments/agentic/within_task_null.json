@@ -1,0 +1,80 @@
+{
+  "generated_by": "experiments/agentic/floors2.py",
+  "statistic": "within-task Mann-Whitney AUROC on character count, pooled over tasks by pair count, direction-free max(a, 1 - a) (matched.py's within-task column)",
+  "null": "labels permuted within each main-task group; same folded statistic recomputed",
+  "p_value": "(1 + #{null >= observed}) / (1 + R)",
+  "n_perm": 1000,
+  "seed": 0,
+  "settings": [
+    {
+      "setting": "bash",
+      "n": 1500,
+      "n_attack": 750,
+      "tasks_used": 247,
+      "pairs": 2389,
+      "within_task_auroc": 0.5044,
+      "direction": "attack shorter",
+      "null_mean": 0.5138,
+      "null_p95": 0.5333,
+      "null_max": 0.5538,
+      "perm_p": 0.8292,
+      "n_perm": 1000
+    },
+    {
+      "setting": "shade",
+      "n": 1500,
+      "n_attack": 750,
+      "tasks_used": 5,
+      "pairs": 112965,
+      "within_task_auroc": 0.6022,
+      "direction": "attack longer",
+      "null_mean": 0.5127,
+      "null_p95": 0.5308,
+      "null_max": 0.5576,
+      "perm_p": 0.001,
+      "n_perm": 1000
+    },
+    {
+      "setting": "iac",
+      "n": 1500,
+      "n_attack": 750,
+      "tasks_used": 5,
+      "pairs": 112500,
+      "within_task_auroc": 0.7041,
+      "direction": "attack longer",
+      "null_mean": 0.5117,
+      "null_p95": 0.5284,
+      "null_max": 0.5441,
+      "perm_p": 0.001,
+      "n_perm": 1000
+    },
+    {
+      "setting": "rogue_eval",
+      "n": 1500,
+      "n_attack": 750,
+      "tasks_used": 25,
+      "pairs": 22500,
+      "within_task_auroc": 0.6158,
+      "direction": "attack longer",
+      "null_mean": 0.5125,
+      "null_p95": 0.5293,
+      "null_max": 0.5561,
+      "perm_p": 0.001,
+      "n_perm": 1000
+    },
+    {
+      "setting": "agentdojo",
+      "n": 1500,
+      "n_attack": 750,
+      "tasks_used": 16,
+      "pairs": 35174,
+      "within_task_auroc": 0.802,
+      "direction": "attack longer",
+      "null_mean": 0.5123,
+      "null_p95": 0.529,
+      "null_max": 0.5497,
+      "perm_p": 0.001,
+      "n_perm": 1000
+    }
+  ]
+}

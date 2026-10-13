@@ -1,10 +1,11 @@
 {
   "generated_by": "experiments/apps/headline_ci.py",
   "n_boot": 2000,
-  "n_perm": 200,
+  "n_perm": 1000,
   "seed": 0,
+  "random_streams": "permutations, bootstraps and paired bootstraps use separate child streams of seed",
   "bootstrap_unit": "problem_id (whole groups resampled with replacement)",
-  "permutation_null": "training labels shuffled and the classifier refit; test labels untouched",
+  "permutation_null": "the labels the pipeline reads are permuted (training and test labels alike), the pipeline rerun end to end and the reported statistic recomputed; p = (1 + #{null >= observed}) / (1 + R)",
   "interval_method": "paired percentile bootstrap over problems (NOT DeLong: unstable at 172 positives with heavily tied, partly degenerate monitor scores)",
   "monitor_scores": {
     "source": "https://raw.githubusercontent.com/anik-jha/challenger-panels/main/runs/scores/",
@@ -18,23 +19,35 @@
       "protocol": "Koran train -> Koran test",
       "auroc": 0.8063,
       "ci95": [
-        0.7704,
-        0.8409
+        0.7705,
+        0.8406
       ],
-      "bootstrap_sd": 0.018,
+      "bootstrap_sd": 0.0177,
       "n_items": 1375,
       "n_problems": 1375,
       "bootstrap_group_sizes": {
         "1": 1375
       },
-      "perm_null_p95": 0.5465,
-      "perm_null_mean": 0.4992,
-      "perm_null_max": 0.5946,
-      "perm_p": 0.004975124378109453,
-      "n_perm": 200,
+      "perm_null_p95": 0.5406,
+      "perm_null_mean": 0.5006,
+      "perm_null_max": 0.568,
+      "perm_p": 0.000999000999000999,
+      "n_perm": 1000,
       "above_n_of_24_point_estimates": 20,
-      "above_n_of_24_ci_excludes_zero": 18,
-      "raw_count_basis": "published",
+      "above_n_of_24_ci_excludes_zero": 20,
+      "count_basis": "each monitor's AUROC recomputed on the same items as ours (on the full 1,375-item split this equals its published test_auroc)",
+      "above_n_of_24_vs_published_full_split_auroc": 20,
+      "paired_lower_bound_near_zero": {
+        "microsoft/phi-4": 0.0024,
+        "tiiuae/Falcon3-10B-Instruct": 0.0002
+      },
+      "train_labels_only_null": {
+        "p95": 0.5516,
+        "mean": 0.499,
+        "max": 0.5896,
+        "p": 0.000999000999000999,
+        "n_perm": 1000
+      },
       "per_monitor": [
         {
           "repo": "HuggingFaceTB/SmolLM3-3B",
@@ -47,8 +60,8 @@
           "our_auroc": 0.8063,
           "diff": 0.3723,
           "diff_ci": [
-            0.3167,
-            0.4288
+            0.3193,
+            0.4286
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -65,8 +78,8 @@
           "our_auroc": 0.8063,
           "diff": 0.3611,
           "diff_ci": [
-            0.3003,
-            0.4211
+            0.3029,
+            0.4192
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -83,8 +96,8 @@
           "our_auroc": 0.8063,
           "diff": 0.3481,
           "diff_ci": [
-            0.2934,
-            0.4057
+            0.291,
+            0.4065
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -101,8 +114,8 @@
           "our_auroc": 0.8063,
           "diff": 0.346,
           "diff_ci": [
-            0.286,
-            0.4068
+            0.2867,
+            0.4078
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -119,8 +132,8 @@
           "our_auroc": 0.8063,
           "diff": 0.2989,
           "diff_ci": [
-            0.2466,
-            0.3517
+            0.2447,
+            0.3525
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -137,8 +150,8 @@
           "our_auroc": 0.8063,
           "diff": 0.2614,
           "diff_ci": [
-            0.2008,
-            0.3202
+            0.2036,
+            0.322
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -155,8 +168,8 @@
           "our_auroc": 0.8063,
           "diff": 0.2588,
           "diff_ci": [
-            0.2033,
-            0.3132
+            0.2023,
+            0.313
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -173,8 +186,8 @@
           "our_auroc": 0.8063,
           "diff": 0.2477,
           "diff_ci": [
-            0.1894,
-            0.3046
+            0.1902,
+            0.3035
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -191,8 +204,8 @@
           "our_auroc": 0.8063,
           "diff": 0.2327,
           "diff_ci": [
-            0.1749,
-            0.2914
+            0.1732,
+            0.2907
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -209,8 +222,8 @@
           "our_auroc": 0.8063,
           "diff": 0.2182,
           "diff_ci": [
-            0.1654,
-            0.2697
+            0.1657,
+            0.2716
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -227,8 +240,8 @@
           "our_auroc": 0.8063,
           "diff": 0.2154,
           "diff_ci": [
-            0.1567,
-            0.2743
+            0.1558,
+            0.2752
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -245,8 +258,8 @@
           "our_auroc": 0.8063,
           "diff": 0.204,
           "diff_ci": [
-            0.1523,
-            0.2575
+            0.1502,
+            0.2573
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -263,8 +276,8 @@
           "our_auroc": 0.8063,
           "diff": 0.1897,
           "diff_ci": [
-            0.1346,
-            0.2474
+            0.1347,
+            0.2469
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -281,8 +294,8 @@
           "our_auroc": 0.8063,
           "diff": 0.1851,
           "diff_ci": [
-            0.1279,
-            0.2418
+            0.1285,
+            0.2412
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -299,8 +312,8 @@
           "our_auroc": 0.8063,
           "diff": 0.1545,
           "diff_ci": [
-            0.0952,
-            0.2101
+            0.1002,
+            0.2078
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -317,8 +330,8 @@
           "our_auroc": 0.8063,
           "diff": 0.1317,
           "diff_ci": [
-            0.0813,
-            0.1846
+            0.0804,
+            0.1822
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -335,8 +348,8 @@
           "our_auroc": 0.8063,
           "diff": 0.1272,
           "diff_ci": [
-            0.0722,
-            0.1793
+            0.0756,
+            0.1785
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -353,7 +366,7 @@
           "our_auroc": 0.8063,
           "diff": 0.091,
           "diff_ci": [
-            0.0407,
+            0.0452,
             0.1399
           ],
           "ci_excludes_zero": true,
@@ -371,12 +384,12 @@
           "our_auroc": 0.8063,
           "diff": 0.0547,
           "diff_ci": [
-            -0.0012,
-            0.1087
+            0.0024,
+            0.1121
           ],
-          "ci_excludes_zero": false,
+          "ci_excludes_zero": true,
           "we_are_higher": true,
-          "higher_and_ci_excludes_zero": false
+          "higher_and_ci_excludes_zero": true
         },
         {
           "repo": "tiiuae/Falcon3-10B-Instruct",
@@ -389,12 +402,12 @@
           "our_auroc": 0.8063,
           "diff": 0.048,
           "diff_ci": [
-            -0.0051,
-            0.0987
+            0.0002,
+            0.0992
           ],
-          "ci_excludes_zero": false,
+          "ci_excludes_zero": true,
           "we_are_higher": true,
-          "higher_and_ci_excludes_zero": false
+          "higher_and_ci_excludes_zero": true
         },
         {
           "repo": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
@@ -407,8 +420,8 @@
           "our_auroc": 0.8063,
           "diff": -0.0245,
           "diff_ci": [
-            -0.0706,
-            0.0198
+            -0.0684,
+            0.022
           ],
           "ci_excludes_zero": false,
           "we_are_higher": false,
@@ -425,8 +438,8 @@
           "our_auroc": 0.8063,
           "diff": -0.0519,
           "diff_ci": [
-            -0.0951,
-            -0.0076
+            -0.0929,
+            -0.0075
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
@@ -443,8 +456,8 @@
           "our_auroc": 0.8063,
           "diff": -0.1294,
           "diff_ci": [
-            -0.1675,
-            -0.0931
+            -0.1653,
+            -0.0921
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
@@ -461,8 +474,8 @@
           "our_auroc": 0.8063,
           "diff": -0.1307,
           "diff_ci": [
-            -0.1699,
-            -0.0916
+            -0.1679,
+            -0.0921
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
@@ -477,23 +490,27 @@
       "protocol": "5x5 CV within test",
       "auroc": 0.7658,
       "ci95": [
-        0.7319,
-        0.8005
+        0.7306,
+        0.7995
       ],
-      "bootstrap_sd": 0.0175,
+      "bootstrap_sd": 0.0174,
       "n_items": 1375,
       "n_problems": 1375,
       "bootstrap_group_sizes": {
         "1": 1375
       },
-      "perm_null_p95": 0.5545,
-      "perm_null_mean": 0.5063,
-      "perm_null_max": 0.5695,
-      "perm_p": 0.004975124378109453,
-      "n_perm": 200,
+      "perm_null_p95": 0.5446,
+      "perm_null_mean": 0.4929,
+      "perm_null_max": 0.5897,
+      "perm_p": 0.000999000999000999,
+      "n_perm": 1000,
       "above_n_of_24_point_estimates": 20,
       "above_n_of_24_ci_excludes_zero": 17,
-      "raw_count_basis": "published",
+      "count_basis": "each monitor's AUROC recomputed on the same items as ours (on the full 1,375-item split this equals its published test_auroc)",
+      "above_n_of_24_vs_published_full_split_auroc": 20,
+      "paired_lower_bound_near_zero": {
+        "Qwen/Qwen3-8B": -0.0063
+      },
       "per_monitor": [
         {
           "repo": "HuggingFaceTB/SmolLM3-3B",
@@ -506,8 +523,8 @@
           "our_auroc": 0.7658,
           "diff": 0.3317,
           "diff_ci": [
-            0.271,
-            0.392
+            0.2663,
+            0.3903
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -524,8 +541,8 @@
           "our_auroc": 0.7658,
           "diff": 0.3205,
           "diff_ci": [
-            0.2543,
-            0.3769
+            0.2599,
+            0.38
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -542,8 +559,8 @@
           "our_auroc": 0.7658,
           "diff": 0.3075,
           "diff_ci": [
-            0.258,
-            0.3578
+            0.2549,
+            0.3575
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -560,8 +577,8 @@
           "our_auroc": 0.7658,
           "diff": 0.3054,
           "diff_ci": [
-            0.2442,
-            0.3669
+            0.2445,
+            0.3647
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -578,8 +595,8 @@
           "our_auroc": 0.7658,
           "diff": 0.2584,
           "diff_ci": [
-            0.2005,
-            0.3157
+            0.201,
+            0.314
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -596,7 +613,7 @@
           "our_auroc": 0.7658,
           "diff": 0.2208,
           "diff_ci": [
-            0.1642,
+            0.1617,
             0.2799
           ],
           "ci_excludes_zero": true,
@@ -614,8 +631,8 @@
           "our_auroc": 0.7658,
           "diff": 0.2182,
           "diff_ci": [
-            0.1607,
-            0.2746
+            0.1595,
+            0.274
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -632,8 +649,8 @@
           "our_auroc": 0.7658,
           "diff": 0.2072,
           "diff_ci": [
-            0.1524,
-            0.2612
+            0.1493,
+            0.2593
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -650,8 +667,8 @@
           "our_auroc": 0.7658,
           "diff": 0.1921,
           "diff_ci": [
-            0.1348,
-            0.2504
+            0.1302,
+            0.2512
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -668,8 +685,8 @@
           "our_auroc": 0.7658,
           "diff": 0.1776,
           "diff_ci": [
-            0.1194,
-            0.2334
+            0.1201,
+            0.2328
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -686,8 +703,8 @@
           "our_auroc": 0.7658,
           "diff": 0.1748,
           "diff_ci": [
-            0.1121,
-            0.2354
+            0.1125,
+            0.2341
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -704,8 +721,8 @@
           "our_auroc": 0.7658,
           "diff": 0.1634,
           "diff_ci": [
-            0.1005,
-            0.2232
+            0.0983,
+            0.2223
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -722,8 +739,8 @@
           "our_auroc": 0.7658,
           "diff": 0.1491,
           "diff_ci": [
-            0.0822,
-            0.2131
+            0.0823,
+            0.2136
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -740,8 +757,8 @@
           "our_auroc": 0.7658,
           "diff": 0.1445,
           "diff_ci": [
-            0.0825,
-            0.2014
+            0.0869,
+            0.2002
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -758,8 +775,8 @@
           "our_auroc": 0.7658,
           "diff": 0.114,
           "diff_ci": [
-            0.0533,
-            0.1757
+            0.0501,
+            0.1766
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -776,8 +793,8 @@
           "our_auroc": 0.7658,
           "diff": 0.0911,
           "diff_ci": [
-            0.0355,
-            0.1472
+            0.0356,
+            0.1447
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -794,8 +811,8 @@
           "our_auroc": 0.7658,
           "diff": 0.0867,
           "diff_ci": [
-            0.0302,
-            0.1402
+            0.0278,
+            0.1393
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -812,8 +829,8 @@
           "our_auroc": 0.7658,
           "diff": 0.0505,
           "diff_ci": [
-            -0.0059,
-            0.1063
+            -0.0063,
+            0.1058
           ],
           "ci_excludes_zero": false,
           "we_are_higher": true,
@@ -830,8 +847,8 @@
           "our_auroc": 0.7658,
           "diff": 0.0141,
           "diff_ci": [
-            -0.0413,
-            0.0671
+            -0.0416,
+            0.0705
           ],
           "ci_excludes_zero": false,
           "we_are_higher": true,
@@ -848,7 +865,7 @@
           "our_auroc": 0.7658,
           "diff": 0.0075,
           "diff_ci": [
-            -0.0459,
+            -0.0496,
             0.0618
           ],
           "ci_excludes_zero": false,
@@ -866,8 +883,8 @@
           "our_auroc": 0.7658,
           "diff": -0.0651,
           "diff_ci": [
-            -0.1188,
-            -0.0128
+            -0.1176,
+            -0.0147
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
@@ -884,8 +901,8 @@
           "our_auroc": 0.7658,
           "diff": -0.0924,
           "diff_ci": [
-            -0.1437,
-            -0.0412
+            -0.1446,
+            -0.0441
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
@@ -902,8 +919,8 @@
           "our_auroc": 0.7658,
           "diff": -0.17,
           "diff_ci": [
-            -0.2166,
-            -0.1258
+            -0.2156,
+            -0.1265
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
@@ -920,40 +937,53 @@
           "our_auroc": 0.7658,
           "diff": -0.1713,
           "diff_ci": [
-            -0.2172,
-            -0.1258
+            -0.2182,
+            -0.1274
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
           "higher_and_ci_excludes_zero": false
         }
       ],
-      "headline_fold_mean": 0.7715,
-      "headline_fold_sd": 0.0389,
-      "note": "The paper's value for this protocol is the fold mean 0.7715 +- 0.0389 and its count is 20 of 24. The CI and the paired tests are computed on the pooled out-of-fold score vector, the only per-item statistic this protocol produces. Never pair this value with the held-out protocol's count of 18."
+      "fold_mean": 0.7715,
+      "fold_sd": 0.0389,
+      "note": "The point is the AUROC of the pooled out-of-fold score vector (averaged over the 5 repeats), the quantity the CI, the null and the paired tests are all computed on. fold_mean is kept for reference and is not the reported value."
     },
     {
       "name": "no-code floor (metadata only)",
       "protocol": "413-item held-out slice",
       "auroc": 0.7163,
       "ci95": [
-        0.6476,
-        0.7796
+        0.6474,
+        0.7861
       ],
-      "bootstrap_sd": 0.0337,
+      "bootstrap_sd": 0.0347,
       "n_items": 413,
       "n_problems": 413,
       "bootstrap_group_sizes": {
         "1": 413
       },
-      "perm_null_p95": 0.7023,
-      "perm_null_mean": 0.515,
-      "perm_null_max": 0.739,
-      "perm_p": 0.029850746268656716,
-      "n_perm": 200,
-      "above_n_of_24_point_estimates": 18,
+      "perm_null_p95": 0.5581,
+      "perm_null_mean": 0.4712,
+      "perm_null_max": 0.6256,
+      "perm_p": 0.000999000999000999,
+      "n_perm": 1000,
+      "above_n_of_24_point_estimates": 17,
       "above_n_of_24_ci_excludes_zero": 12,
-      "raw_count_basis": "published",
+      "count_basis": "each monitor's AUROC recomputed on the same items as ours (on the full 1,375-item split this equals its published test_auroc)",
+      "above_n_of_24_vs_published_full_split_auroc": 18,
+      "paired_lower_bound_near_zero": {
+        "mistralai/Mistral-7B-Instruct-v0.3": 0.0047,
+        "tiiuae/Falcon3-3B-Instruct": 0.0078,
+        "tiiuae/Falcon3-7B-Instruct": -0.0068
+      },
+      "train_labels_only_null": {
+        "p95": 0.6948,
+        "mean": 0.5013,
+        "max": 0.7412,
+        "p": 0.01898101898101898,
+        "n_perm": 1000
+      },
       "per_monitor": [
         {
           "repo": "HuggingFaceTB/SmolLM2-360M-Instruct",
@@ -966,8 +996,8 @@
           "our_auroc": 0.7163,
           "diff": 0.3445,
           "diff_ci": [
-            0.2337,
-            0.4503
+            0.2404,
+            0.451
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -984,8 +1014,8 @@
           "our_auroc": 0.7163,
           "diff": 0.3411,
           "diff_ci": [
-            0.2192,
-            0.4588
+            0.2095,
+            0.4652
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1002,8 +1032,8 @@
           "our_auroc": 0.7163,
           "diff": 0.3114,
           "diff_ci": [
-            0.1947,
-            0.4244
+            0.1922,
+            0.4243
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1020,8 +1050,8 @@
           "our_auroc": 0.7163,
           "diff": 0.2953,
           "diff_ci": [
-            0.2078,
-            0.387
+            0.2043,
+            0.381
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1038,8 +1068,8 @@
           "our_auroc": 0.7163,
           "diff": 0.2052,
           "diff_ci": [
-            0.1048,
-            0.3063
+            0.1028,
+            0.3061
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1056,8 +1086,8 @@
           "our_auroc": 0.7163,
           "diff": 0.1927,
           "diff_ci": [
-            0.0793,
-            0.3021
+            0.073,
+            0.3
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1074,8 +1104,8 @@
           "our_auroc": 0.7163,
           "diff": 0.1843,
           "diff_ci": [
-            0.0488,
-            0.3154
+            0.0526,
+            0.312
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1092,8 +1122,8 @@
           "our_auroc": 0.7163,
           "diff": 0.1765,
           "diff_ci": [
-            0.0751,
-            0.2749
+            0.072,
+            0.279
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1110,8 +1140,8 @@
           "our_auroc": 0.7163,
           "diff": 0.1573,
           "diff_ci": [
-            0.0458,
-            0.2666
+            0.0477,
+            0.262
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1128,8 +1158,8 @@
           "our_auroc": 0.7163,
           "diff": 0.1391,
           "diff_ci": [
-            0.0226,
-            0.2499
+            0.0267,
+            0.2488
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1146,8 +1176,8 @@
           "our_auroc": 0.7163,
           "diff": 0.1338,
           "diff_ci": [
-            0.0006,
-            0.2691
+            0.0047,
+            0.2626
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1164,8 +1194,8 @@
           "our_auroc": 0.7163,
           "diff": 0.1125,
           "diff_ci": [
-            0.0051,
-            0.2223
+            0.0078,
+            0.2184
           ],
           "ci_excludes_zero": true,
           "we_are_higher": true,
@@ -1182,8 +1212,8 @@
           "our_auroc": 0.7163,
           "diff": 0.1101,
           "diff_ci": [
-            -0.0106,
-            0.2297
+            -0.0068,
+            0.2286
           ],
           "ci_excludes_zero": false,
           "we_are_higher": true,
@@ -1200,8 +1230,8 @@
           "our_auroc": 0.7163,
           "diff": 0.0908,
           "diff_ci": [
-            -0.0324,
-            0.2152
+            -0.0332,
+            0.2119
           ],
           "ci_excludes_zero": false,
           "we_are_higher": true,
@@ -1218,8 +1248,8 @@
           "our_auroc": 0.7163,
           "diff": 0.0874,
           "diff_ci": [
-            -0.0365,
-            0.2135
+            -0.0335,
+            0.2091
           ],
           "ci_excludes_zero": false,
           "we_are_higher": true,
@@ -1236,8 +1266,8 @@
           "our_auroc": 0.7163,
           "diff": 0.0553,
           "diff_ci": [
-            -0.076,
-            0.1858
+            -0.0734,
+            0.1907
           ],
           "ci_excludes_zero": false,
           "we_are_higher": true,
@@ -1254,8 +1284,8 @@
           "our_auroc": 0.7163,
           "diff": 0.0338,
           "diff_ci": [
-            -0.0847,
-            0.1506
+            -0.0877,
+            0.1478
           ],
           "ci_excludes_zero": false,
           "we_are_higher": true,
@@ -1272,8 +1302,8 @@
           "our_auroc": 0.7163,
           "diff": -0.0187,
           "diff_ci": [
-            -0.1337,
-            0.0895
+            -0.1244,
+            0.0871
           ],
           "ci_excludes_zero": false,
           "we_are_higher": false,
@@ -1290,8 +1320,8 @@
           "our_auroc": 0.7163,
           "diff": -0.0262,
           "diff_ci": [
-            -0.1403,
-            0.0921
+            -0.1373,
+            0.0856
           ],
           "ci_excludes_zero": false,
           "we_are_higher": false,
@@ -1308,8 +1338,8 @@
           "our_auroc": 0.7163,
           "diff": -0.0988,
           "diff_ci": [
-            -0.1982,
-            0.0057
+            -0.2008,
+            0.0095
           ],
           "ci_excludes_zero": false,
           "we_are_higher": false,
@@ -1326,8 +1356,8 @@
           "our_auroc": 0.7163,
           "diff": -0.1345,
           "diff_ci": [
-            -0.2332,
-            -0.0314
+            -0.2307,
+            -0.0361
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
@@ -1344,8 +1374,8 @@
           "our_auroc": 0.7163,
           "diff": -0.1635,
           "diff_ci": [
-            -0.2508,
-            -0.0729
+            -0.2504,
+            -0.0771
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
@@ -1362,8 +1392,8 @@
           "our_auroc": 0.7163,
           "diff": -0.2408,
           "diff_ci": [
-            -0.3213,
-            -0.1575
+            -0.3255,
+            -0.163
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
@@ -1380,20 +1410,20 @@
           "our_auroc": 0.7163,
           "diff": -0.2424,
           "diff_ci": [
-            -0.3229,
-            -0.1596
+            -0.3251,
+            -0.1619
           ],
           "ci_excludes_zero": true,
           "we_are_higher": false,
           "higher_and_ci_excludes_zero": false
         }
       ],
-      "note": "The paper's count for this protocol is 18 of 24, taken against the monitors' published full-split test_auroc. The paired column beside it recomputes each monitor's AUROC on the SAME held-out items, which is the only comparison a paired bootstrap can make; the two counts are therefore not required to agree and must not be swapped. Never pair this count with the 5x5 CV value."
+      "note": "Both counts recompute each monitor's AUROC on the same 413 held-out items. above_n_of_24_vs_published_full_split_auroc compares against the monitors' full-split AUROCs, which are on different items, and is kept for reference only. Never pair this count with the 5x5 CV value."
     }
   ],
   "paper_sentences": {
-    "tfidf": "TF-IDF 0.8063 (95% CI 0.7704-0.8409; permutation null 95th pct 0.5465, p = 0.004975), above 20 of 24 monitors, 18 of them with a paired-bootstrap CI excluding zero.",
-    "nocode_cv": "No-code floor (5x5 CV within the test split) 0.7715 +- 0.0389 (bootstrap-over-problems 95% CI of the pooled out-of-fold AUROC 0.7319-0.8005; permutation null 95th pct 0.5545, p = 0.004975), above 20 of 24 monitors, 17 of them with a paired-bootstrap CI excluding zero.",
-    "nocode_holdout": "No-code floor (413-item held-out slice) 0.7163 (95% CI 0.6476-0.7796; permutation null 95th pct 0.7023, p = 0.02985), above 18 of 24 monitors, 12 of them with a paired-bootstrap CI excluding zero."
+    "tfidf": "TF-IDF 0.8063 (95% CI 0.7705-0.8406; permutation null 95th pct 0.5406, p = 0.000999), above 20 of 24 monitors, 20 of them with a paired-bootstrap CI excluding zero.",
+    "nocode_cv": "No-code floor (5x5 CV within the test split, pooled out-of-fold) 0.7658 (95% CI 0.7306-0.7995; permutation null 95th pct 0.5446, p = 0.000999), above 20 of 24 monitors, 17 of them with a paired-bootstrap CI excluding zero.",
+    "nocode_holdout": "No-code floor (413-item held-out slice) 0.7163 (95% CI 0.6474-0.7861; permutation null 95th pct 0.5581, p = 0.000999), above 17 of 24 monitors, 12 of them with a paired-bootstrap CI excluding zero."
   }
 }

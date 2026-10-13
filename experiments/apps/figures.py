@@ -6,8 +6,10 @@
     F4  the three constructions    -> f4-constructions.pdf
 
 Every plotted value is a named constant below. Before drawing, check() asserts each one against the
-\newcommand macros in ../../paper/main.tex, so a figure cannot disagree with the text. F3 also reads
-the 24 monitor AUROCs from monitor-summary.json (written by fetch_inputs.py).
+\newcommand macros in ../../paper/main.tex, so a figure cannot disagree with the text, and against
+the JSON it was taken from (headline_ci.json, nocode_outside.json, ../agentic/within_task_null.json)
+when that file is present. F3 also reads the 24 monitor AUROCs from monitor-summary.json (written by
+fetch_inputs.py).
 
 Figures are sized at the width main.tex includes them at, so font sizes are the printed sizes. The
 paper sets in Times; Nimbus Roman (or Times New Roman) matches its metrics. Output is deterministic:
@@ -57,35 +59,42 @@ TGT_BG, TGT_TX = "#eef2ff", "#3730a3"                      # the target signal
 TINT = "#f4f8fd"                                           # the two constructions we build
 PANEL_BG, PANEL_EC = "#fafafa", "#d1d5db"
 
-# Measured values, as reported in main.tex.
+# Measured values, as reported in main.tex. Nulls are the 95th percentile of 1,000 label
+# permutations under headline_ci.py's one procedure.
 TFIDF_FLOOR = 0.8063                       # Koran paired train -> their 1,375-item test split
-TFIDF_CI = (0.7704, 0.8409)                # bootstrap over problems
-TFIDF_NULL = 0.5465                        # permutation null, 95th pct; p = 0.004975
-NOCODE_FLOOR, NOCODE_SD = 0.7715, 0.0389   # 5x5 CV within the test split; clears 20 of 24
-NOCODE_CI = (0.7319, 0.8005)               # CI of the pooled out-of-fold AUROC (0.7658)
-NOCODE_NULL = 0.5545
-NOCODE_HELDOUT = 0.7163                    # single 413-item held-out slice; clears 18 of 24
+TFIDF_CI = (0.7705, 0.8406)                # bootstrap over problems
+TFIDF_NULL = 0.5406                        # p = 0.001
+TFIDF_COUNT = 20                           # monitors below the floor, same items
+NOCODE_FLOOR = 0.7658                      # pooled out-of-fold AUROC, 5x5 CV within the test split
+NOCODE_CI = (0.7306, 0.7995)               # CI of that same pooled AUROC
+NOCODE_NULL = 0.5446                       # p = 0.001
+NOCODE_COUNT = 20
+NOCODE_HELDOUT = 0.7163                    # single 413-item held-out slice
+NOCODE_HELDOUT_COUNT = 17                  # monitor AUROCs recomputed on those 413 items
+NOCODE_OUTSIDE = 0.2984                    # trained outside the test split (nocode_outside.py); F1 only
 
-# Agentic settings (agentic/matched.py, agentic/floors2.py): within-task chars-only AUROC,
-# permutation null, and the number of task groups the within-task AUROC averages over.
+# Agentic settings: within-task chars-only AUROC (agentic/matched.py), the 95th percentile of its
+# within-task permutation null (agentic/floors2.py -> within_task_null.json), and the number of
+# task groups the within-task AUROC averages over.
 SCAN = [
-    ("bash",       0.5044, 0.4896, 247),
-    ("shade",      0.6022, 0.5079, 5),
-    ("iac",        0.7041, 0.4841, 5),
-    ("rogue_eval", 0.6158, 0.4801, 25),
-    ("agentdojo",  0.8020, 0.5118, 16),
+    ("bash",       0.5044, 0.5333, 247),
+    ("shade",      0.6022, 0.5308, 5),
+    ("iac",        0.7041, 0.5284, 5),
+    ("rogue_eval", 0.6158, 0.5293, 25),
+    ("agentdojo",  0.8020, 0.5290, 16),
 ]
 
-# F4: the classifier's AUROC on each construction's own pairs (B, S and the prompt-matched S).
-# Each is measured on different problems, so they are a ladder, not a paired comparison.
+# F4: the classifier's AUROC on each construction's own pairs (B, S and the prompt-matched S), the
+# pooled out-of-fold values of Table 1. Each is measured on different problems, so they are a
+# ladder, not a paired comparison.
 CONSTRUCTIONS = [
     dict(key="stored",  title="stored benchmark",  n="1,444 pairs", auroc=0.871, ours=False,
          writer="confounded", prompt="confounded",
          pill=(BAD_BG, "#fecdd3", "#be123c")),
-    dict(key="samegen", title="same-generator",    n="623 pairs",   auroc=0.751, ours=True,
+    dict(key="samegen", title="same-generator",    n="623 pairs",   auroc=0.7504, ours=True,
          writer="controlled", prompt="confounded",
          pill=("#eff6ff", "#bfdbfe", "#1d4ed8")),
-    dict(key="matched", title="prompt-matched",    n="586 pairs",   auroc=0.642, ours=True,
+    dict(key="matched", title="prompt-matched",    n="586 pairs",   auroc=0.6411, ours=True,
          writer="controlled", prompt="controlled",
          pill=(OK_BG, "#bbf7d0", "#15803d")),
 ]
@@ -236,13 +245,13 @@ def fig3_monitors():
     for (a, b), c in ((NOCODE_CI, ORANGE), (TFIDF_CI, BLUE)):
         ax.fill_betweenx([-0.4, top], a, b, color=c, alpha=0.10, lw=0, zorder=1)
     ax.plot([NOCODE_FLOOR] * 2, [-0.4, top], color=ORANGE, lw=1.4, zorder=3,
-            label=f"reads no code  {f3dp(NOCODE_FLOOR)} $\\pm$ {NOCODE_SD:.3f}")
+            label=f"reads no code  {f3dp(NOCODE_FLOOR)}")
     ax.plot([TFIDF_FLOOR] * 2, [-0.4, top], color=BLUE, lw=1.4, zorder=3,
             label=f"bag-of-words  {f3dp(TFIDF_FLOOR)}")
     for v in (TFIDF_NULL, NOCODE_NULL):
         ax.plot([v] * 2, [-0.4, top], color=MUTED, lw=0.7, ls=(0, (1, 2)), zorder=2)
     ax.plot([], [], color=MUTED, lw=0.7, ls=(0, (1, 2)),
-            label=f"permutation nulls  {TFIDF_NULL:.3f}, {NOCODE_NULL:.3f}")
+            label=f"permutation nulls  {f3dp(TFIDF_NULL)}, {f3dp(NOCODE_NULL)}")
     ax.plot([0.5] * 2, [-0.4, top], color=MUTED, lw=0.8, ls=(0, (3, 3)), zorder=2,
             label="chance  0.500")
 
@@ -263,8 +272,8 @@ def fig3_monitors():
     save(fig, "f3-monitors-vs-floors.pdf")
     print(f"F3: {n} monitors, median {statistics.median(aurocs):.4f}, max {aurocs[-1]:.3f}; "
           f"below bag-of-words {sum(a < TFIDF_FLOOR for a in aurocs)}/{n}, "
-          f"below no-code CV {sum(a < NOCODE_FLOOR for a in aurocs)}/{n}, "
-          f"below no-code held-out {sum(a < NOCODE_HELDOUT for a in aurocs)}/{n}")
+          f"below no-code CV (pooled) {sum(a < NOCODE_FLOOR for a in aurocs)}/{n}; "
+          f"nulls {f3dp(TFIDF_NULL)}, {f3dp(NOCODE_NULL)}")
 
 
 # F2: the structural floor in the five same-generator agentic settings. A thin connector runs from
@@ -287,8 +296,12 @@ def fig2_corpora():
                zorder=5, label="permutation null")
     ax.scatter(vals, y, s=30, facecolor=BLUE, edgecolor="white", linewidth=0.7, zorder=6,
                label="within-task, character count only")
-    for i, v in enumerate(vals):
-        ax.text(v + 0.010, i, f"{v:.3f}", va="center", fontsize=8.0, color=INK)
+    for i, (v, nv) in enumerate(zip(vals, nulls)):
+        # The label goes on the far side of the dot from its null, so the two never collide.
+        right = v >= nv
+        ax.text(v + (0.010 if right else -0.010), i, f"{v:.3f}", va="center",
+                ha="left" if right else "right", fontsize=8.0, color=INK,
+                bbox=None if right else dict(fc="white", ec="none", pad=0.4))
 
     ax.set_yticks(y); ax.set_yticklabels(names, fontsize=8.0, color=INK, linespacing=1.3)
     ax.set_ylim(-0.9, len(rows) - 0.35)
@@ -300,8 +313,9 @@ def fig2_corpora():
         t.set_color(INK)
     fig.tight_layout(pad=0.35)
     save(fig, "f2-corpus-floors.pdf")
-    print("F2: 5 settings, bash 0.504 (247 tasks) to agentdojo 0.802 (16 tasks); "
-          "nulls 0.480-0.512, three of five below chance")
+    below = [r[0] for r in SCAN if r[1] <= r[2]]
+    print(f"F2: 5 settings, bash 0.504 (247 tasks) to agentdojo 0.802 (16 tasks); within-task null "
+          f"95th pct {min(nulls):.3f}-{max(nulls):.3f}; at or below its null: {', '.join(below) or 'none'}")
 
 
 # F1: protocol x baseline, emitted as a LaTeX table that main.tex \inputs.
@@ -310,16 +324,18 @@ def fig2_corpora():
 # baseline reads no code at all. Pairwise accuracies get three decimals (one pair is 1/2,641);
 # AUROCs get four.
 F1_ROWS = [
-    ("Koran's exact split", "TF-IDF word 1--2gram", "AUROC", "0.8063", "stripped",
-     "above 20 of 24"),
+    ("Koran's exact split", "TF-IDF word 1--2gram", "AUROC", f"{TFIDF_FLOOR:.4f}", "stripped",
+     f"above {TFIDF_COUNT} of 24"),
     ("\\quad same", "TF-IDF word 1--2gram", "AUROC", "0.8914", "kept", "above 22 of 24"),
     ("\\quad same, reads no code", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
-     "0.7715 $\\pm$ 0.0389", "no code", "above 20 of 24"),
+     f"{NOCODE_FLOOR:.4f}", "no code", f"above {NOCODE_COUNT} of 24"),
     ("\\quad same, held-out slice", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
-     "0.7163", "no code", "above 18 of 24"),
+     f"{NOCODE_HELDOUT:.4f}", "no code", f"above {NOCODE_HELDOUT_COUNT} of 24"),
     ("\\quad same", "code length only", "AUROC", "0.4726", "stripped", "chance"),
     ("\\quad same", "\\#-count detector", "AUROC", "0.4983", "stripped", "chance"),
     ("\\quad same", "\\#-count detector", "AUROC", "0.6957", "kept", "---"),
+    ("\\quad trained outside the split", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
+     f"{NOCODE_OUTSIDE:.4f}", "no code", "below chance"),
     ("Raw artifact, problem level", "all metadata", "AUROC", "0.8917", "no code", "---"),
     ("\\quad same", "difficulty only", "AUROC", "0.6823", "no code", "---"),
     ("\\quad same", "\\texttt{solution\\_passes\\_tests}", "AUROC", "0.7881", "no code", "---"),
@@ -409,6 +425,38 @@ def _macros(path=PAPER_TEX):
     return out
 
 
+def _check_json():
+    """Compare the figure constants with the JSONs they were copied from, where those exist."""
+    bad = []
+
+    def same(what, fig, js):
+        if abs(fig - js) > 5e-5:
+            bad.append(f"{what}: figures.py {fig} vs JSON {js}")
+
+    if os.path.exists("headline_ci.json"):
+        fl = {b["protocol"]: b for b in json.load(open("headline_ci.json"))["floors"]}
+        t, c = fl["Koran train -> Koran test"], fl["5x5 CV within test"]
+        h = next(b for p, b in fl.items() if "held-out" in p)
+        for what, fig, js in (("TF-IDF", TFIDF_FLOOR, t["auroc"]), ("TF-IDF lo", TFIDF_CI[0], t["ci95"][0]),
+                              ("TF-IDF hi", TFIDF_CI[1], t["ci95"][1]), ("TF-IDF null", TFIDF_NULL, t["perm_null_p95"]),
+                              ("no-code CV", NOCODE_FLOOR, c["auroc"]), ("no-code lo", NOCODE_CI[0], c["ci95"][0]),
+                              ("no-code hi", NOCODE_CI[1], c["ci95"][1]), ("no-code null", NOCODE_NULL, c["perm_null_p95"]),
+                              ("held-out", NOCODE_HELDOUT, h["auroc"]),
+                              ("held-out count", NOCODE_HELDOUT_COUNT, h["above_n_of_24_point_estimates"])):
+            same(what, fig, js)
+    if os.path.exists("nocode_outside.json"):
+        o = next(b for b in json.load(open("nocode_outside.json"))["floors"] if b["row"] == "all")
+        same("no-code outside", NOCODE_OUTSIDE, o["auroc"])
+    wt = "../agentic/within_task_null.json"
+    if os.path.exists(wt):
+        rows = {r["setting"]: r for r in json.load(open(wt))["settings"]}
+        for name, v, nv, k in SCAN:
+            same(f"F2 {name}", v, rows[name]["within_task_auroc"])
+            same(f"F2 {name} null", nv, rows[name]["null_p95"])
+            same(f"F2 {name} tasks", k, rows[name]["tasks_used"])
+    return bad
+
+
 def check():
     m = _macros()
     if not m:
@@ -424,30 +472,35 @@ def check():
         if abs(want - got_r) > 5e-4:
             bad.append(f"{macro}: main.tex {want} vs figures.py {got_r}")
 
-    # F4's ladder. None of the three is the Koran-split floor.
+    # F4's ladder: the pooled values of Table 1. None of the three is the Koran-split floor.
     eq("baselineB", CONSTRUCTIONS[0]["auroc"])
-    eq("sameGenS", CONSTRUCTIONS[1]["auroc"], 3)
-    eq("matchedS", CONSTRUCTIONS[2]["auroc"], 3)
+    eq("sameGenS", CONSTRUCTIONS[1]["auroc"])
+    eq("matchedS", CONSTRUCTIONS[2]["auroc"])
     if abs(CONSTRUCTIONS[0]["auroc"] - TFIDF_FLOOR) < 5e-3:
         bad.append("F4 panel 1 is the Koran floor; main.tex's caption says it is not")
 
-    # F3's two floors, their intervals and their nulls.
+    # F3's two floors, their intervals and their nulls; F1's no-code rows and counts.
     eq("tfidfKoran", TFIDF_FLOOR, 3); eq("tfidfKoranLo", TFIDF_CI[0]); eq("tfidfKoranHi", TFIDF_CI[1])
-    eq("tfidfKoranNull", TFIDF_NULL)
-    eq("nocodeCV", NOCODE_FLOOR, 3); eq("nocodeCVsd", NOCODE_SD, 3)
+    eq("tfidfKoranNull", TFIDF_NULL); eq("tfidfKoranCount", TFIDF_COUNT)
+    eq("nocodeCV", NOCODE_FLOOR, 3); eq("nocodeCVPooled", NOCODE_FLOOR, 3)
     eq("nocodeCVLo", NOCODE_CI[0]); eq("nocodeCVHi", NOCODE_CI[1]); eq("nocodeCVNull", NOCODE_NULL)
-    eq("nocodeHeldout", NOCODE_HELDOUT, 3)
+    eq("nocodeCVCount", NOCODE_COUNT)
+    eq("nocodeHeldout", NOCODE_HELDOUT, 3); eq("nocodeHeldoutCount", NOCODE_HELDOUT_COUNT)
+    eq("nocodeOutside", NOCODE_OUTSIDE, 3)
 
     # F2's two named settings.
     scan = {r[0]: r[1] for r in SCAN}
     eq("bashFloor", scan["bash"], 3); eq("agentdojoFloor", scan["agentdojo"], 3)
 
-    # F3's monitor count and the two summary values the caption quotes.
+    # F3's monitor count, the counts below each floor, and the two summary values the caption quotes.
     if os.path.exists("monitor-summary.json"):
         a = sorted(x["test_auroc"] for x in json.load(open("monitor-summary.json")))
         eq("monN", float(len(a))); eq("monMedian", statistics.median(a), 3)
         eq("monMax", a[-1], 3)
+        eq("tfidfKoranCount", float(sum(x < TFIDF_FLOOR for x in a)))
+        eq("nocodeCVCount", float(sum(x < NOCODE_FLOOR for x in a)))
 
+    bad += _check_json()
     if bad:
         raise SystemExit("CHECK FAILED against main.tex:\n  " + "\n  ".join(bad))
     print(f"CHECK: {len(m)} macros read from main.tex; every figure value agrees")

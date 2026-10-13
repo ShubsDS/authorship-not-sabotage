@@ -4,28 +4,48 @@ What it computes
 ----------------
 (a) TF-IDF headline, 0.8063. Refits the pipeline of koran_split_eval.py (word 1-2gram TF-IDF,
     LogisticRegression(max_iter=5000, C=5), trained on Koran's paired train split, scored on their
-    1,375-item test split, comments stripped), then attaches
-      * a bootstrap-over-problems 95% CI (2,000 draws), and
-      * a permutation null that reshuffles the training labels and refits (200 permutations),
-        reporting the null's 95th percentile and the empirical p.
+    1,375-item test split, comments stripped), then attaches a bootstrap-over-problems 95% CI
+    (2,000 draws) and a permutation null (below).
 
 (b) The no-code floor, under each of its two protocols, which are reported separately:
-      * 5x5 repeated stratified CV within the test split  -> 0.7715 +- 0.0389, above 20 of 24
-      * a single 413-item held-out slice of the same items -> 0.7163,           above 18 of 24
+      * 5x5 repeated stratified CV within the test split. The point is the AUROC of the pooled
+        out-of-fold score vector (each item's out-of-fold score averaged over the 5 repeats),
+        0.7658, the same quantity the bootstrap CI is built on. The fold mean 0.7715 +- 0.0389
+        (analyse2.py) is kept in the JSON for reference only.
+      * a single 413-item held-out slice of the same items -> 0.7163.
+    nocode_outside.py adds a third protocol, trained outside the test split.
 
 (c) A paired comparison against each of the 24 monitors, using Jha's per-item score files in
     runs/scores/ (MIT). For every monitor: the paired bootstrap over problems of
     (our AUROC - monitor AUROC) on identical items, its 95% CI, and whether that CI excludes
-    zero. Summarised as "above k1 of 24 (point estimates), k2 of 24 with a CI excluding 0".
+    zero. Summarised as "above k1 of 24 (point estimates), k2 of 24 with a CI excluding 0". Both
+    counts compare AUROCs on the same items: on the full test split the recomputed monitor AUROC
+    equals the published test_auroc (load_scores checks this); on the held-out slice it is the
+    monitor's AUROC on those 413 items.
 
 (d) A printed table, headline_ci.json, and summary sentences.
 
+One permutation procedure for every floor
+-----------------------------------------
+Each null permutes the labels the pipeline reads, reruns the pipeline end to end and recomputes
+the reported statistic, R = 1,000 times (--perms); p = (1 + #{null >= observed}) / (1 + R).
+  * TF-IDF: the training labels and the test labels are each permuted, the classifier refit and
+    the permuted test labels scored. The vectorizer is not refit: its vocabulary, min_df and IDF
+    depend on X alone, so refitting it would return the same matrix.
+  * no-code, CV: the label vector is permuted, the 5x5 CV rerun (folds stratified on the permuted
+    labels) and the pooled out-of-fold AUROC recomputed against the permuted labels.
+  * no-code, held-out: the label vector is permuted, the stratified 70/30 split redrawn on it, the
+    model refit and the held-out AUROC recomputed against the permuted labels.
+This is a test of "the features carry no information about the label". Earlier versions shuffled
+only the training labels for TF-IDF and the held-out slice and scored against the true test
+labels, while the CV null shuffled everything. Shuffling only the training labels leaves the true
+test labels' association with the features in place, so with five metadata features a model fit
+to shuffled labels is a random direction in a feature space that itself predicts the label, and
+that null is wide (95th percentile about 0.70 on the held-out slice). Its values are kept in the
+JSON as `train_labels_only_null` for TF-IDF and the held-out slice.
+
 Why these choices
 -----------------
-* The permutation null shuffles training labels, not test labels. For a trained classifier the
-  null is "the training corpus carries no label signal that transfers". Shuffling test labels
-  gives a null centred on 0.5 whatever the training set contained. The vectorizer is not refit:
-  its vocabulary, min_df and IDF depend on X alone.
 * The bootstrap unit is the problem, not the item. Two samples from the same APPS problem share
   a question, a difficulty and a test suite, so resampling items would understate the interval.
   In Koran's test split there is one item per problem (172 attack / 1,203 honest), so grouping is
@@ -62,8 +82,12 @@ Input formats
      scores and is absent from monitor-summary.json; the 24 monitors are exactly the entries of
      monitor-summary.json.
 
+Random streams: the permutations, the bootstraps and the paired bootstraps of each floor draw from
+separate child streams of --seed, so changing --perms does not move any interval.
+
 Usage:
-    python headline_ci.py      # 15-30 min; downloads runs/scores/ if absent
+    python headline_ci.py                 # about 5 min on 10 cores; downloads runs/scores/ if absent
+    python headline_ci.py --perms 1000 --jobs -1
 """
 
 from __future__ import annotations
@@ -78,6 +102,7 @@ import urllib.request
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
+from joblib import Parallel, delayed
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
@@ -148,6 +173,27 @@ def boot_ci(vals: np.ndarray, alpha: float = 0.05) -> tuple[float, float]:
 def perm_p(observed: float, null: np.ndarray) -> float:
     """One-sided empirical p with the +1 correction (Phipson & Smyth)."""
     return float((1 + int(np.sum(np.asarray(null) >= observed))) / (len(null) + 1))
+
+
+def streams(seed: int, names: list[str]) -> dict:
+    """Independent child generators of `seed`, one per named use, so no draw count shifts another."""
+    return {n: np.random.default_rng(s) for n, s in zip(names, np.random.SeedSequence(seed).spawn(len(names)))}
+
+
+def run_chunked(fn, items: list, n_jobs: int) -> list:
+    """fn(list_of_items) -> list_of_results, run over contiguous chunks in parallel; order is kept."""
+    n = len(items)
+    if n == 0:
+        return []
+    chunks = [[items[j] for j in idx] for idx in np.array_split(np.arange(n), min(n, 40))]
+    out = Parallel(n_jobs=n_jobs)(delayed(fn)(c) for c in chunks)
+    return [r for part in out for r in part]
+
+
+def null_summary(observed: float, null: np.ndarray) -> dict:
+    null = np.asarray(null)
+    return {"p95": round(float(np.percentile(null, 95)), 4), "mean": round(float(np.mean(null)), 4),
+            "max": round(float(np.max(null)), 4), "p": perm_p(observed, null), "n_perm": int(len(null))}
 
 
 # --------------------------------------------------------------------------------------------
@@ -266,8 +312,17 @@ def build_train(data_dir: str, test_pids: set[str]) -> pd.DataFrame:
     return tr
 
 
-def tfidf_headline(data_dir: str, item_index: pd.Index, n_perm: int, rng) -> dict:
-    """Refit the 0.8063 pipeline; return per-item test scores and the training-label null."""
+def _tfidf_perm_chunk(Xtr, ytr, Xte, yte, perms):
+    """Refit on permuted training labels; score permuted and true test labels with the same fit."""
+    out = []
+    for ptr, pte in perms:
+        s = LogisticRegression(max_iter=5000, C=5).fit(Xtr, ytr[ptr]).predict_proba(Xte)[:, 1]
+        out.append((fast_auroc(yte[pte], s), fast_auroc(yte, s)))
+    return out
+
+
+def tfidf_headline(data_dir: str, item_index: pd.Index, n_perm: int, rng, n_jobs: int) -> dict:
+    """Refit the 0.8063 pipeline; return per-item test scores and its permutation null."""
     test = pd.read_pickle(os.path.join(data_dir, "koran_samples.pkl"))
     test["problem_id"] = test.problem_id.astype(str)
     tr = build_train(data_dir, set(test.problem_id))
@@ -288,17 +343,17 @@ def tfidf_headline(data_dir: str, item_index: pd.Index, n_perm: int, rng) -> dic
         raise SystemExit(f"{len(missing)} monitor items absent from koran_samples.pkl, e.g. {list(missing[:5])}")
     s, yte = s.reindex(item_index), yte.reindex(item_index)
 
-    # Permutation null: shuffle the training labels and refit. The vectorizer is label-independent,
-    # so it is not refit.
-    null = []
-    for i in range(n_perm):
-        yp = rng.permutation(ytr)
-        c = LogisticRegression(max_iter=5000, C=5).fit(Xtr, yp)
-        null.append(fast_auroc(yte.to_numpy(), c.predict_proba(Xte)[:, 1]))
-        if (i + 1) % 25 == 0:
-            print(f"    permutation {i + 1}/{n_perm}")
-    return {"scores": s, "y": yte, "null": np.array(null), "n_train": len(tr),
-            "n_vocab": len(vec.vocabulary_)}
+    # Permutation null: permute the training and the test labels, refit, score the permuted test
+    # labels. The vectorizer is label-independent, so it is not refit. The same fit is also scored
+    # against the true test labels (the earlier training-labels-only null), kept for reference.
+    yte_v = yte.to_numpy()                                   # in item_index order
+    Xte_o = Xte[pd.Index(test.problem_id.to_numpy()).get_indexer(item_index)]   # rows in that order too
+    perms = [(rng.permutation(len(ytr)), rng.permutation(len(yte_v))) for _ in range(n_perm)]
+    res = run_chunked(lambda c: _tfidf_perm_chunk(Xtr, ytr, Xte_o, yte_v, c), perms, n_jobs)
+    null = np.array([r[0] for r in res])
+    null_train_only = np.array([r[1] for r in res])
+    return {"scores": s, "y": yte, "null": null, "null_train_only": null_train_only,
+            "n_train": len(tr), "n_vocab": len(vec.vocabulary_)}
 
 
 # --------------------------------------------------------------------------------------------
@@ -323,49 +378,69 @@ def _nocode_model():
     return make_pipeline(StandardScaler(), LogisticRegression(max_iter=5000))
 
 
-def nocode_cv(X: pd.DataFrame, y: np.ndarray, n_perm: int, rng) -> dict:
-    """Protocol A: 5x5 repeated stratified CV *within* the test split -- the 0.7715 +- 0.0389 value.
+def _cv_run(Xv: np.ndarray, yy: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """The 5x5 repeated stratified CV of analyse2.py: per-fold AUROCs and the out-of-fold score of
+    every item averaged over the 5 repeats."""
+    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=5, random_state=0)
+    folds, oof = [], np.zeros((5, len(yy)))
+    for i, (a, b) in enumerate(cv.split(Xv, yy)):
+        p = _nocode_model().fit(Xv[a], yy[a]).predict_proba(Xv[b])[:, 1]
+        folds.append(roc_auc_score(yy[b], p))
+        oof[i // 5, b] = p
+    return np.array(folds), oof.mean(axis=0)
 
-    The fold-mean is the paper's statistic. For the interval we bootstrap the pooled out-of-fold
-    score vector (averaged over the 5 repeats): bootstrapping the CV itself would put duplicated
-    items on both sides of a fold and inflate the AUROC.
+
+def _cv_perm_chunk(Xv, y, perms):
+    out = []
+    for pi in perms:
+        yp = y[pi]
+        _, oof = _cv_run(Xv, yp)
+        out.append(fast_auroc(yp, oof))
+    return out
+
+
+def nocode_cv(X: pd.DataFrame, y: np.ndarray, n_perm: int, rng, n_jobs: int) -> dict:
+    """Protocol A: 5x5 repeated stratified CV *within* the test split.
+
+    The point is the AUROC of the pooled out-of-fold score vector (averaged over the 5 repeats),
+    0.7658; the interval bootstraps that same vector (bootstrapping the CV itself would put
+    duplicated items on both sides of a fold and inflate the AUROC). The fold mean 0.7715 +- 0.0389
+    of analyse2.py is returned for reference.
     """
     Xv = X.to_numpy()
-
-    def run(yy):
-        cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=5, random_state=0)
-        folds, oof = [], np.zeros((5, len(yy)))
-        for i, (a, b) in enumerate(cv.split(Xv, yy)):
-            m = _nocode_model().fit(Xv[a], yy[a])
-            p = m.predict_proba(Xv[b])[:, 1]
-            folds.append(roc_auc_score(yy[b], p))
-            oof[i // 5, b] = p
-        return np.array(folds), oof.mean(axis=0)
-
-    folds, oof = run(y)
-    null = []
-    for i in range(n_perm):
-        f, _ = run(rng.permutation(y))
-        null.append(f.mean())
-        if (i + 1) % 25 == 0:
-            print(f"    permutation {i + 1}/{n_perm}")
-    return {"fold_mean": float(folds.mean()), "fold_sd": float(folds.std()), "n_folds": len(folds),
-            "oof": oof, "y": y, "null": np.array(null)}
+    folds, oof = _cv_run(Xv, y)
+    perms = [rng.permutation(len(y)) for _ in range(n_perm)]
+    null = np.array(run_chunked(lambda c: _cv_perm_chunk(Xv, y, c), perms, n_jobs))
+    return {"pooled": fast_auroc(y, oof), "fold_mean": float(folds.mean()), "fold_sd": float(folds.std()),
+            "n_folds": len(folds), "oof": oof, "y": y, "null": null}
 
 
-def nocode_holdout(X: pd.DataFrame, y: np.ndarray, pids: np.ndarray, n_perm: int, rng) -> dict:
+def _holdout_split(y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    return train_test_split(np.arange(len(y)), test_size=0.30, stratify=y, random_state=0)
+
+
+def _holdout_perm_chunk(Xv, y, itr0, ite0, perms):
+    """Full null (permute, re-split, refit, score permuted labels) and the training-labels-only one
+    (fixed split, permute the training labels, score the true held-out labels)."""
+    out = []
+    for pi, pt in perms:
+        yp = y[pi]
+        itr, ite = _holdout_split(yp)
+        full = fast_auroc(yp[ite], _nocode_model().fit(Xv[itr], yp[itr]).predict_proba(Xv[ite])[:, 1])
+        tr_only = fast_auroc(y[ite0], _nocode_model().fit(Xv[itr0], y[itr0][pt]).predict_proba(Xv[ite0])[:, 1])
+        out.append((full, tr_only))
+    return out
+
+
+def nocode_holdout(X: pd.DataFrame, y: np.ndarray, pids: np.ndarray, n_perm: int, rng, n_jobs: int) -> dict:
     """Protocol B: the single stratified 30% held-out slice of `auroc.py` -- the 0.7163 value."""
-    idx = np.arange(len(y))
-    itr, ite = train_test_split(idx, test_size=0.30, stratify=y, random_state=0)
+    itr, ite = _holdout_split(y)
     Xv = X.to_numpy()
-    m = _nocode_model().fit(Xv[itr], y[itr])
-    p = m.predict_proba(Xv[ite])[:, 1]
-    null = []
-    for i in range(n_perm):
-        mm = _nocode_model().fit(Xv[itr], rng.permutation(y[itr]))
-        null.append(fast_auroc(y[ite], mm.predict_proba(Xv[ite])[:, 1]))
+    p = _nocode_model().fit(Xv[itr], y[itr]).predict_proba(Xv[ite])[:, 1]
+    perms = [(rng.permutation(len(y)), rng.permutation(len(itr))) for _ in range(n_perm)]
+    res = run_chunked(lambda c: _holdout_perm_chunk(Xv, y, itr, ite, c), perms, n_jobs)
     return {"scores": p, "y": y[ite], "pids": pids[ite], "n_train": len(itr), "n_test": len(ite),
-            "null": np.array(null)}
+            "null": np.array([r[0] for r in res]), "null_train_only": np.array([r[1] for r in res])}
 
 
 # --------------------------------------------------------------------------------------------
@@ -419,13 +494,17 @@ def paired_vs_monitors(y, ours, mon_df: pd.DataFrame, meta: dict, pids, n_boot, 
 # --------------------------------------------------------------------------------------------
 
 
-def summarise(name, protocol, own, null, paired, raw_count_basis) -> dict:
-    """Assemble one floor's block. `raw_count_basis` says which monitor AUROC the raw count used."""
-    above_raw = sum(1 for d in paired if d["we_are_higher"])
+COUNT_BASIS = ("each monitor's AUROC recomputed on the same items as ours (on the full 1,375-item "
+               "split this equals its published test_auroc)")
+
+
+def summarise(name, protocol, own, null, paired, null_train_only=None) -> dict:
+    """Assemble one floor's block. Both monitor counts compare AUROCs on identical items."""
+    above_pt = sum(1 for d in paired if d["we_are_higher"])
     above_ci = sum(1 for d in paired if d["higher_and_ci_excludes_zero"])
-    if raw_count_basis == "published":
-        above_raw = sum(1 for d in paired if own["auroc"] > (d["monitor_published_test_auroc"] or -1))
-    return {
+    above_pub = sum(1 for d in paired if own["auroc"] > (d["monitor_published_test_auroc"] or -1))
+    nul = null_summary(own["auroc"], null)
+    b = {
         "name": name,
         "protocol": protocol,
         "auroc": round(own["auroc"], 4),
@@ -434,16 +513,24 @@ def summarise(name, protocol, own, null, paired, raw_count_basis) -> dict:
         "n_items": own["n_items"],
         "n_problems": own["n_problems"],
         "bootstrap_group_sizes": own["group_sizes"],
-        "perm_null_p95": round(float(np.percentile(null, 95)), 4),
-        "perm_null_mean": round(float(np.mean(null)), 4),
-        "perm_null_max": round(float(np.max(null)), 4),
-        "perm_p": perm_p(own["auroc"], null),
-        "n_perm": int(len(null)),
-        "above_n_of_24_point_estimates": above_raw,
+        "perm_null_p95": nul["p95"],
+        "perm_null_mean": nul["mean"],
+        "perm_null_max": nul["max"],
+        "perm_p": nul["p"],
+        "n_perm": nul["n_perm"],
+        "above_n_of_24_point_estimates": above_pt,
         "above_n_of_24_ci_excludes_zero": above_ci,
-        "raw_count_basis": raw_count_basis,
-        "per_monitor": paired,
+        "count_basis": COUNT_BASIS,
+        "above_n_of_24_vs_published_full_split_auroc": above_pub,
+        # Monitors whose paired lower bound is within 0.01 of zero: at 2,000 draws the bound's Monte
+        # Carlo error is a few thousandths, so each of these can flip the CI count under another seed.
+        "paired_lower_bound_near_zero": {d["repo"]: d["diff_ci"][0] for d in paired
+                                         if d["we_are_higher"] and abs(d["diff_ci"][0]) < 0.01},
     }
+    if null_train_only is not None:
+        b["train_labels_only_null"] = null_summary(own["auroc"], null_train_only)
+    b["per_monitor"] = paired
+    return b
 
 
 def sentence(b: dict, label: str) -> str:
@@ -465,9 +552,8 @@ def print_table(blocks: list[dict]) -> None:
               f"{b['perm_null_p95']:>10.4f}{b['perm_p']:>9.4g}"
               f"{b['above_n_of_24_point_estimates']:>6}{b['above_n_of_24_ci_excludes_zero']:>6}")
     print("=" * width)
-    print("  >pt = monitors whose PUBLISHED full-split test_auroc is below our point estimate "
-          "(this is the paper's raw count)")
-    print("  >CI = monitors we beat on IDENTICAL items with a paired-bootstrap 95% CI that excludes 0")
+    print("  >pt = monitors whose AUROC on the same items is below our point estimate")
+    print("  >CI = monitors we beat on the same items with a paired-bootstrap 95% CI that excludes 0")
     for b in blocks:
         print(f"\n--- {b['name']} ({b['protocol']}), paired bootstrap over problems, "
               f"n_items={b['n_items']}; `mon` is recomputed on THESE items, "
@@ -492,13 +578,16 @@ def main() -> None:
     ap.add_argument("--monitor-summary", default="monitor-summary.json")
     ap.add_argument("--out", default="headline_ci.json")
     ap.add_argument("--n-boot", type=int, default=2000)
-    ap.add_argument("--n-perm", type=int, default=200)
+    ap.add_argument("--perms", "--n-perm", dest="perms", type=int, default=1000,
+                    help="label permutations per floor")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--jobs", type=int, default=-1, help="joblib workers for the permutations")
     ap.add_argument("--no-fetch", action="store_true", help="fail instead of downloading runs/scores/")
     ap.add_argument("--fetch-only", action="store_true")
     ap.add_argument("--skip-tfidf", action="store_true", help="no-code floors only (no train shards needed)")
     a = ap.parse_args()
-    rng = np.random.default_rng(a.seed)
+    rng = streams(a.seed, ["tfidf_perm", "tfidf_boot", "tfidf_paired", "cv_perm", "cv_boot", "cv_paired",
+                           "ho_perm", "ho_boot", "ho_paired"])
 
     print(f"monitor summary: {a.monitor_summary}")
     repos = monitor_repos(a.monitor_summary)
@@ -516,13 +605,13 @@ def main() -> None:
 
     if not a.skip_tfidf:
         print("\n(a) TF-IDF word 1-2gram, Koran's paired train split -> their 1,375-item test split, stripped")
-        t = tfidf_headline(a.data_dir, mon_df.index, a.n_perm, rng)
+        t = tfidf_headline(a.data_dir, mon_df.index, a.perms, rng["tfidf_perm"], a.jobs)
         y, s, pids = t["y"].to_numpy(), t["scores"].to_numpy(), np.asarray(mon_df.index)
-        own = own_boot(y, s, pids, a.n_boot, rng)
+        own = own_boot(y, s, pids, a.n_boot, rng["tfidf_boot"])
         print(f"  AUROC={own['auroc']:.4f}  (koran_split_eval.py reports 0.8063)")
-        paired = paired_vs_monitors(y, s, mon_df, mon_meta, pids, a.n_boot, rng)
+        paired = paired_vs_monitors(y, s, mon_df, mon_meta, pids, a.n_boot, rng["tfidf_paired"])
         blocks.append(summarise("TF-IDF word 1-2gram (stripped)", "Koran train -> Koran test",
-                                own, t["null"], paired, "published"))
+                                own, t["null"], paired, t["null_train_only"]))
         blocks[-1]["train_samples"] = t["n_train"]
         blocks[-1]["vocabulary"] = t["n_vocab"]
 
@@ -535,35 +624,32 @@ def main() -> None:
     print(f"\n(b) no-code floor: {X.shape[1]} features {list(X.columns)} on {len(y_all)} test items")
 
     print("  protocol A: 5x5 repeated stratified CV within the test split")
-    cv = nocode_cv(X, y_all, a.n_perm, rng)
-    print(f"    fold mean={cv['fold_mean']:.4f} sd={cv['fold_sd']:.4f} over {cv['n_folds']} folds "
+    cv = nocode_cv(X, y_all, a.perms, rng["cv_perm"], a.jobs)
+    print(f"    pooled out-of-fold AUROC={cv['pooled']:.4f} (the point; the CI is built on the same vector); "
+          f"fold mean={cv['fold_mean']:.4f} sd={cv['fold_sd']:.4f} over {cv['n_folds']} folds "
           f"(analyse2.py reports 0.7715 +- 0.0389)")
-    own_cv = own_boot(cv["y"], cv["oof"], pids_all, a.n_boot, rng)
-    print(f"    pooled out-of-fold AUROC={own_cv['auroc']:.4f} (the statistic the CI is built on)")
-    paired_cv = paired_vs_monitors(cv["y"], cv["oof"], mon_df.loc[pids_all], mon_meta, pids_all, a.n_boot, rng)
-    b_cv = summarise("no-code floor (metadata only)", "5x5 CV within test",
-                     own_cv, cv["null"], paired_cv, "published")
-    b_cv["headline_fold_mean"] = round(cv["fold_mean"], 4)
-    b_cv["headline_fold_sd"] = round(cv["fold_sd"], 4)
-    b_cv["above_n_of_24_point_estimates"] = sum(
-        1 for d in paired_cv if cv["fold_mean"] > (d["monitor_published_test_auroc"] or -1))
-    b_cv["note"] = ("The paper's value for this protocol is the fold mean 0.7715 +- 0.0389 and its count is "
-                    "20 of 24. The CI and the paired tests are computed on the pooled out-of-fold score "
-                    "vector, the only per-item statistic this protocol produces. Never pair this value "
-                    "with the held-out protocol's count of 18.")
+    own_cv = own_boot(cv["y"], cv["oof"], pids_all, a.n_boot, rng["cv_boot"])
+    paired_cv = paired_vs_monitors(cv["y"], cv["oof"], mon_df.loc[pids_all], mon_meta, pids_all, a.n_boot,
+                                   rng["cv_paired"])
+    b_cv = summarise("no-code floor (metadata only)", "5x5 CV within test", own_cv, cv["null"], paired_cv)
+    b_cv["fold_mean"] = round(cv["fold_mean"], 4)
+    b_cv["fold_sd"] = round(cv["fold_sd"], 4)
+    b_cv["note"] = ("The point is the AUROC of the pooled out-of-fold score vector (averaged over the 5 "
+                    "repeats), the quantity the CI, the null and the paired tests are all computed on. "
+                    "fold_mean is kept for reference and is not the reported value.")
     blocks.append(b_cv)
 
     print("  protocol B: single stratified 30% held-out slice of the same items")
-    ho = nocode_holdout(X, y_all, pids_all, a.n_perm, rng)
+    ho = nocode_holdout(X, y_all, pids_all, a.perms, rng["ho_perm"], a.jobs)
     print(f"    held-out n={ho['n_test']} (train {ho['n_train']}); auroc.py reports 0.7163")
-    own_ho = own_boot(ho["y"], ho["scores"], ho["pids"], a.n_boot, rng)
-    paired_ho = paired_vs_monitors(ho["y"], ho["scores"], mon_df.loc[ho["pids"]], mon_meta, ho["pids"], a.n_boot, rng)
+    own_ho = own_boot(ho["y"], ho["scores"], ho["pids"], a.n_boot, rng["ho_boot"])
+    paired_ho = paired_vs_monitors(ho["y"], ho["scores"], mon_df.loc[ho["pids"]], mon_meta, ho["pids"],
+                                   a.n_boot, rng["ho_paired"])
     b_ho = summarise("no-code floor (metadata only)", f"{ho['n_test']}-item held-out slice",
-                     own_ho, ho["null"], paired_ho, "published")
-    b_ho["note"] = ("The paper's count for this protocol is 18 of 24, taken against the monitors' published "
-                    "full-split test_auroc. The paired column beside it recomputes each monitor's AUROC on "
-                    "the SAME held-out items, which is the only comparison a paired bootstrap can make; the "
-                    "two counts are therefore not required to agree and must not be swapped. Never pair "
+                     own_ho, ho["null"], paired_ho, ho["null_train_only"])
+    b_ho["note"] = ("Both counts recompute each monitor's AUROC on the same 413 held-out items. "
+                    "above_n_of_24_vs_published_full_split_auroc compares against the monitors' full-split "
+                    "AUROCs, which are on different items, and is kept for reference only. Never pair "
                     "this count with the 5x5 CV value.")
     blocks.append(b_ho)
 
@@ -572,15 +658,8 @@ def main() -> None:
     sentences = {}
     if not a.skip_tfidf:
         sentences["tfidf"] = sentence(blocks[0], "TF-IDF")
-    sentences["nocode_cv"] = (
-        f"No-code floor (5x5 CV within the test split) {b_cv['headline_fold_mean']:.4f} "
-        f"+- {b_cv['headline_fold_sd']:.4f} (bootstrap-over-problems 95% CI of the pooled out-of-fold "
-        f"AUROC {b_cv['ci95'][0]:.4f}-{b_cv['ci95'][1]:.4f}; permutation null 95th pct "
-        f"{b_cv['perm_null_p95']:.4f}, p = {b_cv['perm_p']:.4g}), above "
-        f"{b_cv['above_n_of_24_point_estimates']} of 24 monitors, "
-        f"{b_cv['above_n_of_24_ci_excludes_zero']} of them with a paired-bootstrap CI excluding zero.")
-    sentences["nocode_holdout"] = sentence(
-        b_ho, f"No-code floor ({b_ho['protocol']})")
+    sentences["nocode_cv"] = sentence(b_cv, "No-code floor (5x5 CV within the test split, pooled out-of-fold)")
+    sentences["nocode_holdout"] = sentence(b_ho, f"No-code floor ({b_ho['protocol']})")
 
     print("\nSENTENCES FOR THE PAPER")
     for k, v in sentences.items():
@@ -588,9 +667,12 @@ def main() -> None:
 
     out = {
         "generated_by": "experiments/apps/headline_ci.py",
-        "n_boot": a.n_boot, "n_perm": a.n_perm, "seed": a.seed,
+        "n_boot": a.n_boot, "n_perm": a.perms, "seed": a.seed,
+        "random_streams": "permutations, bootstraps and paired bootstraps use separate child streams of seed",
         "bootstrap_unit": "problem_id (whole groups resampled with replacement)",
-        "permutation_null": "training labels shuffled and the classifier refit; test labels untouched",
+        "permutation_null": "the labels the pipeline reads are permuted (training and test labels alike), the "
+                            "pipeline rerun end to end and the reported statistic recomputed; "
+                            "p = (1 + #{null >= observed}) / (1 + R)",
         "interval_method": "paired percentile bootstrap over problems (NOT DeLong: unstable at 172 "
                            "positives with heavily tied, partly degenerate monitor scores)",
         "monitor_scores": {"source": RAW_BASE, "licence": SCORES_LICENCE,

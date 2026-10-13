@@ -37,12 +37,16 @@ cd ../agentic && python fetch_scan.py   # ca_{bash,shade,iac,rogue_eval,agentdoj
 ```bash
 python koran_split_eval.py        # bag-of-words 0.8063 (above 20/24 monitors); comments kept 0.8914
 python auroc.py                   # no-code floor, held-out slice: 0.7163
-python analyse2.py                # no-code floor, 5x5 CV: 0.7715 ± 0.0389; inert share 80.7%
+python analyse2.py                # no-code floor, 5x5 CV fold mean 0.7715 ± 0.0389 (the paper reports
+                                  # the pooled 0.7658 from headline_ci.py); inert share 80.7%
 python analyse.py                 # lineage check; tests per problem; 892 labelled / 256 pass / 172 fire
 python floors.py                  # metadata-only floors under protocols P0-P4 (Table F1)
 python exact.py                   # "the longer program is the attack" baseline
 python strip_recheck.py --seeds 5 # matched pairs, working vs inert, cross-generator transfer
-python headline_ci.py             # bootstrap and permutation intervals -> headline_ci.json (15-30 min)
+python headline_ci.py             # bootstrap CIs, 1,000-permutation nulls (one procedure), pooled no-code
+                                  # CV 0.7658, paired counts -> headline_ci.json (about 5 min on 10 cores)
+python nocode_outside.py          # no-code floor trained outside the test split: 0.2984 (>= 4 tests:
+                                  # 0.6293) -> nocode_outside.json
 python token_test.py              # token-level test: separation -0.013, p = 0.956
 python gate_s_baseline.py         # B = 0.8714 over 1,444 problems -> gate_s_baseline.json
 ```
@@ -161,7 +165,7 @@ The `_v2` files repeat the headline and strict runs with out-of-fold scores save
 
 ```bash
 python matched.py    # within-task, character-count-only AUROC: bash 0.504 ... agentdojo 0.802 (Figure F2)
-python floors2.py    # the permutation nulls in Figure F2
+python floors2.py    # within-task permutation nulls (1,000) for Figure F2 -> within_task_null.json
 python cot.py        # scratchpad keyword regex: AUROC 0.76-0.82
 python prov.py       # which models wrote each class
 ```
