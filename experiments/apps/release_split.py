@@ -210,8 +210,11 @@ recognising who wrote the code rather than by detecting sabotage. This split rem
 confound by construction. **One model, `{model}`, wrote both classes**: the honest solutions and
 the backdoored solutions, on the same {honest_total} APPS problems, under the same decoding
 configuration. A trivial baseline trained on these pairs cannot key on authorship, because there
-is only one author. Whatever separability survives is a property of the sabotage, not of the
-provenance.
+is only one author. What still separates the classes comes from what the two prompts asked for,
+the backdoor and the attack prompt's framing included, so it is not by itself the backdoor's
+share: the attacks here also differ from the stored ones (most do not fire, and an LLM monitor
+finds them far less suspicious). Swapping one class at a time (`scripts/classifier_swap.py`,
+`scripts/monitor_swap.py`) shows which side a detector's drop comes from.
 
 ## Files
 
@@ -283,9 +286,10 @@ a conclusion that holds under only one of them should be reported as holding und
 {best_lists_paragraph}
 ## Known limitations
 
-1. **A later generation than the stored attacker.** The corpus this split is designed to control
-   was attacked by an earlier model in the same vendor's lineage, which has since been retired and
-   returns 404. This is a same-vendor, same-lineage control, **not** a same-model one.
+1. **A different attacker from the stored corpus.** The stored backdoors this split is designed
+   to control were written by nine named models and an unattributed source, and the attacking
+   model alone changes the stored-pair separability against the same human code. This split
+   holds the author constant; it does not reproduce the stored attack distribution.
 2. {limitation_two}
 3. **Interpreter-era effects.** Pass/fail verdicts are era-sensitive in both directions: modern
    fast-I/O idioms broke an earlier version of the harness (fixed), and pre-3.9 standard-library
@@ -303,8 +307,9 @@ a conclusion that holds under only one of them should be reported as holding und
 
 * Computing a **trivial-baseline floor** --- bag-of-words, length, surface features --- for a
   monitor benchmark in a setting where authorship cannot explain the result.
-* As a **control split** beside a stored honest/attack corpus, to decompose a monitor's or a
-  baseline's separability into an authorship component and a content component.
+* As a **control split** beside a stored honest/attack corpus: to measure how much of a
+  monitor's or a baseline's separability survives when one model writes both classes, and, with
+  one class swapped at a time, whether a drop comes from the honest side or the attack side.
 * As a **preprocessing testbed**: the raw and comment-stripped text of every program is shipped
   side by side.
 
@@ -320,12 +325,12 @@ figures in the scripts' comments are redacted to `$X`; nothing else in them was 
 ## Citation
 
 ```
-@misc{{samegeneratorcorpus,
-  title  = {{A Same-Generator Corpus and Classifier Floors for AI-Control Monitor Evaluation}},
-  author = {{Anonymous}},
-  year   = {{2026}},
-  note   = {{Under double-blind review; dataset split accompanying the submission.
-            Author and venue details will be added on acceptance.}}
+@inproceedings{{debsarkar2026samegenerator,
+  title     = {{A Same-Generator Corpus and Classifier Floors for AI-Control Monitor Evaluation}},
+  author    = {{Debsarkar, Shubhrangshu and Nahata, Valmik}},
+  booktitle = {{NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI
+               Systems (EvoRobust)}},
+  year      = {{2026}}
 }}
 ```
 
@@ -533,7 +538,8 @@ def scrub(text: str, where: str, fatal: bool = True) -> list[str]:
         for h in hits[:20]:
             print(f"  ANONYMITY: {h}", file=sys.stderr)
         raise SystemExit(f"refusing to write {where}: {len(hits)} anonymity violations. "
-                         f"The paper is double-blind; fix the source records, do not force this.")
+                         f"The bundle must not carry keys, local paths, batch ids or cost figures; "
+                         f"fix the source records, do not force this.")
     return hits
 
 
