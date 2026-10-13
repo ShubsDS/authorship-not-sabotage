@@ -358,9 +358,8 @@ are developed, tuned and ranked almost entirely on \emph{stored} honest/attack p
 corpora in which each programming problem contributes an honest solution and a solution
 carrying a planted backdoor \cite{koran2026ensemble, terekhov2025controltax,
 jha2026decorrelation}. Honest solutions are
-human-written, taken from APPS \cite{hendrycks2021apps}; every backdoor is written by a
-language model, and the corpus records which one. Separation credited to a monitor may be
-separation between two authors.
+human-written, taken from APPS \cite{hendrycks2021apps}, and backdoors are written by language
+models, so a detector can separate the classes without reading any backdoor.
 
 There are various known confounding variables between the human and AI solutions, such as in commenting style, so corpora are often preprocessed to mitigate them. The filtered
 release keeps only working honest solutions and working backdoors and strips every comment
