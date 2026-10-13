@@ -608,7 +608,12 @@ honest code scores \monStoredStrictAbs{} against stored attacks and \monSwapStri
 against ours, and our honest code against ours scores
 \monitorStrict{}. The
 monitor's fall measures how conspicuous the attacks are, not who wrote the code (a second
-monitor and the monitor's $\rho$ are in appendix~\ref{app:monitors}).
+monitor and the monitor's $\rho$ are in appendix~\ref{app:monitors}). At a fixed audit
+budget, a \auditFPR{} false-positive rate with the threshold set on each set's own honest
+programs, the monitor catches \auditStrictStored{} of stored attacks and \auditStrictOurs{} of
+same-generator ones on the strict problems (paired difference \auditStrictDiff{}, 95\% CI
+\auditStrictDiffLo{}--\auditStrictDiffHi{}), and \auditHeadStored{} against \auditHeadOurs{}
+on the headline problems.
 
 \section{Limitations}
 
