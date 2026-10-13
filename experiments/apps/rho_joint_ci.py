@@ -72,6 +72,8 @@ def joint_bootstrap(S: pd.DataFrame, B: pd.DataFrame, n_boot: int, seed: int) ->
         "S_pooled_oof": s_pt, "B_prime_pooled_oof": b_pt,
         "rho_point_pooled_oof": (s_pt - 0.5) / (b_pt - 0.5),
         "S_ci95": pct(s_only), "B_prime_ci95": pct(b_b),
+        "S_minus_B_prime_pooled_oof": s_pt - b_pt,
+        "S_minus_B_prime_ci95": pct(np.array(s_b) - np.array(b_b)),
         "rho_ci95_joint": pct(joint_rho[~np.isnan(joint_rho)]),
         "rho_joint_median": float(np.nanmedian(joint_rho)),
         "P_rho_gt_content": float(np.nanmean(joint_rho > NO_COLLAPSE)),

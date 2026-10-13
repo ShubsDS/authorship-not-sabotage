@@ -26,12 +26,19 @@ Methods, all fixed:
 
 `old` in the macro map is the macro's value in paper/main.tex at commit 1e05846 (the plan's
 reference); `new` is the pooled counterpart. Points with no pooled counterpart in any committed
-file are listed under `not_available` with the file that would give one.
+file are listed under `not_available` with the file that would give one. Four groups of points
+whose inputs are generated files carry their pooled values in their own jsons, regenerated on
+the cluster data, and are copied into the macro map from there (`pooled_elsewhere`): the
+headline length-only AUROC (sg_indep_first_passes.json, gate_s_samegen.py), the Haiku 4.5
+similarity strata (sim_strata_haiku45.json, sim_stratified_s.py), the one-sided arm
+(gate_s_q3c30.json, gate_s_eval.py) and B under our pass flag (gate_s_baseline_ownflag.json,
+gate_s_baseline.py --human-pass-file).
 
 Inputs: sg_indep_first_passes_v2.json, sg_haiku45_indep_passes.json, sg_indep_best_usable_v2.json,
 sg_indep_best_usable_seed{0..4}.json, sg_edit_passes.json, gate_s_matched_{headline,strict,
 haiku45}.json, lexical_probe.json, survivor_check.json, lc_{first_passes,best_usable}.json,
-headline_ci.json; with --refit also train_*.parquet.
+headline_ci.json, sg_indep_first_passes.json, sim_strata_haiku45.json, gate_s_q3c30.json,
+gate_s_baseline_ownflag.json; with --refit also train_*.parquet.
 
 Usage:
     python pooled_stats.py --refit --out pooled_stats.json      # ~5 min with --refit
@@ -383,20 +390,51 @@ def main() -> None:
             "derived from the pooled B")
         put("\\gPartialMax", "0.7674", f"{rf['B']['content_line_pooled']:.4f}",
             "derived from the pooled B")
+    # ---- points pooled in their own jsons (regenerated from the generated files) -----------
+    hl = json.load(open("sg_indep_first_passes.json"))["S"]
+    st = json.load(open("sim_strata_haiku45.json"))["range_over_strata"]
+    q3 = json.load(open("gate_s_q3c30.json"))["pooled"]
+    of = json.load(open("gate_s_baseline_ownflag.json"))["B_pooled"]
+    rng2 = lambda v, d: f"{v[0]:.{d}f}--{v[1]:.{d}f}"
+    put("\\sameGenLen", "0.5851", f"{hl['length_only_auroc_pooled']:.4f}",
+        "sg_indep_first_passes.json[S][length_only_auroc_pooled]",
+        f"pooled over all pairs (length is not fitted); CI "
+        f"{hl['length_only_ci95_boot'][0]:.4f}-{hl['length_only_ci95_boot'][1]:.4f}")
+    put("\\haikuStrataS", "0.4737--0.5142", rng2(st["pooled"]["S"], 4),
+        "sim_strata_haiku45.json[range_over_strata][pooled][S]", "min-max over the four strata")
+    put("\\haikuStrataBprime", "0.7884--0.8334", rng2(st["pooled"]["B_prime"], 4),
+        "sim_strata_haiku45.json[range_over_strata][pooled][B_prime]",
+        "min-max over the four strata")
+    put("\\haikuStrataLowSim", "0.451", f"{st['mean_sim_lowest_stratum']:.3f}",
+        "sim_strata_haiku45.json[range_over_strata][mean_sim_lowest_stratum]",
+        "mean pair similarity, not an AUROC; unchanged")
+    put("\\armOneBprime", "0.874", f"{q3['B']:.3f}", "gate_s_q3c30.json[pooled][B]",
+        f"CI {q3['B_ci95'][0]:.4f}-{q3['B_ci95'][1]:.4f}")
+    put("\\armOneG", "0.962", f"{q3['G']:.3f}", "gate_s_q3c30.json[pooled][G]",
+        f"CI {q3['G_ci95'][0]:.4f}-{q3['G_ci95'][1]:.4f}")
+    put("\\armOneRho", "1.234", f"{q3['rho']:.3f}", "gate_s_q3c30.json[pooled][rho]",
+        f"joint CI {q3['rho_ci95_joint'][0]:.3f}-{q3['rho_ci95_joint'][1]:.3f}")
+    put("\\armOneTfidfDelta", "+0.088", f"{q3['G_minus_B']:+.3f}",
+        "gate_s_q3c30.json[pooled][G_minus_B]",
+        f"paired CI {q3['G_minus_B_ci95'][0]:+.3f} to {q3['G_minus_B_ci95'][1]:+.3f}")
+    put("\\armOneLenG", "0.489", f"{q3['length_only_G']:.3f}",
+        "gate_s_q3c30.json[pooled][length_only_G]",
+        f"CI {q3['length_only_G_ci95'][0]:.4f}-{q3['length_only_G_ci95'][1]:.4f}")
+    put("\\baselineBownflag", "0.873", f"{of['auroc_pooled_oof']:.3f}",
+        "gate_s_baseline_ownflag.json[B_pooled]",
+        f"pooled {of['auroc_pooled_oof']:.4f} ({of['ci95_boot'][0]:.4f}-{of['ci95_boot'][1]:.4f}); "
+        f"fold mean {of['fold_mean']:.4f}; n = {of['n_pairs']}")
+    out["pooled_elsewhere"] = {
+        "\\sameGenLen": "sg_indep_first_passes.json (gate_s_samegen.py)",
+        "\\haikuStrataS, \\haikuStrataBprime": "sim_strata_haiku45.json (sim_stratified_s.py)",
+        "\\armOneG, \\armOneBprime, \\armOneRho, \\armOneTfidfDelta, \\armOneLenG":
+            "gate_s_q3c30.json (gate_s_eval.py)",
+        "\\baselineBownflag": "gate_s_baseline_ownflag.json (gate_s_baseline.py "
+                              "--human-pass-file pass_human_fixed.jsonl)",
+    }
+
     out["macro_map"] = M
     out["not_available"] = {
-        "\\sameGenLen (0.5851)": "length-only AUROC fold mean; its pooled value needs the "
-                                 "program lengths, i.e. gen_sonnet5.jsonl and "
-                                 "bdind_sonnet5_first.jsonl (re-run gate_s_samegen.py)",
-        "\\haikuStrataS, \\haikuStrataBprime": "sim_strata_haiku45.json keeps only fold means "
-                                               "per stratum; re-run sim_stratified_s.py (needs "
-                                               "gen_haiku45.jsonl, bdind_haiku45.jsonl) and keep "
-                                               "evaluate()'s auroc_pooled_oof",
-        "\\armOneG, \\armOneBprime, \\armOneRho, \\armOneTfidfDelta, \\armOneLenG":
-            "gate_s_q3c30.json predates auroc_pooled_oof; re-run gate_s_eval.py (needs "
-            "gen_q3c30.jsonl, pass_q3c30.jsonl)",
-        "\\baselineBownflag (0.873)": "needs pass_human_fixed.jsonl (run_tests.py on the human "
-                                      "class) to re-run gate_s_baseline.py --human-pass-file",
         "edit-arm joint rho interval": "sg_edit_passes.json has pooled points but no per-pair "
                                        "oof; re-run gate_s_samegen.py for the edit arm",
         "\\curveHeadlineSd, \\curveStrictSd, \\baselineB": (

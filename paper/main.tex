@@ -132,10 +132,10 @@
 
 \newcommand{\armOneN}{668}
 \newcommand{\armOneBprime}{0.874}
-\newcommand{\armOneG}{0.962}
-\newcommand{\armOneRho}{1.234}
+\newcommand{\armOneG}{0.961}
+\newcommand{\armOneRho}{1.235}
 \newcommand{\armOneTfidfDelta}{+0.088}
-\newcommand{\armOneLenG}{0.489}
+\newcommand{\armOneLenG}{0.490}
 
 \newcommand{\simStored}{0.606}
 \newcommand{\simStoredHigh}{3.4\%}
@@ -166,7 +166,7 @@
 \newcommand{\sameGenRho}{0.687}
 \newcommand{\sameGenRhoLo}{0.625}
 \newcommand{\sameGenRhoHi}{0.755}
-\newcommand{\sameGenLen}{0.5851}
+\newcommand{\sameGenLen}{0.5840}
 \newcommand{\curveHeadline}{0.8512}
 \newcommand{\curveHeadlineSd}{0.0055}
 \newcommand{\strictS}{0.7488}
@@ -270,8 +270,8 @@
 \newcommand{\haikuMatchedRho}{0.110}
 \newcommand{\haikuPromptFloor}{0.4922}
 \newcommand{\haikuPairSim}{0.724}
-\newcommand{\haikuStrataS}{0.4737--0.5142}
-\newcommand{\haikuStrataBprime}{0.7884--0.8334}
+\newcommand{\haikuStrataS}{0.4766--0.5170}
+\newcommand{\haikuStrataBprime}{0.7784--0.8255}
 \newcommand{\haikuStrataLowSim}{0.451}
 \newcommand{\haikuUsable}{35}
 \newcommand{\haikuFireInRow}{2}
@@ -283,7 +283,7 @@
 \newcommand{\haikuHonestPass}{0.7278}
 \newcommand{\sonnetHonestPass}{0.7701}
 
-\newcommand{\baselineBownflag}{0.873}
+\newcommand{\baselineBownflag}{0.872}
 \newcommand{\baselineBownflagN}{1{,}406}
 
 \newcommand{\harnessFailWePass}{0}
@@ -305,7 +305,7 @@
 \newcommand{\pContentStrict}{0.92}
 \newcommand{\pContentStrictMatched}{0.28}
 % Table 1: attacks that fire, per row.
-\newcommand{\matchedFire}{11--13}
+\newcommand{\matchedFire}{13}
 % Monitor class swap (Sonnet 5 monitor, headline problems scored in all four cells).
 \newcommand{\monSwapN}{617}
 \newcommand{\monSwapHumanStored}{0.958}
@@ -365,14 +365,15 @@
 \newcommand{\sharedDiffLo}{$-0.24$}
 \newcommand{\sharedDiffHi}{$+0.13$}
 % Table 1, Haiku 4.5 prompt-matched row (gate_s_matched_haiku45.json, S_matched, pooled out-of-fold).
-% Its attacks are the Haiku headline attacks on a subset of problems, so at most \haikuFireInRow{} fire.
+% Its attacks are the Haiku headline attacks on a subset of problems; both firing ones are in it
+% (fire_counts.json haikuMatchedFire).
 \newcommand{\haikuMatchedBprime}{0.8540}
 \newcommand{\haikuSMatchedLo}{0.5197}
 \newcommand{\haikuSMatchedHi}{0.5581}
 \newcommand{\haikuMatchedRhoLo}{0.055}
 \newcommand{\haikuMatchedRhoHi}{0.165}
 \newcommand{\pContentHaikuMatched}{0.00}
-\newcommand{\haikuMatchedFire}{$\le$\haikuFireInRow{}}
+\newcommand{\haikuMatchedFire}{2}
 
 % ---- Appendix macros (camera-ready). Paths are relative to experiments/apps/.
 % Headline token masks: largest shift of the pooled S under the number and operator masks, and the
@@ -435,6 +436,10 @@
 \newcommand{\retestSpearmanLo}{0.85}\newcommand{\retestSpearmanHi}{0.89}
 \newcommand{\retestN}{64}\newcommand{\retestAttackN}{12}
 \newcommand{\monStrictDiffer}{3}\newcommand{\monStrictDropMin}{0.812}\newcommand{\monStrictDropMax}{0.839}
+% Strict monitor AUROC without the three differing problems (1701, 1972, 4434): their attack
+% programs dropped, and their whole pairs dropped (monitor_swap.json strict_file_mismatch
+% exact_claude_sonnet_5).
+\newcommand{\monStrictMatched}{0.821}\newcommand{\monStrictMatchedPairs}{0.821}
 % Audit budget: share of attacks flagged at 1%, 2%, 5% honest false-positive rate (randomized
 % tie rule), stored and same-generator pairs, and their difference with a paired interval
 % (audit_budget.json). aud<detector><set><One|Two|Five><St|Sg|D|Lo|Hi>; Sonnet 5 at 2% uses the
@@ -911,12 +916,7 @@ the labels are permuted within main-task groups (appendix~\ref{app:agentic}). Th
 uses a null over random token sets instead (appendix~\ref{app:token}). The bootstrap replaced a
 $\pm 2$ fold-SD rule before the strict retry pool was read.
 
-Four quantities are still fold means, the average of five per-fold AUROCs, because their inputs
-are only on the cluster: the length-only AUROC of the headline pairs (\sameGenLen{},
-appendix~\ref{app:robust}), Haiku~4.5's similarity strata (\haikuStrataS{} and
-\haikuStrataBprime{}, appendix~\ref{app:secondpass}), the one-sided arm (\armOneG{},
-\armOneBprime{}, $\rho = \armOneRho{}$, appendix~\ref{app:robust}) and $B$ under our pass flag
-(\baselineBownflag{}, appendix~\ref{app:harness}). The edit arm's points are pooled, but no
+The edit arm's points are pooled, but no
 per-pair scores were kept for it, so its $\rho$ has no joint interval. The pairwise accuracies
 of Table~\ref{tab:protocol-baseline} are means over five problem-disjoint splits
 (appendix~\ref{app:stripped}).

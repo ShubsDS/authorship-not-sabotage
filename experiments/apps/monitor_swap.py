@@ -34,13 +34,19 @@ both sets (fire_counts.py's token rule).
 Strict-set file mismatch. The strict monitor run read bdind_sonnet5_best.jsonl (crash-inclusive
 `best`) while the classifier read bdind_sonnet5_best_nocrash.jsonl. Both cover the same 99
 problems and the same honest programs; per merge_draws.py's docstring the attack differs on 3 of
-them, where `best` had chosen a draw that fires by crashing ahead of a later quiet one. The
-committed jsons do not name those 3 (comparing the `draw` keys of the two jsonl files would), so
-the script enumerates every 3-problem subset of the strict set and reports how far dropping
-those problems' attack programs (or whole pairs) moves the strict same-generator AUROC.
+them, where `best` had chosen a draw that fires by crashing ahead of a later quiet one. When the
+two jsonl files are present, the script names those problems by comparing the `draw` field per
+problem_id on the 99 strict problems (and checks that the programs differ exactly there), and
+reports the strict same-generator AUROC with exactly those problems' attack programs dropped,
+and with their whole pairs dropped: the monitor's AUROC on the attacks the two files share. That
+is the headline value. As context it also enumerates every 3-problem subset of the strict set
+and reports how far dropping any three problems' attack programs (or whole pairs) moves the
+AUROC; that range is all the committed jsons allow without the jsonl files.
 
 Inputs: monitor_{samegen,stored}_sonnet5_independent_{passes,usable}[_haiku-4-5[_mt1024]].json,
-sg_indep_first_passes_v2.json, sg_indep_best_usable_v2.json.
+sg_indep_first_passes_v2.json, sg_indep_best_usable_v2.json, fire_counts.json; optionally
+bdind_sonnet5_best.jsonl, bdind_sonnet5_best_nocrash.jsonl and their verdict files
+bdindpass_sonnet5_best[_nocrash].jsonl.
 
 Usage:
     python monitor_swap.py --out monitor_swap.json
@@ -51,6 +57,7 @@ from __future__ import annotations
 import argparse
 import itertools
 import json
+import os
 
 import numpy as np
 from scipy.stats import spearmanr
@@ -71,6 +78,10 @@ PROVENANCE = {
 }
 CELLS = [("human_honest", "stored_attack"), ("human_honest", "our_attack"),
          ("our_honest", "stored_attack"), ("our_honest", "our_attack")]
+# Strict attack files: the monitor run read the first, the classifier the second.
+STRICT_FILES = {"monitor": ("bdind_sonnet5_best.jsonl", "bdindpass_sonnet5_best.jsonl"),
+                "classifier": ("bdind_sonnet5_best_nocrash.jsonl",
+                               "bdindpass_sonnet5_best_nocrash.jsonl")}
 
 
 def _auroc(h: np.ndarray, a: np.ndarray) -> float:
@@ -178,6 +189,54 @@ def mismatch_sensitivity(same: dict, pids: list, k: int = 3) -> dict:
             "drop_attack_programs_only": q(att_only), "drop_whole_pairs": q(pair)}
 
 
+def differing_strict(pids: list) -> dict | None:
+    """The strict problems whose attack draw differs between the monitor's and classifier's files.
+
+    None when the jsonl files are not here. Compares the `draw` key per problem_id and checks
+    that the attack programs differ on exactly those problems.
+    """
+    if not all(os.path.exists(f) for f, _ in STRICT_FILES.values()):
+        return None
+    rd = lambda p: {str(r["problem_id"]): r for r in map(json.loads, filter(str.strip, open(p)))}
+    mon, clf = rd(STRICT_FILES["monitor"][0]), rd(STRICT_FILES["classifier"][0])
+    diff = [p for p in pids if mon[p]["draw"] != clf[p]["draw"]]
+    assert diff == [p for p in pids if mon[p]["code"] != clf[p]["code"]], "draw and code disagree"
+    per = {p: {"monitor_draw": mon[p]["draw"], "classifier_draw": clf[p]["draw"]} for p in diff}
+    if all(os.path.exists(v) for _, v in STRICT_FILES.values()):
+        vm, vc = rd(STRICT_FILES["monitor"][1]), rd(STRICT_FILES["classifier"][1])
+        for p in diff:
+            assert vm[p]["draw"] == mon[p]["draw"] and vc[p]["draw"] == clf[p]["draw"]
+            per[p]["monitor_draw_verdict"] = vm[p].get("reason") or "fires (quiet divergence)"
+            per[p]["classifier_draw_verdict"] = vc[p].get("reason") or "fires (quiet divergence)"
+    return {"problem_ids": diff, "draws": per}
+
+
+def mismatch_exact(same: dict, pids: list, drop: list) -> dict:
+    """Strict same-generator AUROC with exactly `drop`'s attack programs (or pairs) removed.
+
+    AUROC over all scored programs, as monitor_samegen.analyse() and mismatch_sensitivity()
+    compute it; unscored programs are missing, never imputed.
+    """
+    def score(cls: str, keep: list) -> np.ndarray:
+        return np.array([float(same[p][cls]["score"]) for p in keep
+                         if same.get(p, {}).get(cls, {}).get("score") is not None])
+
+    h_all, a_all = score("honest", pids), score("attack", pids)
+    rest = [p for p in pids if p not in set(drop)]
+    h_rest, a_rest = score("honest", rest), score("attack", rest)
+    return {
+        "auroc_all_scored": _auroc(h_all, a_all),
+        "n_honest_scored": int(len(h_all)), "n_attack_scored": int(len(a_all)),
+        "dropped_problem_ids": list(drop),
+        "dropped_scores": {p: {c: same.get(p, {}).get(c, {}).get("score")
+                               for c in ("honest", "attack")} for p in drop},
+        "drop_attack_programs_only": {"auroc": _auroc(h_all, a_rest),
+                                      "n_honest": int(len(h_all)), "n_attack": int(len(a_rest))},
+        "drop_whole_pairs": {"auroc": _auroc(h_rest, a_rest),
+                             "n_honest": int(len(h_rest)), "n_attack": int(len(a_rest))},
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -265,13 +324,43 @@ def main() -> None:
             out["strict_file_mismatch"][f"sensitivity_{mname}"] = mismatch_sensitivity(
                 loaded[("strict", suf)][0], strict, 3)
     a, w = ms["drop_attack_programs_only"], ms["drop_whole_pairs"]
-    print(f"\nstrict file mismatch (3 of 99 attacks differ; ids not in the committed jsons):")
-    print(f"  same-generator AUROC {ms['auroc_all_scored']:.4f}; over all {ms['n_subsets']} "
-          f"3-problem subsets")
+    print(f"\nstrict file mismatch (3 of 99 attacks differ):")
+    print(f"  same-generator AUROC {ms['auroc_all_scored']:.4f}; context, over all "
+          f"{ms['n_subsets']} 3-problem subsets")
     print(f"  drop their attacks:   {a['min']:.4f}-{a['max']:.4f} (5-95%: {a['p05']:.4f}-"
           f"{a['p95']:.4f}; max shift {a['max_abs_shift']:.4f}, mean shift {a['mean_abs_shift']:.4f})")
     print(f"  drop their pairs:     {w['min']:.4f}-{w['max']:.4f} (5-95%: {w['p05']:.4f}-"
           f"{w['p95']:.4f}; max shift {w['max_abs_shift']:.4f}, mean shift {w['mean_abs_shift']:.4f})")
+
+    sm = out["strict_file_mismatch"]
+    dif = differing_strict(strict)
+    if dif is None:
+        print(f"  {STRICT_FILES['monitor'][0]} / {STRICT_FILES['classifier'][0]} not here: the "
+              f"three problems are not named (range above only)")
+    else:
+        assert len(dif["problem_ids"]) == sm["n_problems_differing"], dif["problem_ids"]
+        sm["identified_from"] = (f"`draw` per problem_id of {STRICT_FILES['monitor'][0]} and "
+                                 f"{STRICT_FILES['classifier'][0]} on the 99 strict problems")
+        sm["differing_problem_ids"] = dif["problem_ids"]
+        sm["differing_draws"] = dif["draws"]
+        sm["headline_value"] = ("exact_claude_sonnet_5: the strict monitor AUROC with the three "
+                                "differing problems' attacks (or pairs) dropped; the any-three "
+                                "range under sensitivity_* is context")
+        print(f"  the three: {dif['problem_ids']}")
+        for p, d in dif["draws"].items():
+            print(f"    {p}: monitor {d['monitor_draw']} ({d.get('monitor_draw_verdict', '?')}), "
+                  f"classifier {d['classifier_draw']} ({d.get('classifier_draw_verdict', '?')})")
+        for mname, suf in MONITORS:
+            if ("strict", suf) not in loaded:
+                continue
+            key = "exact_claude_sonnet_5" if suf == "" else f"exact_{mname}"
+            ex = mismatch_exact(loaded[("strict", suf)][0], strict, dif["problem_ids"])
+            sm[key] = ex
+            print(f"  {mname:32s} all scored {ex['auroc_all_scored']:.4f} "
+                  f"({ex['n_honest_scored']} honest, {ex['n_attack_scored']} attack); without the "
+                  f"three: attacks dropped {ex['drop_attack_programs_only']['auroc']:.4f} "
+                  f"(n_attack {ex['drop_attack_programs_only']['n_attack']}), pairs dropped "
+                  f"{ex['drop_whole_pairs']['auroc']:.4f}")
 
     json.dump(out, open(args.out, "w"), indent=2)
     print(f"\nwrote {args.out}")
