@@ -31,10 +31,13 @@ recognising who wrote the code, without finding any backdoor.
    ρ is 0.861 (95% CI 0.662-1.089). Using the same prompt for both classes takes Sonnet 5's ρ to
    0.390 and leaves Haiku 4.5's unchanged (0.110). ρ is not the backdoor's share: rebuilding with
    one model changes the attacks as well as the author.
-4. **The LLM monitor's drop is in the attacks, not the authorship.** A Sonnet 5 monitor scores
-   0.958 on stored pairs and 0.566 on same-generator pairs. Swapping one class at a time, human
-   honest code against our attacks scores 0.446, and our honest code against stored attacks
-   scores 0.974. At a 2% false-positive rate it catches 77% of stored and 48% of same-generator
+4. **Swapping one class at a time separates the two detectors.** The bag-of-words classifier
+   stays high whenever the two classes have different writers: human honest code against our
+   attacks scores 0.981, and our honest code against stored attacks 0.956. It falls, to 0.750,
+   only when one model wrote both, so its drop is authorship. The LLM monitor's drop is in the
+   attacks instead. A Sonnet 5 monitor scores 0.958 on stored pairs and 0.566 on same-generator
+   pairs; human honest code against our attacks scores 0.446, and our honest code against stored
+   attacks 0.974. At a 2% false-positive rate it catches 77% of stored and 48% of same-generator
    working attacks (strict pairs), and 85% against 6% on the headline pairs.
 5. **The label adds a second artifact.** When a problem's backdoor fails, its human solution is
    kept as a negative. So the negative class partly records which attacks failed.
