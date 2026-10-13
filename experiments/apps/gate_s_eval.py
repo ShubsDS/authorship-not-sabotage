@@ -13,10 +13,12 @@ the pipeline twice over the same problems, changing only who wrote the honest co
 
 and reports rho = (G - 0.5) / (B - 0.5) against the bands fixed before any arm ran (collapse
 <= 0.33, content > 0.72). With Qwen3-Coder-30B as the honest generator (n = 668) it prints
-B = 0.8739, G = 0.9616, rho = 1.234: the substitute generator replaced the authorship gap with a
+B = 0.8739, G = 0.9616, rho = 1.234 as fold means, and under the pooled out-of-fold convention
+(`pooled` in the output) B = 0.8735, G = 0.9615, rho = 1.235 (joint interval 1.188-1.288), G - B
+= +0.088, length-only on G 0.490: the substitute generator replaced the authorship gap with a
 larger one, so this arm cannot separate authorship from content. gate_s_samegen.py, where one
 model writes both classes, is the control that can. The `title` field in the output is the
-working title each band was tied to when the bands were fixed.
+working title each band was tied to when the bands were fixed; the verdict reads the fold means.
 
 B is recomputed here rather than taken from the published 0.806. That number is TF-IDF trained
 on Koran's paired train split and scored on their 1,375-item test split, whose honest class is
@@ -233,10 +235,40 @@ def main() -> None:
     print("\nRoute the title on the arm whose generator is closest to the attacker's lineage. "
           "A cross-vendor arm bounds the effect; it does not decide it.")
 
+    # Pooled out-of-fold points (the camera-ready convention): B, G, rho and G - B from the
+    # pooled scores, with the joint bootstrap over problems (2,000 draws, seed 0) for rho and the
+    # paired interval of G - B; length-only pooled over all pairs. The fold means above (`B`,
+    # `G` blocks' `auroc`, `rho`) and the verdict read from them are kept as first committed.
+    from rho_joint_ci import _oof_frame, joint_bootstrap
+    jb = joint_bootstrap(_oof_frame(G), _oof_frame(B), 2000, 0)
+    pooled = {
+        "convention": "point = pooled out-of-fold AUROC; interval = bootstrap over problems of "
+                      "that quantity (2,000 draws, seed 0); rho and G - B joint over B and G",
+        "n": jb["n_common_problems"],
+        "B": jb["B_prime_pooled_oof"], "B_ci95": jb["B_prime_ci95"],
+        "G": jb["S_pooled_oof"], "G_ci95": jb["S_ci95"],
+        "rho": jb["rho_point_pooled_oof"], "rho_ci95_joint": jb["rho_ci95_joint"],
+        "G_minus_B": jb["S_minus_B_prime_pooled_oof"],
+        "G_minus_B_ci95": jb["S_minus_B_prime_ci95"],
+        "length_only_B": B["length_only_auroc_pooled"],
+        "length_only_B_ci95": B["length_only_ci95_boot"],
+        "length_only_G": G["length_only_auroc_pooled"],
+        "length_only_G_ci95": G["length_only_ci95_boot"],
+    }
+    assert pooled["B_ci95"] == B["auroc_ci95_boot"] and pooled["G_ci95"] == G["auroc_ci95_boot"]
+    print(f"\n  pooled out-of-fold: B = {pooled['B']:.4f} ({pooled['B_ci95'][0]:.4f}-"
+          f"{pooled['B_ci95'][1]:.4f})   G = {pooled['G']:.4f} ({pooled['G_ci95'][0]:.4f}-"
+          f"{pooled['G_ci95'][1]:.4f})   rho = {pooled['rho']:.4f} (joint "
+          f"{pooled['rho_ci95_joint'][0]:.4f}-{pooled['rho_ci95_joint'][1]:.4f})")
+    print(f"  G - B = {pooled['G_minus_B']:+.4f} ({pooled['G_minus_B_ci95'][0]:+.4f} to "
+          f"{pooled['G_minus_B_ci95'][1]:+.4f})   length-only B {pooled['length_only_B']:.4f}, "
+          f"G {pooled['length_only_G']:.4f} ({pooled['length_only_G_ci95'][0]:.4f}-"
+          f"{pooled['length_only_G_ci95'][1]:.4f})")
+
     if args.out:
         json.dump({"arm": args.label, "B": B, "G": G, "rho": rho,
                    "excess_sd": excess_sd, "verdict": verdict,
-                   "title": title}, open(args.out, "w"), indent=2)
+                   "title": title, "pooled": pooled}, open(args.out, "w"), indent=2)
         print(f"wrote {args.out}")
 
 
