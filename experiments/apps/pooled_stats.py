@@ -230,7 +230,9 @@ def main() -> None:
     nocode = next(f for f in hc["floors"] if f.get("protocol") == "5x5 CV within test")
     po["nocode_cv"] = {"label": "no-code floor, 5x5 CV within the test split",
                        "source": "headline_ci.json[floors, protocol '5x5 CV within test']",
-                       "fold_mean": {"S": nocode["headline_fold_mean"]},
+                       # key renamed to fold_mean when headline_ci.py moved to 1,000 permutations
+                       "fold_mean": {"S": nocode.get("fold_mean",
+                                                     nocode.get("headline_fold_mean"))},
                        "pooled": {"S": nocode["auroc"]}, "S_ci95": nocode["ci95"],
                        "above_n_of_24_pooled": nocode["above_n_of_24_point_estimates"]}
     lc_h, lc_s = json.load(open("lc_first_passes.json")), json.load(open("lc_best_usable.json"))
