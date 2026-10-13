@@ -505,15 +505,14 @@ set before any code is read. Attack problems also carry half as many test cases
 
 Table~\ref{tab:gates} gives $\rho$ for each arm. On the headline rows, holding the writer
 constant leaves $\rho = \sameGenRho{}$ for Sonnet~5 and \haikuRho{} for Haiku~4.5; sample size
-does not account for the fall
-(appendix~\ref{app:robust}). These rows are attempts: only \relFireFirst{} of Sonnet~5's
+does not account for the fall (appendix~\ref{app:robust}). Only \relFireFirst{} of Sonnet~5's
 \sameGenN{} attacks and \haikuFireInRow{} of Haiku~4.5's \haikuN{} fire, while every stored
-attack on those problems fires, so they compare working stored backdoors against mostly inert
-attempts. The strict rows hold working sabotage: each attack is chosen from a pool of retries
-and fires. On Sonnet~5's \strictN{} strict pairs $\rho = \strictRho{}$. The higher value comes
+attack on those problems fires, so these rows set working stored backdoors against mostly inert
+attempts. On Sonnet~5's \strictN{} strict pairs, where every attack fires,
+$\rho = \strictRho{}$. The higher value comes
 from which problems yield a working attack, not from the attacks working: on the \sharedN{}
-problems in both sets, $\rho$ is \sharedRhoHead{} with the headline attacks and
-\sharedRhoWorking{} with the working ones (paired 95\% CI on the difference \sharedDiffLo{}
+problems in both sets, $\rho$ is \sharedRhoHead{} with headline attacks and
+\sharedRhoWorking{} with working ones (paired 95\% CI on the difference \sharedDiffLo{}
 to \sharedDiffHi{}).
 
 \begin{table}[h]\centering\footnotesize
@@ -522,7 +521,7 @@ to \sharedDiffHi{}).
 bag-of-words AUROCs (5-fold, comments stripped) on the same-generator pairs and on the stored
 pairs of the same problems (human honest code, stored attacks); $\rho = (S - 0.5)/(B' - 0.5)$.
 Points are pooled out-of-fold; intervals are 95\% bootstraps over problems, joint for $\rho$;
-$P$ is the share of draws with $\rho$ above the registered threshold \rhoContent{}.
+$P$ is the share of draws with $\rho$ above \rhoContent{}, a line fixed before any arm ran.
 \emph{Fires}: same-generator attacks that fire; every stored attack here fires.
 Prompt-matched rows reuse the attacks of the row above.}
 \label{tab:gates}
@@ -589,10 +588,12 @@ separable than the stored ones, $\rho = \armOneRho{}$: one authorship gap replac
 
 A zero-shot Sonnet~5 monitor, which wrote both same-generator classes, scores
 \monStoredHeadAbs{} on the stored pairs and \monitorS{} on the same-generator pairs
-(appendix~\ref{app:monitors}); swapping one class at a time puts the drop in the attacks. On the headline problems (Table~\ref{tab:swap}),\footnote{The four cells combine
-per-program scores from batches run on different days.} replacing the human honest code with
-ours does not lower the score, and replacing the stored attacks with ours lowers it to
-\monSwapHumanOurs{}. The same holds on working attacks:
+(appendix~\ref{app:monitors}); swapping one class at a time puts the drop in the attacks.
+On the headline problems (Table~\ref{tab:swap}),\footnote{The four cells combine per-program
+scores from batches run on different days.} replacing the human honest code with ours does not
+lower the score, and replacing the stored attacks with ours lowers it to \monSwapHumanOurs{}
+and the attacks' mean suspicion from \monSuspStored{} to \monSuspOurs{}. The same holds on
+working attacks:
 on the strict problems human honest code scores \monStoredStrictAbs{} against stored attacks
 and \monSwapStrictHumanOurs{} against ours, and our own pairs score
 \monitorStrict{}.\footnote{The strict monitor runs used a different attack file from the
@@ -609,16 +610,15 @@ A high floor is evidence about a corpus, not about results computed on it. Ours 
 label is recoverable without reading a backdoor, not that any monitor
 recovers it that way, and no number here corrects a published monitor score.
 
-The same-generator corpus does not isolate authorship. The stored attacks come from
-\storedAttackers{} named models or an unattributed source, and rebuilding both classes with
-one model changes the attacks as well as their author: against the same human honest code,
-the attacking model alone moves $B$ from \bAttackerLo{} to \bAttackerHi{}. So $\rho$ is not
-the content share of the separability, nor a bound on it. It does not depend on the
-stored attacker: with Claude attackers only, $\rho = \rhoClaudeOnly{}$. The class swap that
+The same-generator corpus does not isolate authorship. Rebuilding with one model changes the
+attacks as well as their author: against the same human code, the stored attacking model alone
+moves $B$ from \bAttackerLo{} to \bAttackerHi{}, so $\rho$ is not
+the backdoor's share of the separability, nor a bound on it. It does not depend on the
+stored attacker (Claude attackers only: $\rho = \rhoClaudeOnly{}$). The class swap that
 would isolate authorship for the classifier, human honest code against our attacks, has not
 been run; a value near $B'$ would put the classifier's drop on the honest side, a value near
 $S$ in the attacks, as for the monitor. The corpus is not bit-reproducible: the API hides
-sampling parameters, and thinking was off.
+sampling parameters; thinking was off.
 
 Our scope is narrow in three further ways. We measure one APPS-derived corpus family and five
 agentic settings, and other stored-pair corpora are untested. Five of our seven corpora are one
