@@ -585,7 +585,19 @@ corpora in which each programming problem contributes an honest solution and a s
 carrying a planted backdoor \cite{koran2026ensemble, terekhov2025controltax,
 jha2026decorrelation}. Honest solutions are
 human-written, taken from APPS \cite{hendrycks2021apps}, and backdoors are written by language
-models, so a detector can separate the classes without reading any backdoor.
+models, so a detector can separate the classes without reading any backdoor
+(Figure~\ref{fig:pairs}).
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{f5-stored-pairs.pdf}
+\caption{\textbf{Three stored pairs.} Each column is one APPS problem from the public artifact
+\cite{inglis2025appscontrolarena} (MIT): the human-written honest solution above a working
+backdoor written by the named model, comments removed. The highlighted lines are the backdoor:
+its trigger condition and its wrong output. Outside the backdoor the model's code also differs
+in style: spaces around operators (4253, 4254) and a \texttt{main} function with an entry-point
+guard (755).}
+\label{fig:pairs}
+\end{figure}
 
 There are known confounding variables between human and AI solutions, such as commenting style, so corpora are often preprocessed to mitigate them. The filtered
 release keeps only working honest solutions and working backdoors and strips every comment
@@ -625,18 +637,6 @@ exported from, generates both classes live and is not implicated.
 
 \section{Setup}
 
-\begin{figure}[t]\centering
-\includegraphics[width=0.85\linewidth]{f4-constructions.pdf}
-\caption{\textbf{How a stored pair is built, and how we rebuild it.} Each row is one property of
-the pair, marked \emph{confounded} where the two classes differ in it and \emph{controlled}
-where one model or one prompt holds it constant. The backdoor row is the target: it is the only
-difference a monitor should read, and the only one left once both controls are applied. Under
-each construction is the bag-of-words AUROC on its own pairs, so the three are a ladder, not a
-paired comparison; the stored benchmark's is $B$, on the full artifact rather than the filtered
-split. Per-arm numbers: Table~\ref{tab:gates}.}
-\label{fig:constructions}
-\end{figure}
-
 We use seven public corpora, whose
 per-class provenance is the object of study: two views of one APPS-backdoor artifact
 (appendix~\ref{app:schema}) and five agentic settings (appendix~\ref{app:agentic}). In the
@@ -652,7 +652,7 @@ Our primary protocol is the filtered, comment-stripped split
 \texttt{backdoor\_works}, reconstructed with the released harness code
 \cite{jha2026decorrelation}. The split is a filtered view of a \baselineBn{}-problem artifact
 whose full pool the same-generator arms use; on that pool the stored pairs give
-$B = \baselineB{}$ (Figure~\ref{fig:constructions}). Generated code is scored by our own
+$B = \baselineB{}$. Generated code is scored by our own
 runner, applied to both classes (appendix~\ref{app:harness}).
 
 Against that we build a corpus in which one model, Sonnet~5 or Haiku~4.5, writes both classes
