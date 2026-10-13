@@ -2,8 +2,9 @@
 
 Counts how many labelled backdoors on Koran's test split do not work and are therefore labelled
 honest (80.7% of the labelled backdoors). Then fits the problem-side metadata model
-(difficulty + num_tests + q_len) under 5x5 repeated stratified CV within the test split:
-AUROC 0.7715 +/- 0.0389, the no-code floor reported in the paper.
+(difficulty + num_tests + q_len) under 5x5 repeated stratified CV within the test split: fold-mean
+AUROC 0.7715 +/- 0.0389. The paper reports the same CV's pooled out-of-fold AUROC, 0.7658, which
+headline_ci.py computes with its interval and null.
 
 Usage:
     python analyse2.py   # needs koran_meta.parquet and rogan_meta.parquet from fetch_inputs.py
