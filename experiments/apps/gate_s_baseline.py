@@ -8,11 +8,16 @@ This B is over the full pool. rho's denominator is B', the same quantity refitte
 problems an arm covers (gate_s_eval.py and gate_s_samegen.py compute it); the two coincide only
 if an arm covers every problem.
 
-Two definitions of the human pass flag:
-    shipped  the artifact's `solution_passes_tests`      1,444 pairs, B = 0.8714
-    own      run_tests.py's verdict on the human class   1,406 pairs, B = 0.8729
+Two definitions of the human pass flag (fold mean / pooled out-of-fold):
+    shipped  the artifact's `solution_passes_tests`      1,444 pairs, B = 0.8714 / 0.8710
+    own      run_tests.py's verdict on the human class   1,406 pairs, B = 0.8729 / 0.8723
 With --human-pass-file the own flag both gates eligibility and selects which human solution is
 used; without it the shipped flag is used.
+
+`B.auroc` is the fold mean. The camera-ready convention reports the pooled out-of-fold AUROC
+(`B.auroc_pooled_oof`, interval `B.auroc_ci95_boot`); `B_pooled` and `g_thresholds_pooled`
+restate it and the rho-band lines at it. The pooled shipped-flag B is also refitted by
+pooled_stats.py --refit.
 
 Usage:
     python gate_s_baseline.py                  # -> gate_s_baseline.json
@@ -141,10 +146,19 @@ def main() -> None:
     print("pool intersected with whichever generations pass. Recompute B with gate_s_eval.py")
     print("when an arm lands; do not carry this value into rho.")
 
+    bp = B["auroc_pooled_oof"]
+    print(f"pooled out-of-fold B = {bp:.4f} (95% CI {B['auroc_ci95_boot'][0]:.4f}-"
+          f"{B['auroc_ci95_boot'][1]:.4f}); lines at it: collapse {0.5 + COLLAPSE * (bp - 0.5):.4f},"
+          f" content {0.5 + NO_COLLAPSE * (bp - 0.5):.4f}")
+
     import sklearn
     json.dump({"B": B,
                "g_thresholds": {"collapse_max": 0.5 + COLLAPSE * (b - 0.5),
                                 "partial_max": 0.5 + NO_COLLAPSE * (b - 0.5)},
+               "B_pooled": {"auroc_pooled_oof": bp, "ci95_boot": B["auroc_ci95_boot"],
+                            "n_pairs": B["n_pairs"], "fold_mean": b},
+               "g_thresholds_pooled": {"collapse_max": 0.5 + COLLAPSE * (bp - 0.5),
+                                       "partial_max": 0.5 + NO_COLLAPSE * (bp - 0.5)},
                "human_pass_flag": "own" if honest_ok else "shipped",
                "pool": "analysis ceiling (not an arm's realised set)",
                "sklearn": sklearn.__version__,
