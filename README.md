@@ -81,6 +81,13 @@ make figures     # regenerate fig/ from experiments/apps/figures.py
 
 ## Data and licence
 
+The same-generator corpus is `same-generator-apps-split.zip`, attached to the
+[v1.0 release](https://github.com/ShubsDS/authorship-not-sabotage/releases/tag/v1.0): the honest
+and attack programs, the independent arm's full retry pool, the pair lists under both selections,
+the scripts behind the paper's numbers, a dataset card and a manifest of row counts and
+checksums. `experiments/apps/release_split.py` builds it and `--check` validates it
+(`experiments/README.md`, stage 7).
+
 The code and our generated data are MIT-licensed ([`LICENSE`](LICENSE)). Upstream corpora are
 fetched at run time and not redistributed. Their licences are listed in
 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
