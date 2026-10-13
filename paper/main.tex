@@ -629,8 +629,9 @@ lower the score, and replacing the stored attacks with ours lowers it to \monSwa
 and the attacks' mean suspicion from \monSuspStored{} to \monSuspOurs{}. The same holds on
 working attacks: on the strict problems human honest code scores \monStoredStrictAbs{} against
 stored attacks and \monSwapStrictHumanOurs{} against ours, and our own pairs score
-\monitorStrict{}.\footnote{The strict monitor runs used a different attack file from the
-classifier's strict row, which moves \monitorStrict{} by about 0.01.} The monitor's fall
+\monitorStrict{}.\footnote{Three of the \strictN{} attacks the strict monitor
+runs scored differ from the classifier's strict row; dropping any three moves \monitorStrict{}
+by at most 0.02.} The monitor's fall
 measures attack conspicuousness, not authorship. At a fixed audit budget of \auditFPR{} false
 positives, thresholded on each set's own honest programs, it catches \auditStrictStored{} of
 stored and \auditStrictOurs{} of same-generator attacks on the strict problems (paired
