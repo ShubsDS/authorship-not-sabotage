@@ -480,24 +480,22 @@ we call them \emph{floors}: a monitor at or below a floor has shown nothing beyo
 corpus leaks. On the filtered, comment-stripped split, bag-of-words reaches AUROC
 \tfidfKoran{}, above \tfidfKoranCount{} of the \monN{} monitors ranked on that split, and the
 no-code floor reaches \nocodeCV{}, above \nocodeCVCount{}; both are far above their
-permutation nulls (Figure~\ref{fig:monitors}; intervals, nulls and paired-bootstrap counts in
-appendix~\ref{app:protocol}). Neither floor is trained like the monitors, which are zero-shot:
-bag-of-words is fitted on the split's train problems and the no-code floor is cross-validated
-within the test split. The comparison states what the corpus makes recoverable, not that
-either floor is the better monitor. The no-code floor reads only problem metadata, so it
-measures how the label was selected (below), not authorship.
+permutation nulls (Figure~\ref{fig:monitors}, appendix~\ref{app:protocol}). The floors are
+trained (bag-of-words on the split's train problems, the no-code floor cross-validated within
+the test split) and the monitors are zero-shot, so the comparison states what the corpus makes
+recoverable, not which is the better monitor. The no-code floor reads only problem metadata,
+so it measures how the label was selected (below), not authorship.
 
 Three further measurements show that the bag-of-words classifier is not reading the backdoor
-(the first two are pairwise accuracies, not AUROCs; appendix~\ref{app:protocol}).
+(pairwise accuracies for the first two; appendix~\ref{app:protocol}).
 It transfers across backdoor generators at \transfer{}: trained on one attacker's backdoors it identifies
 another's, so the feature it has learned is one the attackers share. It is nearly as strong on
 inert backdoors as on working ones, \pairInert{} against \pairWorking{}, although a backdoor
 that never fires should be the harder case for a detector of sabotage. The feature it does read
 is stylistic: \texttt{\_\_main\_\_} appears in 0.116 of attack samples against 0.000 of honest
-ones, a gap the comment stripper leaves untouched and one that replicates on the train split,
-in 152 of \splitTrain{} attack samples against 1 of \splitTrain{} honest ones. All three measurements are comment-stripped on both classes; the
-unstripped values, inflated by the comment channel, are in appendix~\ref{app:stripped},
-and a token-level version of the last test does not replicate (appendix~\ref{app:token}).
+ones, a gap that replicates on the train split (152 against 1 of \splitTrain{} samples per
+class). All three are on comment-stripped code (unstripped: appendix~\ref{app:stripped}); a
+token-level version of the last test does not replicate (appendix~\ref{app:token}).
 
 The split selects on a second property besides authorship. Labelling by
 \texttt{backdoor\_works} defines the negative class by attack failure rather than by
@@ -508,8 +506,7 @@ cases (\testCasesAttack{} against
 \testCasesHonest{}), so problem difficulty correlates with the label, which the
 no-code floor reads.
 
-Table~\ref{tab:gates} gives $\rho$ for each arm, with $B'$ refitted on the row's own
-problems. On the headline rows, holding the writer constant leaves $\rho = \sameGenRho{}$ for
+Table~\ref{tab:gates} gives $\rho$ for each arm. On the headline rows, holding the writer constant leaves $\rho = \sameGenRho{}$ for
 Sonnet~5 and \haikuRho{} for Haiku~4.5; sample size does not account for the fall
 (appendix~\ref{app:robust}). These rows are attempts: only \relFireFirst{} of Sonnet~5's
 \sameGenN{} attacks and \haikuFireInRow{} of Haiku~4.5's \haikuN{} fire, while every stored
