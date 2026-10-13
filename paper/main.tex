@@ -314,6 +314,15 @@
 \newcommand{\sharedRhoWorking}{0.75}
 \newcommand{\sharedDiffLo}{$-0.24$}
 \newcommand{\sharedDiffHi}{$+0.13$}
+% Table 1, Haiku 4.5 prompt-matched row (gate_s_matched_haiku45.json, S_matched, pooled out-of-fold).
+% Its attacks are the Haiku headline attacks on a subset of problems, so at most \haikuFireInRow{} fire.
+\newcommand{\haikuMatchedBprime}{0.8540}
+\newcommand{\haikuSMatchedLo}{0.5197}
+\newcommand{\haikuSMatchedHi}{0.5581}
+\newcommand{\haikuMatchedRhoLo}{0.055}
+\newcommand{\haikuMatchedRhoHi}{0.165}
+\newcommand{\pContentHaikuMatched}{0.00}
+\newcommand{\haikuMatchedFire}{$\le$\haikuFireInRow{}}
 
 \title{A Same-Generator Corpus and Classifier Floors\\for AI-Control Monitor Evaluation}
 
@@ -503,25 +512,38 @@ and agree with the headline rows at low power (appendix~\ref{app:secondpass}).
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{\textbf{What is left when one model writes both classes.} $S$ is the
-same-generator AUROC (5-fold, comments stripped) and $B'$ the stored-pair baseline on the
-row's own problems; $\rho$, its bands and its intervals are as in the text and
-appendix~\ref{app:robust}.}
+\caption{\textbf{What is left when one model writes both classes.} $S$ is the bag-of-words
+AUROC on the same-generator pairs, $B'$ on the stored pairs of the same problems (human
+honest code, stored attacks), 5-fold on comment-stripped code; $\rho = (S - 0.5)/(B' - 0.5)$.
+Points are pooled out-of-fold; intervals are 95\% bootstraps over problems, joint over $S$
+and $B'$ for $\rho$; $P$ is the share of draws with $\rho > \rhoContent{}$, the upper
+threshold registered before any arm ran. \emph{Fires} counts the same-generator attacks that
+fire; every stored attack on these problems fires. A prompt-matched row keeps the attacks of
+the row above and regenerates the honest class from the attack prompt.}
 \label{tab:gates}
-\begin{tabular}{@{}l r l r l l@{}}
+\begin{tabular}{@{}l r l r l r@{}}
 \toprule
-Arm & $n$ & $S$ (95\% CI) & $B'$ & $\rho$ (95\% CI, joint) & band \\
+Arm & fires/$n$ & $S$ (95\% CI) & $B'$ & $\rho$ (95\% CI) & $P(\rho > \rhoContent{})$ \\
 \midrule
-Sonnet 5, headline & \sameGenN{} & \sameGenS{} (\sameGenLo{}--\sameGenHi{})
-  & \sameGenBprime{} & \sameGenRho{} (\sameGenRhoLo{}--\sameGenRhoHi{}) & partial--content \\
-Haiku 4.5, headline & \haikuN{} & \haikuS{} (\haikuSLo{}--\haikuSHi{})
-  & \haikuBprime{} & \haikuRho{} (\haikuRhoLo{}--\haikuRhoHi{}) & \textbf{collapse} \\
-Sonnet 5, prompt-matched & \matchedN{} & \matchedS{} (\matchedLo{}--\matchedHi{})
-  & \matchedBprime{} & \matchedRho{} (\matchedRhoLo{}--\matchedRhoHi{}) & \textbf{partial} \\
-Sonnet 5, strict & \strictN{} & \strictS{} (\strictLo{}--\strictHi{})
-  & \strictBprime{} & \strictRho{} (\strictRhoLo{}--\strictRhoHi{}) & partial--content \\
-Sonnet 5, strict, matched & \matchedStrictN{} & \matchedStrictS{} (\matchedStrictLo{}--\matchedStrictHi{})
-  & \matchedStrictBprime{} & \matchedStrictRho{} (\matchedStrictRhoLo{}--\matchedStrictRhoHi{}) & partial--content \\
+\multicolumn{6}{@{}l}{\emph{Attempts (headline): one attack sampled per problem}} \\
+Sonnet 5 & \relFireFirst{}/\sameGenN{} & \sameGenS{} (\sameGenLo{}--\sameGenHi{})
+  & \sameGenBprime{} & \sameGenRho{} (\sameGenRhoLo{}--\sameGenRhoHi{}) & \pContentHead{} \\
+Sonnet 5, prompt-matched & \matchedFire{}/\matchedN{} & \matchedS{} (\matchedLo{}--\matchedHi{})
+  & \matchedBprime{} & \matchedRho{} (\matchedRhoLo{}--\matchedRhoHi{}) & \pContentMatched{} \\
+Haiku 4.5 & \haikuFireInRow{}/\haikuN{} & \haikuS{} (\haikuSLo{}--\haikuSHi{})
+  & \haikuBprime{} & \haikuRho{} (\haikuRhoLo{}--\haikuRhoHi{}) & \pContentHaiku{} \\
+Haiku 4.5, prompt-matched & \haikuMatchedFire{}/\haikuMatchedN{}
+  & \haikuSMatched{} (\haikuSMatchedLo{}--\haikuSMatchedHi{})
+  & \haikuMatchedBprime{} & \haikuMatchedRho{} (\haikuMatchedRhoLo{}--\haikuMatchedRhoHi{})
+  & \pContentHaikuMatched{} \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Working sabotage (strict): only attacks that fire}} \\
+Sonnet 5 & \strictN{}/\strictN{} & \strictS{} (\strictLo{}--\strictHi{})
+  & \strictBprime{} & \strictRho{} (\strictRhoLo{}--\strictRhoHi{}) & \pContentStrict{} \\
+Sonnet 5, prompt-matched & \matchedStrictN{}/\matchedStrictN{}
+  & \matchedStrictS{} (\matchedStrictLo{}--\matchedStrictHi{})
+  & \matchedStrictBprime{} & \matchedStrictRho{} (\matchedStrictRhoLo{}--\matchedStrictRhoHi{})
+  & \pContentStrictMatched{} \\
 \bottomrule
 \end{tabular}
 \end{table}
