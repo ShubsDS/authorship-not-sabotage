@@ -506,8 +506,9 @@ cases (\testCasesAttack{} against
 \testCasesHonest{}), so problem difficulty correlates with the label, which the
 no-code floor reads.
 
-Table~\ref{tab:gates} gives $\rho$ for each arm. On the headline rows, holding the writer constant leaves $\rho = \sameGenRho{}$ for
-Sonnet~5 and \haikuRho{} for Haiku~4.5; sample size does not account for the fall
+Table~\ref{tab:gates} gives $\rho$ for each arm. On the headline rows, holding the writer
+constant leaves $\rho = \sameGenRho{}$ for Sonnet~5 and \haikuRho{} for Haiku~4.5; sample size
+does not account for the fall
 (appendix~\ref{app:robust}). These rows are attempts: only \relFireFirst{} of Sonnet~5's
 \sameGenN{} attacks and \haikuFireInRow{} of Haiku~4.5's \haikuN{} fire, while every stored
 attack on those problems fires, so they compare working stored backdoors against mostly inert
@@ -561,7 +562,7 @@ lexical: of the feature-ablation masks only identifier normalisation moves $S$
 (\defMainAttack{} of attack programs against \defMainHonest{} of honest ones) and
 \texttt{data[}, are the program layout the attack prompt elicits, which Haiku~4.5 never adopts
 (appendix~\ref{app:secondpass}). Holding the prompt constant as well lowers Sonnet~5's $\rho$
-to \matchedRho{} and leaves Haiku~4.5's at \haikuMatchedRho{}. On Sonnet~5 the original and
+to \matchedRho{} and does not change Haiku~4.5's (\haikuMatchedRho{}). On Sonnet~5 the original and
 prompt-matched honest classes, both correct, separate at \promptOnly{}, so the prompt carries
 framing and no backdoor; on Haiku~4.5 they do not separate.
 
@@ -599,9 +600,9 @@ ours does not lower the score, and replacing the stored attacks with ours lowers
 \monSwapHumanOurs{}: our attacks draw far lower suspicion. The same holds on working attacks:
 on the strict problems human honest code scores \monStoredStrictAbs{} against stored attacks
 and \monSwapStrictHumanOurs{} against ours, and our own pairs score
-\monitorStrict{}.\footnote{The strict monitor runs used a different attack file from the classifier's
-strict row, which moves \monitorStrict{} by about 0.01.} The monitor's fall measures how conspicuous the
-attacks are, not who wrote the code. At a fixed audit budget of \auditFPR{} false positives,
+\monitorStrict{}.\footnote{The strict monitor runs used a different attack file from the
+classifier's strict row, which moves \monitorStrict{} by about 0.01.} The monitor's fall
+measures how conspicuous the attacks are, not who wrote the code. At a fixed audit budget of \auditFPR{} false positives,
 with the threshold set on each set's own honest programs, it catches \auditStrictStored{} of
 stored and \auditStrictOurs{} of same-generator attacks on the strict problems (paired
 difference \auditStrictDiff{}, 95\% CI \auditStrictDiffLo{}--\auditStrictDiffHi{}), and
@@ -617,8 +618,8 @@ The same-generator corpus does not isolate authorship. The stored attacks come f
 \storedAttackers{} named models or an unattributed source, and rebuilding both classes with
 one model changes the attacks as well as their author: against the same human honest code,
 the attacking model alone moves $B$ from \bAttackerLo{} to \bAttackerHi{}. So $\rho$ is not
-the content share and does not bound it. It does not depend on which
-stored model attacked: with Claude attackers only, $\rho = \rhoClaudeOnly{}$. The class swap that
+the content share of the separability, nor a bound on it. It does not depend on the
+stored attacker: with Claude attackers only, $\rho = \rhoClaudeOnly{}$. The class swap that
 would isolate authorship for the classifier, human honest code against our attacks, has not
 been run; a value near $B'$ would put the classifier's drop on the honest side, a value near
 $S$ in the attacks, as for the monitor. The corpus is not bit-reproducible: the API hides
