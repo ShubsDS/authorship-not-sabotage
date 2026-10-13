@@ -349,6 +349,11 @@
 \newcommand{\pContentHaikuMatched}{0.00}
 \newcommand{\haikuMatchedFire}{$\le$\haikuFireInRow{}}
 
+% ---- Appendix macros (camera-ready). Paths are relative to experiments/apps/.
+% Headline token masks: largest shift of the pooled S under the number and operator masks, and the
+% joint interval of rho under the identifier mask (lexical_probe.json; pooled_stats.json other_joint).
+\newcommand{\maskMaxShift}{0.002}\newcommand{\sameGenRhoIdLo}{0.48}\newcommand{\sameGenRhoIdHi}{0.60}
+
 \title{A Same-Generator Corpus and Classifier Floors\\for AI-Control Monitor Evaluation}
 
 \workshoptitle{Self-Evolving Diversity-Driven Search for Robust AI Systems}
@@ -681,6 +686,34 @@ the monitor.
 \setcounter{figure}{0}\renewcommand{\thefigure}{A\arabic{figure}}
 \section{Supplementary tables and figures}
 
+\subsection{Statistics}
+\label{app:stats}
+Every cross-validated AUROC ($B$, $B'$, $S$, the masked and character-model rows, and the
+no-code floor cross-validated within the test split) is one AUROC over the pooled out-of-fold
+scores, each item scored by the fold that held it out; for the no-code floor each item's score
+is averaged over five repeats of the folds. Bag-of-words on the filtered split, the no-code
+floor trained outside it or on a held-out slice, and the monitors score each item once, with no
+folds. Every interval is a 95\% percentile bootstrap over problems of the quantity it
+accompanies, \bootDraws{} draws, seed 0. For $\rho$ each draw resamples one problem set and
+recomputes $S$ and $B'$ on it; a paired difference (a floor against a monitor, stored against
+same-generator pairs, one set of attacks against another) is recomputed on the same draws.
+Every permutation null permutes the labels the pipeline reads, for fitting and scoring alike,
+reruns the pipeline and recomputes the reported statistic, \permReps{} times, with
+$p = (1 + \#\{\text{null} \ge \text{observed}\})/(1 + \permReps{})$; in the agentic settings
+the labels are permuted within main-task groups (appendix~\ref{app:agentic}). The token test
+uses a null over random token sets instead (appendix~\ref{app:token}). The bootstrap replaced a
+$\pm 2$ fold-SD rule before the strict retry pool was read.
+
+Four values are still fold means, the average of five per-fold AUROCs, because their inputs are
+only on the cluster: the length-only AUROC of the headline pairs (\sameGenLen{},
+appendix~\ref{app:robust}), Haiku~4.5's similarity strata (\haikuStrataS{} and
+\haikuStrataBprime{}, appendix~\ref{app:secondpass}), the one-sided arm (\armOneG{},
+\armOneBprime{}, $\rho = \armOneRho{}$, appendix~\ref{app:robust}) and $B$ under our pass flag
+(\baselineBownflag{}, appendix~\ref{app:harness}). The edit arm's points are pooled, but no
+per-pair scores were kept for it, so its $\rho$ has no joint interval. The pairwise accuracies
+of Table~\ref{tab:protocol-baseline} are means over five problem-disjoint splits
+(appendix~\ref{app:stripped}).
+
 \subsection{The schema}
 \label{app:schema}
 Table~\ref{tab:schema} is the record schema of \texttt{RoganInglis/apps-control-arena}
@@ -802,27 +835,32 @@ Attack class & mean sim. & share $>0.95$ & share $<0.60$ & changes vs.\ the benc
 
 \subsection{Robustness of the same-generator rows}
 \label{app:robust}
-At the strict rows' $n = \strictN{}$, $B$ under the identical pipeline is $\curveStrict{} \pm
-\curveStrictSd{}$. Intervals in the same-generator paragraphs of \S\ref{sec:results} are bootstraps over problems,
-resampling $S$ and $B'$ jointly for $\rho$; this replaced a $\pm2$ fold-sd rule before the
-retry pool was read. Every $\rho$ point we quote is the ratio of the fold-mean AUROCs and every
-joint interval beside it is the bootstrap of the pooled out-of-fold $\rho$, which is the same
-quantity computed two ways: the pooled points are \strictRhoPooled{} (strict, the row whose interval
-Table~\ref{tab:gates} quotes), \matchedRhoPooled{} (prompt-matched headline),
-\matchedStrictRhoPooled{} (prompt-matched strict) and \haikuRhoPooled{} (the second generator). Five fold seeds move the strict row's $\rho$ over \strictRhoSeeds{}.
-Retention does not produce the effect. Survivors and non-survivors separate at only
-\survivorAuroc{}, and $S$ computed with non-firing attempts on the same problems is
-\survivorSwapS{} against \survivorSwapSref{}. The edit arm bounds $S$ under near-copies
-(similarity \editSim{}, Table~\ref{tab:similarity}): \editS{} over \editN{} pairs,
-$\rho = \editRho{}$. In the one-sided arm of \S\ref{sec:results}, where only the honest half
-was regenerated, the classifier reaches \armOneG{} against
-$B' = \armOneBprime{}$ on that arm's $n = \armOneN{}$ eligible problems, and TF-IDF gains
-\armOneTfidfDelta{} while the length carrier collapses to \armOneLenG{}. Our own attack
-prompt halves our single-shot firing rate:
-\trigPublicShare{} of our test-passing draws offer a public test input as the trigger, which
-cannot diverge from the honest solution, and those fire \trigPublicFire{} against
-\trigNovelFire{} for novel triggers; no stored working backdoor has such a trigger
-(\trigStoredPublic{}). The rest is retry-and-keep.
+Sample size does not produce the headline fall. $B$ on 30 random subsamples of the
+\baselineBn{}-pair pool, through the identical pipeline, is $\curveHeadline{} \pm
+\curveHeadlineSd{}$ (mean $\pm$ SD) at $n = \sameGenN{}$, far above $S = \sameGenS{}$. At the
+strict rows' $n = \strictN{}$ it is $\curveStrict{} \pm \curveStrictSd{}$: at that size the
+classifier itself loses separability, which is why $\rho$ divides by $B'$ refitted on the same
+problems rather than by $B$. Reassigning problems to folds with five seeds gives the strict row
+$\rho$ of \strictRhoSeeds{} (\strictRho{} with the unshuffled folds of Table~\ref{tab:gates}).
+Of three token masks applied to both classes (numbers, comparison operators, identifiers), only
+the identifier mask moves the headline $S$, to \sameGenSid{} ($\rho = \sameGenRhoId{}$,
+\sameGenRhoIdLo{}--\sameGenRhoIdHi{}); the number and operator masks move it by at most
+\maskMaxShift{}. Code length alone separates the headline pairs at \sameGenLen{}.
+
+Retention does not produce the strict row's $S$. Within the attack class, draws that fire and
+draws that do not separate at \survivorAuroc{}, and $S$ on the strict problems with non-firing
+attempts in place of the firing ones is \survivorSwapS{} against \survivorSwapSref{}.
+
+The edit arm bounds $S$ under near-copies (similarity \editSim{}, Table~\ref{tab:similarity}):
+\editS{} over \editN{} pairs, $\rho = \editRho{}$. In the one-sided arm of \S\ref{sec:results},
+where only the honest class was regenerated, the classifier reaches \armOneG{} against
+$B' = \armOneBprime{}$ on that arm's \armOneN{} eligible problems, a gain of
+\armOneTfidfDelta{}, while code length alone falls to \armOneLenG{}.
+
+Our attack prompt halves our single-shot firing rate: \trigPublicShare{} of our test-passing
+draws offer a public test input as the trigger, which cannot diverge from the honest solution,
+and those fire \trigPublicFire{} against \trigNovelFire{} for novel triggers; no stored working
+backdoor has such a trigger (\trigStoredPublic{}).
 
 \subsection{The prompt-matched arm under the masks, and the second generator}
 \label{app:secondpass}
