@@ -430,9 +430,14 @@ runner, applied to both classes (appendix~\ref{app:harness}).
 
 Against that we build a corpus in which one model writes both classes on the same APPS
 problems; the construction is run twice, with Sonnet~5 and with Haiku~4.5 as the generator.
-The \emph{independent} arm writes the attack class from the problem statement alone,
-so the writer changes and nothing else (the \emph{headline} rows of
-Table~\ref{tab:gates}). An \emph{edit} arm, shown its own honest solution,
+With one writer, writer features cannot separate the classes; what still separates them comes
+from what the two prompts asked for, the backdoor included. The \emph{independent} arm writes
+the attack class from the problem statement alone (the \emph{headline} rows of
+Table~\ref{tab:gates}). Relative to the stored pairs it changes the attacks as well as the
+writer: our attacks rarely fire and a monitor finds them far less suspicious
+(\S\ref{sec:results}), so $\rho$ (Table~\ref{tab:notation}) is the share of stored-pair
+separability that survives the rebuild, not the share due to the backdoor nor a bound on it.
+An \emph{edit} arm, shown its own honest solution,
 returns near-copies (appendix~\ref{app:pairsim}), and a \emph{prompt-matched} arm regenerates the
 honest class from the attack prompt with the clauses asking for a flaw replaced by their
 correct-program counterparts, so both classes are elicited alike. We sample one attack per
