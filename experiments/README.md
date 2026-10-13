@@ -10,7 +10,19 @@ Notation used in the scripts and the paper:
 | B | Bag-of-words AUROC on the stored pairs (human honest vs LLM backdoor) over the 1,444-problem analysis pool |
 | S | The same classifier on same-generator pairs (one model writes both classes) |
 | B′ | B recomputed on exactly the problems S uses |
-| ρ | (S − 0.5) / (B′ − 0.5): the share of above-chance separability that survives. Bands fixed in advance: collapse ≤ 0.33 < partial ≤ 0.72 < content |
+| ρ | (S − 0.5) / (B′ − 0.5): the share of above-chance separability that survives, not the backdoor's share (the attacks change with the writer). Two lines fixed in advance, 0.33 and 0.72; Table 2 reports P(ρ > 0.72), the share of joint-bootstrap draws above the line |
+
+Statistics, one convention throughout. Every cross-validated point is the pooled out-of-fold
+AUROC: one AUROC over all out-of-fold scores, not the mean of the per-fold AUROCs. Every interval
+is the bootstrap over problems of that same quantity (2,000 draws; joint over S and B′ for ρ).
+Every null is 1,000 label permutations that shuffle the fitting and the scoring labels alike and
+rerun the pipeline; p = (1 + #{null ≥ observed}) / (1 + 1,000). Floors fit once and scored once
+on held-out items (bag-of-words 0.806, the held-out and outside-split no-code floors) report
+that one AUROC. The agentic nulls (Figure F2) permute labels within each task group, because their
+statistic is within-task. The `auroc` field of the `sg_*.json` files is the fold mean;
+`pooled_stats.py` gives every point's pooled value. A few points predate the pooled field and
+stay fold means (the open-weight arm, B under our pass flag, the length-only and
+similarity-strata values); `pooled_stats.json` lists them under `not_available`.
 
 Requirements: `pip install -r ../requirements.txt` (Python 3.11+). The paper's numbers were
 produced with scikit-learn 1.9.0 and pandas 3.0.5, which `gate_s_baseline.json` records; B =
