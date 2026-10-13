@@ -52,9 +52,11 @@ says what the headline rows compare.
   "the monitor moves the same way" is withdrawn.
 - **Classifier.** Partly valid. On the 64 problems in both the headline and the strict sets, ρ
   is about the same with headline and with working attacks: 0.815 against 0.749, paired 95% CI
-  on the difference −0.243 to +0.131. The strict row's higher ρ comes from which problems yield
-  working attacks. On the strict set's 35 other problems, B′ is low (0.752). The new appendix
-  section shows this decomposition.
+  on the difference −0.243 to +0.131. So the attacks working do not raise ρ. By point estimate,
+  the strict row's higher ρ comes from which problems yield working attacks: on the strict set's
+  35 other problems ρ is 1.09 (S 0.775, B′ 0.752). That difference from the shared problems is
+  not resolved (+0.34, CI −0.13 to +0.93), and the paper says so. The new appendix section shows
+  this decomposition.
 
 **5. Statistical inconsistencies.** Agreed. Points were fold means while their intervals were
 bootstraps of the pooled out-of-fold scores, and we wrongly called these "the same quantity".
