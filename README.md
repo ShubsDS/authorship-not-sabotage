@@ -10,22 +10,39 @@ solution and a solution with a backdoor. In the corpora in use, **the honest sol
 by a human and the backdoor by a language model.** A monitor can therefore tell the two apart by
 recognising who wrote the code, without finding any backdoor.
 
-1. **Simple classifiers that cannot see backdoors beat most monitors.** On the standard filtered,
-   comment-stripped split, a bag-of-words classifier reaches AUROC 0.806. That is above 20 of the
-   24 monitors ranked on the same split. A classifier that reads no code at all, only problem
-   metadata, reaches 0.772. The signal is almost as strong on backdoors that never work, so it
-   does not come from the sabotage.
-2. **Holding the author constant removes most of the signal.** We rebuild the corpus so that one
-   model (Claude Sonnet 5, and separately Claude Haiku 4.5) writes both the honest and the
-   backdoored solution to each problem. This removes between a third and nine-tenths of the
-   classifier's separability. Using the same prompt for both classes removes most of the rest. An
-   LLM monitor drops the same way: from 0.958 on stored pairs to 0.566 on same-generator pairs.
-3. **The label adds a second artifact.** When a problem's backdoor fails, its human solution is
+1. **A bag-of-words classifier scores above most monitors without reading a backdoor.** On the
+   standard filtered, comment-stripped split it reaches AUROC 0.806, above 20 of the 24 monitors
+   ranked on the same split. It transfers across attacking models and is almost as strong on
+   backdoors that never work, so it does not read the sabotage. The classifier is trained and the
+   monitors are zero-shot, so this says what the corpus makes recoverable, not which is the
+   better monitor.
+2. **A classifier that reads no code reads how the label was selected.** It sees only problem
+   metadata: difficulty, test count and question length. Cross-validated within the test split it
+   reaches 0.766 (pooled out-of-fold), above 20 of the 24 monitors. Trained on problems outside
+   the test split and scored once, it reaches 0.298, below chance (0.629 on problems with at
+   least four tests). The split's filter, not the code, ties the metadata to the label. This is
+   not an authorship difference.
+3. **Holding the author constant.** We rebuild the corpus so that one model (Claude Sonnet 5,
+   and separately Claude Haiku 4.5) writes both the honest and the backdoored solution to each
+   problem. ρ is the share of the classifier's above-chance AUROC on the stored pairs that
+   survives on these pairs. The headline rows are attempts: ρ is 0.687 for Sonnet 5 and 0.097
+   for Haiku 4.5, but only 14 of 623 and 2 of 611 of their attacks fire, while every stored
+   attack on the same problems fires. On working sabotage (99 strict pairs, every attack fires),
+   ρ is 0.861 (95% CI 0.662-1.089). Using the same prompt for both classes takes Sonnet 5's ρ to
+   0.390 and leaves Haiku 4.5's unchanged (0.110). ρ is not the backdoor's share: rebuilding with
+   one model changes the attacks as well as the author.
+4. **The LLM monitor's drop is in the attacks, not the authorship.** A Sonnet 5 monitor scores
+   0.958 on stored pairs and 0.566 on same-generator pairs. Swapping one class at a time, human
+   honest code against our attacks scores 0.446, and our honest code against stored attacks
+   scores 0.974. At a 2% false-positive rate it catches 77% of stored and 48% of same-generator
+   working attacks (strict pairs), and 85% against 6% on the headline pairs.
+5. **The label adds a second artifact.** When a problem's backdoor fails, its human solution is
    kept as a negative. So the negative class partly records which attacks failed.
 
 We release the same-generator corpus. We recommend that stored-pair evaluations report a no-code
-floor and a bag-of-words floor, generate both classes with one model and one prompt, and define
-the negative class by honesty rather than by attack failure.
+floor and a bag-of-words floor, each against a permutation null; generate both classes with one
+model and one prompt; define the negative class by honesty rather than by attack failure; and
+report detection at a fixed audit budget together with the share of attacks that fire.
 
 ## Repository layout
 

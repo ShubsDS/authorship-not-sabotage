@@ -10,7 +10,19 @@ Notation used in the scripts and the paper:
 | B | Bag-of-words AUROC on the stored pairs (human honest vs LLM backdoor) over the 1,444-problem analysis pool |
 | S | The same classifier on same-generator pairs (one model writes both classes) |
 | B′ | B recomputed on exactly the problems S uses |
-| ρ | (S − 0.5) / (B′ − 0.5): the share of above-chance separability that survives. Bands fixed in advance: collapse ≤ 0.33 < partial ≤ 0.72 < content |
+| ρ | (S − 0.5) / (B′ − 0.5): the share of above-chance separability that survives, not the backdoor's share (the attacks change with the writer). Two lines fixed in advance, 0.33 and 0.72; Table 2 reports P(ρ > 0.72), the share of joint-bootstrap draws above the line |
+
+Statistics, one convention throughout. Every cross-validated point is the pooled out-of-fold
+AUROC: one AUROC over all out-of-fold scores, not the mean of the per-fold AUROCs. Every interval
+is the bootstrap over problems of that same quantity (2,000 draws; joint over S and B′ for ρ).
+Every null is 1,000 label permutations that shuffle the fitting and the scoring labels alike and
+rerun the pipeline; p = (1 + #{null ≥ observed}) / (1 + 1,000). Floors fit once and scored once
+on held-out items (bag-of-words 0.806, the held-out and outside-split no-code floors) report
+that one AUROC. The agentic nulls (Figure F2) permute labels within each task group, because their
+statistic is within-task. The `auroc` field of the `sg_*.json` files is the fold mean;
+`pooled_stats.py` gives every point's pooled value. A few points predate the pooled field and
+stay fold means (the open-weight arm, B under our pass flag, the length-only and
+similarity-strata values); `pooled_stats.json` lists them under `not_available`.
 
 Requirements: `pip install -r ../requirements.txt` (Python 3.11+). The paper's numbers were
 produced with scikit-learn 1.9.0 and pandas 3.0.5, which `gate_s_baseline.json` records; B =
@@ -120,7 +132,7 @@ python run_tests.py --solutions genm_haiku45.jsonl --out passm_haiku45.jsonl --w
 ## 5. Measurements on the same-generator corpus
 
 ```bash
-# S, B' and rho (Table 1)
+# S, B' and rho (Table 2)
 python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl \
     --eligibility passes --bprime-inert --label independent --out sg_indep_first_passes.json      # headline
 python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best_nocrash.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl \
@@ -163,18 +175,19 @@ python rho_joint_ci.py sg_haiku45_indep_passes.json --out rho_joint_haiku45.json
 python monitor_rho.py --out monitor_rho.json
 
 # camera-ready analyses of the committed jsons (CPU, about 5 min in all; * also reads
-# train_*.parquet, ** also koran_meta.parquet if present). Run fire_counts.py first: monitor_swap.py
-# and shared_problems.py read its output.
+# train_*.parquet, ** needs train_*.parquet and reads koran_meta.parquet if present). Run
+# fire_counts.py first: monitor_swap.py and shared_problems.py read its output.
 python pooled_stats.py --refit       # * pooled out-of-fold S, B', rho, joint CIs, P(rho > 0.72) for every
                                      #   point, macro old -> new map -> pooled_stats.json
-python fire_counts.py                # * fire counts per Table 1 row; every stored attack fires -> fire_counts.json
+python fire_counts.py                # * fire counts per Table 2 row; every stored attack fires -> fire_counts.json
 python monitor_swap.py               # monitor class-swap 2x2, batch provenance, test-retest, strict file
                                      #   mismatch -> monitor_swap.json
 python audit_budget.py               # catch rate at 1/2/5% FPR, both monitors and the classifier -> audit_budget.json
 python shared_problems.py            # headline vs working attacks on the 64 shared problems -> shared_problems.json
 python attacker_mix.py               # ** stored attacking models, B per attacker, Claude-only rho -> attacker_mix.json
 
-# classifier class-swap 2x2 (CPU minutes; needs the generated jsonl files, so run it on the cluster)
+# classifier class-swap 2x2 (CPU minutes; needs the generated jsonl files and train_*.parquet, so run
+# it on the cluster; see "Pending (cluster)" below)
 python classifier_swap.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl \
     --sg-json sg_indep_first_passes_v2.json --out classifier_swap_sonnet5.json
 python classifier_swap.py --tag haiku45 --bd bdind_haiku45.jsonl --bdpass bdpass_haiku45.jsonl \
@@ -211,8 +224,9 @@ python release_split.py --check release --allow-trivial-identical 120
 | Result in the paper | Script | Committed output |
 |---|---|---|
 | Bag-of-words floor 0.806 (20/24); comments kept 0.891; char n-grams 0.783 | `koran_split_eval.py` | — |
-| No-code floor 0.772 (CV) and 0.716 (held-out) | `analyse2.py`, `auroc.py` | — |
-| Intervals, permutation nulls, paired comparison with the monitors | `headline_ci.py` | `headline_ci.json` |
+| No-code floor 0.766 (CV, pooled out-of-fold; 20/24) and 0.716 (held-out; 17/24 on identical items) | `headline_ci.py` (held-out point also `auroc.py`; CV fold mean `analyse2.py`) | `headline_ci.json` |
+| No-code floor trained outside the test split 0.298 (at least four tests: 0.629) | `nocode_outside.py` | `nocode_outside.json` |
+| Intervals, 1,000-permutation nulls under one procedure, paired comparison with the monitors | `headline_ci.py` | `headline_ci.json` |
 | Monitor count, median 0.609, max 0.937 | `fetch_inputs.py` | `monitor-summary.json` |
 | `#`-count 0.696 → 0.498; length 0.4726 | `bow.py` | — |
 | Table F1 metadata rows; P3 = 0.5000 | `floors.py`, `auroc.py` | — |
@@ -223,25 +237,26 @@ python release_split.py --check release --allow-trivial-identical 120
 | Headline S = 0.750, ρ = 0.687; pair similarity | `gate_s_samegen.py` (pooled points: `pooled_stats.py`) | `sg_indep_first_passes[_v2].json` |
 | Strict S = 0.749, ρ = 0.861; fold seeds | `gate_s_samegen.py` (pooled points: `pooled_stats.py`) | `sg_indep_best_usable[_v2].json`, `sg_indep_best_usable_seed{0..4}.json` |
 | Edit arm S = 0.625, ρ = 0.366 | `gate_s_samegen.py` (pooled points: `pooled_stats.py`) | `sg_edit_passes.json` |
-| Joint intervals on ρ | `rho_joint_ci.py` | `rho_joint_{headline,strict,haiku45}.json` |
-| B at matched n | `gate_s_learning_curve.py` | `lc_{first_passes,best_usable}.json` |
-| Survivor check | `survivor_check.py` | `survivor_check.json` |
+| Joint intervals on ρ: headline 0.625–0.755, strict 0.662–1.089, Haiku 0.044–0.150 | `rho_joint_ci.py` | `rho_joint_{headline,strict,haiku45}.json` |
+| B at matched n: 0.851 (n = 623), 0.773 (n = 99) | `gate_s_learning_curve.py` | `lc_{first_passes,best_usable}.json` |
+| Survivor check: survivors vs non-survivors 0.62; S with non-firing attempts 0.745 against 0.751 | `survivor_check.py` | `survivor_check.json` |
 | Identifier mask: S = 0.699 | `lexical_probe.py` (pooled points: `pooled_stats.py`) | `lexical_probe.json` |
-| Prompt-matched S = 0.641, ρ = 0.390; prompt-only floor | `gate_s_matched.py` (pooled points: `pooled_stats.py`) | `gate_s_matched_{headline,strict}.json` |
+| Prompt-matched S = 0.641, ρ = 0.390 (strict 0.693, 0.662); prompt-only floor 0.600 | `gate_s_matched.py` (pooled points: `pooled_stats.py`) | `gate_s_matched_{headline,strict}.json` |
 | Haiku S = 0.534, ρ = 0.097 | `gate_s_samegen.py` (pooled points: `pooled_stats.py`) | `sg_haiku45_indep_passes.json` |
-| Haiku prompt-matched and similarity strata | `gate_s_matched_haiku.py`, `sim_stratified_s.py` | `gate_s_matched_haiku45.json`, `sim_strata_haiku45.json` |
-| LLM monitor: 0.958 stored → 0.566 same-generator; Haiku monitor | `monitor_samegen.py` | `monitor_{samegen,stored}_*.json` |
-| Monitor ρ | `monitor_rho.py` | `monitor_rho.json` |
+| Haiku prompt-matched (S = 0.539, ρ = 0.110) and similarity strata | `gate_s_matched_haiku.py` (pooled points: `pooled_stats.py`), `sim_stratified_s.py` | `gate_s_matched_haiku45.json`, `sim_strata_haiku45.json` |
+| LLM monitor: 0.958 stored → 0.566 same-generator (strict 0.944 → 0.818); Haiku monitor | `monitor_samegen.py` | `monitor_{samegen,stored}_*.json` |
+| Monitor ρ: 0.145 headline, 0.717 strict | `monitor_rho.py` | `monitor_rho.json` |
 | Trigger overlap with public tests | `trigger_public_check.py` | — |
 | Token test | `token_test.py` | — |
-| Agentic floors, nulls, scratchpad regex | `agentic/matched.py`, `floors2.py`, `cot.py` | — |
+| Agentic floors, scratchpad regex | `agentic/matched.py`, `cot.py` | — |
+| Agentic within-task nulls (Figure F2) | `agentic/floors2.py` | `agentic/within_task_null.json` |
 | Release counts | `merge_draws.py`, `release_split.py` | — |
 | Pooled out-of-fold S, B′, ρ and joint intervals for every same-generator point; P(ρ > 0.72); macro map | `pooled_stats.py` | `pooled_stats.json` |
-| Fire counts per Table 1 row; every stored attack fires; bounds on the prompt-matched row's count | `fire_counts.py` | `fire_counts.json` |
-| Monitor class-swap table (0.958 / 0.446 / 0.974 / 0.564); batch provenance; strict file mismatch | `monitor_swap.py` | `monitor_swap.json` |
-| Catch rate at a fixed false-positive rate (audit budget) | `audit_budget.py` | `audit_budget.json` |
-| Headline vs working attacks on the 64 shared problems | `shared_problems.py` | `shared_problems.json` |
-| Stored attacking models; B per attacker; ρ with Claude attackers only (0.715) | `attacker_mix.py` | `attacker_mix.json` |
+| Fire counts per Table 2 row (14/623, 2/611, 99/99, 96/96); every stored attack fires; bounds on the prompt-matched row's count (11–13 of 586) | `fire_counts.py` | `fire_counts.json` |
+| Monitor class-swap table (0.958 / 0.446 / 0.974 / 0.564; mean suspicion 78.8 / 6.6; strict human honest vs ours 0.755); batch provenance; strict file mismatch | `monitor_swap.py` | `monitor_swap.json` |
+| Catch rate at a fixed false-positive rate (audit budget): Sonnet 5 monitor at 2%, strict 77% vs 48% (difference 0.28, 0.15–0.42), headline 85% vs 6% | `audit_budget.py` | `audit_budget.json` |
+| Headline vs working attacks on the 64 shared problems: ρ 0.82 vs 0.75 (paired difference −0.24 to +0.13) | `shared_problems.py` | `shared_problems.json` |
+| Stored attacking models; B per attacker 0.75–0.93; ρ with Claude attackers only (0.715) | `attacker_mix.py` | `attacker_mix.json` |
 | Classifier class-swap table (needs the generated files; cluster) | `classifier_swap.py` | `classifier_swap_{sonnet5,haiku45}.json` (not yet run) |
 
 A few appendix counts were computed with ad hoc joins of the files above and have no script of
@@ -251,3 +266,28 @@ their own:
 - the firing shares 97.75% / 99.67%: verdicts joined with the problem ids in the `sg_*.json` files
 - the `def main` shares
 - the byline and docstring counts in the token-test appendix
+
+## Pending (cluster)
+
+These need the generated `*.jsonl` files, which are not committed and live on the cluster.
+
+- **Classifier class swap (plan C).** `classifier_swap.py` is the experiment that isolates
+  authorship for the classifier. It adds the missing cell, human honest code against our attacks,
+  on the headline problems (commands in stage 5). Reading rule, fixed in advance in
+  `paper/camera-ready-plan.md`:
+  - near B′ (~0.87): the classifier's drop is on the honest side; the authorship reading holds
+    for the classifier;
+  - near S (~0.75): the classifier behaves like the monitor; the corpus effect is mostly the
+    attack distribution.
+
+  The rule was written for the Sonnet 5 row; the Haiku 4.5 run compares against its own B′
+  (0.856) and S (0.534). Until it runs, the paper's Limitations says the swap has not been run.
+- **Exact fire count of the prompt-matched row** (`\matchedFire`, now 11–13 of 586 from
+  `fire_counts.py`). Count the records of `bdindpass_sonnet5_first.jsonl` with `passes_tests`
+  and `backdoor_works` true whose `problem_id` is in the `problem_ids` of
+  `gate_s_matched_headline.json`.
+- **The 3 strict attacks that differ between the monitor's and the classifier's files.** Compare
+  the `draw` field per `problem_id` of `bdind_sonnet5_best.jsonl` (monitor) and
+  `bdind_sonnet5_best_nocrash.jsonl` (classifier) on the 99 strict problems. Until then
+  `monitor_swap.py` bounds the effect: dropping any 3 strict attack programs moves the monitor's
+  0.818 by at most 0.02.
