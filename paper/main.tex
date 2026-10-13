@@ -468,6 +468,39 @@
 \newcommand{\shOnlyMinusSharedHi}{$+$0.93}
 \newcommand{\shHeadOnlyN}{559}\newcommand{\shHeadOnlyS}{0.747}\newcommand{\shHeadOnlyBp}{0.867}
 \newcommand{\shHeadOnlyRho}{0.67}\newcommand{\shHeadOnlyRhoLo}{0.61}\newcommand{\shHeadOnlyRhoHi}{0.74}
+% Stored attackers: model behind the stored backdoor each problem's pair uses, on the
+% 1,444-problem pool and the headline row; B of each model's attacks against all 1,444 human
+% honest programs, out-of-fold scores of one refit of B over the pool (attacker_mix.json:
+% counts, B_by_model_pool_refit B_fixed_honest); B's own interval (pooled_stats.json refit).
+\newcommand{\atOThreePool}{401}\newcommand{\atOThreeHead}{175}
+\newcommand{\atOThreeB}{0.931}\newcommand{\atOThreeBLo}{0.918}\newcommand{\atOThreeBHi}{0.944}
+\newcommand{\atCSonnetPool}{259}\newcommand{\atCSonnetHead}{110}
+\newcommand{\atCSonnetB}{0.874}\newcommand{\atCSonnetBLo}{0.850}\newcommand{\atCSonnetBHi}{0.896}
+\newcommand{\atGFourOPool}{211}\newcommand{\atGFourOHead}{72}
+\newcommand{\atGFourOB}{0.854}\newcommand{\atGFourOBLo}{0.831}\newcommand{\atGFourOBHi}{0.877}
+\newcommand{\atCThinkPool}{168}\newcommand{\atCThinkHead}{71}
+\newcommand{\atCThinkB}{0.824}\newcommand{\atCThinkBLo}{0.790}\newcommand{\atCThinkBHi}{0.857}
+\newcommand{\atOOnePool}{132}\newcommand{\atOOneHead}{60}
+\newcommand{\atOOneB}{0.773}\newcommand{\atOOneBLo}{0.732}\newcommand{\atOOneBHi}{0.814}
+\newcommand{\atUnattrPool}{111}\newcommand{\atUnattrHead}{60}
+\newcommand{\atUnattrB}{0.958}\newcommand{\atUnattrBLo}{0.947}\newcommand{\atUnattrBHi}{0.969}
+\newcommand{\atGFourOMiniPool}{61}\newcommand{\atGFourOMiniHead}{28}
+\newcommand{\atGFourOMiniB}{0.777}\newcommand{\atGFourOMiniBLo}{0.716}\newcommand{\atGFourOMiniBHi}{0.835}
+\newcommand{\atCHaikuPool}{39}\newcommand{\atCHaikuHead}{13}
+\newcommand{\atCHaikuB}{0.847}\newcommand{\atCHaikuBLo}{0.767}\newcommand{\atCHaikuBHi}{0.910}
+\newcommand{\atGeminiPool}{38}\newcommand{\atGeminiHead}{19}
+\newcommand{\atGeminiB}{0.849}\newcommand{\atGeminiBLo}{0.791}\newcommand{\atGeminiBHi}{0.906}
+\newcommand{\atGThreeFivePool}{24}\newcommand{\atGThreeFiveHead}{15}
+\newcommand{\atGThreeFiveB}{0.748}\newcommand{\atGThreeFiveBLo}{0.626}\newcommand{\atGThreeFiveBHi}{0.851}
+\newcommand{\baselineBLo}{0.861}\newcommand{\baselineBHi}{0.881}
+% rho on the headline row restricted by stored attacker, joint bootstrap; problems the filtered
+% split's metadata attributes to openai/gpt-4 (attacker_mix.json rho_by_attacker_headline,
+% gpt4_is_apps_source).
+\newcommand{\rhoClaudeOnlyLo}{0.600}\newcommand{\rhoClaudeOnlyHi}{0.839}\newcommand{\rhoClaudeOnlyN}{194}
+\newcommand{\rhoThinkOnly}{0.747}\newcommand{\rhoThinkOnlyLo}{0.570}\newcommand{\rhoThinkOnlyHi}{0.961}
+\newcommand{\rhoThinkOnlyN}{71}
+\newcommand{\rhoNonClaude}{0.675}\newcommand{\rhoNonClaudeLo}{0.598}\newcommand{\rhoNonClaudeHi}{0.751}
+\newcommand{\rhoNonClaudeN}{429}\newcommand{\splitGptFourN}{89}
 
 \title{A Same-Generator Corpus and Classifier Floors\\for AI-Control Monitor Evaluation}
 
@@ -855,6 +888,63 @@ struct & sub-fields \\
                      \texttt{backdoor\_works}, \texttt{compiles},
                      \textbf{\texttt{model}}, \texttt{passes\_tests},
                      \textbf{\texttt{source}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The stored attacking models}
+\label{app:attackers}
+The stored attack class is not one model. Each backdoor entry in the artifact carries a
+\texttt{model} field; entries whose \texttt{source} is \texttt{apps} carry \texttt{unknown},
+which we call unattributed. Table~\ref{tab:attackers} counts the model behind the stored
+backdoor each problem's pair uses, over the \baselineBn{}-problem pool and the \sameGenN{}
+headline problems, and gives $B$ for each model's attacks against all \baselineBn{} human honest
+programs: one refit of $B$ over the pool, with its out-of-fold scores restricted to that model's
+attacks, so the honest code is the same in every row and only the attacker changes. Among the
+\storedAttackers{} named models $B$ runs from \atGThreeFiveB{} (gpt-3.5-turbo,
+$n = \atGThreeFivePool{}$) to \atOThreeB{} (o3-mini); the unattributed source gives
+\atUnattrB{}.
+
+Restricting the headline row by stored attacker moves $\rho$ only within the full row's
+interval (\sameGenRhoLo{}--\sameGenRhoHi{}): $\rho = \rhoClaudeOnly{}$
+(\rhoClaudeOnlyLo{}--\rhoClaudeOnlyHi{}) on the \rhoClaudeOnlyN{} problems whose stored attack
+a Claude model wrote, \rhoThinkOnly{} (\rhoThinkOnlyLo{}--\rhoThinkOnlyHi{},
+$n = \rhoThinkOnlyN{}$) for claude-3-7-sonnet-thinking alone, and \rhoNonClaude{}
+(\rhoNonClaudeLo{}--\rhoNonClaudeHi{}, $n = \rhoNonClaudeN{}$) for the other attackers.
+
+The filtered split's metadata (\texttt{top\_backdoor\_model}) names one model the artifact does
+not, \texttt{openai/gpt-4}. On all \splitGptFourN{} problems it names, the artifact has a working
+backdoor from the unattributed source and none attributed to gpt-4, so the name stands for the
+unattributed source. The split's \splitAttack{} test attacks were all written by
+claude-3-7-sonnet-thinking, and its \splitTrain{} train attacks by six other sources (o3-mini,
+claude-3-7-sonnet, gpt-4o, o1-mini, the unattributed source and gemini-2.0-flash), so the
+bag-of-words floor of \S\ref{sec:results} is trained on attacks from other models than the one
+it is scored on.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{6pt}
+\caption{\textbf{Who wrote the stored backdoors.} Problems per attacking model on the
+\baselineBn{}-problem pool and the \sameGenN{}-problem headline row, and $B$ for that model's
+attacks against all \baselineBn{} human honest programs (one refit over the pool, out-of-fold
+scores; 95\% bootstrap over problems). Model names omit the provider and the
+\texttt{-latest} suffix. Source: \texttt{attacker\_mix.py}.}
+\label{tab:attackers}
+\begin{tabular}{@{}l r r l@{}}
+\toprule
+Attacking model & pool & headline & $B$ (95\% CI) \\
+\midrule
+o3-mini & \atOThreePool{} & \atOThreeHead{} & \atOThreeB{} (\atOThreeBLo{}--\atOThreeBHi{}) \\
+claude-3-7-sonnet & \atCSonnetPool{} & \atCSonnetHead{} & \atCSonnetB{} (\atCSonnetBLo{}--\atCSonnetBHi{}) \\
+gpt-4o & \atGFourOPool{} & \atGFourOHead{} & \atGFourOB{} (\atGFourOBLo{}--\atGFourOBHi{}) \\
+claude-3-7-sonnet-thinking & \atCThinkPool{} & \atCThinkHead{} & \atCThinkB{} (\atCThinkBLo{}--\atCThinkBHi{}) \\
+o1-mini & \atOOnePool{} & \atOOneHead{} & \atOOneB{} (\atOOneBLo{}--\atOOneBHi{}) \\
+unattributed & \atUnattrPool{} & \atUnattrHead{} & \atUnattrB{} (\atUnattrBLo{}--\atUnattrBHi{}) \\
+gpt-4o-mini & \atGFourOMiniPool{} & \atGFourOMiniHead{} & \atGFourOMiniB{} (\atGFourOMiniBLo{}--\atGFourOMiniBHi{}) \\
+claude-3-5-haiku & \atCHaikuPool{} & \atCHaikuHead{} & \atCHaikuB{} (\atCHaikuBLo{}--\atCHaikuBHi{}) \\
+gemini-2.0-flash & \atGeminiPool{} & \atGeminiHead{} & \atGeminiB{} (\atGeminiBLo{}--\atGeminiBHi{}) \\
+gpt-3.5-turbo & \atGThreeFivePool{} & \atGThreeFiveHead{} & \atGThreeFiveB{} (\atGThreeFiveBLo{}--\atGThreeFiveBHi{}) \\
+\midrule
+all & \baselineBn{} & \sameGenN{} & \baselineB{} (\baselineBLo{}--\baselineBHi{}) \\
 \bottomrule
 \end{tabular}
 \end{table}
