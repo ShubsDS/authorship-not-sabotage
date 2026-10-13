@@ -576,13 +576,39 @@ class against the stored backdoors separates \emph{better} than the stored pairs
 $\rho = \armOneRho{}$, one authorship gap replaced by another
 (appendix~\ref{app:robust}).
 
-The same inflation appears with an LLM monitor as the detector. We put a zero-shot monitor
-prompt to the model that wrote both classes, the most
-favourable case, since it reads its own output. It scores \monStoredHead{} on the
-stored pairs and \monitorS{} on the same-generator pairs, a monitor-$\rho$ of \monRhoHead{},
-below the classifier's \sameGenRho{}; on the strict pairs the ratio is \monRhoStrict{}, and a
-monitor that wrote neither class returns nearly the same two ratios
-(appendix~\ref{app:monitors}).
+\begin{table}[h]\centering\footnotesize
+\begin{minipage}[c]{0.42\linewidth}\centering
+\begin{tabular}{@{}l c c@{}}
+\toprule
+ & stored attack & our attack \\
+\midrule
+human honest & \monSwapHumanStored{} & \monSwapHumanOurs{} \\
+our honest & \monSwapOursStored{} & \monSwapOursOurs{} \\
+\midrule
+mean suspicion & \monSuspStored{} & \monSuspOurs{} \\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.54\linewidth}
+\caption{\textbf{Monitor AUROC with one class swapped at a time.} Sonnet~5 monitor, on the
+\monSwapN{} headline problems scored in all four cells. Last row: the attacks' mean
+suspicion score (0--100).}
+\label{tab:swap}
+\end{minipage}
+\end{table}
+
+An LLM monitor also scores lower on the same-generator corpus, and swapping one class at a
+time shows that the drop is in the attacks. We gave a zero-shot monitor prompt to Sonnet~5,
+which wrote both same-generator classes. Its AUROC falls from \monStoredHeadAbs{} on the
+stored pairs to \monitorS{} on the same-generator pairs. On the headline problems
+(Table~\ref{tab:swap}), replacing the human honest code with ours does not lower the score, while
+replacing the stored attacks with ours lowers it to \monSwapHumanOurs{}, because our attacks
+draw far lower suspicion. The same holds on working attacks: on the strict problems human
+honest code scores \monStoredStrictAbs{} against stored attacks and \monSwapStrictHumanOurs{}
+against ours, and our honest code against ours scores
+\monitorStrict{}. The
+monitor's fall measures how conspicuous the attacks are, not who wrote the code (a second
+monitor and the monitor's $\rho$ are in appendix~\ref{app:monitors}).
 
 \section{Limitations}
 
