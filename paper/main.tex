@@ -702,11 +702,22 @@ items, reaches AUROC \tfidfKoran{}. The no-code floor under the same protocol, t
 problems outside the test split, scores \nocodeOutside{}, below chance: outside the split every
 problem that passes the filter has a working backdoor, so the honest items are problems the
 filter removed, and the relation between test count and label reverses. Cross-validated within
-the test split it reaches \nocodeCV{}. Both \tfidfKoran{} and \nocodeCV{} are far above their
-permutation nulls (Figure~\ref{fig:monitors}, appendix~\ref{app:protocol}). The monitors are
+the test split it reaches \nocodeCV{}. Both rank above \tfidfKoranCount{} of the \monN{}
+monitors (Figure~\ref{fig:floors}) and far above their permutation nulls
+(Figure~\ref{fig:monitors}, appendix~\ref{app:protocol}). The monitors are
 zero-shot, so the comparison states what the corpus makes recoverable, not which is the better
 monitor. The no-code floor reads only problem metadata, so it measures how the split's label
 was selected, not authorship.
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{f6-floors-ranked.pdf}
+\caption{\textbf{Two classifiers that read no backdoor, ranked among the \monN{} monitors} on
+the filtered, comment-stripped test split. Bag-of-words is trained on the split's train problems;
+the no-code classifier reads problem metadata only and is cross-validated within the test split
+(trained outside it, it scores \nocodeOutside{}). Whiskers: 95\% bootstrap intervals over
+problems. Monitor scores from \cite{jha2026decorrelation}.}
+\label{fig:floors}
+\end{figure}
 
 Three further measurements show that the bag-of-words classifier is not reading the backdoor
 (pairwise accuracies for the first two; appendix~\ref{app:protocol}). It transfers across
