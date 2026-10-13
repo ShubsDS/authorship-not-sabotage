@@ -122,3 +122,66 @@ page; nothing needs to move to the appendix. If space remains, move F3 into the 
 
 1. Can the classifier swap table (C) be run on the cluster before October 29?
 2. Skip the API experiments (D)?
+
+## Implementation status (October 13, 2026)
+
+Work ran on six branches, each merged into `main` with `--no-ff`, so `git log --first-parent`
+lists one merge per branch and `git log <merge>^2` lists that branch's commits. Branch base
+commits: front matter, Results, analysis and reruns started at 1e05846; appendix and docs at
+c076624.
+
+| Item | Status | Where |
+|---|---|---|
+| A1 abstract | Done | merge 74e84dd (168fef8); no-code lead 5f02f3d |
+| A2 contribution statement | Done | 74e84dd (bb96a78) |
+| A3 Table 1 (renders as Table 2): fires, groups, pooled values, P(rho > 0.72) | Done | 9abc7e4 (pooled macros), d976def (7346028), 6448e5f (`\matchedFire`) |
+| A4 monitor paragraph, swap table, 2% audit budget | Done | d976def (cbac8ac, af5630e, 73e9270), 5d35e73, c1f53f1, edab7b4 |
+| A5 text fixes (l.380, 396, 453, 535-541, 437, 463, 701; held-out count 17) | Done | 74e84dd, d976def, bd97b4b (62697b2), 8e70ee3 |
+| A6 cuts of repeated numbers and verdict words; strict-file footnote | Done | 74e84dd, d976def, 96f4595, edab7b4 |
+| A7 appendix: attacker mix, audit table, shared problems, statistics convention | Done | bd97b4b (62697b2, cdad892, 958123f, c2e679f, 854c818) |
+| A8 `figures.py`: F2 null, F3 line and legend, F4 ladder | Done | ca1c089 (1491c63, 56bcedd, 6904908, 4cb1925) |
+| A9 mechanics: `final`, author, release link, scikit-learn version | Done, except affiliation and email (placeholders) | 74e84dd (3d5c4d9, 7c4ac36, bc560fe), c047790 (d725ec5) |
+| B 1,000-permutation nulls under one procedure | Done | ca1c089 (0f9f6bd, ec03411) |
+| B no-code floor trained outside the test split | Done: 0.298, and the paper leads with it | ca1c089 (2670852, 9307198), 5f02f3d, 7fa7ec8, 96f4595 |
+| B within-task null for F2 | Done | ca1c089 (a4e19cf) |
+| C classifier swap table | Script written and smoke-tested, not run (needs the generated jsonl on the cluster) | c047790 (b4f0a62) |
+| C strict monitor re-run with the matching attack file | Not done (API, about $1) | — |
+| D API experiments | Skipped (cost) | — |
+| Responses to the reviews | Drafted in `response-to-reviews.md` | 809ccb4, f5809b6 |
+| READMEs | Updated to the revised claims | 666b040 |
+
+Each new number has a script and committed output (`experiments/README.md`, "Where each result
+comes from"): `pooled_stats.py`, `fire_counts.py`, `monitor_swap.py`, `audit_budget.py`,
+`shared_problems.py`, `attacker_mix.py`, `nocode_outside.py`, `headline_ci.py --perms`,
+`agentic/floors2.py`.
+
+### Where the implementation departs from the numbers above
+
+- Audit budget, strict: 77% vs 48%, difference 0.28 (0.15-0.42). Ties at the threshold are
+  broken at random, so the honest false-positive rate is exactly 2%. The 78% / 0.29 above came
+  from an interpolated quantile whose false-positive rate was 2/99.
+- B per stored attacker: 0.75-0.93 from a refit over the 1,444-problem pool against the same
+  human programs (0.94 did not reproduce). The unattributed source reaches 0.96.
+- The monitor's swap cells were not run on different days. They are separate batches about six
+  hours apart on 2026-09-11. Rescoring the same program gives the same score 41-72% of the time.
+- Strict file mismatch: 3 of 99 attacks differ; dropping any three moves 0.818 to 0.812-0.839.
+- Prompt-matched fires: 11-13 of 586. The exact count needs `bdindpass_sonnet5_first.jsonl`.
+- Shared problems: on the 64 shared problems, the attacks working do not raise rho. That the
+  strict row's higher rho comes from problem selection holds by point estimate only: strict-only
+  minus shared is +0.34, CI -0.13 to +0.93. The paper says so.
+- Held-out no-code null: 0.558 (p = 0.001) under the one procedure, so that row is no longer
+  "barely above its null".
+- No-code floor trained outside the split: 0.298, below chance (0.629 on problems with at least
+  four tests). Outside the split every problem that passes the filter has a working backdoor,
+  so the relation between test count and label reverses.
+- Values that stay fold means, because their inputs are only on the cluster: `\sameGenLen`,
+  the Haiku similarity strata, the one-sided arm, and `\baselineBownflag`.
+
+### Still open
+
+1. Author affiliation and email (placeholders under `% TODO(author)` in `main.tex`).
+2. Run `classifier_swap.py` on the cluster before October 29; fill `\matchedFire` exactly and
+   name the three differing strict attacks from the same files.
+3. Whether to add the camera-ready scripts to the release bundle (`release_split.py` lists 24
+   scripts and none of the new ones).
+4. Whether the release URL (github.com/ShubsDS/authorship-not-sabotage) is public by the deadline.
