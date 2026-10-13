@@ -132,7 +132,7 @@ python run_tests.py --solutions genm_haiku45.jsonl --out passm_haiku45.jsonl --w
 ## 5. Measurements on the same-generator corpus
 
 ```bash
-# S, B' and rho (Table 1)
+# S, B' and rho (Table 2)
 python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl \
     --eligibility passes --bprime-inert --label independent --out sg_indep_first_passes.json      # headline
 python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best_nocrash.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl \
@@ -175,18 +175,19 @@ python rho_joint_ci.py sg_haiku45_indep_passes.json --out rho_joint_haiku45.json
 python monitor_rho.py --out monitor_rho.json
 
 # camera-ready analyses of the committed jsons (CPU, about 5 min in all; * also reads
-# train_*.parquet, ** also koran_meta.parquet if present). Run fire_counts.py first: monitor_swap.py
-# and shared_problems.py read its output.
+# train_*.parquet, ** needs train_*.parquet and reads koran_meta.parquet if present). Run
+# fire_counts.py first: monitor_swap.py and shared_problems.py read its output.
 python pooled_stats.py --refit       # * pooled out-of-fold S, B', rho, joint CIs, P(rho > 0.72) for every
                                      #   point, macro old -> new map -> pooled_stats.json
-python fire_counts.py                # * fire counts per Table 1 row; every stored attack fires -> fire_counts.json
+python fire_counts.py                # * fire counts per Table 2 row; every stored attack fires -> fire_counts.json
 python monitor_swap.py               # monitor class-swap 2x2, batch provenance, test-retest, strict file
                                      #   mismatch -> monitor_swap.json
 python audit_budget.py               # catch rate at 1/2/5% FPR, both monitors and the classifier -> audit_budget.json
 python shared_problems.py            # headline vs working attacks on the 64 shared problems -> shared_problems.json
 python attacker_mix.py               # ** stored attacking models, B per attacker, Claude-only rho -> attacker_mix.json
 
-# classifier class-swap 2x2 (CPU minutes; needs the generated jsonl files, so run it on the cluster)
+# classifier class-swap 2x2 (CPU minutes; needs the generated jsonl files and train_*.parquet, so run
+# it on the cluster; see "Pending (cluster)" below)
 python classifier_swap.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl \
     --sg-json sg_indep_first_passes_v2.json --out classifier_swap_sonnet5.json
 python classifier_swap.py --tag haiku45 --bd bdind_haiku45.jsonl --bdpass bdpass_haiku45.jsonl \
