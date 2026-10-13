@@ -204,8 +204,7 @@ python gate_s_eval.py --gen-file gen_q3c30.jsonl --pass-file pass_q3c30.jsonl --
     --out gate_s_q3c30.json                                  # one-sided arm (as gate_s_check.sbatch)
 python gate_s_baseline.py --human-pass-file pass_human_fixed.jsonl --out gate_s_baseline_ownflag.json
 
-# classifier class-swap 2x2 (CPU minutes; needs the generated jsonl files and train_*.parquet, so run
-# it on the cluster; see "Pending (cluster)" below)
+# classifier class-swap 2x2 (CPU minutes; needs the generated jsonl files and train_*.parquet)
 python classifier_swap.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl \
     --sg-json sg_indep_first_passes_v2.json --out classifier_swap_sonnet5.json
 python classifier_swap.py --tag haiku45 --bd bdind_haiku45.jsonl --bdpass bdpass_haiku45.jsonl \
@@ -275,7 +274,7 @@ python release_split.py --check release --allow-trivial-identical 120
 | Catch rate at a fixed false-positive rate (audit budget): Sonnet 5 monitor at 2%, strict 77% vs 48% (difference 0.28, 0.15–0.42), headline 85% vs 6% | `audit_budget.py` | `audit_budget.json` |
 | Headline vs working attacks on the 64 shared problems: ρ 0.82 vs 0.75 (paired difference −0.24 to +0.13) | `shared_problems.py` | `shared_problems.json` |
 | Stored attacking models; B per attacker 0.75–0.93; ρ with Claude attackers only (0.715) | `attacker_mix.py` | `attacker_mix.json` |
-| Classifier class-swap table (needs the generated files; cluster) | `classifier_swap.py` | `classifier_swap_{sonnet5,haiku45}.json` (not yet run) |
+| Classifier class-swap table: human honest vs our attacks 0.981 (Haiku 0.973), our honest vs stored attacks 0.956 (0.966), against S 0.750 (0.534) | `classifier_swap.py` | `classifier_swap_{sonnet5,haiku45}.json` |
 
 A few appendix counts were computed with ad hoc joins of the files above and have no script of
 their own:
@@ -285,18 +284,19 @@ their own:
 - the `def main` shares
 - the byline and docstring counts in the token-test appendix
 
-## Pending (cluster)
+## Pending
 
-These need the generated `*.jsonl` files, which are not committed and live on the cluster.
+- **Strict monitor re-run with the classifier's attack file.** The strict monitor runs scored
+  `bdind_sonnet5_best.jsonl`, which differs from the classifier's strict row on problems 1701,
+  1972 and 4434. Re-scoring with the classifier's file needs `ANTHROPIC_API_KEY` (about $0.37,
+  worst case $0.67; `--dry-run` prints the estimate) and writes to a new file so the committed
+  run is kept:
 
-- **Classifier class swap (plan C).** `classifier_swap.py` is the experiment that isolates
-  authorship for the classifier. It adds the missing cell, human honest code against our attacks,
-  on the headline problems (commands in stage 5). Reading rule, fixed in advance in
-  `paper/camera-ready-plan.md`:
-  - near B′ (~0.87): the classifier's drop is on the honest side; the authorship reading holds
-    for the classifier;
-  - near S (~0.75): the classifier behaves like the monitor; the corpus effect is mostly the
-    attack distribution.
+  ```bash
+  python monitor_samegen.py --tag sonnet5 --bd bdind_sonnet5_best_nocrash.jsonl \
+      --bdpass bdindpass_sonnet5_best_nocrash.jsonl --eligibility usable \
+      --gate-s-json sg_indep_best_usable.json --out monitor_samegen_sonnet5_independent_usable_nocrash.json
+  ```
 
-  The rule was written for the Sonnet 5 row; the Haiku 4.5 run compares against its own B′
-  (0.856) and S (0.534). Until it runs, the paper's Limitations says the swap has not been run.
+  Until then the paper reports the strict monitor AUROC with and without those three attacks
+  (0.818 and 0.821).
