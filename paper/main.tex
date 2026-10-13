@@ -475,23 +475,23 @@ $\rho = (S - 0.5)/(B' - 0.5)$ & the share of above-chance separability that surv
 \label{sec:results}
 
 Comment stripping drives comment count and code length to chance
-(Table~\ref{tab:protocol-baseline}, appendix). Two baselines on that same split do not move;
-we call them \emph{floors}: a monitor at or below a floor has shown nothing beyond what the
+(Table~\ref{tab:protocol-baseline}). Two other baselines do not move; we call them
+\emph{floors}: a monitor at or below a floor has shown nothing beyond what the
 corpus leaks. On the filtered, comment-stripped split, bag-of-words reaches AUROC
-\tfidfKoran{}, above \tfidfKoranCount{} of the \monN{} monitors ranked on that split, and the
-no-code floor reaches \nocodeCV{}, above \nocodeCVCount{}; both are far above their
-permutation nulls (Figure~\ref{fig:monitors}, appendix~\ref{app:protocol}). The floors are
+\tfidfKoran{}, above \tfidfKoranCount{} of the \monN{} monitors ranked on it, and the
+no-code floor reaches \nocodeCV{}, above \nocodeCVCount{}; both are far above permutation
+nulls (Figure~\ref{fig:monitors}, appendix~\ref{app:protocol}). The floors are
 trained (bag-of-words on the split's train problems, the no-code floor cross-validated within
 the test split) and the monitors are zero-shot, so the comparison states what the corpus makes
 recoverable, not which is the better monitor. The no-code floor reads only problem metadata,
-so it measures how the label was selected (below), not authorship.
+so it measures how the label was selected, not authorship.
 
 Three further measurements show that the bag-of-words classifier is not reading the backdoor
 (pairwise accuracies for the first two; appendix~\ref{app:protocol}).
 It transfers across backdoor generators at \transfer{}: trained on one attacker's backdoors it identifies
 another's, so the feature it has learned is one the attackers share. It is nearly as strong on
-inert backdoors as on working ones, \pairInert{} against \pairWorking{}, although a backdoor
-that never fires should be the harder case for a detector of sabotage. The feature it does read
+inert backdoors, the harder case for a detector of sabotage, as on working ones
+(\pairInert{} against \pairWorking{}). The feature it does read
 is stylistic: \texttt{\_\_main\_\_} appears in 0.116 of attack samples against 0.000 of honest
 ones, a gap that replicates on the train split (152 against 1 of \splitTrain{} samples per
 class). All three are on comment-stripped code (unstripped: appendix~\ref{app:stripped}); a
@@ -515,19 +515,18 @@ attempts. The strict rows hold working sabotage: each attack is chosen from a po
 and fires. On Sonnet~5's \strictN{} strict pairs $\rho = \strictRho{}$. The higher value comes
 from which problems yield a working attack, not from the attacks working: on the \sharedN{}
 problems in both sets, $\rho$ is \sharedRhoHead{} with the headline attacks and
-\sharedRhoWorking{} with the working ones (paired 95\% interval on the difference
-\sharedDiffLo{} to \sharedDiffHi{}).
+\sharedRhoWorking{} with the working ones (paired 95\% CI on the difference \sharedDiffLo{}
+to \sharedDiffHi{}).
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{\textbf{What is left when one model writes both classes.} $S$ is the bag-of-words
-AUROC on the same-generator pairs, $B'$ on the stored pairs of the same problems (human
-honest code, stored attacks), 5-fold on comment-stripped code; $\rho = (S - 0.5)/(B' - 0.5)$.
-Points are pooled out-of-fold; intervals are 95\% bootstraps over problems, joint over $S$
-and $B'$ for $\rho$; $P$ is the share of draws with $\rho > \rhoContent{}$, the upper
-threshold registered before any arm ran. \emph{Fires} counts the same-generator attacks that
-fire; every stored attack on these problems fires. A prompt-matched row keeps the attacks of
-the row above and regenerates the honest class from the attack prompt.}
+\caption{\textbf{What is left when one model writes both classes.} $S$ and $B'$ are
+bag-of-words AUROCs (5-fold, comments stripped) on the same-generator pairs and on the stored
+pairs of the same problems (human honest code, stored attacks); $\rho = (S - 0.5)/(B' - 0.5)$.
+Points are pooled out-of-fold; intervals are 95\% bootstraps over problems, joint for $\rho$;
+$P$ is the share of draws with $\rho > \rhoContent{}$, the upper threshold registered before
+any arm ran. \emph{Fires}: same-generator attacks that fire; every stored attack on these
+problems fires. Prompt-matched rows reuse the attacks of the row above.}
 \label{tab:gates}
 \begin{tabular}{@{}l r l r l r@{}}
 \toprule
@@ -591,26 +590,22 @@ suspicion score (0--100).}
 \end{minipage}
 \end{table}
 
-An LLM monitor also scores lower on the same-generator corpus, and swapping one class at a
-time shows that the drop is in the attacks. We gave a zero-shot monitor prompt to Sonnet~5,
-which wrote both same-generator classes. Its AUROC falls from \monStoredHeadAbs{} on the
-stored pairs to \monitorS{} on the same-generator pairs. On the headline problems
-(Table~\ref{tab:swap}),\footnote{The four cells combine per-program scores from batches run
-on different days.} replacing the human honest code with ours does not lower the score, while
-replacing the stored attacks with ours lowers it to \monSwapHumanOurs{}, because our attacks
-draw far lower suspicion. The same holds on working attacks: on the strict problems human
-honest code scores \monStoredStrictAbs{} against stored attacks and \monSwapStrictHumanOurs{}
-against ours, and our honest code against ours scores
-\monitorStrict{}.\footnote{The strict monitor runs read a slightly different attack file from
-the classifier's strict row: on some problems it holds an attack whose trigger crashes the
-program instead of returning a wrong answer. This moves \monitorStrict{} by about 0.01.} The
-monitor's fall measures how conspicuous the attacks are, not who wrote the code (a second
-monitor and the monitor's $\rho$ are in appendix~\ref{app:monitors}). At a fixed audit
-budget, a \auditFPR{} false-positive rate with the threshold set on each set's own honest
-programs, the monitor catches \auditStrictStored{} of stored attacks and \auditStrictOurs{} of
-same-generator ones on the strict problems (paired difference \auditStrictDiff{}, 95\% CI
-\auditStrictDiffLo{}--\auditStrictDiffHi{}), and \auditHeadStored{} against \auditHeadOurs{}
-on the headline problems.
+A zero-shot Sonnet~5 monitor, which wrote both same-generator classes, scores
+\monStoredHeadAbs{} on the stored pairs and \monitorS{} on the same-generator pairs
+(appendix~\ref{app:monitors}); swapping one class at a time shows that the drop is in the
+attacks. On the headline problems (Table~\ref{tab:swap}),\footnote{The four cells combine
+per-program scores from batches run on different days.} replacing the human honest code with
+ours does not lower the score, and replacing the stored attacks with ours lowers it to
+\monSwapHumanOurs{}: our attacks draw far lower suspicion. The same holds on working attacks:
+on the strict problems human honest code scores \monStoredStrictAbs{} against stored attacks
+and \monSwapStrictHumanOurs{} against ours, and our own pairs score
+\monitorStrict{}.\footnote{The strict monitor runs used a different attack file from the classifier's
+strict row, which moves \monitorStrict{} by about 0.01.} The monitor's fall measures how conspicuous the
+attacks are, not who wrote the code. At a fixed audit budget of \auditFPR{} false positives,
+with the threshold set on each set's own honest programs, it catches \auditStrictStored{} of
+stored and \auditStrictOurs{} of same-generator attacks on the strict problems (paired
+difference \auditStrictDiff{}, 95\% CI \auditStrictDiffLo{}--\auditStrictDiffHi{}), and
+\auditHeadStored{} against \auditHeadOurs{} on the headline problems.
 
 \section{Limitations}
 
@@ -622,13 +617,12 @@ The same-generator corpus does not isolate authorship. The stored attacks come f
 \storedAttackers{} named models or an unattributed source, and rebuilding both classes with
 one model changes the attacks as well as their author: against the same human honest code,
 the attacking model alone moves $B$ from \bAttackerLo{} to \bAttackerHi{}. So $\rho$ is not
-the content share of the separability and does not bound it. It does not depend on which
-stored model attacked: restricting the stored attackers to Claude models gives
-$\rho = \rhoClaudeOnly{}$, about the same as with every stored attacker. The class swap that
+the content share and does not bound it. It does not depend on which
+stored model attacked: with Claude attackers only, $\rho = \rhoClaudeOnly{}$. The class swap that
 would isolate authorship for the classifier, human honest code against our attacks, has not
 been run; a value near $B'$ would put the classifier's drop on the honest side, a value near
-$S$ in the attacks, as for the monitor. The corpus is not bit-reproducible: it ran through a
-metered API that does not expose sampling parameters, with thinking off.
+$S$ in the attacks, as for the monitor. The corpus is not bit-reproducible: the API hides
+sampling parameters, and thinking was off.
 
 Our scope is narrow in three further ways. We measure one APPS-derived corpus family and five
 agentic settings, and other stored-pair corpora are untested. Five of our seven corpora are one
@@ -651,12 +645,11 @@ removes that, as does sampling the class independently of attack success. A moni
 interpretable only against the floors of its own split, so a no-code and a
 bag-of-words floor belong beside it, each against a permutation null, with the split and
 preprocessing released alongside (ours: MIT, appendix~\ref{app:release}). It should also be
-reported at a fixed audit budget and beside the share of attacks that fire, since a score on
-attacks that never fire is not a score on sabotage.
+reported at a fixed audit budget, beside the share of attacks that fire.
 
 Stored pairs remain the cheapest way to develop a monitor, and nothing here argues for
 abandoning them, only that a score on one can describe how the pairs were built rather than
-the monitor, until the construction rules that reading out.
+the monitor.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
