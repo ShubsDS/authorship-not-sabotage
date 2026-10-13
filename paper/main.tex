@@ -1323,6 +1323,42 @@ draw that fires only by crashing on its trigger and the other a later draw that 
 crashing. The committed files do not record which three; dropping the attack programs of any
 three problems moves \monitorStrict{} to between \monStrictDropMin{} and \monStrictDropMax{}.
 
+\subsection{The classifier's class swap}
+\label{app:clfswap}
+Table~\ref{tab:clfswap} fits the bag-of-words classifier of Table~\ref{tab:gates} to each
+pairing of an honest and an attack class on a headline row's problems: the same pipeline and
+folds, pooled out-of-fold AUROC, and a joint bootstrap over problems of all four cells, so the
+differences carry paired intervals (\texttt{classifier\_swap.py}). The human-honest/stored cell
+is that row's $B'$ and the same-generator cell its $S$; both reproduce Table~\ref{tab:gates}.
+The reading rule was fixed before the missing cell was computed: human honest code against our
+attacks near $B'$ puts the classifier's drop on the side of authorship, near $S$ on the side of
+our attacks. For both generators the cell is above $B'$. Every pairing of two writers stays at
+or above $B'$, and only the pairing of one writer falls: against $S$, human honest code with our
+attacks is higher by \clfSwapDiffHumanOursS{} (\clfSwapDiffHumanOursSLo{}--\clfSwapDiffHumanOursSHi{})
+on Sonnet~5 and \clfSwapHaikuDiffHumanOursS{}
+(\clfSwapHaikuDiffHumanOursSLo{}--\clfSwapHaikuDiffHumanOursSHi{}) on Haiku~4.5, and our honest
+code with stored attacks by \clfSwapDiffOursStoredS{}
+(\clfSwapDiffOursStoredSLo{}--\clfSwapDiffOursStoredSHi{}) and \clfSwapHaikuDiffOursStoredS{}
+(\clfSwapHaikuDiffOursStoredSLo{}--\clfSwapHaikuDiffOursStoredSHi{}).
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{Bag-of-words AUROC with one class swapped at a time (pooled out-of-fold, joint 95\%
+bootstrap over problems).}
+\label{tab:clfswap}
+\begin{tabular}{@{}l l l l@{}}
+\toprule
+Generator ($n$) & honest class & stored attack & our attack \\
+\midrule
+Sonnet~5 (\sameGenN{}) & human & \clfSwapHumanStored{} & \clfSwapHumanOurs{} (\clfSwapHumanOursLo{}--\clfSwapHumanOursHi{}) \\
+ & ours & \clfSwapOursStored{} (\clfSwapOursStoredLo{}--\clfSwapOursStoredHi{}) & \clfSwapOursOurs{} \\
+\addlinespace
+Haiku~4.5 (\haikuN{}) & human & \clfSwapHaikuHumanStored{} & \clfSwapHaikuHumanOurs{} (\clfSwapHaikuHumanOursLo{}--\clfSwapHaikuHumanOursHi{}) \\
+ & ours & \clfSwapHaikuOursStored{} (\clfSwapHaikuOursStoredLo{}--\clfSwapHaikuOursStoredHi{}) & \clfSwapHaikuOursOurs{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Detection at a fixed audit budget}
 \label{app:audit}
 Table~\ref{tab:audit} gives the share of attacks a detector flags when its threshold is set on
