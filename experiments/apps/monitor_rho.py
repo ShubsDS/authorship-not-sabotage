@@ -24,8 +24,9 @@ Caveats:
      AUROCs are not comparable with it.
   2. claude-sonnet-5 wrote both same-generator classes, so its M_samegen is a self-evaluation;
      claude-haiku-4-5 wrote neither.
-  3. The stored pairs are human honest vs stored Claude 3.7 backdoor, so M_stored includes the
-     authorship gap by construction; that is what the denominator is for.
+  3. The stored pairs are human honest code vs stored backdoors written by nine named models or
+     an unattributed source (attacker_mix.py), so M_stored includes the authorship gap by
+     construction; that is what the denominator is for.
 
 Usage:
     python monitor_rho.py --out monitor_rho.json
