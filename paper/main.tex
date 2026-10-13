@@ -624,13 +624,17 @@ A high floor is evidence about a corpus, not about results computed on it. Ours 
 label is recoverable without reading a backdoor, not that any monitor
 recovers it that way, and no number here corrects a published monitor score.
 
-The control arm is limited by the generator we had to substitute. The stored backdoors'
-writer, \texttt{claude-3-7-sonnet-thinking}, is retired, so
-both same-generator classes come from a later model of the same lineage. It differs from the
-stored attacker in backdoor style as well as in authorship, so every $\rho$ here, classifier or
-monitor, bounds the content share of the separability from above instead of partitioning it.
-The arm is not bit-reproducible: it ran through a metered API that does not expose sampling
-parameters, with thinking off although the stored attacker was a thinking model.
+The same-generator corpus does not isolate authorship. The stored attacks come from
+\storedAttackers{} named models or an unattributed source, and rebuilding both classes with
+one model changes the attacks as well as their author: against the same human honest code,
+the attacking model alone moves $B$ from \bAttackerLo{} to \bAttackerHi{}. So $\rho$ is not
+the content share of the separability and does not bound it. It does not depend on which
+stored model attacked: restricting the stored attackers to Claude models gives
+$\rho = \rhoClaudeOnly{}$, about the same as with every stored attacker. The class swap that
+would isolate authorship for the classifier, human honest code against our attacks, has not
+been run; a value near $B'$ would put the classifier's drop on the honest side, a value near
+$S$ in the attacks, as for the monitor. The corpus is not bit-reproducible: it ran through a
+metered API that does not expose sampling parameters, with thinking off.
 
 Our scope is narrow in three further ways. We measure one APPS-derived corpus family and five
 agentic settings, and other stored-pair corpora are untested. Five of our seven corpora are one
