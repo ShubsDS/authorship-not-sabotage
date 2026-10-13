@@ -774,17 +774,22 @@ Sonnet 5, prompt-matched & \matchedStrictN{}/\matchedStrictN{}
 \toprule
  & stored attack & our attack \\
 \midrule
+\multicolumn{3}{@{}l}{\emph{bag-of-words}} \\
+human honest & \clfSwapHumanStored{} & \clfSwapHumanOurs{} \\
+our honest & \clfSwapOursStored{} & \clfSwapOursOurs{} \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Sonnet~5 monitor}} \\
 human honest & \monSwapHumanStored{} & \monSwapHumanOurs{} \\
 our honest & \monSwapOursStored{} & \monSwapOursOurs{} \\
-\midrule
 mean suspicion & \monSuspStored{} & \monSuspOurs{} \\
 \bottomrule
 \end{tabular}
 \end{minipage}\hfill
 \begin{minipage}[c]{0.54\linewidth}
-\caption{\textbf{Monitor AUROC with one class swapped at a time.} Sonnet~5 monitor, on the
-\monSwapN{} headline problems scored in all four cells. Last row: the attacks' mean
-suspicion score (0--100).}
+\caption{\textbf{AUROC with one class swapped at a time,} Sonnet~5 headline problems.
+Bag-of-words: pooled out-of-fold over all \sameGenN{}; monitor: the \monSwapN{} scored in all
+four cells. Last row: the attacks' mean suspicion score (0--100). Haiku~4.5 and intervals:
+appendix~\ref{app:clfswap}.}
 \label{tab:swap}
 \end{minipage}
 \end{table}
