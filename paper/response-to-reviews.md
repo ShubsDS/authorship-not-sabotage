@@ -3,7 +3,7 @@
 Draft for the OpenReview camera-ready response. It follows the six weaknesses as summarised in
 `camera-ready-plan.md`; check the wording against the review itself before posting. Numbers are
 the camera-ready values, each from a committed script (`experiments/README.md`, "Where each
-result comes from"). Bracketed text marks what depends on the cluster run (plan C).
+result comes from").
 
 We thank the reviewer. We checked each of the six points against the paper and the committed
 result files. All six are valid, and two were worse than stated. The camera-ready corrects them
@@ -35,9 +35,16 @@ says what the headline rows compare.
   else".
 - ρ does not depend on which stored model attacked: with Claude attackers only it is 0.715,
   against 0.687 for the full mix.
-- The experiment that isolates authorship for the classifier scores human honest code against
-  our attacks. We pre-registered its reading rule in the plan. [If run: report the value and
-  which reading it supports. If not: it is stated as a limitation, with the script released.]
+- We ran the experiment that isolates authorship for the classifier: fit it to every pairing
+  of an honest and an attack class (Table 3, appendix). We fixed the reading rule before
+  computing the missing cell. On Sonnet 5's headline problems:
+  - human honest code against our attacks scores 0.981, above B′ = 0.865;
+  - our honest code against stored attacks scores 0.956;
+  - only the pairing in which one model wrote both classes falls, to S = 0.750.
+
+  Haiku 4.5 gives 0.973 and 0.966 against S = 0.534. So for the classifier the drop is
+  authorship, not our attacks: our attacks are easier, not harder, to separate from human code.
+  For the monitor it is the reverse (point 4).
 
 **4. Verified attacks qualify the result.**
 - **Monitor.** Valid, and it changes our claim. Swapping one class at a time (Table 3), the
