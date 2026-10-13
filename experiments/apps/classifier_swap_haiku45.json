@@ -1,0 +1,112 @@
+{
+  "tag": "haiku45",
+  "generator": [
+    "claude-haiku-4-5"
+  ],
+  "sg_json": "sg_haiku45_indep_passes.json",
+  "bd": "bdind_haiku45.jsonl",
+  "bdpass": "bdpass_haiku45.jsonl",
+  "n_problems": 611,
+  "n_boot": 2000,
+  "seed": 0,
+  "cells": {
+    "human_honest__stored_attack": {
+      "fold_mean": 0.8583558375485827,
+      "fold_sd": 0.014243389432531235,
+      "pooled": 0.8563782910685442,
+      "pooled_ci95_evaluate": [
+        0.8392226796778108,
+        0.8726077557919324
+      ],
+      "pairwise_acc": 0.9624017059842729,
+      "length_only_auroc": 0.6137983448941273,
+      "pooled_ci95_joint": [
+        0.8392226796778108,
+        0.8726077557919324
+      ]
+    },
+    "human_honest__our_attack": {
+      "fold_mean": 0.9737127429005294,
+      "fold_sd": 0.0065292872324601015,
+      "pooled": 0.9733593877654887,
+      "pooled_ci95_evaluate": [
+        0.965304623902754,
+        0.9806404876768252
+      ],
+      "pairwise_acc": 0.9787018525922964,
+      "length_only_auroc": 0.6313116496703997,
+      "pooled_ci95_joint": [
+        0.965304623902754,
+        0.9806404876768252
+      ]
+    },
+    "our_honest__stored_attack": {
+      "fold_mean": 0.966823269359456,
+      "fold_sd": 0.0022831627582469514,
+      "pooled": 0.9664176405827692,
+      "pooled_ci95_evaluate": [
+        0.9576690033510035,
+        0.9741460432174993
+      ],
+      "pairwise_acc": 0.9852459016393442,
+      "length_only_auroc": 0.45844245268705786,
+      "pooled_ci95_joint": [
+        0.9576690033510035,
+        0.9741460432174993
+      ]
+    },
+    "our_honest__our_attack": {
+      "fold_mean": 0.534032607135741,
+      "fold_sd": 0.01154160655898826,
+      "pooled": 0.5344408699215956,
+      "pooled_ci95_evaluate": [
+        0.5159071884517615,
+        0.5531224803855127
+      ],
+      "pairwise_acc": 0.5024390243902439,
+      "length_only_auroc": 0.487084002420179,
+      "pooled_ci95_joint": [
+        0.5159071884517615,
+        0.5531224803855127
+      ]
+    }
+  },
+  "differences": {
+    "Bprime_minus_human_ours": {
+      "point": -0.11698109669694445,
+      "ci95": [
+        -0.1360369494349367,
+        -0.0985266365942447
+      ]
+    },
+    "human_ours_minus_S": {
+      "point": 0.43891851784389313,
+      "ci95": [
+        0.4195023518634097,
+        0.4583214914242702
+      ]
+    },
+    "Bprime_minus_ours_stored": {
+      "point": -0.110039349514225,
+      "ci95": [
+        -0.12758651401876672,
+        -0.09077134691056751
+      ]
+    },
+    "ours_stored_minus_S": {
+      "point": 0.4319767706611737,
+      "ci95": [
+        0.4119082170571707,
+        0.4517885747118431
+      ]
+    }
+  },
+  "check_against_sg_json": {
+    "S_pooled_in_json": 0.5344408699215956,
+    "B_prime_pooled_in_json": 0.8563782910685442,
+    "S_reproduced": true,
+    "B_prime_reproduced": true
+  },
+  "reading_rule": "Reading rule (camera-ready-plan.md, fixed in advance): human honest vs our attacks\n  near B' (~0.87): the classifier's drop is on the honest side; the authorship reading\n                   holds for the classifier;\n  near S  (~0.75): the classifier behaves like the monitor; the corpus effect is mostly\n                   the attack distribution.",
+  "nearer": "B'"
+}
