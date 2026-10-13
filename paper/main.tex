@@ -832,6 +832,7 @@ the monitor.
 \appendix
 \setcounter{table}{0}\renewcommand{\thetable}{A\arabic{table}}
 \setcounter{figure}{0}\renewcommand{\thefigure}{A\arabic{figure}}
+\renewcommand{\theHtable}{A\arabic{table}}\renewcommand{\theHfigure}{A\arabic{figure}}
 \section{Supplementary tables and figures}
 
 \subsection{Statistics}
@@ -852,8 +853,8 @@ the labels are permuted within main-task groups (appendix~\ref{app:agentic}). Th
 uses a null over random token sets instead (appendix~\ref{app:token}). The bootstrap replaced a
 $\pm 2$ fold-SD rule before the strict retry pool was read.
 
-Four values are still fold means, the average of five per-fold AUROCs, because their inputs are
-only on the cluster: the length-only AUROC of the headline pairs (\sameGenLen{},
+Four quantities are still fold means, the average of five per-fold AUROCs, because their inputs
+are only on the cluster: the length-only AUROC of the headline pairs (\sameGenLen{},
 appendix~\ref{app:robust}), Haiku~4.5's similarity strata (\haikuStrataS{} and
 \haikuStrataBprime{}, appendix~\ref{app:secondpass}), the one-sided arm (\armOneG{},
 \armOneBprime{}, $\rho = \armOneRho{}$, appendix~\ref{app:robust}) and $B$ under our pass flag
@@ -866,17 +867,18 @@ of Table~\ref{tab:protocol-baseline} are means over five problem-disjoint splits
 \label{app:schema}
 Table~\ref{tab:schema} is the record schema of \texttt{RoganInglis/apps-control-arena}
 \cite{inglis2025appscontrolarena}. The attack class carries \texttt{model} and
-\texttt{source}, naming the system that produced each backdoor; the honest class carries no
-such field, because there is no generator to name. The two APPS-backdoor corpora we use are
+\texttt{source}, naming the system that produced each backdoor (\texttt{unknown} for the
+unattributed entries, appendix~\ref{app:attackers}); the honest class carries no such field,
+because there is no generator to name. The two APPS-backdoor corpora we use are
 two views of this one artifact, since every problem in the filtered release
 \cite{koran2026highquality} is also in \cite{inglis2025appscontrolarena}, byte-identical
 except a re-validated \texttt{backdoor\_works}.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{The confound is legible in the dataset schema, with no measurement at all.
-The attack class records which model wrote it; the honest class has no generator field.
-Verified against the shard schema of \texttt{RoganInglis/apps-control-arena}.}
+\caption{Record schema of \texttt{RoganInglis/apps-control-arena}, verified against its
+shards. The attack class records which model wrote it (bold); the honest class has no
+generator field.}
 \label{tab:schema}
 \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.80\linewidth}@{}}
 \toprule
@@ -1019,20 +1021,19 @@ split's filter ties problem metadata to the label.
 \subsection{Comment stripping on the matched-protocol numbers}
 \label{app:stripped}
 The matched-pair and transfer measurements were first made with comments in. Every value in
-the authorship paragraph of \S\ref{sec:results} was re-measured with the same stripper
-applied to both classes, over five problem-disjoint splits (each transfer row is one fixed
+the paragraph of \S\ref{sec:results} on what bag-of-words reads was re-measured with the same
+stripper applied to both classes, over five problem-disjoint splits (each transfer row is one fixed
 split). With comments kept the same quantities were transfer \transferKept{}, working
 \pairWorkingKept{}, inert \pairInertKept{}, all pairs \pairAllKept{} and surface-feature
 AUROC \surfaceSevenKept{}; stripped they are \transfer{}, \pairWorking{}, \pairInert{},
-\pairAll{} and \surfaceSeven{}. Every one was inflated by the comment channel, which is
-this paper's thesis applied to itself. The \texttt{\#}-presence marker, \hashPresAttack{}
+\pairAll{} and \surfaceSeven{}. Every one was inflated by the comment channel. The \texttt{\#}-presence marker, \hashPresAttack{}
 against \hashPresHonest{} before stripping, closes to \hashPresAttackStripped{} against
 \hashPresHonestStripped{} after and is dropped; \texttt{\_\_main\_\_} is unchanged. One
 authorship leak survives the stripper because string literals are not comments: in the
 comment-stripped train split an author byline (\texttt{Author :}) survives in
 \bylineHonest{} of \splitTrain{} honest samples against \bylineAttack{} attack samples, and
-a triple-quoted block in \tripleHonest{} against \tripleAttack{}. Both are far too rare to
-drive \tfidfKoran{}, but both are a literal record of authorship.
+a triple-quoted block in \tripleHonest{} against \tripleAttack{}. Both are too rare to account
+for \tfidfKoran{}, but each records who wrote the code.
 Stripped, the matched-protocol TF-IDF AUROC is \tfidfMatched{}, beside $B = \baselineB$ and
 the Koran-split \tfidfKoran{}, all three on stripped code. The other cross-generator
 transfer rows, stripped, are \transferOthreeClaude{} (o3-mini to claude-3-7-sonnet, 82 test
@@ -1042,24 +1043,24 @@ gemini-2.0-flash).
 \subsection{Pair similarity, and why the same-generator control needs two arms}
 \label{app:pairsim}
 An attack class built by editing its own honest solution changes pair similarity as well as
-authorship (Table~\ref{tab:similarity}); the independent arm sits in the stored benchmark's
-regime and if anything slightly further from it, so it cannot manufacture a low $S$ by
-making the classes alike.
+the writer (Table~\ref{tab:similarity}). The independent arm's pairs are about as similar as
+the stored benchmark's and far from the edit arm's near-copies, so the independent arm cannot
+produce a low $S$ by making the classes alike.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{Character similarity of honest/attack pairs, comments stripped. The edit arm's
-classes are near-copies; the independent arm reproduces the stored benchmark's regime, where
-the two classes are largely independent programs. The last two columns are the share of pairs
-above and below those similarities.}
+classes are near-copies; the independent arm's pairs are about as similar as the stored
+benchmark's, whose two classes are largely independent programs. The middle columns are the
+share of pairs above and below those similarities.}
 \label{tab:similarity}
 \begin{tabular}{@{}l r r r l@{}}
 \toprule
-Attack class & mean sim. & share $>0.95$ & share $<0.60$ & changes vs.\ the benchmark \\
+Attack class & mean sim. & share $>0.95$ & share $<0.60$ & differs from the benchmark in \\
 \midrule
-\textbf{stored benchmark} & \simStored{} & \simStoredHigh{} & \simStoredLow{} & the regime to match \\
-\textbf{edit} (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & authorship and similarity \\
-\textbf{independent} (problem only) & \simIndep{} & \simIndepHigh{} & \simIndepLow{} & authorship only \\
+\textbf{stored benchmark} & \simStored{} & \simStoredHigh{} & \simStoredLow{} & --- \\
+\textbf{edit} (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & writer, attacks, similarity \\
+\textbf{independent} (problem only) & \simIndep{} & \simIndepHigh{} & \simIndepLow{} & writer, attacks \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1082,8 +1083,8 @@ Retention does not produce the strict row's $S$. Within the attack class, draws 
 draws that do not separate at \survivorAuroc{}, and $S$ on the strict problems with non-firing
 attempts in place of the firing ones is \survivorSwapS{} against \survivorSwapSref{}.
 
-The edit arm bounds $S$ under near-copies (similarity \editSim{}, Table~\ref{tab:similarity}):
-\editS{} over \editN{} pairs, $\rho = \editRho{}$. In the one-sided arm of \S\ref{sec:results},
+The edit arm, whose pairs are near-copies (similarity \editSim{}, Table~\ref{tab:similarity}),
+gives $S = \editS{}$ over \editN{} pairs, $\rho = \editRho{}$. In the one-sided arm of \S\ref{sec:results},
 where only the honest class was regenerated, the classifier reaches \armOneG{} against
 $B' = \armOneBprime{}$ on that arm's \armOneN{} eligible problems, a gain of
 \armOneTfidfDelta{}, while code length alone falls to \armOneLenG{}.
@@ -1330,14 +1331,14 @@ Haiku~4.5, headline & 2\% & \audClfHaiHeadTwoSt{} & \audClfHaiHeadTwoSg{} & \aud
 Both generators were run through the identical pipeline. Our honest draws pass the public
 tests at \sonnetHonestPass{} and \haikuHonestPass{} of 1{,}444 problems; the second
 generator's attack draws pass at \haikuAttackPass{} of 1{,}444 and \haikuUsable{} of those
-fire, below the 50-pair minimum \texttt{gate\_s\_samegen.py} requires, leaving it with no
-strict row and the two generators are compared on the \texttt{passes} eligibility only. The two
-compared rows differ in inertness. \haikuFireInRow{} of the \haikuN{} attacks in the
+fire, below the 50-pair minimum \texttt{gate\_s\_samegen.py} requires, so it has no strict
+row and the two generators are compared on the headline rows only. Those rows differ in
+inertness. \haikuFireInRow{} of the \haikuN{} attacks in the
 second generator's row fire (\haikuInert{} inert) against \relFireFirst{} of \sameGenN{}
 (\headlineInert{}), the other \haikuUsableOutside{} of its firing draws sitting on problems where
 its own honest program failed the tests and which the control therefore drops. The
-single-shot firing rate belongs to the protocol and not to either model, since
-\trigPublicShare{} of test-passing draws offer a public test input as their trigger.
+single-shot firing rate depends on our attack prompt, which halves it
+(appendix~\ref{app:robust}).
 
 \subsection{The five same-generator agentic settings}
 \label{app:agentic}
@@ -1386,10 +1387,11 @@ input case to a solution under per-case timeouts and address-space limits. It ag
 the artifact's own \texttt{solution\_passes\_tests} on \harnessAgreement{} of the analysis
 pool, and is strictly conservative there, never crediting a solution the artifact rejects
 (\harnessFailWePass{} such cases). We use \emph{our own} flag for both classes, because a checker stricter on one class than
-the other would manufacture exactly the artifact this paper documents. We do not length-match either class; the untrusted model chooses its own
-trajectory length. The headline does not depend on that choice. Under the artifact's flag
-$B = \baselineB$ at $n = \baselineBn{}$, under ours $B = \baselineBownflag{}$ at
-$n = \baselineBownflagN{}$, within one standard deviation of each other. The monitor
+the other would manufacture exactly the artifact this paper documents. $B$ does not depend on
+that choice: under the artifact's flag $B = \baselineB$ at $n = \baselineBn{}$, under ours
+$B = \baselineBownflag{}$ at $n = \baselineBownflagN{}$ (a fold mean), inside the first's
+interval (\baselineBLo{}--\baselineBHi{}). We do not length-match either class; the model
+chooses its own program length. The monitor
 scores in Figure~\ref{fig:monitors} are \texttt{runs/x0/monitor-summary.json} from the MIT
 release of that harness \cite{jha2026decorrelation}, used under its notice. Two interpreter-era artifacts in the upstream solutions fall on opposite classes: a
 \texttt{stdin} without \texttt{.buffer}, fixed, and \texttt{fractions.gcd}, removed in
