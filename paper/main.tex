@@ -156,7 +156,7 @@
 \newcommand{\relPassBest}{1{,}046}
 \newcommand{\relFireBest}{99}
 \newcommand{\relFireBestCrash}{106}
-\newcommand{\relScripts}{24}
+\newcommand{\relScripts}{32}
 
 \newcommand{\sameGenS}{0.7504}
 \newcommand{\sameGenN}{623}
@@ -1462,7 +1462,8 @@ declare no licence; we redistribute nothing and report aggregates only.}
 
 \subsection{The release}
 \label{app:release}
-The supplementary bundle holds the same-generator split (\relHonest{} honest programs,
+The release bundle, attached to the code repository's \texttt{v1.0} release, holds the
+same-generator split (\relHonest{} honest programs,
 \relEdit{} edit-arm and \relIndep{} independent-arm attack programs written by one model,
 plus every one of the \relRetryDraws{} draws of the independent arm's retry pool), both
 eligibility rules as pair lists under an outcome-blind selection (\relPassFirst{} passing
@@ -1470,7 +1471,8 @@ and \relFireFirst{} firing independent-arm pairs) and under the benchmark's own 
 selection (\relPassBest{} and \relFireBest{}, or \relFireBestCrash{} counting a crash on
 the trigger as firing), the \relScripts{} scripts behind the measurements (generation for
 both generators, the test harness, the trigger verifier, the selection rules, the prompt-matched
-arm, the monitor rows and each remaining measurement script), a dataset card, and a manifest of
+arm, the monitor rows, the class swaps and each remaining measurement script), a dataset card,
+and a manifest of
 row counts and checksums. The licence, MIT, is a file inside the bundle and
 covers the data and the scripts alike.
 
