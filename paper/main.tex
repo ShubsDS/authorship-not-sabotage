@@ -404,10 +404,9 @@ exported from, generates both classes live and is not implicated.
 the pair, marked \emph{confounded} where the two classes differ in it and \emph{controlled}
 where one model or one prompt holds it constant. The backdoor row is the target: it is the only
 difference a monitor should read, and the only one left once both controls are applied. Under
-each construction is the bag-of-words AUROC on that construction's own pairs, so the three are
-a ladder, not a paired comparison; the stored benchmark's is $B$, on the full artifact rather
-than the filtered split. Each arm's numbers are in Table~\ref{tab:gates}, notation in
-Table~\ref{tab:notation}.}
+each construction is the bag-of-words AUROC on its own pairs, so the three are a ladder, not a
+paired comparison; the stored benchmark's is $B$, on the full artifact rather than the filtered
+split. Per-arm numbers: Table~\ref{tab:gates}.}
 \label{fig:constructions}
 \end{figure}
 
@@ -419,7 +418,7 @@ attacks come from \storedAttackers{} named models or an unattributed source. Six
 declare no licence \cite{koran2026highquality, sinha2026controlarenacorpora}, so we report only
 aggregates and redistribute none.
 
-Our primary protocol is one of the seven, the filtered, comment-stripped split
+Our primary protocol is the filtered, comment-stripped split
 \cite{koran2026ensemble}: \splitTrain{} train problems (\splitTrainItems{} paired items) and
 \splitTest{} test items (\splitAttack{} attack, \splitHonest{} honest), labelled by
 \texttt{backdoor\_works}, reconstructed with the released harness code
@@ -428,26 +427,25 @@ whose full pool the same-generator arms use; on that pool the stored pairs give
 $B = \baselineB{}$ (Figure~\ref{fig:constructions}). Generated code is scored by our own
 runner, applied to both classes (appendix~\ref{app:harness}).
 
-Against that we build a corpus in which one model writes both classes on the same APPS
-problems; the construction is run twice, with Sonnet~5 and with Haiku~4.5 as the generator.
-With one writer, writer features cannot separate the classes; what still separates them comes
+Against that we build a corpus in which one model, Sonnet~5 or Haiku~4.5, writes both classes
+on the same APPS problems. With one writer, writer features cannot separate the classes; what still separates them comes
 from what the two prompts asked for, the backdoor included. The \emph{independent} arm writes
 the attack class from the problem statement alone. An \emph{edit} arm, shown its own honest
 solution, returns near-copies (appendix~\ref{app:pairsim}), and a \emph{prompt-matched} arm
 regenerates the honest class from the attack prompt with the clauses asking for a flaw replaced
 by their correct-program counterparts, so both classes are elicited alike. A backdoor
 \emph{fires} if it passes the public tests and gives a wrong answer on the trigger input the
-attacker declares; one that never fires is \emph{inert}. The \emph{headline} rows of
-Table~\ref{tab:gates} are attempts: one independent-arm attack per problem, sampled before its
-outcome is known and kept if it passes the public tests, whether or not it fires. The
-\emph{strict} rows keep only attacks that fire, selected from a pool of retries.
+attacker declares; one that never fires is \emph{inert}. \emph{Headline} rows
+(Table~\ref{tab:gates}) are attempts: one independent-arm attack per problem, sampled before
+its outcome is known and kept if it passes the public tests; \emph{strict} rows keep only
+attacks that fire, drawn from a pool of retries.
 
-Relative to the stored pairs, the rebuild changes the attacks as well as the writer: our attacks
-rarely fire and a monitor finds them far less suspicious (\S\ref{sec:results}). $\rho$
-(Table~\ref{tab:notation}) is therefore the share of stored-pair separability that survives the
-rebuild, not the share due to the backdoor nor a bound on it. Two lines, $\rho = \rhoCollapse{}$
-and $\rho = \rhoContent{}$, were fixed before any arm ran; Table~\ref{tab:gates} reports the
-share of joint-bootstrap draws with $\rho > \rhoContent{}$.
+The rebuild changes the attacks as well as the writer: ours rarely fire, and a monitor finds
+them far less suspicious than the stored ones (\S\ref{sec:results}). $\rho$
+(Table~\ref{tab:notation}) is therefore the share of stored-pair separability that survives, not
+the share due to the backdoor nor a bound on it. Table~\ref{tab:gates} reports the
+share of joint-bootstrap draws with $\rho > \rhoContent{}$; that line and $\rho = \rhoCollapse{}$
+were fixed before any arm ran.
 
 \begin{table}[h]\centering\footnotesize
 \caption{\textbf{Notation.} One classifier throughout; the arms differ only in the corpus
