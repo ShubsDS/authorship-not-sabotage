@@ -384,14 +384,14 @@ only problem difficulty, test count and question length -- the \emph{no-code flo
 \nocodeCV{}, above \nocodeCVCount{} of the monitors. It reads how the label was selected:
 attack problems carry fewer tests.
 
-We contribute (i)~a construction for stored-pair corpora, in which one model writes both
-classes under one prompt framing and one harness verifies both, and the corpus that implements
-it. Run on two generators, it attributes between a third and nine-tenths of the separability to
-authorship and most of the remainder to the attack prompt's framing; a one-sided variant,
-regenerating only the honest class, substitutes one confound for another. We identify
-(ii)~a second selection artifact the filter installs by defining the negative class through
-attack failure, and (iii)~the construction and reporting practice these imply.
-Our claims concern monitor training, selection and benchmarking on stored pairs, and our
+We contribute (i)~two classifier floors for stored-pair corpora, bag-of-words and no-code, each
+against a permutation null; (ii)~a same-generator construction, in which one model writes both
+classes on the same problems and one harness verifies both, and the corpus that implements it;
+and (iii)~a label artifact: labelling by \texttt{backdoor\_works} defines the negative class by
+attack failure, so the negative class records which attacks failed. They imply a reporting
+practice: both floors beside any monitor score, both classes from one model under one prompt, a
+negative class defined by honesty, and detection at a fixed audit budget reported with the
+share of attacks that fire. Our claims concern monitor training, selection and benchmarking on stored pairs, and our
 measurement is of one APPS-derived family plus five agentic settings
 (appendix~\ref{app:agentic}). ControlArena, the evaluation framework most of these corpora are
 exported from, generates both classes live and is not implicated.
