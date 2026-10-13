@@ -560,21 +560,16 @@ Sonnet 5, prompt-matched & \matchedStrictN{}/\matchedStrictN{}
 \end{table}
 
 The two generators respond differently to the attack prompt. On Sonnet 5 what survives is lexical rather
-than structural: length alone falls to \sameGenLen{} while TF-IDF holds, and of the
-feature-ablation masks we
-apply only identifier normalisation moves $S$ (appendix~\ref{app:robust}). The top
-attack-side features are \texttt{def main} (\defMainAttack{} of attack programs against
-\defMainHonest{} of honest ones) and \texttt{data[}, which together are the program layout the
-attack prompt elicits. Haiku 4.5 never adopts that layout in any of its three classes --
-honest, attack, or prompt-matched honest
-(appendix~\ref{app:secondpass}) -- which is why the two generators part. Holding the prompt
-constant as well as the model moves them back toward each other, to
-$\rho = \matchedRho{}$ on Sonnet 5 (Table~\ref{tab:gates}) and $\rho = \haikuMatchedRho{}$ on
-Haiku 4.5 (appendix~\ref{app:secondpass}). On Sonnet this removes most of what
-is left. The original and the prompt-matched honest classes -- both correct, no attack on
-either side -- already separate at
-\promptOnly{}, so the prompt carries framing and no backdoor at all; on Haiku 4.5 that same
-floor contains chance.
+than structural: length alone falls to \sameGenLen{} while bag-of-words holds, and of the
+feature-ablation masks we apply only identifier normalisation moves $S$
+(appendix~\ref{app:robust}). The top attack-side features are \texttt{def main}
+(\defMainAttack{} of attack programs against \defMainHonest{} of honest ones) and
+\texttt{data[}, the program layout the attack prompt elicits. Haiku~4.5 never adopts that
+layout in any of its three classes (appendix~\ref{app:secondpass}). Holding the prompt
+constant as well lowers Sonnet~5's $\rho$ to \matchedRho{} and leaves Haiku~4.5's unchanged
+at \haikuMatchedRho{}. The original and prompt-matched honest classes, both correct with no
+attack on either side, separate at \promptOnly{} on Sonnet~5, so the prompt carries framing
+and no backdoor; on Haiku~4.5 the same comparison is at chance.
 
 Regenerating only one class fails: Qwen3-Coder-30B writing the honest
 class against the stored backdoors separates \emph{better} than the stored pairs do,
