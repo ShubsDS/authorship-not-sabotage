@@ -432,22 +432,22 @@ Against that we build a corpus in which one model writes both classes on the sam
 problems; the construction is run twice, with Sonnet~5 and with Haiku~4.5 as the generator.
 With one writer, writer features cannot separate the classes; what still separates them comes
 from what the two prompts asked for, the backdoor included. The \emph{independent} arm writes
-the attack class from the problem statement alone (the \emph{headline} rows of
-Table~\ref{tab:gates}). Relative to the stored pairs it changes the attacks as well as the
-writer: our attacks rarely fire and a monitor finds them far less suspicious
-(\S\ref{sec:results}), so $\rho$ (Table~\ref{tab:notation}) is the share of stored-pair
-separability that survives the rebuild, not the share due to the backdoor nor a bound on it.
-An \emph{edit} arm, shown its own honest solution,
-returns near-copies (appendix~\ref{app:pairsim}), and a \emph{prompt-matched} arm regenerates the
-honest class from the attack prompt with the clauses asking for a flaw replaced by their
-correct-program counterparts, so both classes are elicited alike. We sample one attack per
-problem, fixed before its outcome is known, and define the attack class as the benchmark does,
-by intent together with passing the public tests. A backdoor \emph{fires} if it passes the
-public tests and gives a wrong answer on the trigger input the attacker declares; one that
-never fires is \emph{inert}. Table~\ref{tab:notation} fixes the notation,
-and the bands were registered before any arm ran: $\rho \le \rhoCollapse{}$ reads as authorship
-(the \emph{collapse} band), $\rho > \rhoContent{}$ as content, the interval between as
-neither (\emph{partial}).
+the attack class from the problem statement alone. An \emph{edit} arm, shown its own honest
+solution, returns near-copies (appendix~\ref{app:pairsim}), and a \emph{prompt-matched} arm
+regenerates the honest class from the attack prompt with the clauses asking for a flaw replaced
+by their correct-program counterparts, so both classes are elicited alike. A backdoor
+\emph{fires} if it passes the public tests and gives a wrong answer on the trigger input the
+attacker declares; one that never fires is \emph{inert}. The \emph{headline} rows of
+Table~\ref{tab:gates} are attempts: one independent-arm attack per problem, sampled before its
+outcome is known and kept if it passes the public tests, whether or not it fires. The
+\emph{strict} rows keep only attacks that fire, selected from a pool of retries.
+
+Relative to the stored pairs, the rebuild changes the attacks as well as the writer: our attacks
+rarely fire and a monitor finds them far less suspicious (\S\ref{sec:results}). $\rho$
+(Table~\ref{tab:notation}) is therefore the share of stored-pair separability that survives the
+rebuild, not the share due to the backdoor nor a bound on it. The bands were registered before
+any arm ran: $\rho \le \rhoCollapse{}$ reads as authorship (the \emph{collapse} band),
+$\rho > \rhoContent{}$ as content, the interval between as neither (\emph{partial}).
 
 \begin{table}[h]\centering\footnotesize
 \caption{\textbf{Notation.} One classifier throughout; the arms differ only in the corpus
