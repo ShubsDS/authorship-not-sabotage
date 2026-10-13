@@ -20,11 +20,19 @@ shared and non-shared problems the draw is stratified (each subset resampled wit
 shared first), so the subsets keep their sizes. Draws whose B' is at or below 0.5 are dropped
 and counted.
 
-Subsets reported: the 64 shared problems; the 52 of them whose two attack programs differ (the
-headline first draw is inert there, see fire_counts.py) and the 12 where they are the same
-program; the strict row's 35 non-shared problems; the headline row's 559 non-shared problems.
+Subsets reported: the 64 shared problems; the 53 of them whose two attack programs differ and
+the 11 where they are the same program; the strict row's 35 non-shared problems; the headline
+row's 559 non-shared problems.
 
-Inputs: sg_indep_first_passes_v2.json, sg_indep_best_usable_v2.json, fire_counts.json.
+Which attack programs are the same is read from the files the two classifier rows used,
+bdind_sonnet5_first.jsonl (headline) and bdind_sonnet5_best_nocrash.jsonl (strict), by their
+`draw` key. Those files are on the cluster; without them the script falls back to
+fire_counts.json's token rule, which compares the monitor runs' files instead and so counts
+problem 1701 as the same program (the monitor's strict file kept the crash-on-trigger first
+draw there, the classifier's a later quiet draw): 52 / 12 instead of 53 / 11.
+
+Inputs: sg_indep_first_passes_v2.json, sg_indep_best_usable_v2.json, and either the two jsonl
+files above or fire_counts.json.
 
 Usage:
     python shared_problems.py --out shared_problems.json
@@ -34,6 +42,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 
 import numpy as np
 from sklearn.metrics import roc_auc_score
@@ -138,6 +147,21 @@ def stratified(strict: Row, shared: list, rest: list) -> dict:
             "rho_non_shared_minus_shared": {"point": b["rho"] - a["rho"], "ci95": _pct(db - da)}}
 
 
+CLASSIFIER_FILES = ("bdind_sonnet5_first.jsonl", "bdind_sonnet5_best_nocrash.jsonl")
+
+
+def _same_program(shared: list[str]) -> tuple[set[str], str]:
+    """Shared problems whose headline and strict attack are the same program, and the rule used."""
+    if all(os.path.exists(f) for f in CLASSIFIER_FILES):
+        head, strict = ({r["problem_id"]: r["draw"]
+                         for r in (json.loads(l) for l in open(f) if l.strip())}
+                        for f in CLASSIFIER_FILES)
+        return ({p for p in shared if head.get(p) is not None and head.get(p) == strict.get(p)},
+                "draw keys of " + " and ".join(CLASSIFIER_FILES))
+    return (set(json.load(open("fire_counts.json"))["attack_identical"]["both"]),
+            "fire_counts.json token rule (monitor files; fallback)")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -146,7 +170,7 @@ def main() -> None:
 
     head, strict = Row("sg_indep_first_passes_v2.json"), Row("sg_indep_best_usable_v2.json")
     shared = sorted(set(head.S) & set(strict.S))
-    same_prog = set(json.load(open("fire_counts.json"))["attack_identical"]["both"])
+    same_prog, same_rule = _same_program(shared)
     differ = [p for p in shared if p not in same_prog]
     identical = [p for p in shared if p in same_prog]
     strict_only = sorted(set(strict.S) - set(shared))
@@ -155,6 +179,7 @@ def main() -> None:
           f"(attack programs differ on {len(differ)}, identical on {len(identical)})")
 
     out = {"method": "existing pooled out-of-fold scores restricted to each subset; no refit",
+           "same_program_rule": same_rule,
            "n_boot": N_BOOT, "seed": SEED,
            "full_rows": {"headline": subset(head, sorted(head.S), "headline, all 623"),
                          "strict": subset(strict, sorted(strict.S), "strict, all 99")},
