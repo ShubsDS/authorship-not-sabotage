@@ -225,7 +225,7 @@ STORED_PAIRS = [
 
 def fig5_stored_pairs():
     # Layout in points on a canvas the printed size of the figure.
-    FS_HEAD, FS_SUB, FS_WHO, FS_CODE, LEAD = 7.6, 6.4, 6.2, 5.6, 7.2
+    FS_HEAD, FS_SUB, FS_WHO, FS_CODE, LEAD = 7.6, 6.4, 6.2, 5.5, 6.8
     GAP, PAD, TOP = 5.0, 3.0, 27.0
     nh = max(len(p["honest"].splitlines()) for p in STORED_PAIRS)
     na = max(len(p["attack"].splitlines()) for p in STORED_PAIRS)
@@ -278,8 +278,8 @@ def fig6_floors_ranked():
                   key=lambda r: -r[0])
     colour = {"mon": LIGHT, "bow": GOLD, "nocode": GOLD_D}
     ci = {"bow": TFIDF_CI, "nocode": NOCODE_CI}
-    fig, ax = plt.subplots(figsize=(TEXT_W, 1.6))
-    fig.subplots_adjust(left=0.072, right=0.995, top=0.98, bottom=0.04)
+    fig, ax = plt.subplots(figsize=(TEXT_W, 1.42))
+    fig.subplots_adjust(left=0.072, right=0.995, top=0.95, bottom=0.04)
     ax.spines[["top", "right", "left", "bottom"]].set_visible(False)
     ax.grid(axis="y", color=GRID, lw=0.7, zorder=0); ax.set_axisbelow(True)
     for i, (v, kind) in enumerate(rows):
