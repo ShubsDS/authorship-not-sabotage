@@ -353,6 +353,12 @@
 % Headline token masks: largest shift of the pooled S under the number and operator masks, and the
 % joint interval of rho under the identifier mask (lexical_probe.json; pooled_stats.json other_joint).
 \newcommand{\maskMaxShift}{0.002}\newcommand{\sameGenRhoIdLo}{0.48}\newcommand{\sameGenRhoIdHi}{0.60}
+% Paired counts against the 24 monitors: intervals clearly excluding zero, and monitors whose
+% paired lower bound is within 0.01 of zero (headline_ci.json, nocode_outside.json:
+% paired_lower_bound_near_zero); size of the held-out slice (headline_ci.json n_items).
+\newcommand{\tfidfKoranBoundaryCount}{2}\newcommand{\nocodeCVBoundaryCount}{1}
+\newcommand{\nocodeHeldoutClearCount}{10}\newcommand{\nocodeHeldoutBoundaryCount}{3}
+\newcommand{\nocodeOutsideFourBoundaryCount}{1}\newcommand{\nocodeHeldoutN}{413}
 
 \title{A Same-Generator Corpus and Classifier Floors\\for AI-Control Monitor Evaluation}
 
@@ -762,26 +768,49 @@ held-out slice it is \nocodeHeldout{}, above \nocodeHeldoutCount{} of \monN{}
 
 \subsection{The protocol $\times$ baseline table}
 \label{app:protocol}
-The no-code floor is cross-validated within the test split because the released
-train/val split is paired and therefore metadata-balanced; its permutation null shuffles
-labels for fitting and scoring alike.
 Table~\ref{tab:protocol-baseline} is the full measurement behind \S\ref{sec:results}. Rows
 are not comparable across protocols; the preprocessing column says whether comments were
 stripped before the baseline read the code. Pairwise accuracies are given to three decimals
-because their resolution over 2,641 pairs is one pair. Intervals in \S\ref{sec:results} are
-bootstraps over problems (\bootDraws{} draws) and nulls are \permReps{} label permutations;
-the held-out no-code row is barely above its own null: \nocodeHeldout{}
-(CI \nocodeHeldoutLo{}--\nocodeHeldoutHi{}) against a 95th percentile of
-\nocodeHeldoutNull{}, $p = \nocodeHeldoutP{}$, above \nocodeHeldoutCount{} of the \monN{}
-monitors by point estimate and \nocodeHeldoutPairedCount{} with a paired interval excluding
-zero. The no-code claim therefore rests on the cross-validated protocol.
-The two floors of \S\ref{sec:results} in full: bag-of-words reaches \tfidfKoran{} (95\% CI
-\tfidfKoranLo{}--\tfidfKoranHi{} by bootstrap over problems; permutation null 95th percentile
-\tfidfKoranNull{}, $\permP$), above \tfidfKoranCount{} of the \monN{} monitors by point
-estimate and \tfidfKoranPairedCount{} with a paired-bootstrap interval excluding zero; the
-no-code floor reaches \nocodeCV{} (CI \nocodeCVLo{}--\nocodeCVHi{} on the pooled out-of-fold
-\nocodeCVPooled{}; null \nocodeCVNull{}, $\permP$), above \nocodeCVCount{} and
-\nocodeCVPairedCount{} respectively.
+because their resolution over 2,641 pairs is one pair. Intervals and nulls follow
+appendix~\ref{app:stats}. Each floor is compared with the \monN{} monitors on the same items,
+by point estimate and by a paired bootstrap of the difference. A monitor counts as clearly
+below a floor when the lower bound of that interval is at least 0.01; monitors whose lower
+bound is within 0.01 of zero are listed as at the boundary, since they count or not depending
+on the bootstrap draws.
+
+Bag-of-words, trained on the split's paired train problems and scored once on its test items,
+reaches \tfidfKoran{} (95\% CI \tfidfKoranLo{}--\tfidfKoranHi{}; null 95th percentile
+\tfidfKoranNull{}, $\permP$). It is above \tfidfKoranCount{} of the monitors by point estimate
+and clearly above \tfidfKoranPairedCount{}; \tfidfKoranBoundaryCount{} more, phi-4 and
+Falcon3-10B, are at the boundary.
+
+Trained on problems outside the test split and scored once on it, as bag-of-words is, the
+no-code floor scores \nocodeOutside{} (\nocodeOutsideLo{}--\nocodeOutsideHi{}; null
+\nocodeOutsideNull{}), below chance and below all \monN{} monitors. Outside the test split
+every problem that passes the split's filter has a working backdoor, so all
+\nocodeOutsideHonest{} honest training items come from problems the filter removed
+(\nocodeOutsideHonestFew{} with two or three tests, \nocodeOutsideHonestNondet{}
+nondeterministic, some both), and the relation between test count and label reverses: outside
+the split attack problems carry more tests than honest ones
+(\nocodeOutsideTestsAttack{} against \nocodeOutsideTestsHonest{}), inside it fewer
+(\testCasesAttack{} against \testCasesHonest{}). Restricted to training problems with at least
+four tests, as every test item has, it scores \nocodeOutsideFour{}
+(\nocodeOutsideFourLo{}--\nocodeOutsideFourHi{}; null \nocodeOutsideFourNull{},
+$p = \nocodeOutsideFourP{}$), above \nocodeOutsideFourCount{} monitors by point estimate and
+\nocodeOutsideFourPairedCount{} clearly (\nocodeOutsideFourBoundaryCount{} at the boundary).
+The released train split cannot be used instead: it is paired, so each problem contributes an
+honest and an attack item with identical metadata (Table~\ref{tab:protocol-baseline}, matched
+pairs).
+
+Cross-validated within the test split, with 5-fold CV repeated five times, the no-code floor
+reaches \nocodeCV{} (\nocodeCVLo{}--\nocodeCVHi{}; null \nocodeCVNull{}, $\permP$), above
+\nocodeCVCount{} monitors by point estimate and \nocodeCVPairedCount{} clearly
+(\nocodeCVBoundaryCount{} at the boundary). On a single \nocodeHeldoutN{}-item held-out slice
+of the same items it is \nocodeHeldout{} (\nocodeHeldoutLo{}--\nocodeHeldoutHi{}; null
+\nocodeHeldoutNull{}, $p = \nocodeHeldoutP{}$), above \nocodeHeldoutCount{} of the monitors
+recomputed on those items by point estimate and \nocodeHeldoutClearCount{} clearly
+(\nocodeHeldoutBoundaryCount{} at the boundary). These within-split values measure how the
+split's filter ties problem metadata to the label.
 
 \input{fig/f1-protocol-baseline}
 
