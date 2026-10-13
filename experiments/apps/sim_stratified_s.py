@@ -11,6 +11,13 @@ autojunk=False, comment-stripped) and on the pairs below cuts of 0.95, 0.90 and 
 refitted on the same subset each time, so rho stays like-for-like. Strata under 50 pairs are not
 fitted. On Haiku 4.5, S stays between 0.47 and 0.53 in every stratum and subset.
 
+Each subset records the fold means (`S`, `B_prime`, `rho`, as first committed) and the
+camera-ready convention's values: the pooled out-of-fold S and B' (`S_pooled`,
+`B_prime_pooled`), whose intervals are `S_ci95` and `B_prime_ci95` (evaluate()'s bootstrap over
+problems of the pooled AUROC), and rho from the pooled values with the joint bootstrap of
+rho_joint_ci.joint_bootstrap() (`rho_pooled`, `rho_ci95_joint`; 2,000 draws, seed 0).
+`range_over_strata` gives the min and max over the fitted strata, both ways.
+
 Usage:
     python sim_stratified_s.py sg_haiku45_indep_passes.json --gen gen_haiku45.jsonl \
         --bd bdind_haiku45.jsonl --out sim_strata_haiku45.json
@@ -32,6 +39,9 @@ import pyarrow.parquet as pq
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from data import _honest_code, _pick_backdoor, strip_comments  # noqa: E402
 from gate_s_eval import evaluate  # noqa: E402 - the identical fit used for S and B'
+from rho_joint_ci import _oof_frame, joint_bootstrap  # noqa: E402
+
+N_BOOT, SEED = 2000, 0
 
 CUTS = [(0.0, 0.60), (0.60, 0.80), (0.80, 0.95), (0.95, 1.01)]
 
@@ -79,9 +89,15 @@ def main() -> None:
         rec = {"n": len(keep), "S": S["auroc"], "S_ci95": S["auroc_ci95_boot"],
                "pairwise": S["pairwise_acc"],
                "mean_sim": float(np.mean([sim[p] for p in keep]))}
+        rec["S_pooled"] = S["auroc_pooled_oof"]
         if B:
             rec.update({"B_prime": B["auroc"], "B_prime_ci95": B["auroc_ci95_boot"],
                         "rho": (S["auroc"] - 0.5) / (B["auroc"] - 0.5)})
+            jb = joint_bootstrap(_oof_frame(S), _oof_frame(B), N_BOOT, SEED)
+            rec.update({"B_prime_pooled": B["auroc_pooled_oof"],
+                        "rho_pooled": jb["rho_point_pooled_oof"],
+                        "rho_ci95_joint": jb["rho_ci95_joint"],
+                        "n_joint": jb["n_common_problems"]})
         return rec
 
     out = {"sg_json": args.sg_json, "n_all": len(pids),
@@ -99,8 +115,16 @@ def main() -> None:
         keep = [p for p in pids if sim[p] < cut]
         if len(keep) >= 50:
             out["below_cut"][f"<{cut}"] = fit(keep, f"sim < {cut}")
+    fitted = [r for r in out["strata"].values() if "refused" not in r]
+    rng = lambda k: [min(r[k] for r in fitted if k in r), max(r[k] for r in fitted if k in r)]
+    out["range_over_strata"] = {"pooled": {"S": rng("S_pooled"), "B_prime": rng("B_prime_pooled"),
+                                           "rho": rng("rho_pooled")},
+                                "fold_mean": {"S": rng("S"), "B_prime": rng("B_prime"),
+                                              "rho": rng("rho")},
+                                "mean_sim_lowest_stratum": fitted[0]["mean_sim"]}
 
-    print(f"\n{'subset':14} {'n':>5} {'mean sim':>9} {'S':>8} {'95% CI':>17} {'B_prime':>8} {'rho':>7}")
+    print(f"\n{'subset':14} {'n':>5} {'mean sim':>9} {'S':>8} {'95% CI':>17} {'B_prime':>8} {'rho':>7}"
+          f"   pooled: {'S':>6} {'B_prime':>7} {'rho':>6} {'rho 95% CI':>14}")
     def show(name, r):
         if "refused" in r:
             print(f"{name:14} {r['n']:5d}   {r['refused']}")
@@ -108,11 +132,20 @@ def main() -> None:
         ci = f"{r['S_ci95'][0]:.4f}-{r['S_ci95'][1]:.4f}"
         bp = f"{r['B_prime']:.4f}" if "B_prime" in r else "-"
         rho = f"{r['rho']:.3f}" if "rho" in r else "-"
-        print(f"{name:14} {r['n']:5d} {r['mean_sim']:9.3f} {r['S']:8.4f} {ci:>17} {bp:>8} {rho:>7}")
+        pooled = (f"{r['S_pooled']:.4f} {r['B_prime_pooled']:.4f} {r['rho_pooled']:6.3f} "
+                  f"{r['rho_ci95_joint'][0]:6.3f}-{r['rho_ci95_joint'][1]:6.3f}"
+                  if "B_prime_pooled" in r else f"{r['S_pooled']:.4f}")
+        print(f"{name:14} {r['n']:5d} {r['mean_sim']:9.3f} {r['S']:8.4f} {ci:>17} {bp:>8} {rho:>7}"
+              f"           {pooled}")
     for k, v in out["strata"].items():
         show("sim " + k, v)
     for k, v in out["below_cut"].items():
         show("sim " + k, v)
+    rs = out["range_over_strata"]
+    print(f"over the fitted strata: S {rs['fold_mean']['S'][0]:.4f}-{rs['fold_mean']['S'][1]:.4f} "
+          f"(fold means) / {rs['pooled']['S'][0]:.4f}-{rs['pooled']['S'][1]:.4f} (pooled); B' "
+          f"{rs['fold_mean']['B_prime'][0]:.4f}-{rs['fold_mean']['B_prime'][1]:.4f} / "
+          f"{rs['pooled']['B_prime'][0]:.4f}-{rs['pooled']['B_prime'][1]:.4f}")
 
     path = args.out or args.sg_json.replace(".json", "_simstrata.json")
     json.dump(out, open(path, "w"), indent=2, default=float)
