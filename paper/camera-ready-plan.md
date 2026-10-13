@@ -187,6 +187,23 @@ comes from"): `pooled_stats.py`, `fire_counts.py`, `monitor_swap.py`, `audit_bud
   classifier's files: 53 / 11 split, not 52 / 12 (bf2de2a).
 - Bibliography cleaned and checked against arXiv (merge of camera-ready-bib).
 
+### Figures (October 13, 2026)
+
+The figure designs of the archived branch (tag `archive/camera-ready-valmi`) were compared with
+main's and the better ones adopted, redrawn from current numbers in `figures.py`, which checks
+each value against the macros (b4cd91e, 35c2a84, 84724da, 7ac4639, 3718032, 1ca7b78):
+
+- Figure 1 is now three stored pairs in code (f5-stored-pairs.pdf), checked against the public
+  dataset; the construction schematic is removed.
+- Figure 2 ranks the two floors among the 24 monitors (f6-floors-ranked.pdf), in the Results.
+- Appendix: the audit-budget curve (f7, from a new curve in `audit_budget.json`) and the
+  monitor's score histograms (f8). The curve stays in the appendix because the body is at five
+  pages.
+- F2 and F3 keep their content and move to the same visual system (Arial, greys, gold).
+- Not adopted yet: the archived branch's top-feature figure. Its stored-pair tokens (`and`, `==`,
+  `if`) are the special-case conditions backdoors are built from, which the Results sentence
+  "What it reads is stylistic" does not account for.
+
 ### Still open
 
 1. The strict monitor re-run (needs an API key; command in `experiments/README.md`, "Pending").
