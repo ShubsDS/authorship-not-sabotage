@@ -375,14 +375,14 @@ injected text, attacker-side selection shown to inflate safety estimates, transc
 removed as a nuisance covariate \cite{terekhov2026adaptive, gewang2026attackselection,
 pinto2026calibration}.
 
-None of that preprocessing removes the authorship gap. On the filtered, comment-stripped
-split, a bag-of-words classifier reaches AUROC \tfidfKoran{}, above \tfidfKoranCount{} of the
-\monN{} open-weight monitors ranked on that same split, whose median score is \monMedian{}; a
-classifier that reads no code at all, only problem difficulty, test count and question length
--- the \emph{no-code floor} -- reaches \nocodeCV{}, above \nocodeCVCount{}. The classifier
-transfers across backdoor generators and is nearly as strong on \emph{inert} backdoors, ones
-that never produce a wrong answer, as on working ones. Neither is
-a property of a backdoor.
+Two classifiers separate the classes of the filtered, comment-stripped split without reading a
+backdoor. Bag-of-words reaches AUROC \tfidfKoran{}, above \tfidfKoranCount{} of the \monN{}
+open-weight monitors ranked on that split. It transfers across backdoor generators and is
+nearly as strong on backdoors that never produce a wrong answer as on working ones, so it is not
+reading the sabotage. A classifier that reads no code,
+only problem difficulty, test count and question length -- the \emph{no-code floor} -- reaches
+\nocodeCV{}, above \nocodeCVCount{} of the monitors. It reads how the label was selected:
+attack problems carry fewer tests.
 
 We contribute (i)~a construction for stored-pair corpora, in which one model writes both
 classes under one prompt framing and one harness verifies both, and the corpus that implements
