@@ -61,10 +61,12 @@ def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2
     """Problem-disjoint 5-fold TF-IDF + logistic regression over honest/attack pairs.
 
     `pairs` has one row per problem with columns problem_id, honest, attack. Returns the
-    fold-mean AUROC (`auroc`, the number reported as B, G, S and B'; B = 0.8714, sd 0.0085) and
-    its across-fold sd, pairwise accuracy, the length-only and surface-7 AUROCs, the pooled
-    out-of-fold AUROC with a 95% CI from a bootstrap over problems (`auroc_ci95_boot`, RNG seed
-    0), and the per-pair out-of-fold scores under `oof` for reuse downstream (rho_joint_ci.py).
+    fold-mean AUROC (`auroc`; B = 0.8714, sd 0.0085) and its across-fold sd, pairwise accuracy,
+    the length-only and surface-7 AUROCs (fold means), the pooled out-of-fold AUROC
+    (`auroc_pooled_oof`, the number the paper reports as B, G, S and B') with a 95% CI from a
+    bootstrap over problems (`auroc_ci95_boot`, RNG seed 0), the pooled length-only AUROC with
+    its interval on the same draws (`length_only_auroc_pooled`, `length_only_ci95_boot`), and
+    the per-pair out-of-fold scores under `oof` for reuse downstream (rho_joint_ci.py).
 
     `seed=None` keeps the deterministic GroupKFold assignment used for every reported number; an
     integer shuffles the problem-to-fold assignment, for the fold-seed robustness check.
@@ -111,11 +113,18 @@ def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2
     # resampling rows resamples problems; honest and attack scores travel together.
     y_all = np.r_[np.zeros(len(pairs)), np.ones(len(pairs))]
     pooled = float(roc_auc_score(y_all, np.r_[oof_h, oof_a]))
+    # Length-only, pooled: program length is not fitted, so its pooled out-of-fold AUROC is the
+    # AUROC of length over all pairs at once. Its interval uses the same draws as the TF-IDF one
+    # (one randint per draw, so `auroc_ci95_boot` is unchanged by computing it).
+    len_h = np.array([len(c) for c in pairs.honest], dtype=float)
+    len_a = np.array([len(c) for c in pairs.attack], dtype=float)
+    len_pooled = float(roc_auc_score(y_all, np.r_[len_h, len_a]))
     rng = np.random.RandomState(0)
-    boots = []
+    boots, len_boots = [], []
     for _ in range(n_boot):
         idx = rng.randint(0, len(pairs), len(pairs))
         boots.append(roc_auc_score(y_all, np.r_[oof_h[idx], oof_a[idx]]))
+        len_boots.append(roc_auc_score(y_all, np.r_[len_h[idx], len_a[idx]]))
     ci_lo, ci_hi = (float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5)))
 
     out = {
@@ -124,6 +133,9 @@ def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2
         "auroc_pooled_oof": pooled, "auroc_ci95_boot": [ci_lo, ci_hi], "n_boot": n_boot,
         "pairwise_acc": float(np.mean(pairaccs)),
         "length_only_auroc": float(np.mean(len_aurocs)),
+        "length_only_auroc_pooled": len_pooled,
+        "length_only_ci95_boot": [float(np.percentile(len_boots, 2.5)),
+                                  float(np.percentile(len_boots, 97.5))],
         "surface7_auroc": float(np.mean(surf_aurocs)),
         "fold_seed": seed,
         "oof": [{"problem_id": str(p), "score_honest": float(h), "score_attack": float(a)}
@@ -132,7 +144,7 @@ def evaluate(pairs: pd.DataFrame, label: str, n_splits: int = 5, n_boot: int = 2
     print(f"  {label:24s} n={out['n_pairs']:5d}  TF-IDF AUROC={out['auroc']:.4f}"
           f" (sd {out['auroc_sd']:.4f}; pooled {pooled:.4f}, 95% CI {ci_lo:.4f}-{ci_hi:.4f})"
           f"  pairwise={out['pairwise_acc']:.4f}"
-          f"  length-only={out['length_only_auroc']:.4f}"
+          f"  length-only={out['length_only_auroc']:.4f} (pooled {len_pooled:.4f})"
           f"  surface7={out['surface7_auroc']:.4f}")
     return out
 
