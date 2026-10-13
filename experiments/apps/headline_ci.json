@@ -37,6 +37,10 @@
       "above_n_of_24_ci_excludes_zero": 20,
       "count_basis": "each monitor's AUROC recomputed on the same items as ours (on the full 1,375-item split this equals its published test_auroc)",
       "above_n_of_24_vs_published_full_split_auroc": 20,
+      "paired_lower_bound_near_zero": {
+        "microsoft/phi-4": 0.0024,
+        "tiiuae/Falcon3-10B-Instruct": 0.0002
+      },
       "train_labels_only_null": {
         "p95": 0.5516,
         "mean": 0.499,
@@ -504,6 +508,9 @@
       "above_n_of_24_ci_excludes_zero": 17,
       "count_basis": "each monitor's AUROC recomputed on the same items as ours (on the full 1,375-item split this equals its published test_auroc)",
       "above_n_of_24_vs_published_full_split_auroc": 20,
+      "paired_lower_bound_near_zero": {
+        "Qwen/Qwen3-8B": -0.0063
+      },
       "per_monitor": [
         {
           "repo": "HuggingFaceTB/SmolLM3-3B",
@@ -965,6 +972,11 @@
       "above_n_of_24_ci_excludes_zero": 12,
       "count_basis": "each monitor's AUROC recomputed on the same items as ours (on the full 1,375-item split this equals its published test_auroc)",
       "above_n_of_24_vs_published_full_split_auroc": 18,
+      "paired_lower_bound_near_zero": {
+        "mistralai/Mistral-7B-Instruct-v0.3": 0.0047,
+        "tiiuae/Falcon3-3B-Instruct": 0.0078,
+        "tiiuae/Falcon3-7B-Instruct": -0.0068
+      },
       "train_labels_only_null": {
         "p95": 0.6948,
         "mean": 0.5013,

@@ -522,6 +522,10 @@ def summarise(name, protocol, own, null, paired, null_train_only=None) -> dict:
         "above_n_of_24_ci_excludes_zero": above_ci,
         "count_basis": COUNT_BASIS,
         "above_n_of_24_vs_published_full_split_auroc": above_pub,
+        # Monitors whose paired lower bound is within 0.01 of zero: at 2,000 draws the bound's Monte
+        # Carlo error is a few thousandths, so each of these can flip the CI count under another seed.
+        "paired_lower_bound_near_zero": {d["repo"]: d["diff_ci"][0] for d in paired
+                                         if d["we_are_higher"] and abs(d["diff_ci"][0]) < 0.01},
     }
     if null_train_only is not None:
         b["train_labels_only_null"] = null_summary(own["auroc"], null_train_only)

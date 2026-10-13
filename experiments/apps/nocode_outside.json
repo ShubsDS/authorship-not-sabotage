@@ -31,6 +31,7 @@
       "above_n_of_24_ci_excludes_zero": 0,
       "count_basis": "each monitor's AUROC recomputed on the same items as ours (on the full 1,375-item split this equals its published test_auroc)",
       "above_n_of_24_vs_published_full_split_auroc": 0,
+      "paired_lower_bound_near_zero": {},
       "train_labels_only_null": {
         "p95": 0.7398,
         "mean": 0.4976,
@@ -517,6 +518,9 @@
       "above_n_of_24_ci_excludes_zero": 8,
       "count_basis": "each monitor's AUROC recomputed on the same items as ours (on the full 1,375-item split this equals its published test_auroc)",
       "above_n_of_24_vs_published_full_split_auroc": 14,
+      "paired_lower_bound_near_zero": {
+        "allenai/OLMo-2-1124-13B-Instruct": -0.0097
+      },
       "train_labels_only_null": {
         "p95": 0.734,
         "mean": 0.4941,
