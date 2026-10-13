@@ -10,11 +10,12 @@ Protocol & Baseline & Value & Prep. & Against \\
 \multicolumn{5}{@{}l}{\emph{AUROC}} \\
 Koran's exact split & TF-IDF word 1--2gram & 0.8063 & stripped & above 20 of 24 \\
 \quad same & TF-IDF word 1--2gram & 0.8914 & kept & above 22 of 24 \\
-\quad same, reads no code & difficulty $+$ \#tests $+$ $|q|$ & 0.7715 $\pm$ 0.0389 & no code & above 20 of 24 \\
-\quad same, held-out slice & difficulty $+$ \#tests $+$ $|q|$ & 0.7163 & no code & above 18 of 24 \\
+\quad same, reads no code & difficulty $+$ \#tests $+$ $|q|$ & 0.7658 & no code & above 20 of 24 \\
+\quad same, held-out slice & difficulty $+$ \#tests $+$ $|q|$ & 0.7163 & no code & above 17 of 24 \\
 \quad same & code length only & 0.4726 & stripped & chance \\
 \quad same & \#-count detector & 0.4983 & stripped & chance \\
 \quad same & \#-count detector & 0.6957 & kept & --- \\
+\quad trained outside the split & difficulty $+$ \#tests $+$ $|q|$ & 0.2984 & no code & below chance \\
 Raw artifact, problem level & all metadata & 0.8917 & no code & --- \\
 \quad same & difficulty only & 0.6823 & no code & --- \\
 \quad same & \texttt{solution\_passes\_tests} & 0.7881 & no code & --- \\
