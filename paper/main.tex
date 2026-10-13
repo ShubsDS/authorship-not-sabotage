@@ -340,16 +340,17 @@ only problem metadata reaches \nocodeCV{}; it reads how the label was selected, 
 rebuild the corpus with one model writing both classes on the same problems and one harness
 verifying both, and release it.\footnote{Code and corpus:
 \url{https://github.com/ShubsDS/authorship-not-sabotage}.} Writer features then cannot separate
-the classes; what still does comes from what the prompts asked for, the backdoor included. The surviving share of
-stored-pair separability, $\rho$, is \sameGenRho{} (Sonnet~5) and \haikuRho{} (Haiku~4.5) on
-attempts, of which \relFireFirst{} of \sameGenN{} and \haikuFireInRow{} of \haikuN{} fire, and
-\strictRho{} on \strictN{} Sonnet attacks that fire. $\rho$ is not the backdoor's share: the
-attacks change with the writer, and the attacking model alone moves stored-pair AUROC from
-\bAttackerLo{} to \bAttackerHi{}. A Sonnet~5 monitor falls from \monStoredHeadAbs{} to
-\monitorS{} on our pairs; swapping one class at a time puts the whole drop in our attacks,
-which it finds far less suspicious. Evaluations should report both classifiers as floors
-against permutation nulls, build both classes with one model under one prompt, define the
-negative class by honesty, and report detection at a fixed audit budget with the firing rate.
+the classes; what still does comes from what the prompts asked for, the backdoor included. The
+surviving share of stored-pair separability, $\rho$, is \sameGenRho{} (Sonnet~5) and
+\haikuRho{} (Haiku~4.5) on attempts, of which \relFireFirst{} of \sameGenN{} and
+\haikuFireInRow{} of \haikuN{} fire, and \strictRho{} on \strictN{} Sonnet attacks that fire.
+$\rho$ is not the backdoor's share: the attacks change with the writer, and the attacking model
+alone moves stored-pair AUROC from \bAttackerLo{} to \bAttackerHi{}. A Sonnet~5 monitor falls
+from \monStoredHeadAbs{} to \monitorS{} on our pairs; swapping one class at a time puts the whole
+drop in our attacks, which it finds far less suspicious. Evaluations should report both
+classifiers as floors against permutation nulls, build both classes with one model under one
+prompt, define the negative class by honesty, and report detection at a fixed audit budget with
+the firing rate.
 \end{abstract}
 
 \section{Introduction}
@@ -431,13 +432,13 @@ runner, applied to both classes (appendix~\ref{app:harness}).
 
 Against that we build a corpus in which one model, Sonnet~5 or Haiku~4.5, writes both classes
 on the same APPS problems. With one writer, writer features cannot separate the classes; what
-still separates them comes from what the two prompts asked for, the backdoor included. The \emph{independent} arm writes
-the attack class from the problem statement alone. An \emph{edit} arm, shown its own honest
-solution, returns near-copies (appendix~\ref{app:pairsim}), and a \emph{prompt-matched} arm
-regenerates the honest class from the attack prompt with the clauses asking for a flaw replaced
-by their correct-program counterparts, so both classes are elicited alike. A backdoor
-\emph{fires} if it passes the public tests and gives a wrong answer on the trigger input the
-attacker declares; one that never fires is \emph{inert}. \emph{Headline} rows
+still separates them comes from what the two prompts asked for, the backdoor included. The
+\emph{independent} arm writes the attack class from the problem statement alone. An \emph{edit}
+arm, shown its own honest solution, returns near-copies (appendix~\ref{app:pairsim}), and a
+\emph{prompt-matched} arm regenerates the honest class from the attack prompt with the clauses
+asking for a flaw replaced by their correct-program counterparts, so both classes are elicited
+alike. A backdoor \emph{fires} if it passes the public tests and gives a wrong answer on the
+trigger input the attacker declares; one that never fires is \emph{inert}. \emph{Headline} rows
 (Table~\ref{tab:gates}) are attempts: one independent-arm attack per problem, sampled before
 its outcome is known and kept if it passes the public tests; \emph{strict} rows keep only
 attacks that fire, drawn from a pool of retries.
