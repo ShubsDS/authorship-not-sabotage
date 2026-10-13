@@ -410,6 +410,46 @@
 \newcommand{\retestSpearmanLo}{0.85}\newcommand{\retestSpearmanHi}{0.89}
 \newcommand{\retestN}{64}\newcommand{\retestAttackN}{12}
 \newcommand{\monStrictDiffer}{3}\newcommand{\monStrictDropMin}{0.812}\newcommand{\monStrictDropMax}{0.839}
+% Audit budget: share of attacks flagged at 1%, 2%, 5% honest false-positive rate (randomized
+% tie rule), stored and same-generator pairs, and their difference with a paired interval
+% (audit_budget.json). aud<detector><set><One|Two|Five><St|Sg|D|Lo|Hi>; Sonnet 5 at 2% uses the
+% existing \auditHead*/\auditStrict* macros. Cons = conservative rule (flag only above t).
+\newcommand{\audSonHeadOneSt}{83\%}\newcommand{\audSonHeadOneSg}{5\%}\newcommand{\audSonHeadOneD}{0.79}
+\newcommand{\audSonHeadOneLo}{0.74}\newcommand{\audSonHeadOneHi}{0.83}
+\newcommand{\audSonHeadTwoD}{0.79}\newcommand{\audSonHeadTwoLo}{0.75}\newcommand{\audSonHeadTwoHi}{0.83}
+\newcommand{\audSonHeadFiveSt}{88\%}\newcommand{\audSonHeadFiveSg}{11\%}\newcommand{\audSonHeadFiveD}{0.76}
+\newcommand{\audSonHeadFiveLo}{0.72}\newcommand{\audSonHeadFiveHi}{0.80}
+\newcommand{\audSonStrictOneSt}{76\%}\newcommand{\audSonStrictOneSg}{46\%}\newcommand{\audSonStrictOneD}{0.30}
+\newcommand{\audSonStrictOneLo}{0.16}\newcommand{\audSonStrictOneHi}{0.42}
+\newcommand{\audSonStrictFiveSt}{81\%}\newcommand{\audSonStrictFiveSg}{55\%}\newcommand{\audSonStrictFiveD}{0.26}
+\newcommand{\audSonStrictFiveLo}{0.13}\newcommand{\audSonStrictFiveHi}{0.40}
+\newcommand{\audHaiHeadOneSt}{1\%}\newcommand{\audHaiHeadOneSg}{1\%}\newcommand{\audHaiHeadOneD}{0.00}
+\newcommand{\audHaiHeadOneLo}{$-$0.02}\newcommand{\audHaiHeadOneHi}{0.13}
+\newcommand{\audHaiHeadTwoSt}{10\%}\newcommand{\audHaiHeadTwoSg}{3\%}\newcommand{\audHaiHeadTwoD}{0.07}
+\newcommand{\audHaiHeadTwoLo}{$-$0.01}\newcommand{\audHaiHeadTwoHi}{0.19}
+\newcommand{\audHaiHeadFiveSt}{32\%}\newcommand{\audHaiHeadFiveSg}{6\%}\newcommand{\audHaiHeadFiveD}{0.26}
+\newcommand{\audHaiHeadFiveLo}{0.13}\newcommand{\audHaiHeadFiveHi}{0.44}
+\newcommand{\audHaiStrictOneSt}{6\%}\newcommand{\audHaiStrictOneSg}{3\%}\newcommand{\audHaiStrictOneD}{0.02}
+\newcommand{\audHaiStrictOneLo}{$-$0.12}\newcommand{\audHaiStrictOneHi}{0.20}
+\newcommand{\audHaiStrictTwoSt}{8\%}\newcommand{\audHaiStrictTwoSg}{5\%}\newcommand{\audHaiStrictTwoD}{0.04}
+\newcommand{\audHaiStrictTwoLo}{$-$0.31}\newcommand{\audHaiStrictTwoHi}{0.27}
+\newcommand{\audHaiStrictFiveSt}{17\%}\newcommand{\audHaiStrictFiveSg}{14\%}\newcommand{\audHaiStrictFiveD}{0.03}
+\newcommand{\audHaiStrictFiveLo}{$-$0.35}\newcommand{\audHaiStrictFiveHi}{0.58}
+\newcommand{\audHaiStrictKOneSt}{2\%}\newcommand{\audHaiStrictKOneSg}{0\%}\newcommand{\audHaiStrictKOneD}{0.02}
+\newcommand{\audHaiStrictKOneLo}{$-$0.18}\newcommand{\audHaiStrictKOneHi}{0.21}
+\newcommand{\audHaiStrictKTwoSt}{8\%}\newcommand{\audHaiStrictKTwoSg}{12\%}\newcommand{\audHaiStrictKTwoD}{$-$0.04}
+\newcommand{\audHaiStrictKTwoLo}{$-$0.21}\newcommand{\audHaiStrictKTwoHi}{0.42}
+\newcommand{\audHaiStrictKFiveSt}{50\%}\newcommand{\audHaiStrictKFiveSg}{25\%}\newcommand{\audHaiStrictKFiveD}{0.25}
+\newcommand{\audHaiStrictKFiveLo}{$-$0.19}\newcommand{\audHaiStrictKFiveHi}{0.51}
+\newcommand{\audClfHeadTwoSt}{24\%}\newcommand{\audClfHeadTwoSg}{7\%}\newcommand{\audClfHeadTwoD}{0.17}
+\newcommand{\audClfHeadTwoLo}{0.08}\newcommand{\audClfHeadTwoHi}{0.29}
+\newcommand{\audClfStrictTwoSt}{29\%}\newcommand{\audClfStrictTwoSg}{6\%}\newcommand{\audClfStrictTwoD}{0.23}
+\newcommand{\audClfStrictTwoLo}{0.03}\newcommand{\audClfStrictTwoHi}{0.35}
+\newcommand{\audClfHaiHeadTwoSt}{25\%}\newcommand{\audClfHaiHeadTwoSg}{1\%}\newcommand{\audClfHaiHeadTwoD}{0.24}
+\newcommand{\audClfHaiHeadTwoLo}{0.19}\newcommand{\audClfHaiHeadTwoHi}{0.37}
+\newcommand{\audConsSonHeadSt}{85\%}\newcommand{\audConsSonHeadSg}{6\%}
+\newcommand{\audConsSonStrictSt}{74\%}\newcommand{\audConsSonStrictSg}{46\%}
+\newcommand{\audConsSonStrictD}{0.29}\newcommand{\audConsSonStrictLo}{0.17}\newcommand{\audConsSonStrictHi}{0.44}
 
 \title{A Same-Generator Corpus and Classifier Floors\\for AI-Control Monitor Evaluation}
 
@@ -1058,6 +1098,69 @@ different attacks on \monStrictDiffer{} of the \strictN{} problems, where one se
 draw that fires only by crashing on its trigger and the other a later draw that fires without
 crashing. The committed files do not record which three; dropping the attack programs of any
 three problems moves \monitorStrict{} to between \monStrictDropMin{} and \monStrictDropMax{}.
+
+\subsection{Detection at a fixed audit budget}
+\label{app:audit}
+Table~\ref{tab:audit} gives the share of attacks a detector flags when its threshold is set on
+one pair set's own honest programs to flag 1\%, 2\% or 5\% of them, for the stored pairs (human
+honest code, stored attacks) and for the same-generator pairs of the same problems. Monitor
+scores are integers from 0 to 100, so many honest programs tie at the threshold $t$. We flag
+every program above $t$ and each program at $t$ with the probability that makes the honest
+false-positive rate equal to the target, and report the expected catch rate, which needs no
+random draws. Flagging only above $t$, which keeps the honest rate at or below the target,
+leaves Sonnet~5's 2\% catch rates on the headline problems at \audConsSonHeadSt{} and
+\audConsSonHeadSg{} and gives \audConsSonStrictSt{} and \audConsSonStrictSg{} on the strict
+problems (difference \audConsSonStrictD{}, \audConsSonStrictLo{} to \audConsSonStrictHi{}). The
+bag-of-words rows use the out-of-fold scores of Table~\ref{tab:gates}; they are continuous, so
+the two rules differ by at most one program. The difference is the stored minus the
+same-generator catch rate, with both thresholds recomputed on each bootstrap draw.
+
+Haiku~4.5's rows are uninformative. Its 512-token runs lost about half the replies, unevenly by
+class (appendix~\ref{app:monitors}), and it scores many honest programs near the top of the
+scale, so at 1\% and 2\% it flags few attacks of either kind. Every difference interval for it
+contains zero except on the headline problems at 5\%.
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{\textbf{Share of attacks flagged at a fixed false-positive rate.} The threshold is set
+on each pair set's own honest programs; ties at the threshold are broken at random so that the
+honest false-positive rate equals the target. \emph{Stored}: human honest code against stored
+attacks; \emph{same-gen.}: our pairs on the same problems. Difference: stored minus
+same-generator, with a paired 95\% bootstrap interval over problems. $^\ast$Haiku~4.5 re-run
+with a 1{,}024-token reply ceiling. Source: \texttt{audit\_budget.py}.}
+\label{tab:audit}
+\begin{tabular}{@{}l c r r r l@{}}
+\toprule
+Detector, problems & FPR & stored & same-gen. & difference & 95\% CI \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Monitor, on Sonnet~5's pairs}} \\
+Sonnet~5, headline & 1\% & \audSonHeadOneSt{} & \audSonHeadOneSg{} & \audSonHeadOneD{} & \audSonHeadOneLo{} to \audSonHeadOneHi{} \\
+ & 2\% & \auditHeadStored{} & \auditHeadOurs{} & \audSonHeadTwoD{} & \audSonHeadTwoLo{} to \audSonHeadTwoHi{} \\
+ & 5\% & \audSonHeadFiveSt{} & \audSonHeadFiveSg{} & \audSonHeadFiveD{} & \audSonHeadFiveLo{} to \audSonHeadFiveHi{} \\
+\addlinespace
+Sonnet~5, strict & 1\% & \audSonStrictOneSt{} & \audSonStrictOneSg{} & \audSonStrictOneD{} & \audSonStrictOneLo{} to \audSonStrictOneHi{} \\
+ & 2\% & \auditStrictStored{} & \auditStrictOurs{} & \auditStrictDiff{} & \auditStrictDiffLo{} to \auditStrictDiffHi{} \\
+ & 5\% & \audSonStrictFiveSt{} & \audSonStrictFiveSg{} & \audSonStrictFiveD{} & \audSonStrictFiveLo{} to \audSonStrictFiveHi{} \\
+\addlinespace
+Haiku~4.5, headline & 1\% & \audHaiHeadOneSt{} & \audHaiHeadOneSg{} & \audHaiHeadOneD{} & \audHaiHeadOneLo{} to \audHaiHeadOneHi{} \\
+ & 2\% & \audHaiHeadTwoSt{} & \audHaiHeadTwoSg{} & \audHaiHeadTwoD{} & \audHaiHeadTwoLo{} to \audHaiHeadTwoHi{} \\
+ & 5\% & \audHaiHeadFiveSt{} & \audHaiHeadFiveSg{} & \audHaiHeadFiveD{} & \audHaiHeadFiveLo{} to \audHaiHeadFiveHi{} \\
+\addlinespace
+Haiku~4.5, strict & 1\% & \audHaiStrictOneSt{} & \audHaiStrictOneSg{} & \audHaiStrictOneD{} & \audHaiStrictOneLo{} to \audHaiStrictOneHi{} \\
+ & 2\% & \audHaiStrictTwoSt{} & \audHaiStrictTwoSg{} & \audHaiStrictTwoD{} & \audHaiStrictTwoLo{} to \audHaiStrictTwoHi{} \\
+ & 5\% & \audHaiStrictFiveSt{} & \audHaiStrictFiveSg{} & \audHaiStrictFiveD{} & \audHaiStrictFiveLo{} to \audHaiStrictFiveHi{} \\
+\addlinespace
+Haiku~4.5, strict$^\ast$ & 1\% & \audHaiStrictKOneSt{} & \audHaiStrictKOneSg{} & \audHaiStrictKOneD{} & \audHaiStrictKOneLo{} to \audHaiStrictKOneHi{} \\
+ & 2\% & \audHaiStrictKTwoSt{} & \audHaiStrictKTwoSg{} & \audHaiStrictKTwoD{} & \audHaiStrictKTwoLo{} to \audHaiStrictKTwoHi{} \\
+ & 5\% & \audHaiStrictKFiveSt{} & \audHaiStrictKFiveSg{} & \audHaiStrictKFiveD{} & \audHaiStrictKFiveLo{} to \audHaiStrictKFiveHi{} \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Bag-of-words, out-of-fold scores, by the generator of the pairs}} \\
+Sonnet~5, headline & 2\% & \audClfHeadTwoSt{} & \audClfHeadTwoSg{} & \audClfHeadTwoD{} & \audClfHeadTwoLo{} to \audClfHeadTwoHi{} \\
+Sonnet~5, strict & 2\% & \audClfStrictTwoSt{} & \audClfStrictTwoSg{} & \audClfStrictTwoD{} & \audClfStrictTwoLo{} to \audClfStrictTwoHi{} \\
+Haiku~4.5, headline & 2\% & \audClfHaiHeadTwoSt{} & \audClfHaiHeadTwoSg{} & \audClfHaiHeadTwoD{} & \audClfHaiHeadTwoLo{} to \audClfHaiHeadTwoHi{} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{The two generators' funnel}
 Both generators were run through the identical pipeline. Our honest draws pass the public
