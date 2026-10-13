@@ -486,12 +486,12 @@
 \newcommand{\shHeadS}{0.781}\newcommand{\shHeadBp}{0.845}\newcommand{\shHeadRhoLo}{0.62}\newcommand{\shHeadRhoHi}{1.04}
 \newcommand{\shWorkS}{0.735}\newcommand{\shWorkBp}{0.814}\newcommand{\shWorkRhoLo}{0.55}\newcommand{\shWorkRhoHi}{0.98}
 \newcommand{\shSDelta}{$-$0.046}\newcommand{\shSDeltaLo}{$-$0.098}\newcommand{\shSDeltaHi}{$+$0.007}
-\newcommand{\shDiffN}{52}\newcommand{\shDiffHeadS}{0.808}\newcommand{\shDiffHeadBp}{0.846}
-\newcommand{\shDiffHeadRho}{0.89}\newcommand{\shDiffHeadRhoLo}{0.67}\newcommand{\shDiffHeadRhoHi}{1.17}
-\newcommand{\shDiffWorkS}{0.761}\newcommand{\shDiffWorkBp}{0.811}
-\newcommand{\shDiffWorkRho}{0.84}\newcommand{\shDiffWorkRhoLo}{0.60}\newcommand{\shDiffWorkRhoHi}{1.12}
-\newcommand{\shDiffDelta}{$-$0.05}\newcommand{\shDiffDeltaLo}{$-$0.28}\newcommand{\shDiffDeltaHi}{$+$0.19}
-\newcommand{\shSameN}{12}\newcommand{\shSameHeadRho}{0.42}\newcommand{\shSameWorkRho}{0.37}
+\newcommand{\shDiffN}{53}\newcommand{\shDiffHeadS}{0.810}\newcommand{\shDiffHeadBp}{0.850}
+\newcommand{\shDiffHeadRho}{0.89}\newcommand{\shDiffHeadRhoLo}{0.68}\newcommand{\shDiffHeadRhoHi}{1.17}
+\newcommand{\shDiffWorkS}{0.760}\newcommand{\shDiffWorkBp}{0.814}
+\newcommand{\shDiffWorkRho}{0.83}\newcommand{\shDiffWorkRhoLo}{0.60}\newcommand{\shDiffWorkRhoHi}{1.10}
+\newcommand{\shDiffDelta}{$-$0.06}\newcommand{\shDiffDeltaLo}{$-$0.29}\newcommand{\shDiffDeltaHi}{$+$0.17}
+\newcommand{\shSameN}{11}\newcommand{\shSameHeadRho}{0.40}\newcommand{\shSameWorkRho}{0.39}
 \newcommand{\shStrictOnlyN}{35}\newcommand{\shStrictOnlyS}{0.775}\newcommand{\shStrictOnlyBp}{0.752}
 \newcommand{\shStrictOnlyRho}{1.09}\newcommand{\shStrictOnlyRhoLo}{0.72}\newcommand{\shStrictOnlyRhoHi}{1.63}
 \newcommand{\shOnlyMinusShared}{$+$0.34}\newcommand{\shOnlyMinusSharedLo}{$-$0.13}
@@ -1164,8 +1164,8 @@ fits on \sameGenN{} and \strictN{} problems (Table~\ref{tab:shared}).
 On the shared problems $\rho$ is \sharedRhoHead{} with the headline attacks and
 \sharedRhoWorking{} with working ones (paired difference \sharedDiffLo{} to \sharedDiffHi{});
 $S$ changes by \shSDelta{} (\shSDeltaLo{} to \shSDeltaHi{}). On the
-\shDiffN{} shared problems where the headline attack does not fire, so the two attack programs
-differ, $\rho$ is \shDiffHeadRho{} and \shDiffWorkRho{} (paired difference \shDiffDelta{},
+\shDiffN{} shared problems where the two attack programs differ (the headline attack is inert,
+or, on problem 1701, fires only by crashing while the strict row kept a later draw), $\rho$ is \shDiffHeadRho{} and \shDiffWorkRho{} (paired difference \shDiffDelta{},
 \shDiffDeltaLo{} to \shDiffDeltaHi{}). On the other \shSameN{} the headline attack already fires
 and is the same program in both rows, and $\rho$ is \shSameHeadRho{} and \shSameWorkRho{}, too
 few problems for an interval. On these problems working attacks do not raise $\rho$: both point
