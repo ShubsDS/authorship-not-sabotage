@@ -130,6 +130,14 @@ SCRIPT_FILES = (
     "gen_honest_haiku.py",         # the second generator's honest and matched-honest classes
     "gate_s_matched_haiku.py",     # ... its prompt-matched rows (imports gate_s_matched's helpers)
     "sim_stratified_s.py",         # S inside pair-similarity strata: the near-copy control
+    "pooled_stats.py",             # pooled out-of-fold points and P(rho > 0.72) for every row
+    "fire_counts.py",              # how many attacks fire in each row
+    "classifier_swap.py",          # the classifier with one class swapped at a time
+    "monitor_swap.py",             # the monitor with one class swapped at a time
+    "audit_budget.py",             # detection at a fixed false-positive rate
+    "shared_problems.py",          # the strict row's problems against its attacks
+    "attacker_mix.py",             # B per stored attacking model
+    "nocode_outside.py",           # the no-code floor trained outside the test split
     "release_split.py",            # this file: the bundle is reproducible from the bundle
 )
 LICENCE_FILE = "LICENSE"
