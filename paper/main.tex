@@ -419,9 +419,10 @@ backdoor. Bag-of-words reaches AUROC \tfidfKoran{}, above \tfidfKoranCount{} of 
 open-weight monitors ranked on that split. It transfers across backdoor generators and is
 nearly as strong on backdoors that never produce a wrong answer as on working ones, so it is not
 reading the sabotage. A classifier that reads no code,
-only problem difficulty, test count and question length -- the \emph{no-code floor} -- reaches
-\nocodeCV{}, above \nocodeCVCount{} of the monitors. It reads how the label was selected:
-attack problems carry fewer tests.
+only problem difficulty, test count and question length -- the \emph{no-code floor} -- scores
+\nocodeOutside{}, below chance, when trained on problems outside the split, and \nocodeCV{},
+above \nocodeCVCount{} of the monitors, when cross-validated within it. The relation it reads is
+set by the split's filter: inside the split attack problems carry fewer tests, outside it more.
 
 We contribute (i)~two classifier floors for stored-pair corpora, bag-of-words and no-code, each
 against a permutation null; (ii)~a same-generator construction, in which one model writes both
