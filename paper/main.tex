@@ -851,7 +851,8 @@ measures attack conspicuousness, not authorship. At a fixed audit budget of \aud
 positives, thresholded on each set's own honest programs, it catches \auditStrictStored{} of
 stored and \auditStrictOurs{} of same-generator attacks on the strict problems (paired
 difference \auditStrictDiff{}, 95\% CI \auditStrictDiffLo{}--\auditStrictDiffHi{}), and
-\auditHeadStored{} against \auditHeadOurs{} on the headline problems (appendix~\ref{app:audit}).
+\auditHeadStored{} against \auditHeadOurs{} on the headline problems (Figure~\ref{fig:audit},
+appendix~\ref{app:audit}).
 
 \section{Limitations}
 
@@ -1277,7 +1278,7 @@ On the strict problems the same three differences are \swSonStrictAttackSwap{}
 (\swSonStrictAttackSwapLo{} to \swSonStrictAttackSwapHi{}), \swSonStrictHonestSwapS{}
 (\swSonStrictHonestSwapSLo{} to \swSonStrictHonestSwapSHi{}) and \swSonStrictHonestSwapO{}
 (\swSonStrictHonestSwapOLo{} to \swSonStrictHonestSwapOHi{}). Haiku~4.5 shows the same pattern
-on fewer problems.
+on fewer problems. Figure~\ref{fig:scores} shows the Sonnet~5 scores behind these cells.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{3.5pt}
@@ -1314,6 +1315,15 @@ Haiku~4.5, strict$^\ast$ & \swHaiStrictKN{} & \swHaiStrictKHS{} & \swHaiStrictKH
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[h]\centering
+\includegraphics[width=\linewidth]{f8-monitor-scores.pdf}
+\caption{\textbf{The Sonnet~5 monitor's suspicion scores by class,} on stored pairs (human
+honest code, stored attacks) and ours, for the headline and the strict problems. Each panel is
+normalised within class; the mean is of the attack scores. Honest programs score near zero in
+every panel; what moves is the attack class.}
+\label{fig:scores}
+\end{figure}
 
 The cells combine separate batches. Sonnet~5's same-generator and stored runs were submitted
 about six hours apart on the same day; Haiku~4.5's runs at each reply ceiling were submitted
@@ -1388,7 +1398,17 @@ same-generator catch rate, with both thresholds recomputed on each bootstrap dra
 Haiku~4.5's rows are uninformative. Its 512-token runs lost many replies, unevenly by class
 (appendix~\ref{app:monitors}), and it scores many honest programs near the top of the
 scale, so at 1\% and 2\% it flags few attacks of either kind. Every difference interval for it
-contains zero except on the headline problems at 5\%.
+contains zero except on the headline problems at 5\%. Figure~\ref{fig:audit} extends the Sonnet~5
+strict rows to every false-positive rate up to 20\%.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.48\linewidth]{f7-audit-budget.pdf}
+\caption{\textbf{Working attacks caught by the Sonnet~5 monitor as the false-positive rate
+grows,} on the \strictN{} strict problems: stored pairs against ours, each thresholded on its
+own honest programs. Bands: pointwise 95\% bootstrap intervals over problems. Marked: the
+\auditFPR{} operating point of \S\ref{sec:results}.}
+\label{fig:audit}
+\end{figure}
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
