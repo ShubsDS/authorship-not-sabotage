@@ -593,6 +593,12 @@
     "sklearn": "1.9.0",
     "pandas": "3.0.5"
   },
+  "pooled_elsewhere": {
+    "\\sameGenLen": "sg_indep_first_passes.json (gate_s_samegen.py)",
+    "\\haikuStrataS, \\haikuStrataBprime": "sim_strata_haiku45.json (sim_stratified_s.py)",
+    "\\armOneG, \\armOneBprime, \\armOneRho, \\armOneTfidfDelta, \\armOneLenG": "gate_s_q3c30.json (gate_s_eval.py)",
+    "\\baselineBownflag": "gate_s_baseline_ownflag.json (gate_s_baseline.py --human-pass-file pass_human_fixed.jsonl)"
+  },
   "macro_map": {
     "\\sameGenS": {
       "old": "0.7512",
@@ -952,13 +958,69 @@
       "old": "0.7674",
       "new": "0.7671",
       "source": "derived from the pooled B"
+    },
+    "\\sameGenLen": {
+      "old": "0.5851",
+      "new": "0.5840",
+      "source": "sg_indep_first_passes.json[S][length_only_auroc_pooled]",
+      "note": "pooled over all pairs (length is not fitted); CI 0.5723-0.5967"
+    },
+    "\\haikuStrataS": {
+      "old": "0.4737--0.5142",
+      "new": "0.4766--0.5170",
+      "source": "sim_strata_haiku45.json[range_over_strata][pooled][S]",
+      "note": "min-max over the four strata"
+    },
+    "\\haikuStrataBprime": {
+      "old": "0.7884--0.8334",
+      "new": "0.7784--0.8255",
+      "source": "sim_strata_haiku45.json[range_over_strata][pooled][B_prime]",
+      "note": "min-max over the four strata"
+    },
+    "\\haikuStrataLowSim": {
+      "old": "0.451",
+      "new": "0.451",
+      "source": "sim_strata_haiku45.json[range_over_strata][mean_sim_lowest_stratum]",
+      "note": "mean pair similarity, not an AUROC; unchanged"
+    },
+    "\\armOneBprime": {
+      "old": "0.874",
+      "new": "0.874",
+      "source": "gate_s_q3c30.json[pooled][B]",
+      "note": "CI 0.8587-0.8885"
+    },
+    "\\armOneG": {
+      "old": "0.962",
+      "new": "0.961",
+      "source": "gate_s_q3c30.json[pooled][G]",
+      "note": "CI 0.9524-0.9699"
+    },
+    "\\armOneRho": {
+      "old": "1.234",
+      "new": "1.235",
+      "source": "gate_s_q3c30.json[pooled][rho]",
+      "note": "joint CI 1.188-1.288"
+    },
+    "\\armOneTfidfDelta": {
+      "old": "+0.088",
+      "new": "+0.088",
+      "source": "gate_s_q3c30.json[pooled][G_minus_B]",
+      "note": "paired CI +0.073 to +0.104"
+    },
+    "\\armOneLenG": {
+      "old": "0.489",
+      "new": "0.490",
+      "source": "gate_s_q3c30.json[pooled][length_only_G]",
+      "note": "CI 0.4730-0.5059"
+    },
+    "\\baselineBownflag": {
+      "old": "0.873",
+      "new": "0.872",
+      "source": "gate_s_baseline_ownflag.json[B_pooled]",
+      "note": "pooled 0.8723 (0.8618-0.8826); fold mean 0.8729; n = 1406"
     }
   },
   "not_available": {
-    "\\sameGenLen (0.5851)": "length-only AUROC fold mean; its pooled value needs the program lengths, i.e. gen_sonnet5.jsonl and bdind_sonnet5_first.jsonl (re-run gate_s_samegen.py)",
-    "\\haikuStrataS, \\haikuStrataBprime": "sim_strata_haiku45.json keeps only fold means per stratum; re-run sim_stratified_s.py (needs gen_haiku45.jsonl, bdind_haiku45.jsonl) and keep evaluate()'s auroc_pooled_oof",
-    "\\armOneG, \\armOneBprime, \\armOneRho, \\armOneTfidfDelta, \\armOneLenG": "gate_s_q3c30.json predates auroc_pooled_oof; re-run gate_s_eval.py (needs gen_q3c30.jsonl, pass_q3c30.jsonl)",
-    "\\baselineBownflag (0.873)": "needs pass_human_fixed.jsonl (run_tests.py on the human class) to re-run gate_s_baseline.py --human-pass-file",
     "edit-arm joint rho interval": "sg_edit_passes.json has pooled points but no per-pair oof; re-run gate_s_samegen.py for the edit arm",
     "\\curveHeadlineSd, \\curveStrictSd, \\baselineB": "given by --refit (public data)"
   }
