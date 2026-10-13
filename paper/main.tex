@@ -508,18 +508,18 @@ cases (\testCasesAttack{} against
 \testCasesHonest{}), so problem difficulty correlates with the label, which the
 no-code floor reads.
 
-Holding the writer constant removes between a third and nine-tenths of the above-chance
-separability (Table~\ref{tab:gates}, whose $B'$ is refitted on each row's own problems and
-includes inert attacks): the two generators return $\rho = \sameGenRho{}$
-(Sonnet 5) and \haikuRho{} (Haiku 4.5).
-
-The pre-registered bands return a different verdict for each generator. Sonnet 5's interval
-excludes the collapse band and spans the content boundary, leaving it inconclusive between partial
-and content; Haiku 4.5's lies inside the collapse band. Sample size does not account for the fall
-(appendix~\ref{app:robust}). Two further rows are \emph{strict}, keeping only attacks that
-fire; a single sampled attack does so \headlineFireShare{} of the time, so these rows rest on
-\strictN{} pairs
-and agree with the headline rows at low power (appendix~\ref{app:secondpass}).
+Table~\ref{tab:gates} gives $\rho$ for each arm, with $B'$ refitted on the row's own
+problems. On the headline rows, holding the writer constant leaves $\rho = \sameGenRho{}$ for
+Sonnet~5 and \haikuRho{} for Haiku~4.5; sample size does not account for the fall
+(appendix~\ref{app:robust}). These rows are attempts: only \relFireFirst{} of Sonnet~5's
+\sameGenN{} attacks and \haikuFireInRow{} of Haiku~4.5's \haikuN{} fire, while every stored
+attack on those problems fires, so they compare working stored backdoors against mostly inert
+attempts. The strict rows hold working sabotage: each attack is chosen from a pool of retries
+and fires. On Sonnet~5's \strictN{} strict pairs $\rho = \strictRho{}$. The higher value comes
+from which problems yield a working attack, not from the attacks working: on the \sharedN{}
+problems in both sets, $\rho$ is \sharedRhoHead{} with the headline attacks and
+\sharedRhoWorking{} with the working ones (paired 95\% interval on the difference
+\sharedDiffLo{} to \sharedDiffHi{}).
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
