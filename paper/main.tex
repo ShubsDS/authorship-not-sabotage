@@ -339,6 +339,15 @@
 \newcommand{\sharedRhoWorking}{0.75}
 \newcommand{\sharedDiffLo}{$-0.24$}
 \newcommand{\sharedDiffHi}{$+0.13$}
+% Table 1, Haiku 4.5 prompt-matched row (gate_s_matched_haiku45.json, S_matched, pooled out-of-fold).
+% Its attacks are the Haiku headline attacks on a subset of problems, so at most \haikuFireInRow{} fire.
+\newcommand{\haikuMatchedBprime}{0.8540}
+\newcommand{\haikuSMatchedLo}{0.5197}
+\newcommand{\haikuSMatchedHi}{0.5581}
+\newcommand{\haikuMatchedRhoLo}{0.055}
+\newcommand{\haikuMatchedRhoHi}{0.165}
+\newcommand{\pContentHaikuMatched}{0.00}
+\newcommand{\haikuMatchedFire}{$\le$\haikuFireInRow{}}
 
 \title{A Same-Generator Corpus and Classifier Floors\\for AI-Control Monitor Evaluation}
 
@@ -494,105 +503,133 @@ $\rho = (S - 0.5)/(B' - 0.5)$ & the share of above-chance separability that surv
 \section{Results}
 \label{sec:results}
 
-Comment stripping succeeds on comment count and code length, driving both to chance
-(Table~\ref{tab:protocol-baseline}, appendix). Two baselines on that same split do not move;
-we call them \emph{floors}: a monitor at or below a floor has shown nothing beyond what the
-corpus leaks.
-Bag-of-words reaches \tfidfKoran{} and the no-code floor reaches
-\nocodeCV{}, both far above their permutation nulls and above \tfidfKoranCount{} of the
-\monN{} monitors ranked on that split (Figure~\ref{fig:monitors}; intervals, nulls and
-paired-bootstrap counts in appendix~\ref{app:protocol}). The two are not trained alike -- the monitors are
-zero-shot, our classifiers fitted on the split's own train problems -- so the comparison states
-what the corpus makes recoverable, not that a bag of words is the better monitor.
+Comment stripping drives comment count and code length to chance
+(Table~\ref{tab:protocol-baseline}). Two other baselines do not move; we call them
+\emph{floors}: a monitor at or below a floor has shown nothing beyond what the
+corpus leaks. On the filtered, comment-stripped split, bag-of-words reaches AUROC
+\tfidfKoran{}, above \tfidfKoranCount{} of the \monN{} monitors ranked on it, and the
+no-code floor reaches \nocodeCV{}, above \nocodeCVCount{}; both are far above permutation
+nulls (Figure~\ref{fig:monitors}, appendix~\ref{app:protocol}). The floors are
+trained (bag-of-words on the split's train problems, the no-code floor cross-validated within
+the test split) and the monitors are zero-shot, so the comparison states what the corpus makes
+recoverable, not which is the better monitor. The no-code floor reads only problem metadata,
+so it measures how the label was selected, not authorship.
 
 Three further measurements show that the bag-of-words classifier is not reading the backdoor
-(the first two are pairwise accuracies, not AUROCs; appendix~\ref{app:protocol}).
-It transfers across backdoor generators at \transfer{}: trained on one attacker's backdoors it identifies
-another's, so the feature it has learned is one the attackers share. It is nearly as strong on
-inert backdoors as on working ones, \pairInert{} against \pairWorking{}, although a backdoor
-that never fires should be the harder case for a detector of sabotage. The feature it does read
-is stylistic: \texttt{\_\_main\_\_} appears in 0.116 of attack samples against 0.000 of honest
-ones, a gap the comment stripper leaves untouched and one that replicates on the train split,
-in 152 of \splitTrain{} attack samples against 1 of \splitTrain{} honest ones. All three measurements are comment-stripped on both classes; the
-unstripped values, inflated by the comment channel, are in appendix~\ref{app:stripped},
-and a token-level version of the last test does not replicate (appendix~\ref{app:token}).
-
-Holding the writer constant removes between a third and nine-tenths of the above-chance
-separability (Table~\ref{tab:gates}, whose $B'$ is refitted on each row's own problems and
-includes inert attacks): the two generators return $\rho = \sameGenRho{}$
-(Sonnet 5) and \haikuRho{} (Haiku 4.5).
-
-The pre-registered bands return a different verdict for each generator. Sonnet 5's interval
-excludes the collapse band and spans the content boundary, leaving it inconclusive between partial
-and content; Haiku 4.5's lies inside the collapse band. Sample size does not account for the fall
-(appendix~\ref{app:robust}). Two further rows are \emph{strict}, keeping only attacks that
-fire; a single sampled attack does so \headlineFireShare{} of the time, so these rows rest on
-\strictN{} pairs
-and agree with the headline rows at low power (appendix~\ref{app:secondpass}).
-
-\begin{table}[h]\centering\footnotesize
-\setlength{\tabcolsep}{4pt}
-\caption{\textbf{What is left when one model writes both classes.} $S$ is the
-same-generator AUROC (5-fold, comments stripped) and $B'$ the stored-pair baseline on the
-row's own problems; $\rho$, its bands and its intervals are as in the text and
-appendix~\ref{app:robust}.}
-\label{tab:gates}
-\begin{tabular}{@{}l r l r l l@{}}
-\toprule
-Arm & $n$ & $S$ (95\% CI) & $B'$ & $\rho$ (95\% CI, joint) & band \\
-\midrule
-Sonnet 5, headline & \sameGenN{} & \sameGenS{} (\sameGenLo{}--\sameGenHi{})
-  & \sameGenBprime{} & \sameGenRho{} (\sameGenRhoLo{}--\sameGenRhoHi{}) & partial--content \\
-Haiku 4.5, headline & \haikuN{} & \haikuS{} (\haikuSLo{}--\haikuSHi{})
-  & \haikuBprime{} & \haikuRho{} (\haikuRhoLo{}--\haikuRhoHi{}) & \textbf{collapse} \\
-Sonnet 5, prompt-matched & \matchedN{} & \matchedS{} (\matchedLo{}--\matchedHi{})
-  & \matchedBprime{} & \matchedRho{} (\matchedRhoLo{}--\matchedRhoHi{}) & \textbf{partial} \\
-Sonnet 5, strict & \strictN{} & \strictS{} (\strictLo{}--\strictHi{})
-  & \strictBprime{} & \strictRho{} (\strictRhoLo{}--\strictRhoHi{}) & partial--content \\
-Sonnet 5, strict, matched & \matchedStrictN{} & \matchedStrictS{} (\matchedStrictLo{}--\matchedStrictHi{})
-  & \matchedStrictBprime{} & \matchedStrictRho{} (\matchedStrictRhoLo{}--\matchedStrictRhoHi{}) & partial--content \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The two generators respond differently to the attack prompt. On Sonnet 5 what survives is lexical rather
-than structural: length alone falls to \sameGenLen{} while TF-IDF holds, and of the
-feature-ablation masks we
-apply only identifier normalisation moves $S$ (appendix~\ref{app:robust}). The top
-attack-side features are \texttt{def main} (\defMainAttack{} of attack programs against
-\defMainHonest{} of honest ones) and \texttt{data[}, which together are the program layout the
-attack prompt elicits. Haiku 4.5 never adopts that layout in any of its three classes --
-honest, attack, or prompt-matched honest
-(appendix~\ref{app:secondpass}) -- which is why the two generators part. Holding the prompt
-constant as well as the model moves them back toward each other, to
-$\rho = \matchedRho{}$ on Sonnet 5 (Table~\ref{tab:gates}) and $\rho = \haikuMatchedRho{}$ on
-Haiku 4.5 (appendix~\ref{app:secondpass}). On Sonnet this removes most of what
-is left. The original and the prompt-matched honest classes -- both correct, no attack on
-either side -- already separate at
-\promptOnly{}, so the prompt carries framing and no backdoor at all; on Haiku 4.5 that same
-floor contains chance.
-
-Regenerating only one class fails: Qwen3-Coder-30B writing the honest
-class against the stored backdoors separates \emph{better} than the stored pairs do,
-$\rho = \armOneRho{}$, one authorship gap replaced by another
-(appendix~\ref{app:robust}).
-
-The same inflation appears with an LLM monitor as the detector. We put a zero-shot monitor
-prompt to the model that wrote both classes, the most
-favourable case, since it reads its own output. It scores \monStoredHead{} on the
-stored pairs and \monitorS{} on the same-generator pairs, a monitor-$\rho$ of \monRhoHead{},
-below the classifier's \sameGenRho{}; on the strict pairs the ratio is \monRhoStrict{}, and a
-monitor that wrote neither class returns nearly the same two ratios
-(appendix~\ref{app:monitors}).
+(pairwise accuracies for the first two; appendix~\ref{app:protocol}). It transfers across
+backdoor generators at \transfer{}, so the feature it has learned is one the attackers share.
+It is nearly as strong on inert backdoors, the harder case for a detector of sabotage, as on
+working ones (\pairInert{} against \pairWorking{}). What it reads is stylistic:
+\texttt{\_\_main\_\_} appears in 0.116 of attack samples against 0.000 of honest ones, a gap
+that replicates on the train split (152 against 1 of \splitTrain{} per class). All three are
+on comment-stripped code (unstripped: appendix~\ref{app:stripped}); a token-level version of
+the last test does not replicate (appendix~\ref{app:token}).
 
 The split selects on a second property besides authorship. Labelling by
 \texttt{backdoor\_works} defines the negative class by attack failure rather than by
 honesty: \inertShare{} of the test split's labelled backdoors do not work, and a
-problem whose backdoor fails contributes its human honest solution instead -- the label is
-set before any code is read. Attack problems also carry half as many test
-cases (\testCasesAttack{} against
-\testCasesHonest{}), so problem difficulty correlates with the label, which the
-no-code floor's \nocodeCV{} reads.
+problem whose backdoor fails contributes its human honest solution instead, so the label is
+set before any code is read. Attack problems also carry half as many test cases
+(\testCasesAttack{} against \testCasesHonest{}), which the no-code floor reads.
+
+Table~\ref{tab:gates} gives $\rho$ for each arm. On the headline rows, holding the writer
+constant leaves $\rho = \sameGenRho{}$ for Sonnet~5 and \haikuRho{} for Haiku~4.5; sample size
+does not account for the fall (appendix~\ref{app:robust}). Only \relFireFirst{} of Sonnet~5's
+\sameGenN{} attacks and \haikuFireInRow{} of Haiku~4.5's \haikuN{} fire, while every stored
+attack on those problems fires, so these rows set working stored backdoors against mostly inert
+attempts. On Sonnet~5's \strictN{} strict pairs, where every attack fires,
+$\rho = \strictRho{}$. The higher value comes from which problems yield a working attack,
+not from the attacks working: on the \sharedN{} problems in both sets, $\rho$ is \sharedRhoHead{} with headline attacks and
+\sharedRhoWorking{} with working ones (paired 95\% CI on the difference \sharedDiffLo{}
+to \sharedDiffHi{}).
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{\textbf{What is left when one model writes both classes.} $S$ and $B'$ are
+bag-of-words AUROCs (5-fold, comments stripped) on the same-generator pairs and on the stored
+pairs of the same problems (human honest code, stored attacks); $\rho = (S - 0.5)/(B' - 0.5)$.
+Points are pooled out-of-fold; intervals are 95\% bootstraps over problems, joint for $\rho$;
+$P$ is the share of draws with $\rho$ above \rhoContent{}, a line fixed before any arm ran.
+\emph{Fires}: same-generator attacks that fire; every stored attack here fires.
+Prompt-matched rows reuse the attacks of the row above.}
+\label{tab:gates}
+\begin{tabular}{@{}l r l r l r@{}}
+\toprule
+Arm & fires/$n$ & $S$ (95\% CI) & $B'$ & $\rho$ (95\% CI) & $P(\rho > \rhoContent{})$ \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Attempts (headline): one attack sampled per problem}} \\
+Sonnet 5 & \relFireFirst{}/\sameGenN{} & \sameGenS{} (\sameGenLo{}--\sameGenHi{})
+  & \sameGenBprime{} & \sameGenRho{} (\sameGenRhoLo{}--\sameGenRhoHi{}) & \pContentHead{} \\
+Sonnet 5, prompt-matched & \matchedFire{}/\matchedN{} & \matchedS{} (\matchedLo{}--\matchedHi{})
+  & \matchedBprime{} & \matchedRho{} (\matchedRhoLo{}--\matchedRhoHi{}) & \pContentMatched{} \\
+Haiku 4.5 & \haikuFireInRow{}/\haikuN{} & \haikuS{} (\haikuSLo{}--\haikuSHi{})
+  & \haikuBprime{} & \haikuRho{} (\haikuRhoLo{}--\haikuRhoHi{}) & \pContentHaiku{} \\
+Haiku 4.5, prompt-matched & \haikuMatchedFire{}/\haikuMatchedN{}
+  & \haikuSMatched{} (\haikuSMatchedLo{}--\haikuSMatchedHi{})
+  & \haikuMatchedBprime{} & \haikuMatchedRho{} (\haikuMatchedRhoLo{}--\haikuMatchedRhoHi{})
+  & \pContentHaikuMatched{} \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Working sabotage (strict): only attacks that fire}} \\
+Sonnet 5 & \strictN{}/\strictN{} & \strictS{} (\strictLo{}--\strictHi{})
+  & \strictBprime{} & \strictRho{} (\strictRhoLo{}--\strictRhoHi{}) & \pContentStrict{} \\
+Sonnet 5, prompt-matched & \matchedStrictN{}/\matchedStrictN{}
+  & \matchedStrictS{} (\matchedStrictLo{}--\matchedStrictHi{})
+  & \matchedStrictBprime{} & \matchedStrictRho{} (\matchedStrictRhoLo{}--\matchedStrictRhoHi{})
+  & \pContentStrictMatched{} \\
+\bottomrule
+\end{tabular}
+
+\vspace{8pt}
+\begin{minipage}[c]{0.42\linewidth}\centering
+\begin{tabular}{@{}l c c@{}}
+\toprule
+ & stored attack & our attack \\
+\midrule
+human honest & \monSwapHumanStored{} & \monSwapHumanOurs{} \\
+our honest & \monSwapOursStored{} & \monSwapOursOurs{} \\
+\midrule
+mean suspicion & \monSuspStored{} & \monSuspOurs{} \\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.54\linewidth}
+\caption{\textbf{Monitor AUROC with one class swapped at a time.} Sonnet~5 monitor, on the
+\monSwapN{} headline problems scored in all four cells. Last row: the attacks' mean
+suspicion score (0--100).}
+\label{tab:swap}
+\end{minipage}
+\end{table}
+
+The two generators respond differently to the attack prompt. On Sonnet~5 what survives is
+lexical: of the feature-ablation masks only identifier normalisation moves $S$
+(appendix~\ref{app:robust}), and the top attack-side features, \texttt{def main}
+(\defMainAttack{} of attack programs against \defMainHonest{} of honest ones) and
+\texttt{data[}, are the program layout the attack prompt elicits, which Haiku~4.5 never adopts
+(appendix~\ref{app:secondpass}). Holding the prompt constant as well lowers Sonnet~5's $\rho$
+to \matchedRho{} and does not change Haiku~4.5's (\haikuMatchedRho{}). On Sonnet~5 the
+original and prompt-matched honest classes, both correct, separate at \promptOnly{}, so the prompt carries
+framing and no backdoor; on Haiku~4.5 they do not separate.
+
+Regenerating only the honest class, with Qwen3-Coder-30B, makes the pairs \emph{more}
+separable than the stored ones, $\rho = \armOneRho{}$: one authorship gap replaced by another
+(appendix~\ref{app:robust}).
+
+A zero-shot Sonnet~5 monitor, which wrote both same-generator classes, scores
+\monStoredHeadAbs{} on the stored pairs and \monitorS{} on the same-generator pairs
+(appendix~\ref{app:monitors}); swapping one class at a time puts the drop in the attacks.
+On the headline problems (Table~\ref{tab:swap}),\footnote{The four cells combine per-program
+scores from batches run on different days.} replacing the human honest code with ours does not
+lower the score, and replacing the stored attacks with ours lowers it to \monSwapHumanOurs{}
+and the attacks' mean suspicion from \monSuspStored{} to \monSuspOurs{}. The same holds on
+working attacks: on the strict problems human honest code scores \monStoredStrictAbs{} against
+stored attacks and \monSwapStrictHumanOurs{} against ours, and our own pairs score
+\monitorStrict{}.\footnote{The strict monitor runs used a different attack file from the
+classifier's strict row, which moves \monitorStrict{} by about 0.01.} The monitor's fall
+measures attack conspicuousness, not authorship. At a fixed audit budget of \auditFPR{} false
+positives, thresholded on each set's own honest programs, it catches \auditStrictStored{} of
+stored and \auditStrictOurs{} of same-generator attacks on the strict problems (paired
+difference \auditStrictDiff{}, 95\% CI \auditStrictDiffLo{}--\auditStrictDiffHi{}), and
+\auditHeadStored{} against \auditHeadOurs{} on the headline problems.
 
 \section{Limitations}
 
@@ -600,13 +637,14 @@ A high floor is evidence about a corpus, not about results computed on it. Ours 
 label is recoverable without reading a backdoor, not that any monitor
 recovers it that way, and no number here corrects a published monitor score.
 
-The control arm is limited by the generator we had to substitute. The stored backdoors'
-writer, \texttt{claude-3-7-sonnet-thinking}, is retired, so
-both same-generator classes come from a later model of the same lineage. It differs from the
-stored attacker in backdoor style as well as in authorship, so every $\rho$ here, classifier or
-monitor, bounds the content share of the separability from above instead of partitioning it.
-The arm is not bit-reproducible: it ran through a metered API that does not expose sampling
-parameters, with thinking off although the stored attacker was a thinking model.
+The same-generator corpus does not isolate authorship. Rebuilding with one model changes the
+attacks as well as their author: against the same human code, the stored attacking model alone
+moves $B$ from \bAttackerLo{} to \bAttackerHi{}, so $\rho$ is not the backdoor's share of the
+separability, nor a bound on it. It does not depend on the stored attacker (Claude attackers
+only: $\rho = \rhoClaudeOnly{}$). The class swap that would isolate authorship for the classifier, human honest code against our attacks, has not
+been run; a value near $B'$ would put the classifier's drop on the honest side, a value near
+$S$ in the attacks, as for the monitor. The corpus is not bit-reproducible: the API hides
+sampling parameters; thinking was off.
 
 Our scope is narrow in three further ways. We measure one APPS-derived corpus family and five
 agentic settings, and other stored-pair corpora are untested. Five of our seven corpora are one
@@ -628,11 +666,12 @@ failure ties the label to the attacker rather than to the code; dropping the fai
 removes that, as does sampling the class independently of attack success. A monitor number is
 interpretable only against the floors of its own split, so a no-code and a
 bag-of-words floor belong beside it, each against a permutation null, with the split and
-preprocessing released alongside (ours: MIT, appendix~\ref{app:release}).
+preprocessing released alongside (ours: MIT, appendix~\ref{app:release}). It should also be
+reported at a fixed audit budget, beside the share of attacks that fire.
 
 Stored pairs remain the cheapest way to develop a monitor, and nothing here argues for
-abandoning them, only that a score on one describes two authors until the construction rules
-that reading out.
+abandoning them, only that a score on one can describe how the pairs were built rather than
+the monitor.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
