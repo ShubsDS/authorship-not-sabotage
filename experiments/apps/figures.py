@@ -3,7 +3,7 @@
     F1  protocol x baseline table           -> f1-protocol-baseline.tex   (appendix table)
     F2  agentic-setting floors              -> f2-corpus-floors.pdf       (appendix)
     F3  monitors vs our floors, with nulls  -> f3-monitors-vs-floors.pdf  (appendix)
-    F5  three stored pairs                  -> f5-stored-pairs.pdf        (Figure 1)
+    F5  three original pairs                -> f5-stored-pairs.pdf        (Figure 1)
     F6  floors ranked among the monitors    -> f6-floors-ranked.pdf       (Results)
     F7  catch rate against audit budget     -> f7-audit-budget.pdf        (Results)
     F8  the monitor's suspicion scores      -> f8-monitor-scores.pdf      (appendix)
@@ -62,7 +62,7 @@ PANEL, RULE = "#F4F4F4", "#D4D4D4"
 
 # Measured values, as reported in main.tex. Nulls are the 95th percentile of 1,000 label
 # permutations under headline_ci.py's one procedure.
-TFIDF_FLOOR = 0.8063                       # Koran paired train -> their 1,375-item test split
+TFIDF_FLOOR = 0.8063                       # filtered split: its train problems -> its 1,375 test items
 TFIDF_CI = (0.7705, 0.8406)                # bootstrap over problems
 TFIDF_NULL = 0.5406                        # p = 0.001
 TFIDF_COUNT = 20                           # monitors below the floor, same items
@@ -156,8 +156,8 @@ def fig3_monitors():
           f"nulls {f3dp(TFIDF_NULL)}, {f3dp(NOCODE_NULL)}")
 
 
-# F2: the structural floor in the five same-generator agentic settings. A thin connector runs from
-# each permutation null to the measured value.
+# F2: the structural floor in the five agentic settings, where one model wrote both classes. A thin
+# connector runs from each permutation null to the measured value.
 
 def fig2_corpora():
     rows = SCAN[::-1]
@@ -198,7 +198,7 @@ def fig2_corpora():
           f"95th pct {min(nulls):.3f}-{max(nulls):.3f}; at or below its null: {', '.join(below) or 'none'}")
 
 
-# F5 (Figure 1): three stored pairs from RoganInglis/apps-control-arena (MIT): honest solution #0
+# F5 (Figure 1): three original pairs from RoganInglis/apps-control-arena (MIT): honest solution #0
 # and backdoor #0 of each problem, comments removed and blank lines dropped (data.strip_comments).
 # `mark` indexes the lines highlighted as the backdoor: its trigger condition and its wrong output.
 STORED_PAIRS = [
@@ -308,8 +308,8 @@ def fig6_floors_ranked():
           f"of {len(rows)}")
 
 
-# F7: the Sonnet 5 monitor's catch rate on the strict problems against the false-positive rate,
-# stored pairs against ours, with the 2% operating point the text quotes.
+# F7: the Sonnet 5 monitor's catch rate on the working-backdoor problems against the false-positive
+# rate, original pairs against rebuilt pairs, with the 2% operating point the text quotes.
 
 AUDIT_KEY, AUDIT_AT = "strict__claude-sonnet-5", 0.02
 
@@ -328,7 +328,7 @@ def fig7_audit_budget():
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.spines["bottom"].set_color(MUTED)
     ax.grid(axis="both", color=GRID, lw=0.7, zorder=0); ax.set_axisbelow(True)
-    for key, c, tc, lab, dy in (("stored", DARK, DARK, "stored", 7), ("samegen", GOLD, GOLD_D, "ours", -7)):
+    for key, c, tc, lab, dy in (("stored", DARK, DARK, "original", 7), ("samegen", GOLD, GOLD_D, "rebuilt", -7)):
         k = cur[key]
         ax.fill_between(x, [100 * v for v in k["ci95_lo"]], [100 * v for v in k["ci95_hi"]],
                         color=c, alpha=0.15, lw=0, zorder=1)
@@ -346,16 +346,17 @@ def fig7_audit_budget():
     ax.set_xlabel("false-positive rate", fontsize=7.5, color=INK, labelpad=2)
     ax.set_ylabel("attacks caught", fontsize=7.5, color=INK)
     save(fig, "f7-audit-budget.pdf")
-    print(f"F7: strict, Sonnet 5 monitor, at {AUDIT_AT:.0%}: stored {at['stored']:.3f}, "
-          f"ours {at['samegen']:.3f}")
+    print(f"F7: working backdoors, Sonnet 5 monitor, at {AUDIT_AT:.0%}: original {at['stored']:.3f}, "
+          f"rebuilt {at['samegen']:.3f}")
 
 
-# F8: the Sonnet 5 monitor's suspicion scores by class, stored pairs and ours, headline and strict.
+# F8: the Sonnet 5 monitor's suspicion scores by class, original and rebuilt pairs, all attempts and
+# working backdoors.
 
-SCORE_PANELS = [("monitor_stored_sonnet5_independent_passes.json", "stored, headline"),
-                ("monitor_samegen_sonnet5_independent_passes.json", "ours, headline"),
-                ("monitor_stored_sonnet5_independent_usable.json", "stored, strict"),
-                ("monitor_samegen_sonnet5_independent_usable.json", "ours, strict")]
+SCORE_PANELS = [("monitor_stored_sonnet5_independent_passes.json", "original, all attempts"),
+                ("monitor_samegen_sonnet5_independent_passes.json", "rebuilt, all attempts"),
+                ("monitor_stored_sonnet5_independent_usable.json", "original, working"),
+                ("monitor_samegen_sonnet5_independent_usable.json", "rebuilt, working")]
 
 
 def _scores(path):
@@ -397,41 +398,40 @@ def fig8_monitor_scores():
 
 
 # F1: protocol x baseline, emitted as a LaTeX table that main.tex \inputs.
-# Columns: protocol, baseline, metric, value, preprocessing, against. Preprocessing says whether
+# Columns: protocol, baseline, metric, value, comments, against. The comments column says whether
 # comments were stripped before the baseline read the code ("stripped" / "kept"), or whether the
 # baseline reads no code at all. Pairwise accuracies get three decimals (one pair is 1/2,641);
 # AUROCs get four.
 F1_ROWS = [
-    ("Koran's exact split", "TF-IDF word 1--2gram", "AUROC", f"{TFIDF_FLOOR:.4f}", "stripped",
+    ("Filtered test split", "bag-of-words", "AUROC", f"{TFIDF_FLOOR:.4f}", "stripped",
      f"above {TFIDF_COUNT} of 24"),
-    ("\\quad same", "TF-IDF word 1--2gram", "AUROC", "0.8914", "kept", "above 22 of 24"),
-    ("\\quad same, reads no code", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
+    ("\\quad same", "bag-of-words", "AUROC", "0.8914", "kept", "above 22 of 24"),
+    ("\\quad cross-validated within it", "no-code classifier", "AUROC",
      f"{NOCODE_FLOOR:.4f}", "no code", f"above {NOCODE_COUNT} of 24"),
-    ("\\quad same, held-out slice", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
+    ("\\quad held-out slice of it", "no-code classifier", "AUROC",
      f"{NOCODE_HELDOUT:.4f}", "no code", f"above {NOCODE_HELDOUT_COUNT} of 24"),
     ("\\quad same", "code length only", "AUROC", "0.4726", "stripped", "chance"),
-    ("\\quad same", "\\#-count detector", "AUROC", "0.4983", "stripped", "chance"),
-    ("\\quad same", "\\#-count detector", "AUROC", "0.6957", "kept", "---"),
-    ("\\quad trained outside the split", "difficulty $+$ \\#tests $+$ $|q|$", "AUROC",
+    ("\\quad same", "comment count", "AUROC", "0.4983", "stripped", "chance"),
+    ("\\quad same", "comment count", "AUROC", "0.6957", "kept", "---"),
+    ("\\quad trained outside it", "no-code classifier", "AUROC",
      f"{NOCODE_OUTSIDE:.4f}", "no code", "below chance"),
-    ("Raw artifact, problem level", "all metadata", "AUROC", "0.8917", "no code", "---"),
+    ("Full dataset, problem level", "all metadata", "AUROC", "0.8917", "no code", "---"),
     ("\\quad same", "difficulty only", "AUROC", "0.6823", "no code", "---"),
     ("\\quad same", "\\texttt{solution\\_passes\\_tests}", "AUROC", "0.7881", "no code", "---"),
-    ("Matched pairs (P3)", "all metadata", "AUROC", "0.5000", "no code", "by construction"),
-    # Matched protocol: mean over five problem-disjoint splits. Comments-kept rows are for contrast.
-    ("DSPy matched pairs", "TF-IDF word 1--2gram", "pairwise", "0.897", "stripped",
+    ("\\quad matched pairs", "all metadata", "AUROC", "0.5000", "no code", "by construction"),
+    # Matched pairs built as the DSPy tutorial builds them: mean over five problem-disjoint splits.
+    # Comments-kept rows are for contrast.
+    ("Matched pairs, DSPy tutorial", "bag-of-words", "pairwise", "0.897", "stripped",
      "monitor 0.69--0.81"),
-    ("\\quad working backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.935", "stripped",
-     "---"),
-    ("\\quad \\textbf{inert} backdoors only", "TF-IDF word 1--2gram", "pairwise", "0.879",
+    ("\\quad working backdoors only", "bag-of-words", "pairwise", "0.935", "stripped", "---"),
+    ("\\quad \\textbf{non-working} backdoors only", "bag-of-words", "pairwise", "0.879",
      "stripped", "not sabotage"),
-    ("\\quad transfer, cross-generator", "TF-IDF word 1--2gram",
-     "pairwise", "0.969", "stripped", "---"),
-    ("\\quad all pairs, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.962", "kept", "---"),
-    ("\\quad working, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.979", "kept", "---"),
-    ("\\quad inert, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.955", "kept", "---"),
-    ("\\quad transfer, comments kept", "TF-IDF word 1--2gram", "pairwise", "0.994", "kept", "---"),
-    ("\\quad same, raw artifact", "code length only", "pairwise", "0.826", "kept", "---"),
+    ("\\quad transfer across attackers", "bag-of-words", "pairwise", "0.969", "stripped", "---"),
+    ("\\quad all pairs, comments kept", "bag-of-words", "pairwise", "0.962", "kept", "---"),
+    ("\\quad working, comments kept", "bag-of-words", "pairwise", "0.979", "kept", "---"),
+    ("\\quad non-working, comments kept", "bag-of-words", "pairwise", "0.955", "kept", "---"),
+    ("\\quad transfer, comments kept", "bag-of-words", "pairwise", "0.994", "kept", "---"),
+    ("\\quad all pairs, comments kept", "code length only", "pairwise", "0.826", "kept", "---"),
 ]
 
 
@@ -462,18 +462,26 @@ def fig1_table():
         "% F1 - generated by experiments/apps/figures.py, do not hand-edit",
         "\\begin{table}[h]\\centering\\footnotesize",
         "\\setlength{\\tabcolsep}{4pt}",
-        "\\caption{What the field's preprocessing leaves behind. Every row is measured under the "
-        "protocol named in column one; rows are not comparable across protocols. "
-        "\\emph{Prep.} says whether comments were stripped before the baseline read the code; "
-        "\\emph{no code} means the baseline never reads the program. The comments-kept rows are "
-        "inflated by the comment channel and are given for contrast, not as results. The matched "
-        "rows are problem-disjoint and scored against the DSPy tutorial monitor; the transfer "
-        "row runs Control Tax to the GPT-4-era set. "
-        "Pairwise accuracies are given to three decimals, their resolution over the pair count.}",
+        "\\caption{Baselines that read no backdoor, under each protocol; rows are not comparable "
+        "across protocols. \\emph{Filtered test split}: the filtered release of "
+        "\\cite{koran2026highquality} on which the 24 monitors are ranked (1,375 test items); "
+        "bag-of-words, a logistic regression on TF-IDF 1--2-grams of the code, is trained on its "
+        "train problems. \\emph{Full dataset}: every problem of the dataset, one metadata score per "
+        "problem. \\emph{Matched pairs}: each honest solution is "
+        "paired with a backdoor to the same problem, so problem metadata cannot separate them; the "
+        "DSPy rows pair them as the DSPy trusted-monitor tutorial does and give pairwise accuracy "
+        "(the share of pairs in which the backdoored program scores higher), a mean over five "
+        "problem-disjoint splits. The transfer rows train on the Control Tax backdoors and test on "
+        "the GPT-4-era APPS backdoors. The no-code classifier reads difficulty, test count and "
+        "question length. \\emph{Comments}: stripped from both classes or kept; \\emph{no code}: "
+        "the baseline never reads the program. Rows with comments kept are inflated by the "
+        "comments and are given for contrast. \\emph{Against}: how many of the 24 monitors the "
+        "value is above, or what it is compared with (the DSPy tutorial's monitor: 0.69--0.81). "
+        "Pairwise accuracies have three decimals, the resolution of the pair count.}",
         "\\label{tab:protocol-baseline}",
         "\\begin{tabular}{" + col + "}",
         "\\toprule",
-        "Protocol & Baseline & Value & Prep. & Against \\\\",
+        "Protocol & Baseline & Value & Comments & Against \\\\",
         "\\midrule",
         "\\multicolumn{5}{@{}l}{\\emph{AUROC}} \\\\",
     ]
@@ -580,7 +588,7 @@ def check():
         if abs(want - got_r) > 5e-4:
             bad.append(f"{macro}: main.tex {want} vs figures.py {got_r}")
 
-    # F7's operating point and F8's headline means against the text's macros.
+    # F7's operating point and F8's all-attempts means against the text's macros.
     raw = _raw_macros()
 
     def pct(macro, got):
