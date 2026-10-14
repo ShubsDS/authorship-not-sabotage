@@ -819,32 +819,33 @@ separable than the original ones, $\rho = \armOneRho{}$: one authorship gap repl
 
 Swapping one class at a time shows where each detector's drop comes from
 (Table~\ref{tab:swap}). The bag-of-words classifier stays high whenever the two classes have
-different writers: human honest code against our attacks scores \clfSwapHumanOurs{}, our honest
-code against stored attacks \clfSwapOursStored{}, and only when one model wrote both does it
-fall, to $S = \clfSwapOursOurs{}$. Our attacks in place of the stored ones raise its AUROC
-against human code, from $B' = \clfSwapHumanStored{}$, so its drop is authorship, not our
-attacks. Haiku~4.5 gives \clfSwapHaikuHumanOurs{} and \clfSwapHaikuOursStored{} against
-$S = \clfSwapHaikuOursOurs{}$ (appendix~\ref{app:clfswap}).
+different writers: human honest code against our backdoors scores \clfSwapHumanOurs{}, our
+honest code against the original backdoors \clfSwapOursStored{}, and only when one model wrote
+both does it fall, to \clfSwapOursOurs{} on the rebuilt pairs. Our backdoors in place of the
+original ones raise its AUROC against human code, from \clfSwapHumanStored{} on the original
+pairs, so its drop is authorship, not our attacks. Haiku~4.5 gives \clfSwapHaikuHumanOurs{} and
+\clfSwapHaikuOursStored{} against \clfSwapHaikuOursOurs{} on its rebuilt pairs
+(appendix~\ref{app:clfswap}).
 
-A zero-shot Sonnet~5 monitor, which wrote both same-generator classes, scores
-\monStoredHeadAbs{} on the stored pairs and \monitorS{} on the same-generator pairs
+A zero-shot Sonnet~5 monitor, the model that also wrote the Sonnet~5 rebuilt pairs, scores
+\monStoredHeadAbs{} on the original pairs and \monitorS{} on the rebuilt pairs
 (appendix~\ref{app:monitors}); for it the swap puts the drop in the attacks.
-On the headline problems (Table~\ref{tab:swap}),\footnote{The four cells combine scores from separate
+On the all-attempts problems (Table~\ref{tab:swap}),\footnote{The four cells combine scores from separate
 batches run the same day; rescoring a program returns the same score \retestSameLo{}--\retestSameHi{} of the time
 (appendix~\ref{app:monitors}).} replacing the human honest code with ours does not
-lower the score, and replacing the stored attacks with ours lowers it to \monSwapHumanOurs{}
-and the attacks' mean suspicion from \monSuspStored{} to \monSuspOurs{}. The same holds on
-working attacks: on the strict problems human honest code scores \monStoredStrictAbs{} against
-stored attacks and \monSwapStrictHumanOurs{} against ours, and our own pairs score
-\monitorStrict{}.\footnote{Three of the \strictN{} attacks the strict monitor
+lower the score, and replacing the original backdoors with ours lowers it to
+\monSwapHumanOurs{} and the backdoors' mean suspicion from \monSuspStored{} to \monSuspOurs{}.
+The same holds for working backdoors: on their problems human honest code scores
+\monStoredStrictAbs{} against the original backdoors and \monSwapStrictHumanOurs{} against ours,
+and our rebuilt pairs score \monitorStrict{}.\footnote{Three of the \strictN{} attacks the strict monitor
 runs scored differ from the classifier's strict row; without them the AUROC is
 \monStrictMatched{} (appendix~\ref{app:monitors}).} The monitor's fall
-measures attack conspicuousness, not authorship. At a fixed audit budget of \auditFPR{} false
-positives, thresholded on each set's own honest programs, it catches \auditStrictStored{} of
-stored and \auditStrictOurs{} of same-generator attacks on the strict problems (paired
-difference \auditStrictDiff{}, 95\% CI \auditStrictDiffLo{}--\auditStrictDiffHi{}), and
-\auditHeadStored{} against \auditHeadOurs{} on the headline problems (Figure~\ref{fig:audit},
-appendix~\ref{app:audit}).
+measures how conspicuous the attacks are, not authorship. At a fixed audit budget of
+\auditFPR{} false positives, thresholded on each set's own honest programs, it catches
+\auditStrictStored{} of the original and \auditStrictOurs{} of our backdoors on the
+working-backdoor problems (paired difference \auditStrictDiff{}, 95\% CI
+\auditStrictDiffLo{}--\auditStrictDiffHi{}), and \auditHeadStored{} against \auditHeadOurs{} on
+the all-attempts problems (Figure~\ref{fig:audit}, appendix~\ref{app:audit}).
 
 \section{Limitations}
 
