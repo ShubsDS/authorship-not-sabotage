@@ -1027,14 +1027,14 @@ all & \baselineBn{} & \sameGenN{} & \baselineB{} (\baselineBLo{}--\baselineBHi{}
 
 \begin{figure}[h]\centering
 \includegraphics[width=0.64\linewidth]{f3-monitors-vs-floors.pdf}
-\caption{\textbf{Two floors against the \monN{} open-weight monitors ranked on the same
+\caption{\textbf{Two floors against the \monN{} open-weight monitors ranked on the filtered test
 split.} AUROC on the \splitTest{}-item test split (\splitAttack{} attack /
 \splitHonest{} honest), comments stripped; monitor scores from the MIT-licensed release of
 \cite{jha2026decorrelation}, median \monMedian{}, max \monMax{}. Shaded bands are the floors'
 95\% bootstrap intervals; dotted lines are the 95th percentiles of their permutation nulls.
 Both floors clear \tfidfKoranCount{} of the \monN{}. \textbf{Two caveats.} (i)~The monitors
-are zero-shot prompted while the bag-of-words classifier is trained on the benchmark's own
-paired train split. The comparison states what the corpus makes recoverable and does not
+are zero-shot prompted while the bag-of-words classifier is trained on the split's own paired
+train problems. The comparison states what the split makes recoverable and does not
 claim that bag-of-words is a better monitor. (ii)~The no-code line is the floor
 cross-validated \emph{within} the test split, which measures how the split's filter ties
 problem metadata to the label. Trained outside the split, as bag-of-words is, the same
@@ -1092,15 +1092,15 @@ split's filter ties problem metadata to the label.
 
 \input{fig/f1-protocol-baseline}
 
-\subsection{Comment stripping on the matched-protocol numbers}
+\subsection{Comment stripping on the matched-pair numbers}
 \label{app:stripped}
 The matched-pair and transfer measurements were first made with comments in. Every value in
 the paragraph of \S\ref{sec:results} on what bag-of-words reads was re-measured with the same
 stripper applied to both classes, over five problem-disjoint splits (each transfer row is one fixed
-split). With comments kept the same quantities were transfer \transferKept{}, working
-\pairWorkingKept{}, inert \pairInertKept{}, all pairs \pairAllKept{} and surface-feature
-AUROC \surfaceSevenKept{}; stripped they are \transfer{}, \pairWorking{}, \pairInert{},
-\pairAll{} and \surfaceSeven{}. Every one was inflated by the comment channel. The \texttt{\#}-presence marker, \hashPresAttack{}
+split). With comments kept the same quantities were transfer \transferKept{}, working backdoors
+\pairWorkingKept{}, non-working backdoors \pairInertKept{}, all pairs \pairAllKept{} and
+surface-feature AUROC \surfaceSevenKept{}; stripped they are \transfer{}, \pairWorking{},
+\pairInert{}, \pairAll{} and \surfaceSeven{}. Every one was inflated by the comment channel. The \texttt{\#}-presence marker, \hashPresAttack{}
 against \hashPresHonest{} before stripping, closes to \hashPresAttackStripped{} against
 \hashPresHonestStripped{} after and is dropped; \texttt{\_\_main\_\_} is unchanged. One
 authorship leak survives the stripper because string literals are not comments: in the
@@ -1108,8 +1108,9 @@ comment-stripped train split an author byline (\texttt{Author :}) survives in
 \bylineHonest{} of \splitTrain{} honest samples against \bylineAttack{} attack samples, and
 a triple-quoted block in \tripleHonest{} against \tripleAttack{}. Both are too rare to account
 for \tfidfKoran{}, but each records who wrote the code.
-Stripped, the matched-protocol TF-IDF AUROC is \tfidfMatched{}, beside $B = \baselineB$ and
-the Koran-split \tfidfKoran{}, all three on stripped code. The other cross-generator
+Stripped, the matched-pair TF-IDF AUROC is \tfidfMatched{}, beside \baselineB{} on all
+\baselineBn{} original pairs and \tfidfKoran{} on the filtered test split, all three on stripped
+code. The other cross-generator
 transfer rows, stripped, are \transferOthreeClaude{} (o3-mini to claude-3-7-sonnet, 82 test
 pairs), \transferClaudeOthree{} (the reverse) and \transferOoneGemini{} (o1-mini to
 gemini-2.0-flash).
