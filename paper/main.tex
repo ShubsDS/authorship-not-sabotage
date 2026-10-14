@@ -1368,29 +1368,34 @@ Dropping those three backdoors, or the three pairs, moves the monitor's \monitor
 \subsection{The classifier's class swap}
 \label{app:clfswap}
 Table~\ref{tab:clfswap} fits the bag-of-words classifier of Table~\ref{tab:gates} to each
-pairing of an honest and an attack class on a headline row's problems: the same pipeline and
-folds, pooled out-of-fold AUROC, and a joint bootstrap over problems of all four cells, so the
-differences carry paired intervals (\texttt{classifier\_swap.py}). The human-honest/stored cell
-is that row's $B'$ and the same-generator cell its $S$; both reproduce Table~\ref{tab:gates}.
-The reading rule was fixed before the missing cell was computed: human honest code against our
-attacks near $B'$ puts the classifier's drop on the side of authorship, near $S$ on the side of
-our attacks. For both generators the cell is above $B'$. Every pairing of two writers stays at
-or above $B'$, and only the pairing of one writer falls: against $S$, human honest code with our
-attacks is higher by \clfSwapDiffHumanOursS{} (\clfSwapDiffHumanOursSLo{}--\clfSwapDiffHumanOursSHi{})
-on Sonnet~5 and \clfSwapHaikuDiffHumanOursS{}
-(\clfSwapHaikuDiffHumanOursSLo{}--\clfSwapHaikuDiffHumanOursSHi{}) on Haiku~4.5, and our honest
-code with stored attacks by \clfSwapDiffOursStoredS{}
+pairing of an honest and a backdoored class on the problems of each generator's all-attempts
+row: the same pipeline and folds, pooled out-of-fold AUROC, and a joint bootstrap over problems
+of all four cells, so the differences carry paired intervals (\texttt{classifier\_swap.py}). The
+cell of human honest code against original backdoors is that row's AUROC on the original pairs,
+and the cell of our honest code against our backdoors its AUROC on the rebuilt pairs; both
+reproduce Table~\ref{tab:gates}. The reading rule was fixed before the cell of human honest code
+against our backdoors was computed: near the AUROC on the original pairs it puts the
+classifier's drop on the side of authorship, near the AUROC on the rebuilt pairs on the side of
+our backdoors. For both generators the cell is above the AUROC on the original pairs. Every
+pairing of two writers stays at or above the AUROC on the original pairs, and only the pairing
+of one writer falls: against the AUROC on the rebuilt pairs, human honest code with our
+backdoors is higher by \clfSwapDiffHumanOursS{}
+(\clfSwapDiffHumanOursSLo{}--\clfSwapDiffHumanOursSHi{}) on Sonnet~5 and
+\clfSwapHaikuDiffHumanOursS{} (\clfSwapHaikuDiffHumanOursSLo{}--\clfSwapHaikuDiffHumanOursSHi{})
+on Haiku~4.5, and our honest code with original backdoors by \clfSwapDiffOursStoredS{}
 (\clfSwapDiffOursStoredSLo{}--\clfSwapDiffOursStoredSHi{}) and \clfSwapHaikuDiffOursStoredS{}
 (\clfSwapHaikuDiffOursStoredSLo{}--\clfSwapHaikuDiffOursStoredSHi{}).
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
-\caption{Bag-of-words AUROC with one class swapped at a time (pooled out-of-fold, joint 95\%
-bootstrap over problems).}
+\caption{Bag-of-words AUROC with one class swapped at a time, on the problems of each
+generator's all-attempts row (pooled out-of-fold, joint 95\% bootstrap over problems). Human
+honest code against the original attack is the AUROC on the original pairs; our honest code
+against our attack is the AUROC on the rebuilt pairs.}
 \label{tab:clfswap}
 \begin{tabular}{@{}l l l l@{}}
 \toprule
-Generator ($n$) & honest class & stored attack & our attack \\
+Generator ($n$) & honest class & original attack & our attack \\
 \midrule
 Sonnet~5 (\sameGenN{}) & human & \clfSwapHumanStored{} & \clfSwapHumanOurs{} (\clfSwapHumanOursLo{}--\clfSwapHumanOursHi{}) \\
  & ours & \clfSwapOursStored{} (\clfSwapOursStoredLo{}--\clfSwapOursStoredHi{}) & \clfSwapOursOurs{} \\
