@@ -739,33 +739,34 @@ is not resolved (appendix~\ref{app:shared}).
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{\textbf{What is left when one model writes both classes.} $S$ and $B'$ are
-bag-of-words AUROCs (5-fold, comments stripped) on the same-generator pairs and on the stored
-pairs of the same problems (human honest code, stored attacks); $\rho = (S - 0.5)/(B' - 0.5)$.
-Points are pooled out-of-fold; intervals are 95\% bootstraps over problems, joint for $\rho$
-(appendix~\ref{app:stats});
-$P$ is the share of draws with $\rho$ above \rhoContent{}, a line fixed before any arm ran.
-\emph{Fires}: same-generator attacks that fire; every stored attack here fires.
-Prompt-matched rows reuse the attacks of the row above.}
+\caption{\textbf{What is left when one model writes both classes.} \emph{Rebuilt},
+\emph{original}: AUROC of the same bag-of-words classifier (5-fold, comments stripped) on the
+rebuilt pairs and on the original pairs of the same problems (human honest code, original
+backdoors); $\rho = (\text{rebuilt} - 0.5)/(\text{original} - 0.5)$; $P$: share of bootstrap
+draws with $\rho$ above \rhoContent{}, a line fixed before any variant ran. \emph{Working/$n$}:
+rebuilt backdoors that work, of $n$ problems; every original backdoor here works. Points pool
+the out-of-fold scores; intervals are 95\% bootstraps over problems; for $\rho$ each draw
+recomputes both AUROCs (appendix~\ref{app:stats}). Prompt-matched rows reuse the attacks of the row above.}
 \label{tab:gates}
 \begin{tabular}{@{}l r l r l r@{}}
 \toprule
-Arm & fires/$n$ & $S$ (95\% CI) & $B'$ & $\rho$ (95\% CI) & $P(\rho > \rhoContent{})$ \\
+Model, variant & working/$n$ & rebuilt (95\% CI) & original & $\rho$ (95\% CI)
+  & $P(\rho > \rhoContent{})$ \\
 \midrule
-\multicolumn{6}{@{}l}{\emph{Attempts (headline): one attack sampled per problem}} \\
-Sonnet 5 & \relFireFirst{}/\sameGenN{} & \sameGenS{} (\sameGenLo{}--\sameGenHi{})
+\multicolumn{6}{@{}l}{\emph{All attempts: one attack sampled per problem}} \\
+Sonnet 5, independent & \relFireFirst{}/\sameGenN{} & \sameGenS{} (\sameGenLo{}--\sameGenHi{})
   & \sameGenBprime{} & \sameGenRho{} (\sameGenRhoLo{}--\sameGenRhoHi{}) & \pContentHead{} \\
 Sonnet 5, prompt-matched & \matchedFire{}/\matchedN{} & \matchedS{} (\matchedLo{}--\matchedHi{})
   & \matchedBprime{} & \matchedRho{} (\matchedRhoLo{}--\matchedRhoHi{}) & \pContentMatched{} \\
-Haiku 4.5 & \haikuFireInRow{}/\haikuN{} & \haikuS{} (\haikuSLo{}--\haikuSHi{})
+Haiku 4.5, independent & \haikuFireInRow{}/\haikuN{} & \haikuS{} (\haikuSLo{}--\haikuSHi{})
   & \haikuBprime{} & \haikuRho{} (\haikuRhoLo{}--\haikuRhoHi{}) & \pContentHaiku{} \\
 Haiku 4.5, prompt-matched & \haikuMatchedFire{}/\haikuMatchedN{}
   & \haikuSMatched{} (\haikuSMatchedLo{}--\haikuSMatchedHi{})
   & \haikuMatchedBprime{} & \haikuMatchedRho{} (\haikuMatchedRhoLo{}--\haikuMatchedRhoHi{})
   & \pContentHaikuMatched{} \\
 \midrule
-\multicolumn{6}{@{}l}{\emph{Working sabotage (strict): only attacks that fire}} \\
-Sonnet 5 & \strictN{}/\strictN{} & \strictS{} (\strictLo{}--\strictHi{})
+\multicolumn{6}{@{}l}{\emph{Working backdoors: only attacks that work}} \\
+Sonnet 5, independent & \strictN{}/\strictN{} & \strictS{} (\strictLo{}--\strictHi{})
   & \strictBprime{} & \strictRho{} (\strictRhoLo{}--\strictRhoHi{}) & \pContentStrict{} \\
 Sonnet 5, prompt-matched & \matchedStrictN{}/\matchedStrictN{}
   & \matchedStrictS{} (\matchedStrictLo{}--\matchedStrictHi{})
