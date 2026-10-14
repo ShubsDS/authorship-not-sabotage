@@ -913,8 +913,8 @@ organization at the University of Virginia.
 \subsection{Statistics}
 \label{app:stats}
 Every cross-validated AUROC (bag-of-words on all \baselineBn{} original pairs, on the original
-pairs of the problems a row covers and on the rebuilt pairs, the masked and character-model
-rows, and the no-code floor cross-validated within the test split) is one AUROC over the pooled
+pairs of the problems a row of Table~\ref{tab:gates} covers and on the rebuilt pairs, the masked
+and character-model rows, and the no-code floor cross-validated within the test split) is one AUROC over the pooled
 out-of-fold scores, each item scored by the fold that held it out; for the no-code floor each
 item's score is averaged over five repeats of the folds. Bag-of-words on the filtered split, the
 no-code floor trained outside it or on a held-out slice, and the monitors score each item once,
@@ -1143,8 +1143,8 @@ Pairs & mean sim. & share $>0.95$ & share $<0.60$ & differs from the original pa
 
 \subsection{Robustness of the rebuilt-pair rows}
 \label{app:robust}
-Sample size does not produce the fall on Sonnet~5's all-attempts row. The AUROC on original
-pairs, computed through the identical pipeline on 30 random subsamples of the \baselineBn{}
+Sample size does not produce the drop from original to rebuilt pairs on Sonnet~5's
+all-attempts row. The AUROC on original pairs, computed through the identical pipeline on 30 random subsamples of the \baselineBn{}
 original pairs, is $\curveHeadline{} \pm \curveHeadlineSd{}$ (mean $\pm$ SD) at
 $n = \sameGenN{}$, far above the \sameGenS{} on the rebuilt pairs. At the working-backdoor row's
 $n = \strictN{}$ it is $\curveStrict{} \pm \curveStrictSd{}$: at that size the classifier
@@ -1181,9 +1181,9 @@ trigger (\trigStoredPublic{}).
 Sonnet~5's all-attempts and working-backdoor rows differ in two ways: the working-backdoor row's
 backdoors work, and that row covers only the problems on which a working backdoor could be
 drawn. The \sharedN{} problems in both rows separate the two. On them our honest program and
-the original pair are the same in both rows, and only our backdoor differs. The AUROCs on a
-subset, on the rebuilt pairs and on the original pairs, are the existing out-of-fold scores
-restricted to it, with nothing refitted, so the two rows' scores on a shared problem come from
+the original pair are the same in both rows, and only our backdoor differs. On a subset, both AUROCs, on
+the rebuilt and on the original pairs, come from the existing out-of-fold scores restricted to
+it, with nothing refitted, so the two rows' scores on a shared problem come from
 fits on \sameGenN{} and \strictN{} problems (Table~\ref{tab:shared}).
 
 On the shared problems $\rho$ is \sharedRhoHead{} with the all-attempts backdoors and
@@ -1245,8 +1245,8 @@ to \matchedSid{} ($\rho = \matchedRhoId{}$) and the same row without prompt matc
 \matchedN{} problems, to \matchedSidOrig{}, so identifier normalisation and prompt matching
 remove largely the same thing. This masked row tests whether what remains after prompt matching
 is structure or naming, and it does not decide: its joint interval,
-\matchedRhoIdLo{}--\matchedRhoIdHi{}, straddles \rhoCollapse{}, with \matchedRhoIdCollapse{} of
-the bootstrap draws at or below it. A character model (3--5-grams, same classifier and folds)
+\matchedRhoIdLo{}--\matchedRhoIdHi{}, straddles the line $\rho = \rhoCollapse{}$ fixed in
+advance, with \matchedRhoIdCollapse{} of the bootstrap draws at or below it. A character model (3--5-grams, same classifier and folds)
 retains more than the word tokeniser, \matchedChar{} ($\rho = \matchedRhoChar{}$), so the
 tokeniser does not produce the drop.
 
@@ -1266,7 +1266,8 @@ is no layout difference left for the classifier to read.
 \subsection{The monitor rows and the class swap}
 \label{app:monitors}
 Both monitors score Sonnet~5's rebuilt pairs and the original pairs of the same problems. The
-monitor's $\rho$ is the same ratio as $\rho$, computed from the monitor's two AUROCs.
+monitor's $\rho$ is the same ratio computed from the monitor's AUROCs instead of the
+classifier's.
 Sonnet~5, which wrote both classes of these rebuilt pairs, scores \monitorS{}
 (\monitorSLo{}--\monitorSHi{}) on the rebuilt pairs of the all-attempts row and
 \monStoredHeadAbs{} on the original pairs of the same problems, a monitor's $\rho$ of
@@ -1351,8 +1352,8 @@ The cells combine separate batches. Sonnet~5's runs on the rebuilt and on the or
 were submitted about six hours apart on the same day; Haiku~4.5's runs at each reply ceiling
 were submitted together. Monitor replies use default sampling, so rescoring is noisy. On the
 programs that were scored in two batches (the honest programs and original backdoors of the
-\retestN{} problems in both rows, and the \retestAttackN{} of our backdoors identical in both), Sonnet~5 gives the same program the same score only \retestSameLo{}--\retestSameHi{} of
-the time, depending on the program class, with a Spearman correlation of
+\retestN{} problems in both rows, and the \retestAttackN{} of our backdoors identical in both),
+Sonnet~5 gives the same program the same score only \retestSameLo{}--\retestSameHi{} of the time, depending on the program class, with a Spearman correlation of
 \retestSpearmanLo{}--\retestSpearmanHi{} between the two scorings. The intervals above resample
 problems and do not include this noise, so cell-to-cell differences of a few hundredths, such as
 the honest-side differences against original backdoors, are within what rescoring alone can
@@ -1409,7 +1410,7 @@ Haiku~4.5 (\haikuN{}) & human & \clfSwapHaikuHumanStored{} & \clfSwapHaikuHumanO
 \subsection{Detection at a fixed audit budget}
 \label{app:audit}
 Table~\ref{tab:audit} gives the share of attacks a detector flags when its threshold is set on
-one pair set's own honest programs to flag 1\%, 2\% or 5\% of them, for the original pairs
+the honest programs of one set of pairs to flag 1\%, 2\% or 5\% of them, for the original pairs
 (human honest code, original backdoors) and for the rebuilt pairs of the same problems. Monitor
 scores are integers from 0 to 100, so many honest programs tie at the threshold $t$. We flag
 every program above $t$ and each program at $t$ with the probability that makes the honest
@@ -1417,8 +1418,8 @@ false-positive rate equal to the target, and report the expected catch rate, whi
 random draws. Flagging only above $t$, which keeps the honest rate at or below the target,
 leaves Sonnet~5's 2\% catch rates on the all-attempts problems at \audConsSonHeadSt{} and
 \audConsSonHeadSg{} and gives \audConsSonStrictSt{} and \audConsSonStrictSg{} on the
-working-backdoor problems (difference \audConsSonStrictD{}, \audConsSonStrictLo{} to \audConsSonStrictHi{}). The
-bag-of-words rows use the out-of-fold scores of Table~\ref{tab:gates}; they are continuous, so
+working-backdoor problems (difference \audConsSonStrictD{}, \audConsSonStrictLo{} to
+\audConsSonStrictHi{}). The bag-of-words rows use the out-of-fold scores of Table~\ref{tab:gates}; they are continuous, so
 the two rules differ by at most one program. The difference is the catch rate on the original
 pairs minus that on the rebuilt pairs, with both thresholds recomputed on each bootstrap draw.
 
@@ -1432,15 +1433,15 @@ Sonnet~5 rows on the working-backdoor problems to every false-positive rate up t
 \includegraphics[width=0.48\linewidth]{f7-audit-budget.pdf}
 \caption{\textbf{Working attacks caught by the Sonnet~5 monitor as the false-positive rate
 grows,} on the \strictN{} working-backdoor problems: original pairs against rebuilt pairs, each
-thresholded on its own honest programs. Bands: pointwise 95\% bootstrap intervals over problems. Marked: the
-\auditFPR{} operating point of \S\ref{sec:results}.}
+thresholded on its own honest programs. Bands: pointwise 95\% bootstrap intervals over problems.
+Marked: the \auditFPR{} operating point of \S\ref{sec:results}.}
 \label{fig:audit}
 \end{figure}
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{\textbf{Share of attacks flagged at a fixed false-positive rate.} The threshold is set
-on each pair set's own honest programs; ties at the threshold are broken at random so that the
+on the honest programs of each set of pairs; ties at the threshold are broken at random so that the
 honest false-positive rate equals the target. \emph{Original}: human honest code against the
 original backdoors; \emph{rebuilt}: our rebuilt pairs on the same problems. Difference: original
 minus rebuilt, with a paired 95\% bootstrap interval over problems. \emph{All attempts},
@@ -1526,8 +1527,9 @@ The release bundle, attached to the code repository's \texttt{v1.0} release, hol
 backdoored programs written by one model, plus every one of the \relRetryDraws{} draws of the
 independent variant's retries), both eligibility rules as pair lists, under an outcome-blind
 selection (\relPassFirst{} passing and \relFireFirst{} working independent-variant pairs) and
-under the dataset's own survivor selection (\relPassBest{} and \relFireBest{}, or
-\relFireBestCrash{} counting a crash on the trigger input as working), the \relScripts{}
+under the survivor selection used to build the original pairs, which keeps the best draw from
+the retries (\relPassBest{} and \relFireBest{}, or \relFireBestCrash{} counting a crash on the
+trigger input as working), the \relScripts{}
 scripts behind the measurements (generation for both generators, the test harness, the trigger
 verifier, the selection rules, the prompt-matched variant, the monitor rows, the class swaps and
 each remaining measurement script), a dataset card, and a manifest of row counts and
