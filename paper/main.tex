@@ -684,9 +684,9 @@ line and a lower one at $\rho = \rhoCollapse{}$ were fixed before any variant ra
 \label{sec:results}
 
 Comment stripping drives comment count and code length to chance
-(Table~\ref{tab:protocol-baseline}). Two other baselines do not move; we call them
-\emph{floors}: a monitor at or below a floor has shown nothing beyond what the
-corpus leaks. Bag-of-words, trained on the split's train problems and scored once on its test
+(Table~\ref{tab:protocol-baseline}). Two other baselines, the bag-of-words and no-code
+floors, do not move.
+Bag-of-words, trained on the split's train problems and scored once on its test
 items, reaches AUROC \tfidfKoran{}. The no-code floor under the same protocol, trained on
 problems outside the test split, scores \nocodeOutside{}, below chance: outside the split every
 problem that passes the filter has a working backdoor, so the honest items are problems the
@@ -694,7 +694,7 @@ filter removed, and the relation between test count and label reverses. Cross-va
 the test split it reaches \nocodeCV{}. Both rank above \tfidfKoranCount{} of the \monN{}
 monitors (Figure~\ref{fig:floors}) and far above their permutation nulls
 (Figure~\ref{fig:monitors}, appendix~\ref{app:protocol}). The monitors are
-zero-shot, so the comparison states what the corpus makes recoverable, not which is the better
+zero-shot, so the comparison states what the dataset makes recoverable, not which is the better
 monitor. The no-code floor reads only problem metadata, so it measures how the split's label
 was selected, not authorship.
 
@@ -711,8 +711,8 @@ problems. Monitor scores from \cite{jha2026decorrelation}.}
 Three further measurements show that the bag-of-words classifier is not reading the backdoor
 (pairwise accuracies for the first two; appendix~\ref{app:protocol}). It transfers across
 backdoor generators at \transfer{}, so the feature it has learned is one the attackers share.
-It is nearly as strong on inert backdoors, the harder case for a detector of sabotage, as on
-working ones (\pairInert{} against \pairWorking{}). What it reads is stylistic:
+It is nearly as strong on non-working backdoors, the harder case for a detector of sabotage, as
+on working ones (\pairInert{} against \pairWorking{}). What it reads is stylistic:
 \texttt{\_\_main\_\_} appears in 0.116 of attack samples against 0.000 of honest ones, a gap
 that replicates on the train split (152 against 1 of \splitTrain{} per class). All three are
 on comment-stripped code (unstripped: appendix~\ref{app:stripped}); a token-level version of
