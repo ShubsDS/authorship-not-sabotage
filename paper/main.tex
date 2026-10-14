@@ -1265,35 +1265,37 @@ is no layout difference left for the classifier to read.
 
 \subsection{The monitor rows and the class swap}
 \label{app:monitors}
-Sonnet~5, which wrote both same-generator classes, scores \monitorS{}
-(\monitorSLo{}--\monitorSHi{}) on the same-generator headline pairs and \monStoredHeadAbs{} on
-the stored pairs of the same problems, a monitor-$\rho$ of \monRhoHead{}
-(\monRhoHeadLo{}--\monRhoHeadHi{}); on the strict pairs it scores \monitorStrict{}
-(\monitorStrictLo{}--\monitorStrictHi{}) against \monStoredStrictAbs{}, a monitor-$\rho$ of
-\monRhoStrict{} (\monRhoStrictLo{}--\monRhoStrictHi{}). Haiku~4.5, which wrote neither, scores
-\monHaikuHead{} against \monHaikuStoredHead{} on the headline problems and \monHaikuStrict{}
-against \monHaikuStoredStrict{} on the strict ones. Its 512-token reply ceiling left
-\monHaikuMissHead{} same-generator replies unparseable, and on the stored side the missing
-share differs by class (\monHaikuMissHonest{} honest against \monHaikuMissAttack{} attack), a
-bias of unknown sign. With a 1{,}024-token ceiling on the strict pairs \monHaikuMissStrictK{}
-same-generator replies are missing and its monitor-$\rho$ moves from \monHaikuRhoStrict{} to
-\monHaikuRhoStrictMt{}, inside the bootstrap interval. On the stored pairs both monitors score
-above bag-of-words over the same problems ($+$\monBowGapSonHead{} and $+$\monBowGapSonStrict{}
-for Sonnet~5 on the headline and strict problems, $+$\monBowGapHaiHead{} and
-$+$\monBowGapHaiStrict{} for Haiku~4.5), so Figure~\ref{fig:monitors}'s ranking describes those
-monitors on that split and does not show that bag-of-words beats a monitor here. Classifier
-and monitor are independent pair by pair on the same-generator pairs
-($\phi = \monitorClfPhi{}$), so the two read different things.
+Both monitors score Sonnet~5's rebuilt pairs and the original pairs of the same problems. The
+monitor's $\rho$ is the same ratio as $\rho$, computed from the monitor's two AUROCs.
+Sonnet~5, which wrote both classes of these rebuilt pairs, scores \monitorS{}
+(\monitorSLo{}--\monitorSHi{}) on the rebuilt pairs of the all-attempts row and
+\monStoredHeadAbs{} on the original pairs of the same problems, a monitor's $\rho$ of
+\monRhoHead{} (\monRhoHeadLo{}--\monRhoHeadHi{}); on the working-backdoor problems it scores
+\monitorStrict{} (\monitorStrictLo{}--\monitorStrictHi{}) against \monStoredStrictAbs{}, a
+monitor's $\rho$ of \monRhoStrict{} (\monRhoStrictLo{}--\monRhoStrictHi{}). Haiku~4.5, which
+wrote neither class, scores \monHaikuHead{} against \monHaikuStoredHead{} on the all-attempts
+problems and \monHaikuStrict{} against \monHaikuStoredStrict{} on the working-backdoor ones.
+Its 512-token reply ceiling left \monHaikuMissHead{} replies on the rebuilt pairs unparseable,
+and on the original pairs the missing share differs by class (\monHaikuMissHonest{} honest
+against \monHaikuMissAttack{} backdoored), a bias of unknown sign. With a 1{,}024-token ceiling
+on the working-backdoor problems \monHaikuMissStrictK{} replies on the rebuilt pairs are missing
+and its monitor's $\rho$ moves from \monHaikuRhoStrict{} to \monHaikuRhoStrictMt{}, inside the
+bootstrap interval. On the original pairs both monitors score above bag-of-words over the same
+problems ($+$\monBowGapSonHead{} and $+$\monBowGapSonStrict{} for Sonnet~5 on the all-attempts
+and working-backdoor problems, $+$\monBowGapHaiHead{} and $+$\monBowGapHaiStrict{} for
+Haiku~4.5), so Figure~\ref{fig:monitors}'s ranking describes those monitors on that split and
+does not show that bag-of-words beats a monitor here. Classifier and monitor are independent
+pair by pair on the rebuilt pairs ($\phi = \monitorClfPhi{}$), so the two read different things.
 
-Table~\ref{tab:swap-full} recombines each monitor's per-program scores from the stored and
-same-generator runs into all four pairings of an honest and an attack class, on the problems
-where all four programs have a parseable score. For Sonnet~5 on the headline problems, our
-attacks in place of the stored ones change the AUROC against human honest code by
-\swSonHeadAttackSwap{} (\swSonHeadAttackSwapLo{} to \swSonHeadAttackSwapHi{}), while our
-honest code in place of the human code changes it by \swSonHeadHonestSwapS{}
-(\swSonHeadHonestSwapSLo{} to \swSonHeadHonestSwapSHi{}) against stored attacks and
+Table~\ref{tab:swap-full} recombines each monitor's per-program scores from its runs on the
+original and the rebuilt pairs into all four pairings of an honest and a backdoored class, on
+the problems where all four programs have a parseable score. For Sonnet~5 on the all-attempts
+problems, our backdoors in place of the original ones change the AUROC against human honest
+code by \swSonHeadAttackSwap{} (\swSonHeadAttackSwapLo{} to \swSonHeadAttackSwapHi{}), while
+our honest code in place of the human code changes it by \swSonHeadHonestSwapS{}
+(\swSonHeadHonestSwapSLo{} to \swSonHeadHonestSwapSHi{}) against original backdoors and
 \swSonHeadHonestSwapO{} (\swSonHeadHonestSwapOLo{} to \swSonHeadHonestSwapOHi{}) against ours.
-On the strict problems the same three differences are \swSonStrictAttackSwap{}
+On the working-backdoor problems the same three differences are \swSonStrictAttackSwap{}
 (\swSonStrictAttackSwapLo{} to \swSonStrictAttackSwapHi{}), \swSonStrictHonestSwapS{}
 (\swSonStrictHonestSwapSLo{} to \swSonStrictHonestSwapSHi{}) and \swSonStrictHonestSwapO{}
 (\swSonStrictHonestSwapOLo{} to \swSonStrictHonestSwapOHi{}). Haiku~4.5 shows the same pattern
@@ -1301,11 +1303,12 @@ on fewer problems. Figure~\ref{fig:scores} shows the Sonnet~5 scores behind thes
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{3.5pt}
-\caption{\textbf{Monitor AUROC with one class swapped at a time, both monitors.} Each AUROC
-column pairs the honest class named above it with the attack class named in the column; $n$ is
-the number of problems on which all four programs have a parseable score. Mean suspicion is on
-the same problems, on the 0--100 scale. $^\ast$Haiku~4.5 re-run with a 1{,}024-token reply
-ceiling. Source: \texttt{monitor\_swap.py}.}
+\caption{\textbf{Monitor AUROC with one class swapped at a time, both monitors,} on the
+problems of Sonnet~5's all-attempts and working-backdoor rows. Each AUROC column pairs the
+honest class named above it with the attack class named in the column (\emph{original}: the
+dataset's backdoors); $n$ is the number of problems on which all four programs have a parseable
+score. Mean suspicion is on the same problems, on the 0--100 scale. $^\ast$Haiku~4.5 re-run with
+a 1{,}024-token reply ceiling. Source: \texttt{monitor\_swap.py}.}
 \label{tab:swap-full}
 \begin{tabular}{@{}l r cc cc cc cc@{}}
 \toprule
@@ -1314,21 +1317,21 @@ ceiling. Source: \texttt{monitor\_swap.py}.}
  & & \multicolumn{2}{c}{human honest} & \multicolumn{2}{c}{our honest}
  & \multicolumn{2}{c}{honest} & \multicolumn{2}{c}{attack} \\
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(l){9-10}
-Monitor, problems & $n$ & stored & ours & stored & ours & human & ours & stored & ours \\
+Monitor, problems & $n$ & original & ours & original & ours & human & ours & original & ours \\
 \midrule
-Sonnet~5, headline & \monSwapN{} & \monSwapHumanStored{} & \monSwapHumanOurs{}
+Sonnet~5, all attempts & \monSwapN{} & \monSwapHumanStored{} & \monSwapHumanOurs{}
   & \monSwapOursStored{} & \monSwapOursOurs{}
   & \swSonHeadSuspHH{} & \swSonHeadSuspOH{} & \monSuspStored{} & \monSuspOurs{} \\
-Sonnet~5, strict & \swSonStrictN{} & \monStoredStrictAbs{} & \monSwapStrictHumanOurs{}
+Sonnet~5, working backdoors & \swSonStrictN{} & \monStoredStrictAbs{} & \monSwapStrictHumanOurs{}
   & \swSonStrictOS{} & \swSonStrictOO{}
   & \swSonStrictSuspHH{} & \swSonStrictSuspOH{} & \swSonStrictSuspSA{} & \swSonStrictSuspOA{} \\
-Haiku~4.5, headline & \swHaiHeadN{} & \swHaiHeadHS{} & \swHaiHeadHO{}
+Haiku~4.5, all attempts & \swHaiHeadN{} & \swHaiHeadHS{} & \swHaiHeadHO{}
   & \swHaiHeadOS{} & \swHaiHeadOO{}
   & \swHaiHeadSuspHH{} & \swHaiHeadSuspOH{} & \swHaiHeadSuspSA{} & \swHaiHeadSuspOA{} \\
-Haiku~4.5, strict & \swHaiStrictN{} & \swHaiStrictHS{} & \swHaiStrictHO{}
+Haiku~4.5, working backdoors & \swHaiStrictN{} & \swHaiStrictHS{} & \swHaiStrictHO{}
   & \swHaiStrictOS{} & \swHaiStrictOO{}
   & \swHaiStrictSuspHH{} & \swHaiStrictSuspOH{} & \swHaiStrictSuspSA{} & \swHaiStrictSuspOA{} \\
-Haiku~4.5, strict$^\ast$ & \swHaiStrictKN{} & \swHaiStrictKHS{} & \swHaiStrictKHO{}
+Haiku~4.5, working backdoors$^\ast$ & \swHaiStrictKN{} & \swHaiStrictKHS{} & \swHaiStrictKHO{}
   & \swHaiStrictKOS{} & \swHaiStrictKOO{}
   & \swHaiStrictKSuspHH{} & \swHaiStrictKSuspOH{} & \swHaiStrictKSuspSA{} & \swHaiStrictKSuspOA{} \\
 \bottomrule
@@ -1337,30 +1340,30 @@ Haiku~4.5, strict$^\ast$ & \swHaiStrictKN{} & \swHaiStrictKHS{} & \swHaiStrictKH
 
 \begin{figure}[h]\centering
 \includegraphics[width=\linewidth]{f8-monitor-scores.pdf}
-\caption{\textbf{The Sonnet~5 monitor's suspicion scores by class,} on stored pairs (human
-honest code, stored attacks) and ours, for the headline and the strict problems. Each panel is
-normalised within class; the mean is of the attack scores. Honest programs score near zero in
-every panel; what moves is the attack class.}
+\caption{\textbf{The Sonnet~5 monitor's suspicion scores by class,} on original pairs (human
+honest code, original backdoors) and rebuilt pairs, for the problems of Sonnet~5's all-attempts
+and working-backdoor rows. Each panel is normalised within class; the mean is of the attack
+scores. Honest programs score near zero in every panel; what moves is the attack class.}
 \label{fig:scores}
 \end{figure}
 
-The cells combine separate batches. Sonnet~5's same-generator and stored runs were submitted
-about six hours apart on the same day; Haiku~4.5's runs at each reply ceiling were submitted
-together. Monitor
-replies use default sampling, so rescoring is noisy. On the programs that were scored in two
-batches (the honest and stored programs of the \retestN{} problems in both sets, and the
-\retestAttackN{} attack programs identical in both), Sonnet~5 gives the same program the same
-score only \retestSameLo{}--\retestSameHi{} of the time, depending on the program class, with a
-Spearman correlation of \retestSpearmanLo{}--\retestSpearmanHi{} between the two scorings. The
-intervals above resample problems and do not include this noise, so cell-to-cell differences
-of a few hundredths, such as the honest-side differences against stored attacks, are within
-what rescoring alone can produce.
+The cells combine separate batches. Sonnet~5's runs on the rebuilt and on the original pairs
+were submitted about six hours apart on the same day; Haiku~4.5's runs at each reply ceiling
+were submitted together. Monitor replies use default sampling, so rescoring is noisy. On the
+programs that were scored in two batches (the honest programs and original backdoors of the
+\retestN{} problems in both rows, and the \retestAttackN{} of our backdoors identical in both), Sonnet~5 gives the same program the same score only \retestSameLo{}--\retestSameHi{} of
+the time, depending on the program class, with a Spearman correlation of
+\retestSpearmanLo{}--\retestSpearmanHi{} between the two scorings. The intervals above resample
+problems and do not include this noise, so cell-to-cell differences of a few hundredths, such as
+the honest-side differences against original backdoors, are within what rescoring alone can
+produce.
 
-The strict monitor runs and the classifier's strict row read different attack files. They hold
-different attacks on \monStrictDiffer{} of the \strictN{} problems, where one selection kept a
-draw that fires only by crashing on its trigger and the other a later draw that fires without
-crashing: problems 1701, 1972 and 4434. Dropping those three attack programs, or the three
-pairs, moves \monitorStrict{} to \monStrictMatched{}.
+The monitor runs on the working-backdoor problems and the classifier's working-backdoor row read
+different backdoor files. They hold different backdoors on \monStrictDiffer{} of the
+\strictN{} problems, where one selection kept a draw that works only by crashing on its trigger
+input and the other a later draw that works without crashing: problems 1701, 1972 and 4434.
+Dropping those three backdoors, or the three pairs, moves the monitor's \monitorStrict{} to
+\monStrictMatched{}.
 
 \subsection{The classifier's class swap}
 \label{app:clfswap}
