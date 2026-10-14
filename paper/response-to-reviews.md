@@ -79,8 +79,8 @@ The appendix now states one convention:
   alike.
 - The agentic nulls (Figure F2) are within-task permutations of the plotted statistic.
 
-No conclusion changes. The working-backdoor ρ moves from 0.921 to 0.861. The held-out no-code null moves
-from 0.702 to 0.558 (p = 0.001), so that row is no longer "barely above its null".
+No conclusion changes. The working-backdoor ρ moves from 0.921 to 0.861. The held-out no-code null
+moves from 0.702 to 0.558 (p = 0.001), so that row is no longer "barely above its null".
 
 We also ran the no-code floor under the bag-of-words protocol: trained on problems outside the
 test split and scored once, it scores 0.298, below chance. Outside the split, every problem that

@@ -88,7 +88,8 @@ Our corpus of rebuilt pairs is `same-generator-apps-split.zip`, attached to the
 [v1.0 release](https://github.com/ShubsDS/authorship-not-sabotage/releases/tag/v1.0): the honest
 and attack programs, the independent variant's full retry pool, the pair lists for all attempts
 and for working backdoors under both draw selections (first draw, best draw), the scripts behind
-the paper's numbers, a dataset card and a manifest of row counts and checksums. `experiments/apps/release_split.py` builds it and `--check` validates it
+the paper's numbers, a dataset card and a manifest of row counts and checksums.
+`experiments/apps/release_split.py` builds it and `--check` validates it
 (`experiments/README.md`, stage 7).
 
 The code and our generated data are MIT-licensed ([`LICENSE`](LICENSE)). Upstream datasets are
