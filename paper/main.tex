@@ -936,14 +936,14 @@ means over five problem-disjoint splits (appendix~\ref{app:stripped}).
 
 \subsection{The schema}
 \label{app:schema}
-Table~\ref{tab:schema} is the record schema of \texttt{RoganInglis/apps-control-arena}
-\cite{inglis2025appscontrolarena}. The attack class carries \texttt{model} and
-\texttt{source}, naming the system that produced each backdoor (\texttt{unknown} for the
-unattributed entries, appendix~\ref{app:attackers}); the honest class carries no such field,
-because there is no generator to name. The two APPS-backdoor corpora we use are
-two views of this one artifact, since every problem in the filtered release
-\cite{koran2026highquality} is also in \cite{inglis2025appscontrolarena}, byte-identical
-except a re-validated \texttt{backdoor\_works}.
+Table~\ref{tab:schema} is the record schema of the dataset,
+\texttt{RoganInglis/apps-control-arena} \cite{inglis2025appscontrolarena}. The attack class
+carries \texttt{model} and \texttt{source}, naming the system that produced each backdoor
+(\texttt{unknown} for the unattributed entries, appendix~\ref{app:attackers}); the honest class
+carries no such field, because there is no generator to name. The two APPS-backdoor corpora we
+use are two views of this one dataset, since every problem in the filtered release
+\cite{koran2026highquality} is also in the dataset, byte-identical except for a re-validated
+\texttt{backdoor\_works}.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -965,30 +965,32 @@ struct & sub-fields \\
 \end{tabular}
 \end{table}
 
-\subsection{The stored attacking models}
+\subsection{The models that wrote the original backdoors}
 \label{app:attackers}
-The stored attack class is not one model. Each backdoor entry in the artifact carries a
+The original backdoors do not come from one model. Each backdoor entry in the dataset carries a
 \texttt{model} field; entries whose \texttt{source} is \texttt{apps} carry \texttt{unknown},
-which we call unattributed. Table~\ref{tab:attackers} counts the model behind the stored
-backdoor each problem's pair uses, over the \baselineBn{}-problem pool and the \sameGenN{}
-headline problems, and gives $B$ for each model's attacks against all \baselineBn{} human honest
-programs: one refit of $B$ over the pool, with its out-of-fold scores restricted to that model's
-attacks, so the honest code is the same in every row and only the attacker changes. Among the
-\storedAttackers{} named models $B$ runs from \atGThreeFiveB{} (gpt-3.5-turbo,
-$n = \atGThreeFivePool{}$) to \atOThreeB{} (o3-mini); the unattributed source gives
-\atUnattrB{}.
+which we call unattributed. Table~\ref{tab:attackers} counts, for each model, the problems
+whose original pair uses a backdoor that model wrote, over the \baselineBn{} problems we analyse
+and over the \sameGenN{} problems of Sonnet~5's all-attempts row. It also gives the bag-of-words
+AUROC of each model's backdoors against all \baselineBn{} human honest solutions: the
+classifier is fitted once, cross-validated, on all \baselineBn{} original pairs, and its
+out-of-fold scores are restricted to that model's backdoors, so the honest code is the same in
+every row and only the attacking model changes. Among the \storedAttackers{} named models this
+AUROC runs from \atGThreeFiveB{} (gpt-3.5-turbo, $n = \atGThreeFivePool{}$) to \atOThreeB{}
+(o3-mini); the unattributed source gives \atUnattrB{}.
 
-Restricting the headline row by stored attacker moves $\rho$ only within the full row's
-interval (\sameGenRhoLo{}--\sameGenRhoHi{}): $\rho = \rhoClaudeOnly{}$
-(\rhoClaudeOnlyLo{}--\rhoClaudeOnlyHi{}) on the \rhoClaudeOnlyN{} problems whose stored attack
-a Claude model wrote, \rhoThinkOnly{} (\rhoThinkOnlyLo{}--\rhoThinkOnlyHi{},
-$n = \rhoThinkOnlyN{}$) for claude-3-7-sonnet-thinking alone, and \rhoNonClaude{}
-(\rhoNonClaudeLo{}--\rhoNonClaudeHi{}, $n = \rhoNonClaudeN{}$) for the other attackers.
+Restricting Sonnet~5's all-attempts row by the model that wrote the original backdoor moves
+$\rho$ only within the full row's interval (\sameGenRhoLo{}--\sameGenRhoHi{}):
+$\rho = \rhoClaudeOnly{}$ (\rhoClaudeOnlyLo{}--\rhoClaudeOnlyHi{}) on the \rhoClaudeOnlyN{}
+problems whose original backdoor a Claude model wrote, \rhoThinkOnly{}
+(\rhoThinkOnlyLo{}--\rhoThinkOnlyHi{}, $n = \rhoThinkOnlyN{}$) for claude-3-7-sonnet-thinking
+alone, and \rhoNonClaude{} (\rhoNonClaudeLo{}--\rhoNonClaudeHi{}, $n = \rhoNonClaudeN{}$) for
+the other models.
 
-The filtered split's metadata (\texttt{top\_backdoor\_model}) names one model the artifact does
-not, \texttt{openai/gpt-4}. On all \splitGptFourN{} problems it names, the artifact has a working
-backdoor from the unattributed source and none attributed to gpt-4, so the name stands for the
-unattributed source. The split's \splitAttack{} test attacks were all written by
+The filtered split's metadata (\texttt{top\_backdoor\_model}) names one model the dataset does
+not, \texttt{openai/gpt-4}. On all \splitGptFourN{} problems where it does, the dataset has a
+working backdoor from the unattributed source and none attributed to gpt-4, so the name stands
+for the unattributed source. The split's \splitAttack{} test attacks were all written by
 claude-3-7-sonnet-thinking, and its \splitTrain{} train attacks by six other sources (o3-mini,
 claude-3-7-sonnet, gpt-4o, o1-mini, the unattributed source and gemini-2.0-flash), so the
 bag-of-words floor of \S\ref{sec:results} is trained on attacks from other models than the one
@@ -996,15 +998,16 @@ it is scored on.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{6pt}
-\caption{\textbf{Who wrote the stored backdoors.} Problems per attacking model on the
-\baselineBn{}-problem pool and the \sameGenN{}-problem headline row, and $B$ for that model's
-attacks against all \baselineBn{} human honest programs (one refit over the pool, out-of-fold
-scores; 95\% bootstrap over problems). Model names omit the provider and the
-\texttt{-latest} suffix. Source: \texttt{attacker\_mix.py}.}
+\caption{\textbf{Who wrote the original backdoors.} Problems per attacking model among the
+\baselineBn{} problems we analyse and the \sameGenN{} problems of Sonnet~5's all-attempts row,
+and the bag-of-words AUROC of that model's backdoors against all \baselineBn{} human honest
+solutions (one cross-validated fit on all \baselineBn{} original pairs, out-of-fold scores; 95\%
+bootstrap over problems). The last row is the AUROC on all \baselineBn{} original pairs. Model
+names omit the provider and the \texttt{-latest} suffix. Source: \texttt{attacker\_mix.py}.}
 \label{tab:attackers}
 \begin{tabular}{@{}l r r l@{}}
 \toprule
-Attacking model & pool & headline & $B$ (95\% CI) \\
+Attacking model & all problems & all-attempts row & AUROC (95\% CI) \\
 \midrule
 o3-mini & \atOThreePool{} & \atOThreeHead{} & \atOThreeB{} (\atOThreeBLo{}--\atOThreeBHi{}) \\
 claude-3-7-sonnet & \atCSonnetPool{} & \atCSonnetHead{} & \atCSonnetB{} (\atCSonnetBLo{}--\atCSonnetBHi{}) \\
