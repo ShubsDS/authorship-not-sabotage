@@ -1480,20 +1480,19 @@ Haiku~4.5, all attempts & 2\% & \audClfHaiHeadTwoSt{} & \audClfHaiHeadTwoSg{} & 
 \end{tabular}
 \end{table}
 
-\subsection{The two generators' funnel}
-Both generators were run through the identical pipeline. Our honest draws pass the public
-tests at \sonnetHonestPass{} and \haikuHonestPass{} of 1{,}444 problems; the second
-generator's attack draws pass at \haikuAttackPass{} of 1{,}444 and \haikuUsable{} of those
-fire, below the 50-pair minimum \texttt{gate\_s\_samegen.py} requires, so it has no strict
-row and the two generators are compared on the headline rows only. Those rows differ in
-inertness. \haikuFireInRow{} of the \haikuN{} attacks in the
-second generator's row fire (\haikuInert{} inert) against \relFireFirst{} of \sameGenN{}
-(\headlineInert{}), the other \haikuUsableOutside{} of its firing draws sitting on problems where
-its own honest program failed the tests and which the control therefore drops. The
-single-shot firing rate depends on our attack prompt, which halves it
-(appendix~\ref{app:robust}).
+\subsection{Pass and working counts for the two generators}
+Sonnet~5 and Haiku~4.5 were run through the identical pipeline. Their honest draws pass the
+public tests at \sonnetHonestPass{} and \haikuHonestPass{} of 1{,}444 problems; Haiku~4.5's
+backdoored draws pass at \haikuAttackPass{} of 1{,}444 and \haikuUsable{} of those work, below
+the 50-pair minimum \texttt{gate\_s\_samegen.py} requires, so it has no working-backdoor row and
+the two generators are compared on the all-attempts rows only. Those rows differ in how many
+backdoors work: \haikuFireInRow{} of the \haikuN{} in Haiku~4.5's row (\haikuInert{} do not)
+against \relFireFirst{} of \sameGenN{} in Sonnet~5's (\headlineInert{} do not). The other
+\haikuUsableOutside{} of Haiku~4.5's working draws are on problems where its own honest program
+failed the tests, which therefore have no rebuilt pair. The share of single-shot backdoors that
+work depends on our attack prompt, which halves it (appendix~\ref{app:robust}).
 
-\subsection{The five same-generator agentic settings}
+\subsection{The five agentic settings}
 \label{app:agentic}
 Removing the authorship gap does not remove every floor. In five settings where the same three
 models write both classes, so no authorship confound is possible, character count alone
@@ -1502,7 +1501,8 @@ separates the classes within task from \bashFloor{} (\texttt{bash}, below its nu
 
 \begin{figure}[h]\centering
 \includegraphics[width=0.86\linewidth]{f2-corpus-floors.pdf}
-\caption{\textbf{The structural floor in five same-generator agentic settings.} Dots: each
+\caption{\textbf{The structural floor in five agentic settings where the same models write both
+classes.} Dots: each
 setting's AUROC on character count alone, computed within task: transcripts are grouped by
 main task, a Mann-Whitney AUROC is taken within every task that has both classes, pooled over
 tasks weighted by pair count, and folded to $\max(a, 1-a)$. Diamonds: the 95th percentile of a
@@ -1521,37 +1521,38 @@ declare no licence; we redistribute nothing and report aggregates only.}
 
 \subsection{The release}
 \label{app:release}
-The release bundle, attached to the code repository's \texttt{v1.0} release, holds the
-same-generator split (\relHonest{} honest programs,
-\relEdit{} edit-arm and \relIndep{} independent-arm attack programs written by one model,
-plus every one of the \relRetryDraws{} draws of the independent arm's retry pool), both
-eligibility rules as pair lists under an outcome-blind selection (\relPassFirst{} passing
-and \relFireFirst{} firing independent-arm pairs) and under the benchmark's own survivor
-selection (\relPassBest{} and \relFireBest{}, or \relFireBestCrash{} counting a crash on
-the trigger as firing), the \relScripts{} scripts behind the measurements (generation for
-both generators, the test harness, the trigger verifier, the selection rules, the prompt-matched
-arm, the monitor rows, the class swaps and each remaining measurement script), a dataset card,
-and a manifest of
-row counts and checksums. The licence, MIT, is a file inside the bundle and
+The release bundle, attached to the code repository's \texttt{v1.0} release, holds our corpus
+(\relHonest{} honest programs, \relEdit{} edit-variant and \relIndep{} independent-variant
+backdoored programs written by one model, plus every one of the \relRetryDraws{} draws of the
+independent variant's retries), both eligibility rules as pair lists, under an outcome-blind
+selection (\relPassFirst{} passing and \relFireFirst{} working independent-variant pairs) and
+under the dataset's own survivor selection (\relPassBest{} and \relFireBest{}, or
+\relFireBestCrash{} counting a crash on the trigger input as working), the \relScripts{}
+scripts behind the measurements (generation for both generators, the test harness, the trigger
+verifier, the selection rules, the prompt-matched variant, the monitor rows, the class swaps and
+each remaining measurement script), a dataset card, and a manifest of row counts and
+checksums. The licence, MIT, is a file inside the bundle and
 covers the data and the scripts alike.
 
 \subsection{The test harness and the pass flag}
 \label{app:harness}
-The same-generator arm requires executing generated code, so we built a runner that feeds each shipped
-input case to a solution under per-case timeouts and address-space limits. It agrees with
-the artifact's own \texttt{solution\_passes\_tests} on \harnessAgreement{} of the analysis
-pool, and is strictly conservative there, never crediting a solution the artifact rejects
-(\harnessFailWePass{} such cases). We use \emph{our own} flag for both classes, because a checker stricter on one class than
-the other would manufacture exactly the artifact this paper documents. $B$ does not depend on
-that choice: under the artifact's flag $B = \baselineB$ at $n = \baselineBn{}$, under ours
-$B = \baselineBownflag{}$ at $n = \baselineBownflagN{}$, inside the first's
+Rebuilding the pairs requires executing generated code, so we built a runner that feeds each
+shipped input case to a solution under per-case timeouts and address-space limits. It agrees
+with the dataset's own \texttt{solution\_passes\_tests} on \harnessAgreement{} of the
+\baselineBn{} problems we analyse, and is conservative there, never crediting a solution the
+dataset's flag rejects (\harnessFailWePass{} such cases). We use \emph{our own} flag for both
+classes, because a checker that rejects more readily on one class than the other would
+manufacture exactly the kind of class difference this paper documents. The AUROC on the original
+pairs does not depend on that choice: under the dataset's flag it is \baselineB{} on
+\baselineBn{} pairs, under ours \baselineBownflag{} on \baselineBownflagN{}, inside the first's
 interval (\baselineBLo{}--\baselineBHi{}). We do not length-match either class; the model
-chooses its own program length. The monitor
-scores in Figure~\ref{fig:monitors} are \texttt{runs/x0/monitor-summary.json} from the MIT
-release of that harness \cite{jha2026decorrelation}, used under its notice. Two interpreter-era artifacts in the upstream solutions fall on opposite classes: a
-\texttt{stdin} without \texttt{.buffer}, fixed, and \texttt{fractions.gcd}, removed in
-Python~3.9, not fixable. $B$ is exposed to them; the same-generator arm, whose code we
-generated and ran ourselves, is immune.
+chooses its own program length. The monitor scores in Figure~\ref{fig:monitors} are
+\texttt{runs/x0/monitor-summary.json} from the MIT release of the monitor-ensemble harness
+\cite{jha2026decorrelation}, used under its notice. Two quirks of older Python versions in the
+dataset's solutions fall on opposite classes: a \texttt{stdin} without \texttt{.buffer},
+fixed, and \texttt{fractions.gcd}, removed in Python~3.9, not fixable. The AUROC on the original
+pairs is exposed to them; the rebuilt pairs, whose code we generated and ran ourselves, are
+immune.
 
 \subsection{The token test, run and failed}
 \label{app:token}
