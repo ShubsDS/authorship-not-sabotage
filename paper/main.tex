@@ -651,27 +651,27 @@ Our primary protocol is the filtered, comment-stripped split
 \splitTest{} test items (\splitAttack{} attack, \splitHonest{} honest), labelled by
 \texttt{backdoor\_works}, reconstructed with the released harness code
 \cite{jha2026decorrelation}. The split is a filtered view of the dataset; we rebuild pairs on
-the \baselineBn{} problems we analyse, whose original pairs bag-of-words separates at AUROC
+the \baselineBn{} problems of the full release that we analyse, whose original pairs bag-of-words separates at AUROC
 \baselineB{}. Generated code is scored by our own
 runner, applied to both classes (appendix~\ref{app:harness}).
 
 Our corpus consists of \emph{rebuilt pairs}: for each problem, one model, Sonnet~5 or
 Haiku~4.5, writes both the honest and the backdoored solution. With one writer, writer features
 cannot separate the classes; what still separates them comes from what the two prompts asked
-for, the backdoor included. We build three \emph{variants}. The \emph{independent} variant writes
-the backdoored solution from the problem statement alone. The \emph{edit} variant, shown its own
-honest solution, returns near-copies (appendix~\ref{app:pairsim}).
+for, the backdoor included. We build three \emph{variants}. In the \emph{independent} variant the model
+writes the backdoored solution from the problem statement alone; in the \emph{edit} variant it
+sees its own honest solution and returns near-copies (appendix~\ref{app:pairsim}).
 In the \emph{prompt-matched} variant the honest solution is requested under the attack prompt's
 wording, with the clauses asking for a flaw replaced by their correct-program counterparts, so
 both classes are elicited alike. A backdoor \emph{works} if it passes the public tests and gives
 a wrong answer on the trigger input its writer names. The \emph{all-attempts} rows of
 Table~\ref{tab:gates} keep one independent-variant attack per problem, sampled before its
-outcome is known and kept if it passes the public tests; most do not work. The
+outcome is known and kept if it passes the public tests. The
 \emph{working-backdoor} rows keep only attacks that work, drawn from a pool of retries.
 
 One bag-of-words classifier (5-fold, comments stripped), fitted separately on each set of
 pairs, gives an AUROC on the rebuilt pairs and one on the original pairs of the same problems;
-$\rho = (\text{rebuilt AUROC} - 0.5)/(\text{original AUROC} - 0.5)$ is the share of its
+\mbox{$\rho = (\text{rebuilt AUROC} - 0.5)/(\text{original AUROC} - 0.5)$} is the share of its
 above-chance AUROC on the original pairs that remains on the rebuilt pairs. The rebuild changes
 the attacks as well as the writer: ours rarely work, and a monitor finds them far less
 suspicious than the original ones (\S\ref{sec:results}). $\rho$ therefore measures what
