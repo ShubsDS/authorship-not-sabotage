@@ -1176,57 +1176,62 @@ passes the public tests cannot differ from the honest one, and of those \trigPub
 against \trigNovelFire{} with new trigger inputs; no working original backdoor has such a
 trigger (\trigStoredPublic{}).
 
-\subsection{The strict row's problems}
+\subsection{The working-backdoor problems}
 \label{app:shared}
-The headline and strict rows differ in two ways: the strict attacks fire, and the strict row
-covers the problems on which a firing attack could be drawn. The \sharedN{} problems in both
-rows separate the two. On them the honest program and the stored pair are the same in both rows,
-and only our attack differs. $S$ and $B'$ on a subset are the existing out-of-fold scores
+Sonnet~5's all-attempts and working-backdoor rows differ in two ways: the working-backdoor row's
+backdoors work, and that row covers only the problems on which a working backdoor could be
+drawn. The \sharedN{} problems in both rows separate the two. On them our honest program and
+the original pair are the same in both rows, and only our backdoor differs. The AUROCs on a
+subset, on the rebuilt pairs and on the original pairs, are the existing out-of-fold scores
 restricted to it, with nothing refitted, so the two rows' scores on a shared problem come from
 fits on \sameGenN{} and \strictN{} problems (Table~\ref{tab:shared}).
 
-On the shared problems $\rho$ is \sharedRhoHead{} with the headline attacks and
-\sharedRhoWorking{} with working ones (paired difference \sharedDiffLo{} to \sharedDiffHi{});
-$S$ changes by \shSDelta{} (\shSDeltaLo{} to \shSDeltaHi{}). On the
-\shDiffN{} shared problems where the two attack programs differ (the headline attack is inert,
-or, on problem 1701, fires only by crashing while the strict row kept a later draw), $\rho$ is \shDiffHeadRho{} and \shDiffWorkRho{} (paired difference \shDiffDelta{},
-\shDiffDeltaLo{} to \shDiffDeltaHi{}). On the other \shSameN{} the headline attack already fires
-and is the same program in both rows, and $\rho$ is \shSameHeadRho{} and \shSameWorkRho{}, too
-few problems for an interval. On these problems working attacks do not raise $\rho$: both point
-estimates fall, and both intervals include zero.
+On the shared problems $\rho$ is \sharedRhoHead{} with the all-attempts backdoors and
+\sharedRhoWorking{} with the working ones (paired difference \sharedDiffLo{} to
+\sharedDiffHi{}); the AUROC on the rebuilt pairs changes by \shSDelta{} (\shSDeltaLo{} to
+\shSDeltaHi{}). On the \shDiffN{} shared problems where the two backdoors differ (the
+all-attempts backdoor does not work, or, on problem 1701, works only by crashing while the
+working-backdoor row kept a later draw), $\rho$ is \shDiffHeadRho{} and \shDiffWorkRho{}
+(paired difference \shDiffDelta{}, \shDiffDeltaLo{} to \shDiffDeltaHi{}). On the other
+\shSameN{} the all-attempts backdoor already works and is the same program in both rows, and
+$\rho$ is \shSameHeadRho{} and \shSameWorkRho{}, too few problems for an interval. On these
+problems working backdoors do not raise $\rho$: both point estimates fall, and both intervals
+include zero.
 
-The problems differ more than the attacks. With the headline attacks, the shared problems give
-$\rho = \sharedRhoHead{}$ against \shHeadOnlyRho{} on the other \shHeadOnlyN{} headline problems.
-The strict row's other \shStrictOnlyN{} problems, which are not in the headline row, give
-$\rho = \shStrictOnlyRho{}$ (\shStrictOnlyRhoLo{}--\shStrictOnlyRhoHi{}), with a lower $B'$
-(\shStrictOnlyBp{} against \shWorkBp{} on the shared problems) and a higher $S$
-(\shStrictOnlyS{} against \shWorkS{}). The difference from the shared problems,
+The problems differ more than the backdoors. With the all-attempts backdoors, the shared
+problems give $\rho = \sharedRhoHead{}$ against \shHeadOnlyRho{} on the other \shHeadOnlyN{}
+problems of the all-attempts row. The working-backdoor row's other \shStrictOnlyN{} problems,
+which are not in the all-attempts row, give $\rho = \shStrictOnlyRho{}$
+(\shStrictOnlyRhoLo{}--\shStrictOnlyRhoHi{}), with a lower AUROC on the original pairs
+(\shStrictOnlyBp{} against \shWorkBp{} on the shared problems) and a higher one on the rebuilt
+pairs (\shStrictOnlyS{} against \shWorkS{}). The difference from the shared problems,
 \shOnlyMinusShared{} (\shOnlyMinusSharedLo{} to \shOnlyMinusSharedHi{}), is not resolved at this
-size, but the point estimates place the strict row's higher $\rho$ in which problems yield
-working attacks, where the stored pairs separate less and ours more, and not in the attacks
-working.
+size, but the point estimates place the working-backdoor row's higher $\rho$ in which problems
+yield working backdoors, where the original pairs separate less and the rebuilt pairs more, and
+not in the backdoors working.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
-\caption{\textbf{The strict row decomposed by problem.} $S$, $B'$ and $\rho$ from the existing
-out-of-fold scores of the headline and strict rows, restricted to each subset; 95\% joint
-bootstrap intervals over problems. Source: \texttt{shared\_problems.py}.}
+\caption{\textbf{Sonnet~5's working-backdoor row decomposed by problem.} Bag-of-words AUROC on
+the rebuilt pairs and on the original pairs of the same problems, and $\rho$, from the existing
+out-of-fold scores of the all-attempts and working-backdoor rows, restricted to each subset;
+95\% joint bootstrap intervals over problems. Source: \texttt{shared\_problems.py}.}
 \label{tab:shared}
 \begin{tabular}{@{}l r l c c l@{}}
 \toprule
-Problems & $n$ & our attacks & $S$ & $B'$ & $\rho$ (95\% CI) \\
+Problems & $n$ & our backdoors & rebuilt & original & $\rho$ (95\% CI) \\
 \midrule
-in both rows & \sharedN{} & headline & \shHeadS{} & \shHeadBp{}
+in both rows & \sharedN{} & all attempts & \shHeadS{} & \shHeadBp{}
   & \sharedRhoHead{} (\shHeadRhoLo{}--\shHeadRhoHi{}) \\
-in both rows & \sharedN{} & strict & \shWorkS{} & \shWorkBp{}
+in both rows & \sharedN{} & working & \shWorkS{} & \shWorkBp{}
   & \sharedRhoWorking{} (\shWorkRhoLo{}--\shWorkRhoHi{}) \\
-\quad attack programs differ & \shDiffN{} & headline & \shDiffHeadS{} & \shDiffHeadBp{}
+\quad backdoors differ & \shDiffN{} & all attempts & \shDiffHeadS{} & \shDiffHeadBp{}
   & \shDiffHeadRho{} (\shDiffHeadRhoLo{}--\shDiffHeadRhoHi{}) \\
-\quad attack programs differ & \shDiffN{} & strict & \shDiffWorkS{} & \shDiffWorkBp{}
+\quad backdoors differ & \shDiffN{} & working & \shDiffWorkS{} & \shDiffWorkBp{}
   & \shDiffWorkRho{} (\shDiffWorkRhoLo{}--\shDiffWorkRhoHi{}) \\
-headline row only & \shHeadOnlyN{} & headline & \shHeadOnlyS{} & \shHeadOnlyBp{}
+all-attempts row only & \shHeadOnlyN{} & all attempts & \shHeadOnlyS{} & \shHeadOnlyBp{}
   & \shHeadOnlyRho{} (\shHeadOnlyRhoLo{}--\shHeadOnlyRhoHi{}) \\
-strict row only & \shStrictOnlyN{} & strict & \shStrictOnlyS{} & \shStrictOnlyBp{}
+working-backdoor row only & \shStrictOnlyN{} & working & \shStrictOnlyS{} & \shStrictOnlyBp{}
   & \shStrictOnlyRho{} (\shStrictOnlyRhoLo{}--\shStrictOnlyRhoHi{}) \\
 \bottomrule
 \end{tabular}
