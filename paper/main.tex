@@ -550,30 +550,30 @@
 \maketitle
 
 \begin{abstract}
-AI-control monitors are tuned and ranked on stored pairs, an honest and a backdoored solution to
-each programming problem. In APPS-backdoor corpora the honest code is human-written and the
-backdoor model-written, so a detector can separate them without reading any backdoor. On the
-filtered, comment-stripped split, bag-of-words reaches AUROC \tfidfKoran{}, transfers across
-attacking models, and is nearly as strong on backdoors that never work. A classifier reading
-only problem metadata, trained on problems outside the split, scores \nocodeOutside{}, below
-chance; cross-validated within the split it reaches \nocodeCV{}. The split's filter, not the
-code, sets that relation. We
-rebuild the corpus with one model writing both classes on the same problems and one harness
-verifying both, and release it.\footnote{Code and corpus:
+AI-control monitors are tuned and ranked on fixed datasets of pairs, an honest and a backdoored
+solution to each programming problem. In APPS-backdoor datasets the honest code is
+human-written and the backdoor model-written, so a detector can separate them without reading
+any backdoor. On the filtered, comment-stripped split, bag-of-words reaches AUROC
+\tfidfKoran{}, transfers across attacking models, and is nearly as strong on backdoors that
+never work. A classifier reading only problem metadata, trained on problems outside the split,
+scores \nocodeOutside{}, below chance; cross-validated within the split it reaches \nocodeCV{}.
+The split's filter, not the code, sets that relation. We rebuild the pairs with one model
+writing both solutions to each problem and one harness verifying both, and release
+them.\footnote{Code and corpus:
 \url{https://github.com/ShubsDS/authorship-not-sabotage}.} Writer features then cannot separate
 the classes; what still does comes from what the prompts asked for, the backdoor included. The
-surviving share of stored-pair separability, $\rho$, is \sameGenRho{} (Sonnet~5) and
-\haikuRho{} (Haiku~4.5) on attempts, of which \relFireFirst{} of \sameGenN{} and
-\haikuFireInRow{} of \haikuN{} fire, and \strictRho{} on \strictN{} Sonnet attacks that fire.
-$\rho$ is not the backdoor's share: the attacks change with the writer, and the attacking model
-alone moves stored-pair AUROC from \bAttackerLo{} to \bAttackerHi{}. Swapping one class at a
-time separates two detectors: bag-of-words stays at \clfSwapOursStored{}--\clfSwapHumanOurs{}
-whenever the classes have different writers and falls only when one model writes both, while a
-Sonnet~5 monitor's fall from \monStoredHeadAbs{} to \monitorS{} lies entirely in our attacks,
-which it finds far less suspicious. Evaluations should report both
-classifiers as floors against permutation nulls, build both classes with one model under one
-prompt, define the negative class by honesty, and report detection at a fixed audit budget with
-the firing rate.
+share $\rho$ of bag-of-words' above-chance AUROC that survives the rebuild is \sameGenRho{}
+(Sonnet~5) and \haikuRho{} (Haiku~4.5) on one attempt per problem, of which \relFireFirst{} of
+\sameGenN{} and \haikuFireInRow{} of \haikuN{} work, and \strictRho{} on \strictN{} Sonnet
+backdoors that work. $\rho$ is not the backdoor's share: the attacks change with the writer,
+and the attacking model alone moves the original pairs' AUROC from \bAttackerLo{} to
+\bAttackerHi{}. Swapping one class at a time separates two detectors: bag-of-words stays at
+\clfSwapOursStored{}--\clfSwapHumanOurs{} whenever the classes have different writers and falls
+only when one model writes both, while a Sonnet~5 monitor's fall from \monStoredHeadAbs{} to
+\monitorS{} lies entirely in our attacks, which it finds far less suspicious. Evaluations should
+report both classifiers as floors against permutation nulls, build both classes with one model
+under one prompt, define the negative class by honesty, and report detection at a fixed audit
+budget with the share of backdoors that work.
 \end{abstract}
 
 \section{Introduction}
