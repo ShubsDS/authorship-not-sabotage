@@ -1409,30 +1409,30 @@ Haiku~4.5 (\haikuN{}) & human & \clfSwapHaikuHumanStored{} & \clfSwapHaikuHumanO
 \subsection{Detection at a fixed audit budget}
 \label{app:audit}
 Table~\ref{tab:audit} gives the share of attacks a detector flags when its threshold is set on
-one pair set's own honest programs to flag 1\%, 2\% or 5\% of them, for the stored pairs (human
-honest code, stored attacks) and for the same-generator pairs of the same problems. Monitor
+one pair set's own honest programs to flag 1\%, 2\% or 5\% of them, for the original pairs
+(human honest code, original backdoors) and for the rebuilt pairs of the same problems. Monitor
 scores are integers from 0 to 100, so many honest programs tie at the threshold $t$. We flag
 every program above $t$ and each program at $t$ with the probability that makes the honest
 false-positive rate equal to the target, and report the expected catch rate, which needs no
 random draws. Flagging only above $t$, which keeps the honest rate at or below the target,
-leaves Sonnet~5's 2\% catch rates on the headline problems at \audConsSonHeadSt{} and
-\audConsSonHeadSg{} and gives \audConsSonStrictSt{} and \audConsSonStrictSg{} on the strict
-problems (difference \audConsSonStrictD{}, \audConsSonStrictLo{} to \audConsSonStrictHi{}). The
+leaves Sonnet~5's 2\% catch rates on the all-attempts problems at \audConsSonHeadSt{} and
+\audConsSonHeadSg{} and gives \audConsSonStrictSt{} and \audConsSonStrictSg{} on the
+working-backdoor problems (difference \audConsSonStrictD{}, \audConsSonStrictLo{} to \audConsSonStrictHi{}). The
 bag-of-words rows use the out-of-fold scores of Table~\ref{tab:gates}; they are continuous, so
-the two rules differ by at most one program. The difference is the stored minus the
-same-generator catch rate, with both thresholds recomputed on each bootstrap draw.
+the two rules differ by at most one program. The difference is the catch rate on the original
+pairs minus that on the rebuilt pairs, with both thresholds recomputed on each bootstrap draw.
 
 Haiku~4.5's rows are uninformative. Its 512-token runs lost many replies, unevenly by class
 (appendix~\ref{app:monitors}), and it scores many honest programs near the top of the
 scale, so at 1\% and 2\% it flags few attacks of either kind. Every difference interval for it
-contains zero except on the headline problems at 5\%. Figure~\ref{fig:audit} extends the Sonnet~5
-strict rows to every false-positive rate up to 20\%.
+contains zero except on the all-attempts problems at 5\%. Figure~\ref{fig:audit} extends the
+Sonnet~5 rows on the working-backdoor problems to every false-positive rate up to 20\%.
 
 \begin{figure}[h]\centering
 \includegraphics[width=0.48\linewidth]{f7-audit-budget.pdf}
 \caption{\textbf{Working attacks caught by the Sonnet~5 monitor as the false-positive rate
-grows,} on the \strictN{} strict problems: stored pairs against ours, each thresholded on its
-own honest programs. Bands: pointwise 95\% bootstrap intervals over problems. Marked: the
+grows,} on the \strictN{} working-backdoor problems: original pairs against rebuilt pairs, each
+thresholded on its own honest programs. Bands: pointwise 95\% bootstrap intervals over problems. Marked: the
 \auditFPR{} operating point of \S\ref{sec:results}.}
 \label{fig:audit}
 \end{figure}
@@ -1441,40 +1441,41 @@ own honest programs. Bands: pointwise 95\% bootstrap intervals over problems. Ma
 \setlength{\tabcolsep}{5pt}
 \caption{\textbf{Share of attacks flagged at a fixed false-positive rate.} The threshold is set
 on each pair set's own honest programs; ties at the threshold are broken at random so that the
-honest false-positive rate equals the target. \emph{Stored}: human honest code against stored
-attacks; \emph{same-gen.}: our pairs on the same problems. Difference: stored minus
-same-generator, with a paired 95\% bootstrap interval over problems. $^\ast$Haiku~4.5 re-run
-with a 1{,}024-token reply ceiling. Source: \texttt{audit\_budget.py}.}
+honest false-positive rate equals the target. \emph{Original}: human honest code against the
+original backdoors; \emph{rebuilt}: our rebuilt pairs on the same problems. Difference: original
+minus rebuilt, with a paired 95\% bootstrap interval over problems. \emph{All attempts},
+\emph{working backdoors}: the problems of that row of Table~\ref{tab:gates}. $^\ast$Haiku~4.5
+re-run with a 1{,}024-token reply ceiling. Source: \texttt{audit\_budget.py}.}
 \label{tab:audit}
 \begin{tabular}{@{}l c r r r l@{}}
 \toprule
-Detector, problems & FPR & stored & same-gen. & difference & 95\% CI \\
+Detector, problems & FPR & original & rebuilt & difference & 95\% CI \\
 \midrule
-\multicolumn{6}{@{}l}{\emph{Monitor, on Sonnet~5's pairs}} \\
-Sonnet~5, headline & 1\% & \audSonHeadOneSt{} & \audSonHeadOneSg{} & \audSonHeadOneD{} & \audSonHeadOneLo{} to \audSonHeadOneHi{} \\
+\multicolumn{6}{@{}l}{\emph{Monitor, on the problems of Sonnet~5's rows}} \\
+Sonnet~5, all attempts & 1\% & \audSonHeadOneSt{} & \audSonHeadOneSg{} & \audSonHeadOneD{} & \audSonHeadOneLo{} to \audSonHeadOneHi{} \\
  & 2\% & \auditHeadStored{} & \auditHeadOurs{} & \audSonHeadTwoD{} & \audSonHeadTwoLo{} to \audSonHeadTwoHi{} \\
  & 5\% & \audSonHeadFiveSt{} & \audSonHeadFiveSg{} & \audSonHeadFiveD{} & \audSonHeadFiveLo{} to \audSonHeadFiveHi{} \\
 \addlinespace
-Sonnet~5, strict & 1\% & \audSonStrictOneSt{} & \audSonStrictOneSg{} & \audSonStrictOneD{} & \audSonStrictOneLo{} to \audSonStrictOneHi{} \\
+Sonnet~5, working backdoors & 1\% & \audSonStrictOneSt{} & \audSonStrictOneSg{} & \audSonStrictOneD{} & \audSonStrictOneLo{} to \audSonStrictOneHi{} \\
  & 2\% & \auditStrictStored{} & \auditStrictOurs{} & \auditStrictDiff{} & \auditStrictDiffLo{} to \auditStrictDiffHi{} \\
  & 5\% & \audSonStrictFiveSt{} & \audSonStrictFiveSg{} & \audSonStrictFiveD{} & \audSonStrictFiveLo{} to \audSonStrictFiveHi{} \\
 \addlinespace
-Haiku~4.5, headline & 1\% & \audHaiHeadOneSt{} & \audHaiHeadOneSg{} & \audHaiHeadOneD{} & \audHaiHeadOneLo{} to \audHaiHeadOneHi{} \\
+Haiku~4.5, all attempts & 1\% & \audHaiHeadOneSt{} & \audHaiHeadOneSg{} & \audHaiHeadOneD{} & \audHaiHeadOneLo{} to \audHaiHeadOneHi{} \\
  & 2\% & \audHaiHeadTwoSt{} & \audHaiHeadTwoSg{} & \audHaiHeadTwoD{} & \audHaiHeadTwoLo{} to \audHaiHeadTwoHi{} \\
  & 5\% & \audHaiHeadFiveSt{} & \audHaiHeadFiveSg{} & \audHaiHeadFiveD{} & \audHaiHeadFiveLo{} to \audHaiHeadFiveHi{} \\
 \addlinespace
-Haiku~4.5, strict & 1\% & \audHaiStrictOneSt{} & \audHaiStrictOneSg{} & \audHaiStrictOneD{} & \audHaiStrictOneLo{} to \audHaiStrictOneHi{} \\
+Haiku~4.5, working backdoors & 1\% & \audHaiStrictOneSt{} & \audHaiStrictOneSg{} & \audHaiStrictOneD{} & \audHaiStrictOneLo{} to \audHaiStrictOneHi{} \\
  & 2\% & \audHaiStrictTwoSt{} & \audHaiStrictTwoSg{} & \audHaiStrictTwoD{} & \audHaiStrictTwoLo{} to \audHaiStrictTwoHi{} \\
  & 5\% & \audHaiStrictFiveSt{} & \audHaiStrictFiveSg{} & \audHaiStrictFiveD{} & \audHaiStrictFiveLo{} to \audHaiStrictFiveHi{} \\
 \addlinespace
-Haiku~4.5, strict$^\ast$ & 1\% & \audHaiStrictKOneSt{} & \audHaiStrictKOneSg{} & \audHaiStrictKOneD{} & \audHaiStrictKOneLo{} to \audHaiStrictKOneHi{} \\
+Haiku~4.5, working backdoors$^\ast$ & 1\% & \audHaiStrictKOneSt{} & \audHaiStrictKOneSg{} & \audHaiStrictKOneD{} & \audHaiStrictKOneLo{} to \audHaiStrictKOneHi{} \\
  & 2\% & \audHaiStrictKTwoSt{} & \audHaiStrictKTwoSg{} & \audHaiStrictKTwoD{} & \audHaiStrictKTwoLo{} to \audHaiStrictKTwoHi{} \\
  & 5\% & \audHaiStrictKFiveSt{} & \audHaiStrictKFiveSg{} & \audHaiStrictKFiveD{} & \audHaiStrictKFiveLo{} to \audHaiStrictKFiveHi{} \\
 \midrule
-\multicolumn{6}{@{}l}{\emph{Bag-of-words, out-of-fold scores, by the generator of the pairs}} \\
-Sonnet~5, headline & 2\% & \audClfHeadTwoSt{} & \audClfHeadTwoSg{} & \audClfHeadTwoD{} & \audClfHeadTwoLo{} to \audClfHeadTwoHi{} \\
-Sonnet~5, strict & 2\% & \audClfStrictTwoSt{} & \audClfStrictTwoSg{} & \audClfStrictTwoD{} & \audClfStrictTwoLo{} to \audClfStrictTwoHi{} \\
-Haiku~4.5, headline & 2\% & \audClfHaiHeadTwoSt{} & \audClfHaiHeadTwoSg{} & \audClfHaiHeadTwoD{} & \audClfHaiHeadTwoLo{} to \audClfHaiHeadTwoHi{} \\
+\multicolumn{6}{@{}l}{\emph{Bag-of-words, out-of-fold scores, by the model that wrote the rebuilt pairs}} \\
+Sonnet~5, all attempts & 2\% & \audClfHeadTwoSt{} & \audClfHeadTwoSg{} & \audClfHeadTwoD{} & \audClfHeadTwoLo{} to \audClfHeadTwoHi{} \\
+Sonnet~5, working backdoors & 2\% & \audClfStrictTwoSt{} & \audClfStrictTwoSg{} & \audClfStrictTwoD{} & \audClfStrictTwoLo{} to \audClfStrictTwoHi{} \\
+Haiku~4.5, all attempts & 2\% & \audClfHaiHeadTwoSt{} & \audClfHaiHeadTwoSg{} & \audClfHaiHeadTwoD{} & \audClfHaiHeadTwoLo{} to \audClfHaiHeadTwoHi{} \\
 \bottomrule
 \end{tabular}
 \end{table}
