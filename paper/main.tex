@@ -1115,59 +1115,66 @@ transfer rows, stripped, are \transferOthreeClaude{} (o3-mini to claude-3-7-sonn
 pairs), \transferClaudeOthree{} (the reverse) and \transferOoneGemini{} (o1-mini to
 gemini-2.0-flash).
 
-\subsection{Pair similarity, and why the same-generator control needs two arms}
+\subsection{Pair similarity, and why the rebuild needs two variants}
 \label{app:pairsim}
-An attack class built by editing its own honest solution changes pair similarity as well as
-the writer (Table~\ref{tab:similarity}). The independent arm's pairs are about as similar as
-the stored benchmark's and far from the edit arm's near-copies, so the independent arm cannot
-produce a low $S$ by making the classes alike.
+A backdoored class built by editing its own honest solution changes pair similarity as well as
+the writer (Table~\ref{tab:similarity}). The pairs of the independent variant, whose backdoored
+solution is written from the problem statement alone, are about as similar as the original
+pairs and far from the edit variant's near-copies, so the independent variant cannot produce a
+low AUROC on the rebuilt pairs by making the classes alike.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
-\caption{Character similarity of honest/attack pairs, comments stripped. The edit arm's
-classes are near-copies; the independent arm's pairs are about as similar as the stored
-benchmark's, whose two classes are largely independent programs. The middle columns are the
+\caption{Character similarity of honest/backdoored pairs, comments stripped. The edit variant's
+classes are near-copies; the independent variant's pairs are about as similar as the original
+pairs, whose two classes are largely independent programs. The middle columns are the
 share of pairs above and below those similarities.}
 \label{tab:similarity}
 \begin{tabular}{@{}l r r r l@{}}
 \toprule
-Attack class & mean sim. & share $>0.95$ & share $<0.60$ & differs from the benchmark in \\
+Pairs & mean sim. & share $>0.95$ & share $<0.60$ & differs from the original pairs in \\
 \midrule
-\textbf{stored benchmark} & \simStored{} & \simStoredHigh{} & \simStoredLow{} & --- \\
+\textbf{original} & \simStored{} & \simStoredHigh{} & \simStoredLow{} & --- \\
 \textbf{edit} (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & writer, attacks, similarity \\
 \textbf{independent} (problem only) & \simIndep{} & \simIndepHigh{} & \simIndepLow{} & writer, attacks \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Robustness of the same-generator rows}
+\subsection{Robustness of the rebuilt-pair rows}
 \label{app:robust}
-Sample size does not produce the headline fall. $B$ on 30 random subsamples of the
-\baselineBn{}-pair pool, through the identical pipeline, is $\curveHeadline{} \pm
-\curveHeadlineSd{}$ (mean $\pm$ SD) at $n = \sameGenN{}$, far above $S = \sameGenS{}$. At the
-strict rows' $n = \strictN{}$ it is $\curveStrict{} \pm \curveStrictSd{}$: at that size the
-classifier itself loses separability, which is why $\rho$ divides by $B'$ refitted on the same
-problems rather than by $B$. Reassigning problems to folds with five seeds gives the strict row
-$\rho$ of \strictRhoSeeds{} (\strictRho{} with the unshuffled folds of Table~\ref{tab:gates}).
-Of three token masks applied to both classes (numbers, comparison operators, identifiers), only
-the identifier mask moves the headline $S$, to \sameGenSid{} ($\rho = \sameGenRhoId{}$,
+Sample size does not produce the fall on Sonnet~5's all-attempts row. The AUROC on original
+pairs, computed through the identical pipeline on 30 random subsamples of the \baselineBn{}
+original pairs, is $\curveHeadline{} \pm \curveHeadlineSd{}$ (mean $\pm$ SD) at
+$n = \sameGenN{}$, far above the \sameGenS{} on the rebuilt pairs. At the working-backdoor row's
+$n = \strictN{}$ it is $\curveStrict{} \pm \curveStrictSd{}$: at that size the classifier
+itself loses separability, which is why $\rho$ divides by the AUROC refitted on the original
+pairs of the same problems rather than by the AUROC on all \baselineBn{}. Reassigning problems
+to folds with five seeds gives the working-backdoor row a $\rho$ of \strictRhoSeeds{}
+(\strictRho{} with the unshuffled folds of Table~\ref{tab:gates}). Of three token masks applied
+to both classes (numbers, comparison operators, identifiers), only the identifier mask moves the
+all-attempts row's AUROC on the rebuilt pairs, to \sameGenSid{} ($\rho = \sameGenRhoId{}$,
 \sameGenRhoIdLo{}--\sameGenRhoIdHi{}); the number and operator masks move it by at most
-\maskMaxShift{}. Code length alone separates the headline pairs at \sameGenLen{}.
+\maskMaxShift{}. Code length alone separates that row's rebuilt pairs at \sameGenLen{}.
 
-Retention does not produce the strict row's $S$. Within the attack class, draws that fire and
-draws that do not separate at \survivorAuroc{}, and $S$ on the strict problems with non-firing
-attempts in place of the firing ones is \survivorSwapS{} against \survivorSwapSref{}.
+Keeping only working backdoors does not produce the working-backdoor row's AUROC on the rebuilt
+pairs. Within our backdoored class, draws that work and draws that do not separate at
+\survivorAuroc{}, and the AUROC on the rebuilt pairs of the working-backdoor problems, with
+non-working attempts in place of the working backdoors, is \survivorSwapS{}, against
+\survivorSwapSref{} with the working backdoors on the same problems.
 
-The edit arm, whose pairs are near-copies (similarity \editSim{}, Table~\ref{tab:similarity}),
-gives $S = \editS{}$ over \editN{} pairs, $\rho = \editRho{}$. In the one-sided arm of \S\ref{sec:results},
-where only the honest class was regenerated, the classifier reaches \armOneG{} against
-$B' = \armOneBprime{}$ on that arm's \armOneN{} eligible problems, a gain of
-\armOneTfidfDelta{}, while code length alone falls to \armOneLenG{}.
+The edit variant, whose pairs are near-copies (similarity \editSim{},
+Table~\ref{tab:similarity}), gives an AUROC of \editS{} over its \editN{} rebuilt pairs,
+$\rho = \editRho{}$. When only the honest class is regenerated (with Qwen3-Coder-30B,
+\S\ref{sec:results}), the classifier reaches \armOneG{} against \armOneBprime{} on the original
+pairs of the same \armOneN{} eligible problems, a gain of \armOneTfidfDelta{}, while code length
+alone falls to \armOneLenG{}.
 
-Our attack prompt halves our single-shot firing rate: \trigPublicShare{} of our test-passing
-draws offer a public test input as the trigger, which cannot diverge from the honest solution,
-and those fire \trigPublicFire{} against \trigNovelFire{} for novel triggers; no stored working
-backdoor has such a trigger (\trigStoredPublic{}).
+Our attack prompt halves the share of our single-shot backdoors that work: \trigPublicShare{}
+of our test-passing draws name a public test input as the trigger, on which a solution that
+passes the public tests cannot differ from the honest one, and of those \trigPublicFire{} work
+against \trigNovelFire{} with new trigger inputs; no working original backdoor has such a
+trigger (\trigStoredPublic{}).
 
 \subsection{The strict row's problems}
 \label{app:shared}
