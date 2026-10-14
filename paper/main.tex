@@ -850,8 +850,8 @@ label is recoverable without reading a backdoor, not that any monitor
 recovers it that way, and no number here corrects a published monitor score.
 
 Rebuilding with one model changes the attacks as well as their author: against the same human
-code, the model that wrote the original backdoors alone moves the AUROC on the original pairs
-from \bAttackerLo{} to \bAttackerHi{}, so $\rho$ is not the backdoor's share of the
+code, which model wrote the original backdoor moves the AUROC on the original pairs from
+\bAttackerLo{} to \bAttackerHi{}, so $\rho$ is not the backdoor's share of the
 separability, nor a bound on it. $\rho$ does not depend on which model wrote the original
 backdoors (problems whose original backdoor a Claude model wrote: $\rho = \rhoClaudeOnly{}$;
 appendix~\ref{app:attackers}). The class swap ties the classifier's drop to authorship but the
@@ -862,7 +862,8 @@ sampling parameters; thinking was off.
 Our scope is narrow in three further ways. We measure one APPS-derived dataset family and
 five agentic settings, and other datasets of such pairs are untested. Five of our seven datasets
 are one user's repackaging of ControlArena releases, so our claims are scoped to those datasets
-as published. Two idioms of an older Python in the human solutions fall on opposite classes, so
+as published. Two quirks of older Python versions in the dataset's solutions fall on opposite
+classes, so
 the AUROC on the \baselineBn{} original pairs carries a small execution-environment signal that
 the rebuilt pairs lack (appendix~\ref{app:harness}).
 
@@ -1035,7 +1036,7 @@ slice it is \nocodeHeldout{}, above \nocodeHeldoutCount{} of the monitors on tho
 \subsection{The protocol $\times$ baseline table}
 \label{app:protocol}
 Table~\ref{tab:protocol-baseline} is the full measurement behind \S\ref{sec:results}. Rows
-are not comparable across protocols; the preprocessing column says whether comments were
+are not comparable across protocols; the Comments column says whether comments were
 stripped before the baseline read the code. Pairwise accuracies are given to three decimals
 because their resolution over 2,641 pairs is one pair. Intervals and nulls follow
 appendix~\ref{app:stats}. Each floor is compared with the \monN{} monitors on the same items,
