@@ -580,17 +580,17 @@ budget with the share of backdoors that work.
 
 The backbone protocol of AI control is trusted monitoring, where a weaker trusted model reads
 an untrusted model's output and flags sabotage \cite{greenblatt2023aicontrol}. Monitors
-are developed, tuned and ranked almost entirely on \emph{stored} honest/attack pairs, fixed
-corpora in which each programming problem contributes an honest solution and a solution
-carrying a planted backdoor \cite{koran2026ensemble, terekhov2025controltax,
-jha2026decorrelation}. Honest solutions are
+are developed, tuned and ranked almost entirely on fixed datasets of honest/attack pairs, in
+which each programming problem contributes an honest solution and a solution carrying a planted
+backdoor \cite{koran2026ensemble, terekhov2025controltax, jha2026decorrelation}; we call these
+the \emph{original pairs}. Honest solutions are
 human-written, taken from APPS \cite{hendrycks2021apps}, and backdoors are written by language
 models, so a detector can separate the classes without reading any backdoor
 (Figure~\ref{fig:pairs}).
 
 \begin{figure}[t]\centering
 \includegraphics[width=\linewidth]{f5-stored-pairs.pdf}
-\caption{\textbf{Three stored pairs.} Each column is one APPS problem from the public artifact
+\caption{\textbf{Three original pairs.} Each column is one APPS problem from the public dataset
 \cite{inglis2025appscontrolarena} (MIT): the human-written honest solution above a working
 backdoor written by the named model, comments removed. The highlighted lines are the backdoor:
 its trigger condition and its wrong output. Outside the backdoor the model's code also differs
@@ -599,7 +599,7 @@ guard (755).}
 \label{fig:pairs}
 \end{figure}
 
-There are known confounding variables between human and AI solutions, such as commenting style, so corpora are often preprocessed to mitigate them. The filtered
+There are known confounding variables between human and AI solutions, such as commenting style, so datasets are often preprocessed to mitigate them. The filtered
 release keeps only working honest solutions and working backdoors and strips every comment
 \cite{koran2026ensemble}; Control Tax reports its pass-tests pre-filter and moves its failed
 backdoors to an appendix \cite{terekhov2025controltax}; the monitor-ensemble harness of
@@ -613,8 +613,9 @@ injected text, attacker-side selection shown to inflate safety estimates, transc
 removed as a nuisance covariate \cite{terekhov2026adaptive, gewang2026attackselection,
 pinto2026calibration}.
 
-Two classifiers separate the classes of the filtered, comment-stripped split without reading a
-backdoor. Bag-of-words reaches AUROC \tfidfKoran{}, above \tfidfKoranCount{} of the \monN{}
+Two classifiers separate the classes of the filtered release's test split without reading a
+backdoor. We call the AUROC such a classifier reaches a \emph{floor}: a monitor at or below it
+has shown nothing the dataset does not already leak. Bag-of-words reaches AUROC \tfidfKoran{}, above \tfidfKoranCount{} of the \monN{}
 open-weight monitors ranked on that split. It transfers across backdoor generators and is
 nearly as strong on backdoors that never produce a wrong answer as on working ones, so it is not
 reading the sabotage. A classifier that reads no code,
@@ -623,16 +624,16 @@ only problem difficulty, test count and question length -- the \emph{no-code flo
 above \nocodeCVCount{} of the monitors, when cross-validated within it. The relation it reads is
 set by the split's filter: inside the split attack problems carry fewer tests, outside it more.
 
-We contribute (i)~two classifier floors for stored-pair corpora, bag-of-words and no-code, each
-against a permutation null; (ii)~a same-generator construction, in which one model writes both
-classes on the same problems and one harness verifies both, and the corpus that implements it;
-and (iii)~a label artifact: labelling by \texttt{backdoor\_works} defines the negative class by
+We contribute (i)~two classifier floors for datasets of original pairs, bag-of-words and
+no-code, each against a permutation null; (ii)~a same-generator construction, in which one model
+generates both classes on the same problems and one harness verifies both, and our corpus, which
+implements it; and (iii)~a flaw in the label: labelling by \texttt{backdoor\_works} defines the negative class by
 attack failure, so the negative class records which attacks failed. They imply a reporting
 practice: both floors beside any monitor score, both classes from one model under one prompt, a
 negative class defined by honesty, and detection at a fixed audit budget reported with the
-share of attacks that fire. Our claims concern monitor training, selection and benchmarking on
-stored pairs, and our measurement is of one APPS-derived family plus five agentic settings
-(appendix~\ref{app:agentic}). ControlArena, the evaluation framework most of these corpora are
+share of backdoors that work. Our claims concern monitor training, selection and benchmarking on
+original pairs, and our measurement is of one APPS-derived family plus five agentic settings
+(appendix~\ref{app:agentic}). ControlArena, the evaluation framework most of these datasets are
 exported from, generates both classes live and is not implicated.
 
 \section{Setup}
