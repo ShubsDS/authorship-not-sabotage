@@ -1527,9 +1527,9 @@ The release bundle, attached to the code repository's \texttt{v1.0} release, hol
 backdoored programs written by one model, plus every one of the \relRetryDraws{} draws of the
 independent variant's retries), both eligibility rules as pair lists, under an outcome-blind
 selection (\relPassFirst{} passing and \relFireFirst{} working independent-variant pairs) and
-under the survivor selection used to build the original pairs, which keeps the best draw from
-the retries (\relPassBest{} and \relFireBest{}, or \relFireBestCrash{} counting a crash on the
-trigger input as working), the \relScripts{}
+under a survivor selection, which keeps per problem the earliest retry that works, as a
+survivor set of retries like the original backdoors would (\relPassBest{} and \relFireBest{},
+or \relFireBestCrash{} counting a crash on the trigger input as working), the \relScripts{}
 scripts behind the measurements (generation for both generators, the test harness, the trigger
 verifier, the selection rules, the prompt-matched variant, the monitor rows, the class swaps and
 each remaining measurement script), a dataset card, and a manifest of row counts and
