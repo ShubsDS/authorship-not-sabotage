@@ -837,9 +837,9 @@ lower the score, and replacing the original backdoors with ours lowers it to
 \monSwapHumanOurs{} and the backdoors' mean suspicion from \monSuspStored{} to \monSuspOurs{}.
 The same holds for working backdoors: on their problems human honest code scores
 \monStoredStrictAbs{} against the original backdoors and \monSwapStrictHumanOurs{} against ours,
-and our rebuilt pairs score \monitorStrict{}.\footnote{Three of the \strictN{} attacks the strict monitor
-runs scored differ from the classifier's strict row; without them the AUROC is
-\monStrictMatched{} (appendix~\ref{app:monitors}).} The monitor's fall
+and our rebuilt pairs score \monitorStrict{}.\footnote{On three of the \strictN{} working-backdoor problems the
+monitor scored a different attack from the one in the classifier's row; without them the AUROC
+is \monStrictMatched{} (appendix~\ref{app:monitors}).} The monitor's fall
 measures how conspicuous the attacks are, not authorship. At a fixed audit budget of
 \auditFPR{} false positives, thresholded on each set's own honest programs, it catches
 \auditStrictStored{} of the original and \auditStrictOurs{} of our backdoors on the
