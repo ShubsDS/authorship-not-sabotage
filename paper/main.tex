@@ -1237,29 +1237,31 @@ working-backdoor row only & \shStrictOnlyN{} & working & \shStrictOnlyS{} & \shS
 \end{tabular}
 \end{table}
 
-\subsection{The prompt-matched arm under the masks, and the second generator}
+\subsection{The prompt-matched variant under the masks, and Haiku~4.5}
 \label{app:secondpass}
-Under prompt matching the identifier mask, the only token mask that moved $S$
-(appendix~\ref{app:robust}), takes the headline row to \matchedSid{} ($\rho = \matchedRhoId{}$)
-and the original honest class on the same \matchedN{} problems to \matchedSidOrig{}, so
-identifier normalisation and prompt matching remove largely the same thing. This masked row
-tests whether what remains after prompt matching is structure or naming, and it does not
-decide: its joint interval, \matchedRhoIdLo{}--\matchedRhoIdHi{}, straddles \rhoCollapse{}, with
-\matchedRhoIdCollapse{} of the bootstrap draws at or below it. A character model (3--5-grams,
-same classifier and folds) retains more than the word tokeniser, \matchedChar{}
-($\rho = \matchedRhoChar{}$), so the drop is not an artefact of tokenisation.
+The identifier mask, the only token mask that moved the AUROC on the rebuilt pairs
+(appendix~\ref{app:robust}), takes Sonnet~5's prompt-matched all-attempts row
+to \matchedSid{} ($\rho = \matchedRhoId{}$) and the same row without prompt matching, on the same
+\matchedN{} problems, to \matchedSidOrig{}, so identifier normalisation and prompt matching
+remove largely the same thing. This masked row tests whether what remains after prompt matching
+is structure or naming, and it does not decide: its joint interval,
+\matchedRhoIdLo{}--\matchedRhoIdHi{}, straddles \rhoCollapse{}, with \matchedRhoIdCollapse{} of
+the bootstrap draws at or below it. A character model (3--5-grams, same classifier and folds)
+retains more than the word tokeniser, \matchedChar{} ($\rho = \matchedRhoChar{}$), so the
+tokeniser does not produce the drop.
 
-The second generator's pairs are more self-similar than the first's (\haikuPairSim{} mean
-against \simIndep{}), so its $S$ was recomputed inside similarity strata. It stays
-\haikuStrataS{} in every stratum, including the \haikuStrataLowSim{}-similarity stratum, whose
-pairs are less alike than the stored benchmark's (mean \simStored{}), while $B'$ holds
-\haikuStrataBprime{}; the low $S$ is therefore not produced by near-copies. Its original and
-prompt-matched honest classes separate at \haikuPromptFloor{}, an interval containing chance.
-The layout vocabulary that the first generator's residue is made of, \texttt{def main},
-\texttt{sys.stdin} and \texttt{data[}, is present in \haikuDefMain{} of the second generator's
-programs in \emph{all three} of its classes, which read standard input with \texttt{input(} in
-\haikuInputPresent{} of programs on every side, so there is no layout difference left for the
-classifier to read.
+Haiku~4.5's rebuilt pairs are more alike than Sonnet~5's (mean similarity \haikuPairSim{}
+against \simIndep{}), so its AUROC on the rebuilt pairs was recomputed inside similarity strata.
+It stays \haikuStrataS{} in every stratum, including the \haikuStrataLowSim{}-similarity
+stratum, whose pairs are less alike than the original pairs (mean \simStored{}), while the AUROC
+on the original pairs of the same problems holds \haikuStrataBprime{}; near-copies therefore do
+not produce the low AUROC. Its two honest classes, one written under the honest prompt and one
+prompt-matched, separate at \haikuPromptFloor{}, an interval containing chance. The layout
+vocabulary that makes up what still separates Sonnet~5's rebuilt pairs, \texttt{def main},
+\texttt{sys.stdin} and \texttt{data[}, is present in \haikuDefMain{} of Haiku~4.5's programs in
+\emph{all three} of its classes (honest, prompt-matched honest and backdoored), which read
+standard input with \texttt{input(} in \haikuInputPresent{} of programs on every side, so there
+is no layout difference left for the classifier to read.
 
 \subsection{The monitor rows and the class swap}
 \label{app:monitors}
