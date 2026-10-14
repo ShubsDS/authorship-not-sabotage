@@ -725,17 +725,18 @@ problem whose backdoor fails contributes its human honest solution instead, so t
 set before any code is read. Attack problems also carry half as many test cases
 (\testCasesAttack{} against \testCasesHonest{}), which the no-code floor reads.
 
-Table~\ref{tab:gates} gives $\rho$ for each arm. On the headline rows, holding the writer
-constant leaves $\rho = \sameGenRho{}$ for Sonnet~5 and \haikuRho{} for Haiku~4.5; sample size
-does not account for the fall (appendix~\ref{app:robust}). Only \relFireFirst{} of Sonnet~5's
-\sameGenN{} attacks and \haikuFireInRow{} of Haiku~4.5's \haikuN{} fire, while every stored
-attack on those problems fires, so these rows set working stored backdoors against mostly inert
-attempts. On Sonnet~5's \strictN{} strict pairs, where every attack fires,
-$\rho = \strictRho{}$. The attacks working do not raise it: on the \sharedN{} problems in both
-sets, $\rho$ is \sharedRhoHead{} with headline attacks and \sharedRhoWorking{} with working ones
-(paired 95\% CI on the difference \sharedDiffLo{} to \sharedDiffHi{}). By point estimate the
-higher strict value comes from which problems yield a working attack, though that difference
-is not resolved (appendix~\ref{app:shared}).
+Table~\ref{tab:gates} gives $\rho$ for the independent and prompt-matched variants. On the
+all-attempts rows, holding the writer constant leaves $\rho = \sameGenRho{}$ for Sonnet~5 and
+\haikuRho{} for Haiku~4.5; sample size does not account for the fall
+(appendix~\ref{app:robust}). Only \relFireFirst{} of Sonnet~5's \sameGenN{} attacks and
+\haikuFireInRow{} of Haiku~4.5's \haikuN{} work, while every original backdoor on those
+problems works, so these rows set working original backdoors against mostly non-working
+attempts. On Sonnet~5's \strictN{} working backdoors, $\rho = \strictRho{}$. That the attacks
+work does not raise it: on the \sharedN{} problems in both sets, $\rho$ is \sharedRhoHead{} with
+the sampled attempts and \sharedRhoWorking{} with the working backdoors (paired 95\% CI on the
+difference \sharedDiffLo{} to \sharedDiffHi{}). By point estimate the higher $\rho$ on working
+backdoors comes from which problems yield a working attack, though that difference is not
+resolved (appendix~\ref{app:shared}).
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -801,18 +802,19 @@ backdoors' mean suspicion score (0--100). Haiku~4.5 and intervals: appendix~\ref
 \end{minipage}
 \end{table}
 
-The two generators respond differently to the attack prompt. On Sonnet~5 what survives is
-lexical: of the feature-ablation masks only identifier normalisation moves $S$
+The two models respond differently to the attack prompt. On Sonnet~5 what survives is
+lexical: of the feature-ablation masks only identifier normalisation moves the rebuilt AUROC
 (appendix~\ref{app:robust}), and the top attack-side features, \texttt{def main}
 (\defMainAttack{} of attack programs against \defMainHonest{} of honest ones) and
 \texttt{data[}, are the program layout the attack prompt elicits, which Haiku~4.5 never adopts
-(appendix~\ref{app:secondpass}). Holding the prompt constant as well lowers Sonnet~5's $\rho$
-to \matchedRho{} and does not change Haiku~4.5's (\haikuMatchedRho{}). On Sonnet~5 the
-original and prompt-matched honest classes, both correct, separate at \promptOnly{}, so the prompt carries
-framing and no backdoor; on Haiku~4.5 they do not separate.
+(appendix~\ref{app:secondpass}). Holding the prompt constant as well (the prompt-matched
+variant) lowers Sonnet~5's $\rho$ to \matchedRho{} and does not change Haiku~4.5's
+(\haikuMatchedRho{}). On Sonnet~5 the honest solutions written under the two prompts, both
+correct, separate at \promptOnly{}, so the prompt carries framing and no backdoor; on Haiku~4.5
+they do not separate.
 
 Regenerating only the honest class, with Qwen3-Coder-30B, makes the pairs \emph{more}
-separable than the stored ones, $\rho = \armOneRho{}$: one authorship gap replaced by another
+separable than the original ones, $\rho = \armOneRho{}$: one authorship gap replaced by another
 (appendix~\ref{app:robust}).
 
 Swapping one class at a time shows where each detector's drop comes from
