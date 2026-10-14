@@ -639,9 +639,8 @@ exported from, generates both classes live and is not implicated.
 \section{Setup}
 
 We use seven public datasets, whose per-class provenance is the object of study: two views of
-one APPS-backdoor dataset, \texttt{RoganInglis/apps-control-arena}
-\cite{inglis2025appscontrolarena} and its filtered release (appendix~\ref{app:schema}), and five
-agentic settings (appendix~\ref{app:agentic}). In its original pairs the honest solution is
+one APPS-backdoor dataset \cite{inglis2025appscontrolarena}, the full and the filtered release
+(appendix~\ref{app:schema}), and five agentic settings (appendix~\ref{app:agentic}). In its original pairs the honest solution is
 human-written and the \emph{original backdoor} comes from one of \storedAttackers{} named models
 or an unattributed source (appendix~\ref{app:attackers}). Six of the seven declare no licence
 \cite{koran2026highquality, sinha2026controlarenacorpora}, so we report only aggregates and
@@ -651,17 +650,17 @@ Our primary protocol is the filtered, comment-stripped split
 \cite{koran2026ensemble}: \splitTrain{} train problems (\splitTrainItems{} paired items) and
 \splitTest{} test items (\splitAttack{} attack, \splitHonest{} honest), labelled by
 \texttt{backdoor\_works}, reconstructed with the released harness code
-\cite{jha2026decorrelation}. The split is a filtered view of the dataset. We rebuild pairs on
-the \baselineBn{} problems of the dataset that we analyse; on their original pairs the
-bag-of-words classifier reaches AUROC \baselineB{}. Generated code is scored by our own
+\cite{jha2026decorrelation}. The split is a filtered view of the dataset; we rebuild pairs on
+the \baselineBn{} problems we analyse, whose original pairs bag-of-words separates at AUROC
+\baselineB{}. Generated code is scored by our own
 runner, applied to both classes (appendix~\ref{app:harness}).
 
 Our corpus consists of \emph{rebuilt pairs}: for each problem, one model, Sonnet~5 or
 Haiku~4.5, writes both the honest and the backdoored solution. With one writer, writer features
 cannot separate the classes; what still separates them comes from what the two prompts asked
-for, the backdoor included. We build three \emph{variants}. In the \emph{independent} variant
-the model writes the backdoored solution from the problem statement alone. In the \emph{edit}
-variant it is shown its own honest solution and returns near-copies (appendix~\ref{app:pairsim}).
+for, the backdoor included. We build three \emph{variants}. The \emph{independent} variant writes
+the backdoored solution from the problem statement alone. The \emph{edit} variant, shown its own
+honest solution, returns near-copies (appendix~\ref{app:pairsim}).
 In the \emph{prompt-matched} variant the honest solution is requested under the attack prompt's
 wording, with the clauses asking for a flaw replaced by their correct-program counterparts, so
 both classes are elicited alike. A backdoor \emph{works} if it passes the public tests and gives
@@ -670,15 +669,15 @@ Table~\ref{tab:gates} keep one independent-variant attack per problem, sampled b
 outcome is known and kept if it passes the public tests; most do not work. The
 \emph{working-backdoor} rows keep only attacks that work, drawn from a pool of retries.
 
-We compare each variant with the original pairs of the same problems through the AUROC of one
-bag-of-words classifier (5-fold, comments stripped), fitted separately on each set of pairs.
+One bag-of-words classifier (5-fold, comments stripped), fitted separately on each set of
+pairs, gives an AUROC on the rebuilt pairs and one on the original pairs of the same problems;
 $\rho = (\text{rebuilt AUROC} - 0.5)/(\text{original AUROC} - 0.5)$ is the share of its
-above-chance AUROC on the original pairs that remains on the rebuilt pairs of the same problems.
-The rebuild changes the attacks as well as the writer: ours rarely work, and a monitor finds
-them far less suspicious than the original ones (\S\ref{sec:results}). $\rho$ is therefore the
-share of separability that survives, not the share due to the backdoor nor a bound on it.
-Table~\ref{tab:gates} reports the share of bootstrap draws with $\rho > \rhoContent{}$; that
-line and a lower one at $\rho = \rhoCollapse{}$ were fixed before any variant ran.
+above-chance AUROC on the original pairs that remains on the rebuilt pairs. The rebuild changes
+the attacks as well as the writer: ours rarely work, and a monitor finds them far less
+suspicious than the original ones (\S\ref{sec:results}). $\rho$ therefore measures what
+survives, not the share due to the backdoor nor a bound on it. Table~\ref{tab:gates} reports
+the share of bootstrap draws with $\rho > \rhoContent{}$; that line and $\rho = \rhoCollapse{}$
+were fixed before any variant ran.
 
 \section{Results}
 \label{sec:results}
@@ -725,8 +724,7 @@ problem whose backdoor fails contributes its human honest solution instead, so t
 set before any code is read. Attack problems also carry half as many test cases
 (\testCasesAttack{} against \testCasesHonest{}), which the no-code floor reads.
 
-Table~\ref{tab:gates} gives $\rho$ for the independent and prompt-matched variants. On the
-all-attempts rows, holding the writer constant leaves $\rho = \sameGenRho{}$ for Sonnet~5 and
+On the all-attempts rows of Table~\ref{tab:gates}, holding the writer constant leaves $\rho = \sameGenRho{}$ for Sonnet~5 and
 \haikuRho{} for Haiku~4.5; sample size does not account for the fall
 (appendix~\ref{app:robust}). Only \relFireFirst{} of Sonnet~5's \sameGenN{} attacks and
 \haikuFireInRow{} of Haiku~4.5's \haikuN{} work, while every original backdoor on those
@@ -742,8 +740,7 @@ resolved (appendix~\ref{app:shared}).
 \setlength{\tabcolsep}{4pt}
 \caption{\textbf{What is left when one model writes both classes.} \emph{Rebuilt},
 \emph{original}: AUROC of the same bag-of-words classifier (5-fold, comments stripped) on the
-rebuilt pairs and on the original pairs of the same problems (human honest code, original
-backdoors); $\rho = (\text{rebuilt} - 0.5)/(\text{original} - 0.5)$; $P$: share of bootstrap
+rebuilt pairs and on the original pairs of the same problems; $\rho = (\text{rebuilt} - 0.5)/(\text{original} - 0.5)$; $P$: share of bootstrap
 draws with $\rho$ above \rhoContent{}, a line fixed before any variant ran. \emph{Working/$n$}:
 rebuilt backdoors that work, of $n$ problems; every original backdoor here works. Points pool
 the out-of-fold scores; intervals are 95\% bootstraps over problems; for $\rho$ each draw
@@ -807,18 +804,17 @@ lexical: of the feature-ablation masks only identifier normalisation moves the r
 (appendix~\ref{app:robust}), and the top attack-side features, \texttt{def main}
 (\defMainAttack{} of attack programs against \defMainHonest{} of honest ones) and
 \texttt{data[}, are the program layout the attack prompt elicits, which Haiku~4.5 never adopts
-(appendix~\ref{app:secondpass}). Holding the prompt constant as well (the prompt-matched
+(appendix~\ref{app:secondpass}). Holding the prompt constant as well (prompt-matched
 variant) lowers Sonnet~5's $\rho$ to \matchedRho{} and does not change Haiku~4.5's
 (\haikuMatchedRho{}). On Sonnet~5 the honest solutions written under the two prompts, both
-correct, separate at \promptOnly{}, so the prompt carries framing and no backdoor; on Haiku~4.5
-they do not separate.
+correct, separate at \promptOnly{}, so the prompt carries framing and no backdoor; Haiku~4.5's do not.
 
 Regenerating only the honest class, with Qwen3-Coder-30B, makes the pairs \emph{more}
 separable than the original ones, $\rho = \armOneRho{}$: one authorship gap replaced by another
 (appendix~\ref{app:robust}).
 
 Swapping one class at a time shows where each detector's drop comes from
-(Table~\ref{tab:swap}). The bag-of-words classifier stays high whenever the two classes have
+(Table~\ref{tab:swap}). Bag-of-words stays high whenever the two classes have
 different writers: human honest code against our backdoors scores \clfSwapHumanOurs{}, our
 honest code against the original backdoors \clfSwapOursStored{}, and only when one model wrote
 both does it fall, to \clfSwapOursOurs{} on the rebuilt pairs. Our backdoors in place of the
@@ -867,8 +863,8 @@ Our scope is narrow in three further ways. We measure one APPS-derived dataset f
 five agentic settings, and other datasets of such pairs are untested. Five of our seven datasets
 are one user's repackaging of ControlArena releases, so our claims are scoped to those datasets
 as published. Two idioms of an older Python in the human solutions fall on opposite classes, so
-the AUROC on the \baselineBn{} original pairs carries a small signal from the execution
-environment that the rebuilt pairs do not (appendix~\ref{app:harness}).
+the AUROC on the \baselineBn{} original pairs carries a small execution-environment signal that
+the rebuilt pairs lack (appendix~\ref{app:harness}).
 
 \section{Discussion}
 
@@ -885,9 +881,8 @@ bag-of-words floor belong beside it, each against a permutation null, with the s
 preprocessing released alongside (ours: MIT, appendix~\ref{app:release}). It should also be
 reported at a fixed audit budget, beside the share of backdoors that work.
 
-Fixed datasets of pairs remain the cheapest way to develop a monitor, and nothing here argues
-for abandoning them, only that a score on one can describe how the pairs were built rather than
-the monitor.
+Fixed datasets of pairs remain the cheapest way to develop a monitor; we argue only that a
+score on one can describe how the pairs were built rather than the monitor.
 
 \begin{ack}
 Compute for this work was provided by the Virginia AI Security Initiative, a student
