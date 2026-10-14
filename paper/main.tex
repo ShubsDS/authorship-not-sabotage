@@ -849,26 +849,26 @@ the all-attempts problems (Figure~\ref{fig:audit}, appendix~\ref{app:audit}).
 
 \section{Limitations}
 
-A high floor is evidence about a corpus, not about results computed on it. Ours show the
+A high floor is evidence about a dataset, not about results computed on it. Ours show the
 label is recoverable without reading a backdoor, not that any monitor
 recovers it that way, and no number here corrects a published monitor score.
 
 Rebuilding with one model changes the attacks as well as their author: against the same human
-code, the stored attacking model alone moves $B$ from \bAttackerLo{} to \bAttackerHi{}, so
-$\rho$ is not the backdoor's share of the separability, nor a bound on it. It does not depend on
-the stored attacker (Claude attackers only: $\rho = \rhoClaudeOnly{}$;
+code, the model that wrote the original backdoors alone moves the AUROC on the original pairs
+from \bAttackerLo{} to \bAttackerHi{}, so $\rho$ is not the backdoor's share of the
+separability, nor a bound on it. $\rho$ does not depend on which model wrote the original
+backdoors (problems whose original backdoor a Claude model wrote: $\rho = \rhoClaudeOnly{}$;
 appendix~\ref{app:attackers}). The class swap ties the classifier's drop to authorship but the
 monitor's to our attacks, so the monitor results describe attacks written under our prompt,
-which rarely fire. The corpus is not bit-reproducible: the API hides
+which rarely work. Our corpus is not bit-reproducible: the API hides
 sampling parameters; thinking was off.
 
-Our scope is narrow in three further ways. We measure one APPS-derived corpus family and five
-agentic settings, and other stored-pair corpora are untested. Five of our seven corpora are one
-user's repackaging of ControlArena releases, so our claims are scoped to those artifacts as
-published. Two interpreter-era artifacts, human solutions written for an older Python,
-fall on opposite classes, so $B$ carries a small
-execution-environment channel the same-generator arm does not
-(appendix~\ref{app:harness}).
+Our scope is narrow in three further ways. We measure one APPS-derived dataset family and
+five agentic settings, and other datasets of such pairs are untested. Five of our seven datasets
+are one user's repackaging of ControlArena releases, so our claims are scoped to those datasets
+as published. Two idioms of an older Python in the human solutions fall on opposite classes, so
+the AUROC on the \baselineBn{} original pairs carries a small signal from the execution
+environment that the rebuilt pairs do not (appendix~\ref{app:harness}).
 
 \section{Discussion}
 
