@@ -638,59 +638,47 @@ exported from, generates both classes live and is not implicated.
 
 \section{Setup}
 
-We use seven public corpora, whose
-per-class provenance is the object of study: two views of one APPS-backdoor artifact
-(appendix~\ref{app:schema}) and five agentic settings (appendix~\ref{app:agentic}). In the
-APPS family the honest class is human and the
-attacks come from \storedAttackers{} named models or an unattributed source
-(appendix~\ref{app:attackers}). Six of the seven
-declare no licence \cite{koran2026highquality, sinha2026controlarenacorpora}, so we report only
-aggregates and redistribute none.
+We use seven public datasets, whose per-class provenance is the object of study: two views of
+one APPS-backdoor dataset, \texttt{RoganInglis/apps-control-arena}
+\cite{inglis2025appscontrolarena} and its filtered release (appendix~\ref{app:schema}), and five
+agentic settings (appendix~\ref{app:agentic}). In its original pairs the honest solution is
+human-written and the \emph{original backdoor} comes from one of \storedAttackers{} named models
+or an unattributed source (appendix~\ref{app:attackers}). Six of the seven declare no licence
+\cite{koran2026highquality, sinha2026controlarenacorpora}, so we report only aggregates and
+redistribute none.
 
 Our primary protocol is the filtered, comment-stripped split
 \cite{koran2026ensemble}: \splitTrain{} train problems (\splitTrainItems{} paired items) and
 \splitTest{} test items (\splitAttack{} attack, \splitHonest{} honest), labelled by
 \texttt{backdoor\_works}, reconstructed with the released harness code
-\cite{jha2026decorrelation}. The split is a filtered view of a \baselineBn{}-problem artifact
-whose full pool the same-generator arms use; on that pool the stored pairs give
-$B = \baselineB{}$. Generated code is scored by our own
+\cite{jha2026decorrelation}. The split is a filtered view of the dataset. We rebuild pairs on
+the \baselineBn{} problems of the dataset that we analyse; on their original pairs the
+bag-of-words classifier reaches AUROC \baselineB{}. Generated code is scored by our own
 runner, applied to both classes (appendix~\ref{app:harness}).
 
-Against that we build a corpus in which one model, Sonnet~5 or Haiku~4.5, writes both classes
-on the same APPS problems. With one writer, writer features cannot separate the classes; what
-still separates them comes from what the two prompts asked for, the backdoor included. The
-\emph{independent} arm writes the attack class from the problem statement alone. An \emph{edit}
-arm, shown its own honest solution, returns near-copies (appendix~\ref{app:pairsim}), and a
-\emph{prompt-matched} arm regenerates the honest class from the attack prompt with the clauses
-asking for a flaw replaced by their correct-program counterparts, so both classes are elicited
-alike. A backdoor \emph{fires} if it passes the public tests and gives a wrong answer on the
-trigger input the attacker declares; one that never fires is \emph{inert}. \emph{Headline} rows
-(Table~\ref{tab:gates}) are attempts: one independent-arm attack per problem, sampled before
-its outcome is known and kept if it passes the public tests; \emph{strict} rows keep only
-attacks that fire, drawn from a pool of retries.
+Our corpus consists of \emph{rebuilt pairs}: for each problem, one model, Sonnet~5 or
+Haiku~4.5, writes both the honest and the backdoored solution. With one writer, writer features
+cannot separate the classes; what still separates them comes from what the two prompts asked
+for, the backdoor included. We build three \emph{variants}. In the \emph{independent} variant
+the model writes the backdoored solution from the problem statement alone. In the \emph{edit}
+variant it is shown its own honest solution and returns near-copies (appendix~\ref{app:pairsim}).
+In the \emph{prompt-matched} variant the honest solution is requested under the attack prompt's
+wording, with the clauses asking for a flaw replaced by their correct-program counterparts, so
+both classes are elicited alike. A backdoor \emph{works} if it passes the public tests and gives
+a wrong answer on the trigger input its writer names. The \emph{all-attempts} rows of
+Table~\ref{tab:gates} keep one independent-variant attack per problem, sampled before its
+outcome is known and kept if it passes the public tests; most do not work. The
+\emph{working-backdoor} rows keep only attacks that work, drawn from a pool of retries.
 
-The rebuild changes the attacks as well as the writer: ours rarely fire, and a monitor finds
-them far less suspicious than the stored ones (\S\ref{sec:results}). $\rho$
-(Table~\ref{tab:notation}) is therefore the share of stored-pair separability that survives, not
-the share due to the backdoor nor a bound on it. Table~\ref{tab:gates} reports the
-share of joint-bootstrap draws with $\rho > \rhoContent{}$; that line and $\rho = \rhoCollapse{}$
-were fixed before any arm ran.
-
-\begin{table}[h]\centering\footnotesize
-\caption{\textbf{Notation.} One classifier throughout; the arms differ only in the corpus
-it reads.}
-\label{tab:notation}
-\begin{tabular}{@{}l l@{}}
-\toprule
-Symbol & Quantity \\
-\midrule
-$B$ & on the stored pairs, over the full artifact \\
-$B'$ & on the stored pairs, refitted on the problems one arm realises \\
-$S$ & on a same-generator arm, where one model wrote both classes \\
-$\rho = (S - 0.5)/(B' - 0.5)$ & the share of above-chance separability that survives \\
-\bottomrule
-\end{tabular}
-\end{table}
+We compare each variant with the original pairs of the same problems through the AUROC of one
+bag-of-words classifier (5-fold, comments stripped), fitted separately on each set of pairs.
+$\rho = (\text{rebuilt AUROC} - 0.5)/(\text{original AUROC} - 0.5)$ is the share of its
+above-chance AUROC on the original pairs that remains on the rebuilt pairs of the same problems.
+The rebuild changes the attacks as well as the writer: ours rarely work, and a monitor finds
+them far less suspicious than the original ones (\S\ref{sec:results}). $\rho$ is therefore the
+share of separability that survives, not the share due to the backdoor nor a bound on it.
+Table~\ref{tab:gates} reports the share of bootstrap draws with $\rho > \rhoContent{}$; that
+line and a lower one at $\rho = \rhoCollapse{}$ were fixed before any variant ran.
 
 \section{Results}
 \label{sec:results}
