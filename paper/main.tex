@@ -912,26 +912,27 @@ organization at the University of Virginia.
 
 \subsection{Statistics}
 \label{app:stats}
-Every cross-validated AUROC ($B$, $B'$, $S$, the masked and character-model rows, and the
-no-code floor cross-validated within the test split) is one AUROC over the pooled out-of-fold
-scores, each item scored by the fold that held it out; for the no-code floor each item's score
-is averaged over five repeats of the folds. Bag-of-words on the filtered split, the no-code
-floor trained outside it or on a held-out slice, and the monitors score each item once, with no
-folds. Every interval is a 95\% percentile bootstrap over problems of the quantity it
+Every cross-validated AUROC (bag-of-words on all \baselineBn{} original pairs, on the original
+pairs of the problems a row covers and on the rebuilt pairs, the masked and character-model
+rows, and the no-code floor cross-validated within the test split) is one AUROC over the pooled
+out-of-fold scores, each item scored by the fold that held it out; for the no-code floor each
+item's score is averaged over five repeats of the folds. Bag-of-words on the filtered split, the
+no-code floor trained outside it or on a held-out slice, and the monitors score each item once,
+with no folds. Every interval is a 95\% percentile bootstrap over problems of the quantity it
 accompanies, \bootDraws{} draws, seed 0. For $\rho$ each draw resamples one problem set and
-recomputes $S$ and $B'$ on it; a paired difference (a floor against a monitor, stored against
-same-generator pairs, one set of attacks against another) is recomputed on the same draws.
-Every permutation null permutes the labels the pipeline reads, for fitting and scoring alike,
-reruns the pipeline and recomputes the reported statistic, \permReps{} times, with
+recomputes on it both the AUROC on the rebuilt pairs and the AUROC on the original pairs of the
+same problems; a paired difference (a floor against a monitor, original against rebuilt pairs,
+one set of attacks against another) is recomputed on the same draws. Every permutation null
+permutes the labels the pipeline reads, for fitting and scoring alike, reruns the pipeline and
+recomputes the reported statistic, \permReps{} times, with
 $p = (1 + \#\{\text{null} \ge \text{observed}\})/(1 + \permReps{})$; in the agentic settings
 the labels are permuted within main-task groups (appendix~\ref{app:agentic}). The token test
 uses a null over random token sets instead (appendix~\ref{app:token}). The bootstrap replaced a
-$\pm 2$ fold-SD rule before the strict retry pool was read.
+$\pm 2$ fold-SD rule before the retries behind the working-backdoor rows were read.
 
-The edit arm's points are pooled, but no
-per-pair scores were kept for it, so its $\rho$ has no joint interval. The pairwise accuracies
-of Table~\ref{tab:protocol-baseline} are means over five problem-disjoint splits
-(appendix~\ref{app:stripped}).
+The edit variant's point estimates are pooled, but no per-pair scores were kept for it, so its
+$\rho$ has no joint interval. The pairwise accuracies of Table~\ref{tab:protocol-baseline} are
+means over five problem-disjoint splits (appendix~\ref{app:stripped}).
 
 \subsection{The schema}
 \label{app:schema}
