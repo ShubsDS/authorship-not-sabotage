@@ -573,8 +573,8 @@ separate the classes without finding a backdoor. A bag-of-words classifier reach
 \tfidfKoran{} on a standard split, above \tfidfKoranCount{} of \monN{} published monitors, and does
 almost as well on backdoors that never trigger. The labels leak as well, because a problem whose
 backdoor failed is labelled honest. When we rebuild the pairs so that one model writes both
-solutions, the classifier keeps about two thirds of its advantage over chance with Claude Sonnet~5
-and a tenth with Claude Haiku~4.5, and swapping one class at a time traces the loss to authorship.
+solutions, the classifier loses between a third and nine tenths of its advantage over chance,
+depending on the model, and swapping one class at a time traces the loss to authorship.
 An LLM monitor also scores lower on the rebuilt pairs, but because it finds our backdoors less
 suspicious. At a 2\% audit budget it catches \auditStrictOurs{} of our working backdoors against
 \auditStrictStored{} of the original ones. These results suggest that scores on such datasets
