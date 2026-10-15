@@ -743,7 +743,7 @@ labels were chosen, not anything in the code.
 \label{sec:samegen}
 
 \begin{table}[h]\centering\footnotesize
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{5pt}
 \caption{\textbf{What is left when one model writes both classes.} Bag-of-words AUROC on the
 rebuilt pairs and on the original pairs of the same problems, and $\rho$, the fraction of the
 advantage over chance that remains. $P$ is the share of bootstrap draws with $\rho$ above
@@ -904,20 +904,20 @@ in it is identical apart from a re-checked \texttt{backdoor\_works} flag. We the
 releases as two views of one dataset.
 
 \begin{table}[h]\centering\footnotesize
-\setlength{\tabcolsep}{4pt}
-\caption{Fields of each record in \texttt{RoganInglis/apps-control-arena}, checked against its data
-files. Only backdoor records name the model that wrote them (bold).}
+\setlength{\tabcolsep}{5pt}
+\caption{\textbf{Record fields of the dataset.} Checked against its data files; only backdoor
+records carry \texttt{model} and \texttt{source}, which name the system that wrote them.}
 \label{tab:schema}
 \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.80\linewidth}@{}}
 \toprule
-Record & Fields \\
+Record & fields \\
 \midrule
 \texttt{solutions} & \texttt{code}, \texttt{compiles}, \texttt{passes\_tests} \\
 \addlinespace
 \texttt{backdoors} & \texttt{backdoor\_code}, \texttt{backdoor\_input},
                      \texttt{backdoor\_works}, \texttt{compiles},
-                     \textbf{\texttt{model}}, \texttt{passes\_tests},
-                     \textbf{\texttt{source}} \\
+                     \texttt{model}, \texttt{passes\_tests},
+                     \texttt{source} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -947,7 +947,7 @@ problems where that name appears, the dataset's working backdoor comes from the 
 so the name refers to that source.
 
 \begin{table}[h]\centering\footnotesize
-\setlength{\tabcolsep}{6pt}
+\setlength{\tabcolsep}{5pt}
 \caption{\textbf{Who wrote the original backdoors.} Problems per model among the \baselineBn{}
 problems we analyse and the \sameGenN{} problems of Sonnet~5's all-attempts row, and the
 bag-of-words AUROC of that model's backdoors against all \baselineBn{} human solutions (95\%
@@ -1054,7 +1054,7 @@ be used instead, because it pairs each problem's backdoored and honest items, wh
 metadata.
 
 \begin{table}[h]\centering\footnotesize
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{5pt}
 \caption{\textbf{Both floors against the \monN{} monitors on the standard test split.}
 \emph{Shuffled}: 95th percentile of the AUROC on shuffled labels. \emph{Beats}: monitors below the
 floor by point estimate, clearly, and borderline. The held-out row compares monitors on the same
@@ -1067,7 +1067,7 @@ Baseline & trained on & AUROC (95\% CI) & shuffled & $p$ & beats \\
 bag-of-words & training problems & \tfidfKoran{} (\three{\tfidfKoranLo}--\three{\tfidfKoranHi})
   & \tfidfKoranNull{} & $<0.001$ & \tfidfKoranCount{} / \tfidfKoranPairedCount{} / \tfidfKoranBoundaryCount{} \\
 no-code & outside the split & \nocodeOutside{} (\three{\nocodeOutsideLo}--\three{\nocodeOutsideHi})
-  & \three{\nocodeOutsideNull} & --- & none \\
+  & \three{\nocodeOutsideNull} & --- & 0 / 0 / 0 \\
 no-code & outside, $\ge 4$ tests & \nocodeOutsideFour{} (\three{\nocodeOutsideFourLo}--\three{\nocodeOutsideFourHi})
   & \three{\nocodeOutsideFourNull} & \nocodeOutsideFourP{} & \nocodeOutsideFourCount{} / \nocodeOutsideFourPairedCount{} / \nocodeOutsideFourBoundaryCount{} \\
 no-code & within the split (CV) & \nocodeCV{} (\three{\nocodeCVLo}--\three{\nocodeCVHi})
@@ -1089,8 +1089,13 @@ own training problems, so the figure shows what the split gives away, not which 
 \label{fig:monitors}
 \end{figure}
 
-Table~\ref{tab:protocol-baseline} lists every baseline we ran, including those that read no code at
-all and those measured on matched pairs.
+Table~\ref{tab:protocol-baseline} lists every baseline we ran. Its AUROC block covers the standard
+split and the full dataset, where the no-code classifier reads difficulty, test count and statement
+length. Its pairwise block covers matched pairs, in which each honest solution is paired with a
+backdoor to the same problem, so problem metadata cannot separate them; the DSPy rows pair them as
+the DSPy trusted-monitor tutorial does, and the transfer rows train on the Control Tax backdoors and
+test on the GPT-4-era APPS backdoors. Rows with comments kept are inflated by the comments and are
+shown for contrast.
 
 \input{fig/f1-protocol-baseline}
 
@@ -1108,7 +1113,7 @@ author line (\texttt{Author :}) remains in \bylineHonest{} of \splitTrain{} hone
 the code.
 
 \begin{table}[h]\centering\footnotesize
-\setlength{\tabcolsep}{6pt}
+\setlength{\tabcolsep}{5pt}
 \caption{\textbf{Bag-of-words with and without comments.} Pairwise accuracy (the share of pairs in
 which the backdoored program scores higher), averaged over five problem-disjoint splits, unless
 marked AUROC. The other transfer results without comments are \transferOthreeClaude{} (o3-mini to
@@ -1171,7 +1176,7 @@ the main text use the independent variant.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
-\caption{\textbf{How similar the two programs of a pair are,} by character similarity with comments
+\caption{\textbf{How similar the two programs of a pair are.} Character similarity with comments
 removed. The middle columns give the share of pairs above 0.95 and below 0.60.}
 \label{tab:similarity}
 \begin{tabular}{@{}l r r r l@{}}
@@ -1245,7 +1250,7 @@ the working-backdoor row comes from which problems yield a working backdoor.
 rebuilt and original pairs of each subset, and $\rho$ with a joint 95\% bootstrap interval. Source:
 \texttt{shared\_problems.py}.}
 \label{tab:shared}
-\begin{tabular}{@{}l r l c c l@{}}
+\begin{tabular}{@{}l r l r r l@{}}
 \toprule
 Problems & $n$ & our backdoors & rebuilt & original & $\rho$ (95\% CI) \\
 \midrule
@@ -1315,8 +1320,8 @@ with the original backdoors by \clfSwapDiffOursStoredS{}
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
-\caption{\textbf{Bag-of-words with one class swapped at a time,} on each model's all-attempts problems
-(95\% bootstrap over problems). The human/original cell is the original AUROC and the ours/ours cell
+\caption{\textbf{Bag-of-words with one class swapped at a time.} AUROC on each model's all-attempts
+problems (95\% bootstrap over problems). The human/original cell is the original AUROC and the ours/ours cell
 the rebuilt AUROC of Table~\ref{tab:gates}.}
 \label{tab:clfswap}
 \begin{tabular}{@{}l l l l@{}}
@@ -1343,9 +1348,10 @@ classifier's, computed from the monitor's AUROCs. Sonnet~5 wrote both classes of
 Haiku~4.5 wrote neither.
 
 \begin{table}[h]\centering\footnotesize
-\setlength{\tabcolsep}{6pt}
-\caption{\textbf{Monitor AUROC on the original and rebuilt pairs} of the same problems, with 95\%
-bootstrap intervals. Haiku~4.5's replies were capped at 512 tokens.}
+\setlength{\tabcolsep}{5pt}
+\caption{\textbf{Monitor AUROC on the original and rebuilt pairs.} Both sets cover the same problems;
+intervals are 95\% bootstraps over problems. Haiku~4.5's replies were capped at 512 tokens; its
+$\rho$ has no interval, and on the all-attempts problems it was not computed.}
 \label{tab:monscores}
 \begin{tabular}{@{}l l r l l@{}}
 \toprule
