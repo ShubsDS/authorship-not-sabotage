@@ -29,17 +29,19 @@
 \definecolor{bdshade}{HTML}{EADBA9}
 \definecolor{bdrule}{HTML}{B8902A}
 \usepackage[most]{tcolorbox}
-\definecolor{hlgold}{gray}{0.91}  % Figure 1 backdoor shading (grey)
-\newcommand{\cf}{\fontfamily{fvm}\fontsize{5.3}{7.2}\selectfont}
-\newcommand{\cstrut}{\vrule height 5.25pt depth 1.95pt width 0pt}
-\newcommand{\pl}[1]{\noindent\makebox[\linewidth][l]{\cstrut\hspace{2pt}#1}\par}
-\newcommand{\hl}[1]{\noindent{\setlength{\fboxsep}{0pt}\colorbox{hlgold}{\makebox[\linewidth][l]{\cstrut\hspace{2pt}#1}}}\par}
-\newcommand{\lnr}[1]{\makebox[0.9em][r]{\textcolor{black!45}{\fontsize{5}{7.6}\selectfont #1}}\hspace{0.6em}}
-\newcommand{\sect}[2]{{\fontsize{6.6}{8}\selectfont\textsc{#1}\hfill\textit{#2}}\par\vspace{2pt}}
+\definecolor{hlgold}{gray}{0.87}  % Figure 1 backdoor shading (grey)
+\newcommand{\cf}{\fontfamily{zi4}\fontsize{6.6}{8.18}\selectfont\lineskiplimit=-\maxdimen}
+\newcommand{\cstrut}{\vrule height 5.97pt depth 2.21pt width 0pt}
+\newcommand{\pl}[1]{\noindent\makebox[\linewidth][l]{\cstrut\hspace{1pt}#1}\par}
+\newcommand{\hl}[1]{\noindent{\setlength{\fboxsep}{0pt}\colorbox{hlgold}{\makebox[\linewidth][l]{\cstrut\hspace{1pt}#1}}}\par}
+\newcommand{\lnr}[1]{\makebox[0.65em][r]{\textcolor{black!45}{\fontsize{5.61}{8.18}\selectfont #1}}\hspace{0.45em}}
+\newcommand{\sect}[2]{{\fontsize{7}{8.4}\selectfont\textsc{#1}\hfill\textit{#2}}\par\vspace{2pt}}
 \tcbset{fig1box/.style={enhanced, sharp corners, boxsep=0pt, left=2.5pt, right=2.5pt, top=3pt,
-  bottom=6pt, toptitle=2.2pt, bottomtitle=2.2pt, fonttitle=\small\bfseries, coltitle=black,
-  boxrule=0.6pt, colframe=black, colback=white, colbacktitle=white, titlerule=0.4pt, middle=3pt,
-  segmentation style={solid, black, line width=0.3pt}, equal height group=fig1,
+  bottom=4pt, toptitle=2.2pt, bottomtitle=2.2pt, fonttitle=\small\bfseries, coltitle=black,
+  boxrule=0.6pt, colframe=white, colback=white, colbacktitle=white, titlerule=0.4pt, middle=3pt,
+  borderline={0.6pt}{0.3pt}{black},
+  overlay={\draw[black, line width=0.4pt] ([xshift=0.6pt]title.south west) -- ([xshift=-0.6pt]title.south east);},
+  segmentation style={solid, black, line width=0.4pt}, equal height group=fig1,
   width=\linewidth, before skip=0pt, after skip=0pt,
   before upper={\parskip=0pt}, before lower={\parskip=0pt}}}
 
@@ -861,8 +863,7 @@ original pairs a small extra cue (appendix~\ref{app:harness}).
 Fixed datasets of pairs are the cheapest way to develop a monitor. Four changes would make the
 scores they produce easier to interpret.
 \begin{enumerate}
-\item Report the bag-of-words and no-code floors beside every monitor score, each with its
-shuffled-label baseline, so readers can see how much of the score the dataset gives away.
+\item Report both floors, with their shuffled-label baselines, beside every monitor score.
 \item Have one model write both classes from the same prompt, and check both with the same tests, so
 that the backdoor is the only intended difference.
 \item Choose honest examples independently of whether an attack on the problem succeeded, or drop
