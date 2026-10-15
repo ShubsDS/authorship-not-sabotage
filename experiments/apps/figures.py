@@ -231,7 +231,7 @@ def fig5_stored_pairs():
         who = p["label"].replace(" (thinking)", "")
         cols.append(
             "\\begin{minipage}[t]{0.322\\linewidth}\n"
-            f"\\begin{{tcolorbox}}[fig1box, title={{\\textbf{{({'abc'[k]})}} {p['title']}}}]\n"
+            f"\\begin{{tcolorbox}}[fig1box, title={{({'abc'[k]}) {p['title']}}}]\n"
             "\\sect{honest}{by a person}\n" + code(p["honest"], (), nh) + "\n"
             f"\\tcblower\n\\sect{{backdoored}}{{by {who}}}\n" + code(p["attack"], p["mark"], na) +
             "\n\\end{tcolorbox}\n\\end{minipage}")
@@ -246,7 +246,7 @@ def fig5_stored_pairs():
              "\\label{fig:pairs}", "\\end{figure}"]
     with open(f"{OUT}/f5-stored-pairs.tex", "w") as fh:
         fh.write("\n".join(parts) + "\n")
-    print(f"F5: problems {', '.join(p['pid'] for p in STORED_PAIRS)} in three framed boxes")
+    print(f"F5: problems {', '.join(p['pid'] for p in STORED_PAIRS)} in three framed boxes (journal monochrome)")
 
 
 # F6 (Figure 2): three panels. (a) bag-of-words ranked among the 24 monitors; (b) the no-code
