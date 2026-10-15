@@ -566,20 +566,20 @@
 \maketitle
 
 \begin{abstract}
-AI-control monitors are tuned and ranked on fixed datasets of paired programs, each pair an honest
-solution and a backdoored solution to the same programming problem. We show that scores on these
-datasets partly measure how the pairs were built rather than whether a monitor detects sabotage.
-In the public APPS datasets, people wrote the honest code and language models wrote the backdoors.
-A bag-of-words classifier that cannot recognise a backdoor reaches AUROC \tfidfKoran{} on a
-standard split, above \tfidfKoranCount{} of \monN{} published monitors. The split's labels leak as
-well, because a problem whose backdoor failed is labelled honest, so problem metadata alone
-predicts the label. When one model writes both classes, the classifier's advantage over chance
-falls by about a third with Claude Sonnet~5 and by nine tenths with Claude Haiku~4.5, and swapping
-one class at a time shows that the fall comes from authorship. An LLM monitor drops for a
-different reason. At a 2\% audit budget it catches \auditStrictOurs{} of our working backdoors
-against \auditStrictStored{} of the original ones, and it finds ours less suspicious. We
-release the rebuilt pairs and recommend four changes to how these benchmarks are built and
-reported.
+Monitors for AI control are tuned and ranked on fixed datasets of programs, in which each problem
+has an honest solution and a solution with a hidden backdoor. In the public datasets, people wrote
+the honest solutions and language models wrote the backdoors. We show that this lets a detector
+separate the classes without finding a backdoor. A bag-of-words classifier reaches AUROC
+\tfidfKoran{} on a standard split, above \tfidfKoranCount{} of \monN{} published monitors, and does
+almost as well on backdoors that never trigger. The labels leak as well, because a problem whose
+backdoor failed is labelled honest. When we rebuild the pairs so that one model writes both
+solutions, the classifier keeps about two thirds of its advantage over chance with Claude Sonnet~5
+and a tenth with Claude Haiku~4.5, and swapping one class at a time traces the loss to authorship.
+An LLM monitor also scores lower on the rebuilt pairs, but because it finds our backdoors less
+suspicious. At a 2\% audit budget it catches \auditStrictOurs{} of our working backdoors against
+\auditStrictStored{} of the original ones. These results suggest that scores on such datasets
+overstate how well monitors detect sabotage. We release the rebuilt pairs and recommend changes to
+how these datasets are built and reported.
 \end{abstract}
 
 \section{Introduction}
