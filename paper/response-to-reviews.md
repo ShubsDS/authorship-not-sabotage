@@ -25,7 +25,7 @@ The new abstract reports the attempt and working-attack rows side by side and sa
 - Our sentence saying B′ "includes inert attacks" was false. The headline rows compared working
   stored backdoors against mostly inert attempts.
 
-Table 2 now has a fires column and groups the rows into attempts and working sabotage. The text
+Table 1 now has a fires column and groups the rows into attempts and working sabotage. The text
 says what the headline rows compare.
 
 **3. Authorship is not isolated.** Agreed:

@@ -1,4 +1,4 @@
-# A Same-Generator Corpus and Classifier Floors for AI-Control Monitor Evaluation
+# Who Wrote the Backdoor? Authorship Confounds in AI-Control Monitor Benchmarks
 
 Code and paper source for the EvoRobust @ NeurIPS 2026 workshop paper.
 

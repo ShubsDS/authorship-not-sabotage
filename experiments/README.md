@@ -10,7 +10,7 @@ Notation used in the scripts and the paper:
 | B | Bag-of-words AUROC on the stored pairs (human honest vs LLM backdoor) over the 1,444-problem analysis pool |
 | S | The same classifier on same-generator pairs (one model writes both classes) |
 | B′ | B recomputed on exactly the problems S uses |
-| ρ | (S − 0.5) / (B′ − 0.5): the share of above-chance separability that survives, not the backdoor's share (the attacks change with the writer). Two lines fixed in advance, 0.33 and 0.72; Table 2 reports P(ρ > 0.72), the share of joint-bootstrap draws above the line |
+| ρ | (S − 0.5) / (B′ − 0.5): the share of above-chance separability that survives, not the backdoor's share (the attacks change with the writer). Two lines fixed in advance, 0.33 and 0.72; Table 1 reports P(ρ > 0.72), the share of joint-bootstrap draws above the line |
 
 Statistics, one convention throughout. Every cross-validated point is the pooled out-of-fold
 AUROC: one AUROC over all out-of-fold scores, not the mean of the per-fold AUROCs. Every interval
@@ -137,7 +137,7 @@ python run_tests.py --solutions genm_haiku45.jsonl --out passm_haiku45.jsonl --w
 ## 5. Measurements on the same-generator corpus
 
 ```bash
-# S, B' and rho (Table 2)
+# S, B' and rho (Table 1)
 python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass bdindpass_sonnet5_first.jsonl \
     --eligibility passes --bprime-inert --label independent --out sg_indep_first_passes.json      # headline
 python gate_s_samegen.py --tag sonnet5 --bd bdind_sonnet5_best_nocrash.jsonl --bdpass bdindpass_sonnet5_best_nocrash.jsonl \
@@ -185,7 +185,7 @@ python monitor_rho.py --out monitor_rho.json
 # fire_counts.py first: monitor_swap.py and shared_problems.py read its output.
 python pooled_stats.py --refit       # * pooled out-of-fold S, B', rho, joint CIs, P(rho > 0.72) for every
                                      #   point, macro old -> new map -> pooled_stats.json
-python fire_counts.py                # * fire counts per Table 2 row; every stored attack fires; exact
+python fire_counts.py                # * fire counts per Table 1 row; every stored attack fires; exact
                                      #   prompt-matched counts when bdindpass_sonnet5_first.jsonl and
                                      #   bdpass_haiku45.jsonl are here -> fire_counts.json
 python monitor_swap.py               # monitor class-swap 2x2, batch provenance, test-retest, strict file
@@ -269,7 +269,7 @@ python release_split.py --check release --allow-trivial-identical 120
 | Agentic within-task nulls (Figure F2) | `agentic/floors2.py` | `agentic/within_task_null.json` |
 | Release counts | `merge_draws.py`, `release_split.py` | — |
 | Pooled out-of-fold S, B′, ρ and joint intervals for every same-generator point; P(ρ > 0.72); macro map | `pooled_stats.py` | `pooled_stats.json` |
-| Fire counts per Table 2 row (14/623, 13/586 prompt-matched, 2/611, 2/562 Haiku prompt-matched, 99/99, 96/96); every stored attack fires | `fire_counts.py` | `fire_counts.json` |
+| Fire counts per Table 1 row (14/623, 13/586 prompt-matched, 2/611, 2/562 Haiku prompt-matched, 99/99, 96/96); every stored attack fires | `fire_counts.py` | `fire_counts.json` |
 | Monitor class-swap table (0.958 / 0.446 / 0.974 / 0.564; mean suspicion 78.8 / 6.6; strict human honest vs ours 0.755); batch provenance; strict file mismatch (1701, 1972, 4434; strict monitor 0.821 without their attacks, 0.812–0.839 dropping any three) | `monitor_swap.py` | `monitor_swap.json` |
 | Catch rate at a fixed false-positive rate (audit budget): Sonnet 5 monitor at 2%, strict 77% vs 48% (difference 0.28, 0.15–0.42), headline 85% vs 6% | `audit_budget.py` | `audit_budget.json` |
 | Headline vs working attacks on the 64 shared problems: ρ 0.82 vs 0.75 (paired difference −0.24 to +0.13) | `shared_problems.py` | `shared_problems.json` |
