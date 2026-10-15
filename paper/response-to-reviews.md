@@ -36,7 +36,7 @@ says what the headline rows compare.
 - ρ does not depend on which stored model attacked: with Claude attackers only it is 0.715,
   against 0.687 for the full mix.
 - We ran the experiment that isolates authorship for the classifier: fit it to every pairing
-  of an honest and an attack class (Table 3, appendix). We fixed the reading rule before
+  of an honest and an attack class (Figure 3a, appendix). We fixed the reading rule before
   computing the missing cell. On Sonnet 5's headline problems:
   - human honest code against our attacks scores 0.981, above B′ = 0.865;
   - our honest code against stored attacks scores 0.956;
@@ -47,7 +47,7 @@ says what the headline rows compare.
   For the monitor it is the reverse (point 4).
 
 **4. Verified attacks qualify the result.**
-- **Monitor.** Valid, and it changes our claim. Swapping one class at a time (Table 3), the
+- **Monitor.** Valid, and it changes our claim. Swapping one class at a time (Figure 3a), the
   Sonnet 5 monitor scores:
   - 0.958 for human honest against stored attacks;
   - 0.446 for human honest against our attacks;
