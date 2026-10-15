@@ -866,52 +866,27 @@ organization at the University of Virginia.
 \setcounter{table}{0}\renewcommand{\thetable}{A\arabic{table}}
 \setcounter{figure}{0}\renewcommand{\thefigure}{A\arabic{figure}}
 \renewcommand{\theHtable}{A\arabic{table}}\renewcommand{\theHfigure}{A\arabic{figure}}
-\section{Supplementary tables and figures}
 
-\subsection{Statistics}
-\label{app:stats}
-Every cross-validated AUROC (bag-of-words on all \baselineBn{} original pairs, on the original
-pairs of the problems a row of Table~\ref{tab:gates} covers and on the rebuilt pairs, the masked
-and character-model rows, and the no-code floor cross-validated within the test split) is one AUROC over the pooled
-out-of-fold scores, each item scored by the fold that held it out; for the no-code floor each
-item's score is averaged over five repeats of the folds. Bag-of-words on the filtered split, the
-no-code floor trained outside it or on a held-out slice, and the monitors score each item once,
-with no folds. Every interval is a 95\% percentile bootstrap over problems of the quantity it
-accompanies, \bootDraws{} draws, seed 0. For $\rho$ each draw resamples one problem set and
-recomputes on it both the AUROC on the rebuilt pairs and the AUROC on the original pairs of the
-same problems; a paired difference (a floor against a monitor, original against rebuilt pairs,
-one set of attacks against another) is recomputed on the same draws. Every permutation null
-permutes the labels the pipeline reads, for fitting and scoring alike, reruns the pipeline and
-recomputes the reported statistic, \permReps{} times, with
-$p = (1 + \#\{\text{null} \ge \text{observed}\})/(1 + \permReps{})$; in the agentic settings
-the labels are permuted within main-task groups (appendix~\ref{app:agentic}). The token test
-uses a null over random token sets instead (appendix~\ref{app:token}). The bootstrap replaced a
-$\pm 2$ fold-SD rule before the retries behind the working-backdoor rows were read.
+\section{Data and methods}
 
-The edit variant's point estimates are pooled, but no per-pair scores were kept for it, so its
-$\rho$ has no joint interval. The pairwise accuracies of Table~\ref{tab:protocol-baseline} are
-means over five problem-disjoint splits (appendix~\ref{app:stripped}).
-
-\subsection{The schema}
+\subsection{The dataset}
 \label{app:schema}
-Table~\ref{tab:schema} is the record schema of the dataset,
-\texttt{RoganInglis/apps-control-arena} \cite{inglis2025appscontrolarena}. The attack class
-carries \texttt{model} and \texttt{source}, naming the system that produced each backdoor
-(\texttt{unknown} for the unattributed entries, appendix~\ref{app:attackers}); the honest class
-carries no such field, because there is no generator to name. The two APPS-backdoor corpora we
-use are two views of this one dataset, since every problem in the filtered release
-\cite{koran2026highquality} is also in the dataset, byte-identical except for a re-validated
-\texttt{backdoor\_works}.
+We use \texttt{RoganInglis/apps-control-arena} \cite{inglis2025appscontrolarena}
+(Table~\ref{tab:schema}). Each backdoor record names the system that produced it in its
+\texttt{model} and \texttt{source} fields (\texttt{unknown} for unattributed entries,
+appendix~\ref{app:attackers}). Honest solutions have no such field, since people wrote them. The
+filtered release \cite{koran2026highquality} is a subset of the same dataset: every problem in it
+is byte-identical apart from a re-validated \texttt{backdoor\_works} flag. We therefore treat the
+two releases as two views of one dataset.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{Record schema of \texttt{RoganInglis/apps-control-arena}, verified against its
-shards. The attack class records which model wrote it (bold); the honest class has no
-generator field.}
+\caption{Fields of each record in \texttt{RoganInglis/apps-control-arena}, checked against its
+data files. Only backdoor records name the model that wrote them (bold).}
 \label{tab:schema}
 \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.80\linewidth}@{}}
 \toprule
-struct & sub-fields \\
+Record & Fields \\
 \midrule
 \texttt{solutions} & \texttt{code}, \texttt{compiles}, \texttt{passes\_tests} \\
 \addlinespace
@@ -923,49 +898,47 @@ struct & sub-fields \\
 \end{tabular}
 \end{table}
 
-\subsection{The models that wrote the original backdoors}
+\subsection{Who wrote the original backdoors}
 \label{app:attackers}
-The original backdoors do not come from one model. Each backdoor entry in the dataset carries a
-\texttt{model} field; entries whose \texttt{source} is \texttt{apps} carry \texttt{unknown},
-which we call unattributed. Table~\ref{tab:attackers} counts, for each model, the problems
-whose original pair uses a backdoor that model wrote, over the \baselineBn{} problems we analyse
-and over the \sameGenN{} problems of Sonnet~5's all-attempts row. It also gives the bag-of-words
-AUROC of each model's backdoors against all \baselineBn{} human honest solutions: the
-classifier is fitted once, cross-validated, on all \baselineBn{} original pairs, and its
-out-of-fold scores are restricted to that model's backdoors, so the honest code is the same in
-every row and only the attacking model changes. Among the \storedAttackers{} named models this
-AUROC runs from \atGThreeFiveB{} (gpt-3.5-turbo, $n = \atGThreeFivePool{}$) to \atOThreeB{}
-(o3-mini); the unattributed source gives \atUnattrB{}.
+The original backdoors come from many models (Table~\ref{tab:attackers}). Records whose
+\texttt{source} is \texttt{apps} name the model \texttt{unknown}; we call them unattributed. For
+each model the table counts the problems whose original pair uses that model's backdoor, among
+the \baselineBn{} problems we analyse and among the \sameGenN{} problems of Sonnet~5's
+all-attempts row. It also gives the bag-of-words AUROC of that model's backdoors against all
+\baselineBn{} human solutions. We fit the classifier once, with cross-validation, on all
+\baselineBn{} original pairs and keep the out-of-fold scores of that model's backdoors, so the
+honest code is the same in every row. The AUROC ranges from \atGThreeFiveB{} (gpt-3.5-turbo,
+$n = \atGThreeFivePool{}$) to \atOThreeB{} (o3-mini), and the unattributed source gives
+\atUnattrB{}. Which model wrote the backdoor therefore changes how easy the pairs are to separate.
 
-Restricting Sonnet~5's all-attempts row by the model that wrote the original backdoor moves
-$\rho$ only within the full row's interval (\sameGenRhoLo{}--\sameGenRhoHi{}):
-$\rho = \rhoClaudeOnly{}$ (\rhoClaudeOnlyLo{}--\rhoClaudeOnlyHi{}) on the \rhoClaudeOnlyN{}
-problems whose original backdoor a Claude model wrote, \rhoThinkOnly{}
-(\rhoThinkOnlyLo{}--\rhoThinkOnlyHi{}, $n = \rhoThinkOnlyN{}$) for claude-3-7-sonnet-thinking
-alone, and \rhoNonClaude{} (\rhoNonClaudeLo{}--\rhoNonClaudeHi{}, $n = \rhoNonClaudeN{}$) for
-the other models.
+It changes $\rho$ much less. Restricting Sonnet~5's all-attempts row by attacking model keeps
+$\rho$ within the full row's interval (\sameGenRhoLo{}--\sameGenRhoHi{}). It is \rhoClaudeOnly{}
+(\rhoClaudeOnlyLo{}--\rhoClaudeOnlyHi{}) on the \rhoClaudeOnlyN{} problems whose original
+backdoor a Claude model wrote, \rhoThinkOnly{} (\rhoThinkOnlyLo{}--\rhoThinkOnlyHi{},
+$n = \rhoThinkOnlyN{}$) for claude-3-7-sonnet-thinking alone, and \rhoNonClaude{}
+(\rhoNonClaudeLo{}--\rhoNonClaudeHi{}, $n = \rhoNonClaudeN{}$) for the other models.
 
-The filtered split's metadata (\texttt{top\_backdoor\_model}) names one model the dataset does
-not, \texttt{openai/gpt-4}. On all \splitGptFourN{} problems where it does, the dataset has a
-working backdoor from the unattributed source and none attributed to gpt-4, so the name stands
-for the unattributed source. The split's \splitAttack{} test attacks were all written by
-claude-3-7-sonnet-thinking, and its \splitTrain{} train attacks by six other sources (o3-mini,
-claude-3-7-sonnet, gpt-4o, o1-mini, the unattributed source and gemini-2.0-flash), so the
-bag-of-words floor of \S\ref{sec:results} is trained on attacks from other models than the one
-it is scored on.
+The standard split's metadata field \texttt{top\_backdoor\_model} names one model the dataset
+does not, \texttt{openai/gpt-4}. On all \splitGptFourN{} problems where it appears, the dataset
+holds a working backdoor from the unattributed source and none from gpt-4, so the name refers to
+the unattributed source. All \splitAttack{} backdoors in the test split were written by
+claude-3-7-sonnet-thinking, and the \splitTrain{} training backdoors by six other sources
+(o3-mini, claude-3-7-sonnet, gpt-4o, o1-mini, the unattributed source and gemini-2.0-flash). The
+bag-of-words floor of \S\ref{sec:results} is therefore trained on other models' backdoors than
+the ones it is tested on.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{6pt}
-\caption{\textbf{Who wrote the original backdoors.} Problems per attacking model among the
-\baselineBn{} problems we analyse and the \sameGenN{} problems of Sonnet~5's all-attempts row,
-and the bag-of-words AUROC of that model's backdoors against all \baselineBn{} human honest
-solutions (one cross-validated fit on all \baselineBn{} original pairs, out-of-fold scores; 95\%
-bootstrap over problems). The last row is the AUROC on all \baselineBn{} original pairs. Model
-names omit the provider and the \texttt{-latest} suffix. Source: \texttt{attacker\_mix.py}.}
+\caption{\textbf{Who wrote the original backdoors.} Problems per model among the \baselineBn{}
+problems we analyse and the \sameGenN{} problems of Sonnet~5's all-attempts row, and the
+bag-of-words AUROC of that model's backdoors against all \baselineBn{} human solutions (one
+cross-validated fit, out-of-fold scores, 95\% bootstrap over problems). The last row is the AUROC
+on all \baselineBn{} original pairs. Model names omit the provider and the \texttt{-latest}
+suffix. Source: \texttt{attacker\_mix.py}.}
 \label{tab:attackers}
 \begin{tabular}{@{}l r r l@{}}
 \toprule
-Attacking model & all problems & all-attempts row & AUROC (95\% CI) \\
+Model & all problems & all-attempts row & AUROC (95\% CI) \\
 \midrule
 o3-mini & \atOThreePool{} & \atOThreeHead{} & \atOThreeB{} (\atOThreeBLo{}--\atOThreeBHi{}) \\
 claude-3-7-sonnet & \atCSonnetPool{} & \atCSonnetHead{} & \atCSonnetB{} (\atCSonnetBLo{}--\atCSonnetBHi{}) \\
@@ -983,72 +956,172 @@ all & \baselineBn{} & \sameGenN{} & \baselineB{} (\baselineBLo{}--\baselineBHi{}
 \end{tabular}
 \end{table}
 
+\subsection{Our test runner}
+\label{app:harness}
+Rebuilding the pairs means running generated code. Our runner feeds each of a problem's stored
+test inputs to a solution, with a timeout per input and a memory limit. It agrees with the
+dataset's \texttt{solution\_passes\_tests} flag on \harnessAgreement{} of the \baselineBn{}
+problems we analyse and is stricter, never passing a solution the dataset's flag fails
+(\harnessFailWePass{} cases). We use our own runner for both classes, because a checker that
+rejects one class more readily would create exactly the kind of class difference this paper
+documents. The AUROC on the original pairs does not depend on this choice. It is \baselineB{} on
+\baselineBn{} pairs under the dataset's flag and \baselineBownflag{} on \baselineBownflagN{} under
+ours, inside the first interval (\baselineBLo{}--\baselineBHi{}). We do not match program
+lengths; each model chooses its own.
+
+Two quirks of older Python versions appear in the dataset's solutions, on opposite classes.
+Reading \texttt{stdin} without \texttt{.buffer} we can fix; \texttt{fractions.gcd}, removed in
+Python~3.9, we cannot. These quirks give the original pairs a small extra cue. The rebuilt pairs,
+which we generated and ran ourselves, do not have it. The monitor scores in
+Figure~\ref{fig:monitors} are \texttt{runs/x0/monitor-summary.json} from the MIT release of the
+monitor-ensemble harness \cite{jha2026decorrelation}, used under its notice.
+
+\subsection{Statistics}
+\label{app:stats}
+\paragraph{Cross-validated AUROCs.} Most AUROCs in the paper come from five-fold
+cross-validation with folds split by problem. Each item is scored by the model fitted without its
+fold, and one AUROC is computed over all these out-of-fold scores. This covers bag-of-words on all
+\baselineBn{} original pairs, on the original and rebuilt pairs of each row of
+Table~\ref{tab:gates}, the masked and character-level versions, and the no-code classifier
+cross-validated within the test split, whose scores are also averaged over five repeats of the
+folds. Bag-of-words on the standard split, the no-code classifier trained outside it or on a
+held-out slice, and the monitors score each item once, without folds.
+
+\paragraph{Intervals.} Every interval is a 95\% percentile bootstrap over problems, \bootDraws{}
+draws, seed 0. For $\rho$, each draw resamples one set of problems and recomputes both AUROCs on
+it, so the interval reflects their correlation; we call this a joint interval. Paired differences
+(a floor against a monitor, original against rebuilt pairs, one set of backdoors against another)
+are computed on the same draws. We adopted the bootstrap in place of a $\pm 2$ fold-SD rule before
+looking at the retries behind the working-backdoor rows.
+
+\paragraph{Shuffled-label baselines.} Each permutation test shuffles the labels the pipeline
+reads, for fitting and scoring alike, reruns the pipeline and recomputes the statistic,
+\permReps{} times, with $p = (1 + \#\{\text{null} \ge \text{observed}\})/(1 + \permReps{})$. In
+the agentic settings labels are shuffled within main-task groups (appendix~\ref{app:agentic}).
+The token test uses random token sets instead (appendix~\ref{app:token}).
+
+\paragraph{Exceptions.} No per-pair scores were kept for the edit variant, so its $\rho$ has no
+joint interval. The pairwise accuracies in Table~\ref{tab:protocol-baseline} are means over five
+problem-disjoint splits (appendix~\ref{app:stripped}).
+
+\subsection{What we release}
+\label{app:release}
+The release bundle is attached to the \texttt{v1.0} release of the code repository. Its MIT
+licence covers the data and the scripts alike. It contains
+\begin{itemize}
+\item our rebuilt pairs: \relHonest{} honest programs, \relEdit{} edit-variant and \relIndep{}
+independent-variant backdoored programs, and all \relRetryDraws{} draws from the independent
+variant's retries;
+\item two selections of pairs. The outcome-blind selection keeps the first draw for each problem
+(\relPassFirst{} passing pairs, \relFireFirst{} with a working backdoor). The survivor selection
+keeps the earliest retry that works (\relPassBest{} and \relFireBest{}, or \relFireBestCrash{}
+counting a crash on the trigger input as working), since the original backdoors are also
+survivors of retries;
+\item the \relScripts{} scripts behind every measurement, including generation, the test runner,
+the trigger checker, the selection rules, the prompt-matched variant, the monitor runs and the
+class swaps;
+\item a dataset card and a manifest of row counts and checksums.
+\end{itemize}
+
+\section{The baselines on the original pairs}
+
+\subsection{All baseline measurements}
+\label{app:protocol}
+Table~\ref{tab:protocol-baseline} lists every measurement behind \S\ref{sec:results}. Each block
+uses a different protocol, so rows are not comparable across blocks. Pairwise accuracies have
+three decimals, because over 2,641 pairs one pair moves them by less than 0.001. We compare each
+floor with the \monN{} monitors on the same items, by point estimate and by a paired bootstrap of
+the difference. A monitor is \emph{clearly} below a floor when the lower end of that interval is
+at least 0.01, and \emph{borderline} when the lower end is within 0.01 of zero.
+
+\paragraph{Bag-of-words.} Trained on the split's training problems and tested once, it reaches
+\tfidfKoran{} (95\% CI \tfidfKoranLo{}--\tfidfKoranHi{}; shuffled-label 95th percentile
+\tfidfKoranNull{}, $\permP$). It is above \tfidfKoranCount{} monitors by point estimate and
+clearly above \tfidfKoranPairedCount{}; \tfidfKoranBoundaryCount{} more, phi-4 and Falcon3-10B,
+are borderline.
+
+\paragraph{No-code classifier trained outside the split.} Trained the same way on problems
+outside the test split, it scores \nocodeOutside{} (\nocodeOutsideLo{}--\nocodeOutsideHi{};
+null \nocodeOutsideNull{}), below chance and below every monitor. The split's filter is the
+reason. Outside the test split every problem that passes the filter has a working backdoor, so
+all \nocodeOutsideHonest{} honest training items come from problems the filter removed
+(\nocodeOutsideHonestFew{} with only two or three tests, \nocodeOutsideHonestNondet{} with
+nondeterministic tests, some both). Backdoor problems therefore have more tests than honest ones
+outside the split (\nocodeOutsideTestsAttack{} against \nocodeOutsideTestsHonest{}) and fewer
+inside it (\testCasesAttack{} against \testCasesHonest{}). Training only on problems with at
+least four tests, as every test item has, gives \nocodeOutsideFour{}
+(\nocodeOutsideFourLo{}--\nocodeOutsideFourHi{}; null \nocodeOutsideFourNull{},
+$p = \nocodeOutsideFourP{}$), above \nocodeOutsideFourCount{} monitors by point estimate and
+\nocodeOutsideFourPairedCount{} clearly (\nocodeOutsideFourBoundaryCount{} borderline). The
+released training split cannot be used instead. It is paired, so each problem contributes a
+backdoored and an honest item with identical metadata (Table~\ref{tab:protocol-baseline},
+matched pairs).
+
+\paragraph{No-code classifier within the split.} With five-fold cross-validation repeated five
+times inside the test split, it reaches \nocodeCV{} (\nocodeCVLo{}--\nocodeCVHi{}; null
+\nocodeCVNull{}, $\permP$), above \nocodeCVCount{} monitors by point estimate and
+\nocodeCVPairedCount{} clearly (\nocodeCVBoundaryCount{} borderline). Tested once on a
+\nocodeHeldoutN{}-item held-out slice, it scores \nocodeHeldout{}
+(\nocodeHeldoutLo{}--\nocodeHeldoutHi{}; null \nocodeHeldoutNull{}, $p = \nocodeHeldoutP{}$),
+above \nocodeHeldoutCount{} of the monitors on those items by point estimate and
+\nocodeHeldoutClearCount{} clearly (\nocodeHeldoutBoundaryCount{} borderline). These values
+measure how the filter ties problem metadata to the label, not anything in the code.
+
 \begin{figure}[h]\centering
 \includegraphics{f3-monitors-vs-floors.pdf}
-\caption{\textbf{Two floors against the \monN{} open-weight monitors ranked on the filtered test
-split.} AUROC on the \splitTest{}-item test split (\splitAttack{} attack /
-\splitHonest{} honest), comments stripped; monitor scores from the MIT-licensed release of
-\cite{jha2026decorrelation}, median \monMedian{}, max \monMax{}. Shaded bands are the floors'
-95\% bootstrap intervals; dotted lines are the 95th percentiles of their permutation nulls.
-Both floors clear \tfidfKoranCount{} of the \monN{}. \textbf{Two caveats.} (i)~The monitors
-are zero-shot prompted while the bag-of-words classifier is trained on the split's own paired
-train problems. The comparison states what the split makes recoverable and does not
-claim that bag-of-words is a better monitor. (ii)~The no-code line is the floor
-cross-validated \emph{within} the test split, which measures how the split's filter ties
-problem metadata to the label. Trained outside the split, as bag-of-words is, the same
-classifier scores \nocodeOutside{}, below chance; on a single \nocodeHeldoutN{}-item held-out
-slice it is \nocodeHeldout{}, above \nocodeHeldoutCount{} of the monitors on those items
-(appendix~\ref{app:protocol}).}
+\caption{\textbf{Both floors against the \monN{} published monitors on the standard test split.}
+AUROC on the \splitTest{} test items (\splitAttack{} backdoored, \splitHonest{} honest), comments
+removed. Monitor scores are from the MIT release of \cite{jha2026decorrelation} (median
+\monMedian{}, maximum \monMax{}). Shaded bands: the floors' 95\% bootstrap intervals. Dotted
+lines: 95th percentiles of their shuffled-label baselines. Two caveats apply. The monitors are
+prompted without training, while bag-of-words is trained on the split's own training problems,
+so the figure shows what the split gives away, not that bag-of-words is the better monitor. The
+no-code line is the classifier cross-validated \emph{within} the test split, which measures how
+the filter ties problem metadata to the label; trained outside the split it scores
+\nocodeOutside{} (appendix~\ref{app:protocol}).}
 \label{fig:monitors}
 \end{figure}
 
-\subsection{The protocol $\times$ baseline table}
-\label{app:protocol}
-Table~\ref{tab:protocol-baseline} is the full measurement behind \S\ref{sec:results}. Rows
-are not comparable across protocols; the Comments column says whether comments were
-stripped before the baseline read the code. Pairwise accuracies are given to three decimals
-because their resolution over 2,641 pairs is one pair. Intervals and nulls follow
-appendix~\ref{app:stats}. Each floor is compared with the \monN{} monitors on the same items,
-by point estimate and by a paired bootstrap of the difference. A monitor counts as clearly
-below a floor when the lower bound of that interval is at least 0.01; monitors whose lower
-bound is within 0.01 of zero are listed as at the boundary, since they count or not depending
-on the bootstrap draws.
-
-Bag-of-words, trained on the split's paired train problems and scored once on its test items,
-reaches \tfidfKoran{} (95\% CI \tfidfKoranLo{}--\tfidfKoranHi{}; null 95th percentile
-\tfidfKoranNull{}, $\permP$). It is above \tfidfKoranCount{} of the monitors by point estimate
-and clearly above \tfidfKoranPairedCount{}; \tfidfKoranBoundaryCount{} more, phi-4 and
-Falcon3-10B, are at the boundary.
-
-Trained on problems outside the test split and scored once on it, as bag-of-words is, the
-no-code floor scores \nocodeOutside{} (\nocodeOutsideLo{}--\nocodeOutsideHi{}; null
-\nocodeOutsideNull{}), below chance and below all \monN{} monitors. Outside the test split
-every problem that passes the split's filter has a working backdoor, so all
-\nocodeOutsideHonest{} honest training items come from problems the filter removed
-(\nocodeOutsideHonestFew{} with two or three tests, \nocodeOutsideHonestNondet{}
-nondeterministic, some both), and the relation between test count and label reverses: outside
-the split attack problems carry more tests than honest ones
-(\nocodeOutsideTestsAttack{} against \nocodeOutsideTestsHonest{}), inside it fewer
-(\testCasesAttack{} against \testCasesHonest{}). Restricted to training problems with at least
-four tests, as every test item has, it scores \nocodeOutsideFour{}
-(\nocodeOutsideFourLo{}--\nocodeOutsideFourHi{}; null \nocodeOutsideFourNull{},
-$p = \nocodeOutsideFourP{}$), above \nocodeOutsideFourCount{} monitors by point estimate and
-\nocodeOutsideFourPairedCount{} clearly (\nocodeOutsideFourBoundaryCount{} at the boundary).
-The released train split cannot be used instead: it is paired, so each problem contributes an
-honest and an attack item with identical metadata (Table~\ref{tab:protocol-baseline}, matched
-pairs).
-
-Cross-validated within the test split, with 5-fold CV repeated five times, the no-code floor
-reaches \nocodeCV{} (\nocodeCVLo{}--\nocodeCVHi{}; null \nocodeCVNull{}, $\permP$), above
-\nocodeCVCount{} monitors by point estimate and \nocodeCVPairedCount{} clearly
-(\nocodeCVBoundaryCount{} at the boundary). On a single \nocodeHeldoutN{}-item held-out slice
-of the same items it is \nocodeHeldout{} (\nocodeHeldoutLo{}--\nocodeHeldoutHi{}; null
-\nocodeHeldoutNull{}, $p = \nocodeHeldoutP{}$), above \nocodeHeldoutCount{} of the monitors
-recomputed on those items by point estimate and \nocodeHeldoutClearCount{} clearly
-(\nocodeHeldoutBoundaryCount{} at the boundary). These within-split values measure how the
-split's filter ties problem metadata to the label.
-
 \input{fig/f1-protocol-baseline}
+
+\subsection{The effect of removing comments}
+\label{app:stripped}
+We first measured the matched-pair and transfer results with comments left in. We then
+re-measured every number in \S\ref{sec:results} on what bag-of-words reads with comments removed
+from both classes, averaged over five problem-disjoint splits (each transfer row uses one fixed
+split). Comments inflated all of them (Table~\ref{tab:stripped}).
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{6pt}
+\caption{Bag-of-words with and without comments. Pairwise accuracy unless marked AUROC.}
+\label{tab:stripped}
+\begin{tabular}{@{}l r r@{}}
+\toprule
+Measurement & comments kept & comments removed \\
+\midrule
+transfer between attacking models & \transferKept{} & \transfer{} \\
+working backdoors & \pairWorkingKept{} & \pairWorking{} \\
+non-working backdoors & \pairInertKept{} & \pairInert{} \\
+all pairs & \pairAllKept{} & \pairAll{} \\
+surface features (AUROC) & \surfaceSevenKept{} & \surfaceSeven{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Removing comments closes the gap in the presence of \texttt{\#}, from \hashPresAttack{} of
+backdoored against \hashPresHonest{} of honest programs to \hashPresAttackStripped{} against
+\hashPresHonestStripped{}, so we drop that feature. It leaves \texttt{\_\_main\_\_} unchanged.
+String literals are not comments, so one authorship cue survives. In the training split, after
+comments are removed, an author line (\texttt{Author :}) remains in \bylineHonest{} of
+\splitTrain{} honest solutions against \bylineAttack{} backdoored ones, and a triple-quoted block
+in \tripleHonest{} against \tripleAttack{}. Both are too rare to explain the AUROC of
+\tfidfKoran{}, but both record who wrote the code.
+
+Without comments, the matched-pair bag-of-words AUROC is \tfidfMatched{}, against \baselineB{}
+on all \baselineBn{} original pairs and \tfidfKoran{} on the standard split. The other transfer
+results without comments are \transferOthreeClaude{} (trained on o3-mini, tested on
+claude-3-7-sonnet, 82 test pairs), \transferClaudeOthree{} (the reverse) and
+\transferOoneGemini{} (o1-mini to gemini-2.0-flash).
 
 \begin{figure}[h]\centering
 \begin{subfigure}[b]{0.48\linewidth}\centering
@@ -1060,138 +1133,126 @@ split's filter ties problem metadata to the label.
 \caption{Rebuilt pairs: Sonnet~5 on both sides}\label{fig:features-b}
 \end{subfigure}
 \caption{\textbf{What bag-of-words reads.} The eight word and word-pair features with the largest
-weight towards each class, refitted on all \sameGenN{} all-attempts problems. \subref{fig:features-a}~On
-the original pairs the backdoor side is marked by the tokens of an added special case and the honest
-side by the idioms of human competitive code. \subref{fig:features-b}~On the rebuilt pairs
-the backdoor side is marked by the program layout the attack prompt elicits (\texttt{def main},
-\texttt{data[}). Source: \texttt{lexical\_probe.py}.}
+weight towards each class, refitted on all \sameGenN{} all-attempts problems.
+\subref{fig:features-a}~On the original pairs, the tokens of an added special case mark the
+backdoor side and the idioms of human competitive code mark the honest side.
+\subref{fig:features-b}~On the rebuilt pairs, the program layout the backdoor prompt invites
+(\texttt{def main}, \texttt{data[}) marks the backdoor side. Source: \texttt{lexical\_probe.py}.}
 \label{fig:features}
 \end{figure}
 
-\subsection{Comment stripping on the matched-pair numbers}
-\label{app:stripped}
-The matched-pair and transfer measurements were first made with comments in. Every value in
-the paragraph of \S\ref{sec:results} on what bag-of-words reads was re-measured with the same
-stripper applied to both classes, over five problem-disjoint splits (each transfer row is one fixed
-split). With comments kept the same quantities were transfer \transferKept{}, working backdoors
-\pairWorkingKept{}, non-working backdoors \pairInertKept{}, all pairs \pairAllKept{} and
-surface-feature AUROC \surfaceSevenKept{}; stripped they are \transfer{}, \pairWorking{},
-\pairInert{}, \pairAll{} and \surfaceSeven{}. Every one was inflated by the comment channel. The \texttt{\#}-presence marker, \hashPresAttack{}
-against \hashPresHonest{} before stripping, closes to \hashPresAttackStripped{} against
-\hashPresHonestStripped{} after and is dropped; \texttt{\_\_main\_\_} is unchanged. One
-authorship leak survives the stripper because string literals are not comments: in the
-comment-stripped train split an author byline (\texttt{Author :}) survives in
-\bylineHonest{} of \splitTrain{} honest samples against \bylineAttack{} attack samples, and
-a triple-quoted block in \tripleHonest{} against \tripleAttack{}. Both are too rare to account
-for \tfidfKoran{}, but each records who wrote the code.
-Stripped, the matched-pair TF-IDF AUROC is \tfidfMatched{}, beside \baselineB{} on all
-\baselineBn{} original pairs and \tfidfKoran{} on the filtered test split, all three on stripped
-code. The other cross-generator
-transfer rows, stripped, are \transferOthreeClaude{} (o3-mini to claude-3-7-sonnet, 82 test
-pairs), \transferClaudeOthree{} (the reverse) and \transferOoneGemini{} (o1-mini to
-gemini-2.0-flash).
+\subsection{A token test that did not replicate}
+\label{app:token}
+\citet{orel2026aicd} report that a small set of tokens separates human from model code. In our
+setting it does not. The separation is \tokenSep{}, the wrong sign, with permutation
+$p = \tokenP{}$. We think the reason is the kind of code. Their human class is general repository
+code, whereas both our classes are competitive-programming solutions, so tokens that mark general
+human code do not separate these two groups. Only 8 of their 10 tokens occur in our vocabulary,
+so the test has little power, but a real effect measured with little power should still have the
+right sign, and this one does not. We report it because readers who know that work may try
+exactly this test.
 
-\subsection{Pair similarity, and why the rebuild needs two variants}
+\section{The rebuilt pairs}
+
+\subsection{Why the backdoor is written from the problem alone}
 \label{app:pairsim}
-A backdoored class built by editing its own honest solution changes pair similarity as well as
-the writer (Table~\ref{tab:similarity}). The pairs of the independent variant, whose backdoored
-solution is written from the problem statement alone, are about as similar as the original
-pairs and far from the edit variant's near-copies, so the independent variant cannot produce a
-low AUROC on the rebuilt pairs by making the classes alike.
+We built the backdoored class in two ways. In the \emph{edit} variant the model sees its own
+honest solution and adds a backdoor. In the \emph{independent} variant it writes the backdoored
+solution from the problem statement alone. Editing produces near-copies of the honest solution,
+which changes how similar the pairs are as well as who wrote them (Table~\ref{tab:similarity}).
+Independent pairs are about as similar as the original pairs, so a low AUROC on them cannot come
+from making the two classes alike. All rows in the main text use the independent variant.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
-\caption{Character similarity of honest/backdoored pairs, comments stripped. The edit variant's
-classes are near-copies; the independent variant's pairs are about as similar as the original
-pairs, whose two classes are largely independent programs. The middle columns are the
-share of pairs above and below those similarities.}
+\caption{Character similarity between the two programs of each pair, comments removed. Edited
+pairs are near-copies; independent pairs are about as similar as the original pairs. The middle
+columns give the share of pairs above 0.95 and below 0.60.}
 \label{tab:similarity}
 \begin{tabular}{@{}l r r r l@{}}
 \toprule
-Pairs & mean sim. & share $>0.95$ & share $<0.60$ & differs from the original pairs in \\
+Pairs & mean similarity & $>0.95$ & $<0.60$ & differs from the original pairs in \\
 \midrule
-\textbf{original} & \simStored{} & \simStoredHigh{} & \simStoredLow{} & --- \\
-\textbf{edit} (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & writer, attacks, similarity \\
-\textbf{independent} (problem only) & \simIndep{} & \simIndepHigh{} & \simIndepLow{} & writer, attacks \\
+original & \simStored{} & \simStoredHigh{} & \simStoredLow{} & --- \\
+edit (shown its own solution) & \simEdit{} & \simEditHigh{} & \simEditLow{} & author, backdoors, similarity \\
+independent (problem only) & \simIndep{} & \simIndepHigh{} & \simIndepLow{} & author, backdoors \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Robustness of the rebuilt-pair rows}
+\subsection{Robustness checks}
 \label{app:robust}
-Sample size does not produce the drop from original to rebuilt pairs on Sonnet~5's
-all-attempts row. The AUROC on original pairs, computed through the identical pipeline on 30 random subsamples of the \baselineBn{}
-original pairs, is $\curveHeadline{} \pm \curveHeadlineSd{}$ (mean $\pm$ SD) at
-$n = \sameGenN{}$, far above the \sameGenS{} on the rebuilt pairs. At the working-backdoor row's
-$n = \strictN{}$ it is $\curveStrict{} \pm \curveStrictSd{}$: at that size the classifier
-itself loses separability, which is why $\rho$ divides by the AUROC refitted on the original
-pairs of the same problems rather than by the AUROC on all \baselineBn{}. Reassigning problems
-to folds with five seeds gives the working-backdoor row a $\rho$ of \strictRhoSeeds{}
-(\strictRho{} with the unshuffled folds of Table~\ref{tab:gates}). Of three token masks applied
-to both classes (numbers, comparison operators, identifiers), only the identifier mask moves the
-all-attempts row's AUROC on the rebuilt pairs, to \sameGenSid{} ($\rho = \sameGenRhoId{}$,
-\sameGenRhoIdLo{}--\sameGenRhoIdHi{}); the number and operator masks move it by at most
-\maskMaxShift{}. Code length alone separates that row's rebuilt pairs at \sameGenLen{}.
+\paragraph{Sample size.} The drop from original to rebuilt pairs is not caused by fitting on fewer
+problems. On 30 random subsamples of the \baselineBn{} original pairs, run through the same
+pipeline, the AUROC is $\curveHeadline{} \pm \curveHeadlineSd{}$ (mean $\pm$ SD) at
+$n = \sameGenN{}$, far above the \sameGenS{} of the rebuilt pairs. At $n = \strictN{}$, the size
+of the working-backdoor row, it is $\curveStrict{} \pm \curveStrictSd{}$, so the classifier
+itself loses accuracy at that size. This is why $\rho$ divides by the AUROC refitted on the
+original pairs of the same problems rather than by the AUROC on all \baselineBn{}. Reassigning
+problems to folds with five seeds gives the working-backdoor row a $\rho$ of \strictRhoSeeds{}
+(\strictRho{} with the folds of Table~\ref{tab:gates}).
 
-Keeping only working backdoors does not produce the working-backdoor row's AUROC on the rebuilt
-pairs. Within our backdoored class, draws that work and draws that do not separate at
-\survivorAuroc{}, and the AUROC on the rebuilt pairs of the working-backdoor problems, with
-non-working attempts in place of the working backdoors, is \survivorSwapS{}, against
-\survivorSwapSref{} with the working backdoors on the same problems.
+\paragraph{Masking tokens.} We masked three kinds of token in both classes: numbers, comparison
+operators and identifiers. Only masking identifiers changes the all-attempts row's AUROC on the
+rebuilt pairs, to \sameGenSid{} ($\rho = \sameGenRhoId{}$, \sameGenRhoIdLo{}--\sameGenRhoIdHi{});
+the other two masks move it by at most \maskMaxShift{}. Code length alone separates that row's
+rebuilt pairs at \sameGenLen{}.
 
-The edit variant, whose pairs are near-copies (similarity \editSim{},
-Table~\ref{tab:similarity}), gives an AUROC of \editS{} over its \editN{} rebuilt pairs,
-$\rho = \editRho{}$. When only the honest class is regenerated (with Qwen3-Coder-30B,
-\S\ref{sec:results}), the classifier reaches \armOneG{} against \armOneBprime{} on the original
-pairs of the same \armOneN{} eligible problems, a gain of \armOneTfidfDelta{}, while code length
-alone falls to \armOneLenG{}.
+\paragraph{Working backdoors.} Keeping only working backdoors does not by itself produce the
+working-backdoor row's AUROC. Within our backdoored class, draws that work and draws that do not
+separate at only \survivorAuroc{}. On the working-backdoor problems, putting failed attempts in
+place of the working backdoors gives a rebuilt AUROC of \survivorSwapS{}, against
+\survivorSwapSref{} with the working backdoors.
 
-Our attack prompt halves the share of our single-shot backdoors that work: \trigPublicShare{}
-of our test-passing draws name a public test input as the trigger, on which a solution that
-passes the public tests cannot differ from the honest one, and of those \trigPublicFire{} work
-against \trigNovelFire{} with new trigger inputs; no working original backdoor has such a
-trigger (\trigStoredPublic{}).
+\paragraph{Other ways to rebuild.} The edit variant, whose pairs are near-copies (similarity
+\editSim{}), gives an AUROC of \editS{} over its \editN{} rebuilt pairs, $\rho = \editRho{}$.
+Regenerating only the honest class, with Qwen3-Coder-30B, raises the AUROC to \armOneG{}
+against \armOneBprime{} on the original pairs of the same \armOneN{} eligible problems, a gain of
+\armOneTfidfDelta{}, while code length alone falls to \armOneLenG{}.
+
+\paragraph{Why our backdoors rarely work.} Our prompt halves the share of single-shot backdoors
+that work. In \trigPublicShare{} of our draws that pass the public tests, the model names a
+public test input as its trigger. A solution that passes the public tests cannot fail on such an
+input, and of these draws \trigPublicFire{} work, against \trigNovelFire{} of draws with new
+trigger inputs. No working original backdoor uses such a trigger (\trigStoredPublic{}).
 
 \subsection{The working-backdoor problems}
 \label{app:shared}
-Sonnet~5's all-attempts and working-backdoor rows differ in two ways: the working-backdoor row's
-backdoors work, and that row covers only the problems on which a working backdoor could be
-drawn. The \sharedN{} problems in both rows separate the two. On them our honest program and
-the original pair are the same in both rows, and only our backdoor differs. On a subset, both AUROCs, on
-the rebuilt and on the original pairs, come from the existing out-of-fold scores restricted to
-it, with nothing refitted, so the two rows' scores on a shared problem come from
+Sonnet~5's all-attempts and working-backdoor rows differ in two ways. The working-backdoor row's
+backdoors work, and that row covers only problems on which a working backdoor could be drawn.
+The \sharedN{} problems in both rows separate the two effects, because on them the honest
+program and the original pair are the same and only our backdoor differs. For these subsets we
+reuse the existing out-of-fold scores without refitting, so a shared problem's scores come from
 fits on \sameGenN{} and \strictN{} problems (Table~\ref{tab:shared}).
 
-On the shared problems $\rho$ is \sharedRhoHead{} with the all-attempts backdoors and
-\sharedRhoWorking{} with the working ones (paired difference \sharedDiffLo{} to
-\sharedDiffHi{}); the AUROC on the rebuilt pairs changes by \shSDelta{} (\shSDeltaLo{} to
-\shSDeltaHi{}). On the \shDiffN{} shared problems where the two backdoors differ (the
-all-attempts backdoor does not work, or, on problem 1701, works only by crashing while the
-working-backdoor row kept a later draw), $\rho$ is \shDiffHeadRho{} and \shDiffWorkRho{}
-(paired difference \shDiffDelta{}, \shDiffDeltaLo{} to \shDiffDeltaHi{}). On the other
-\shSameN{} the all-attempts backdoor already works and is the same program in both rows, and
-$\rho$ is \shSameHeadRho{} and \shSameWorkRho{}, too few problems for an interval. On these
-problems working backdoors do not raise $\rho$: both point estimates fall, and both intervals
-include zero.
+\paragraph{The backdoor working does not raise $\rho$.} On the shared problems $\rho$ is
+\sharedRhoHead{} with the all-attempts backdoors and \sharedRhoWorking{} with the working ones
+(paired difference \sharedDiffLo{} to \sharedDiffHi{}), and the rebuilt AUROC changes by
+\shSDelta{} (\shSDeltaLo{} to \shSDeltaHi{}). On the \shDiffN{} shared problems where the two
+backdoors differ, $\rho$ is \shDiffHeadRho{} and \shDiffWorkRho{} (paired difference
+\shDiffDelta{}, \shDiffDeltaLo{} to \shDiffDeltaHi{}). They differ when the all-attempts backdoor
+fails or, on problem 1701, works only by crashing while the working-backdoor row kept a later
+draw. On the other \shSameN{} problems the all-attempts backdoor already works and is the same
+program in both rows; there $\rho$ is \shSameHeadRho{} and \shSameWorkRho{}, too few problems for
+an interval. Both point estimates fall, and both intervals include zero.
 
-The problems differ more than the backdoors. With the all-attempts backdoors, the shared
-problems give $\rho = \sharedRhoHead{}$ against \shHeadOnlyRho{} on the other \shHeadOnlyN{}
-problems of the all-attempts row. The working-backdoor row's other \shStrictOnlyN{} problems,
-which are not in the all-attempts row, give $\rho = \shStrictOnlyRho{}$
-(\shStrictOnlyRhoLo{}--\shStrictOnlyRhoHi{}), with a lower AUROC on the original pairs
-(\shStrictOnlyBp{} against \shWorkBp{} on the shared problems) and a higher one on the rebuilt
-pairs (\shStrictOnlyS{} against \shWorkS{}). The difference from the shared problems,
-\shOnlyMinusShared{} (\shOnlyMinusSharedLo{} to \shOnlyMinusSharedHi{}), is not resolved at this
-size, but the point estimates place the working-backdoor row's higher $\rho$ in which problems
-yield working backdoors, where the original pairs separate less and the rebuilt pairs more, and
-not in the backdoors working.
+\paragraph{The problems matter more.} With the all-attempts backdoors, the shared problems give
+$\rho = \sharedRhoHead{}$ against \shHeadOnlyRho{} on the other \shHeadOnlyN{} problems of the
+all-attempts row. The \shStrictOnlyN{} problems found only in the working-backdoor row give
+$\rho = \shStrictOnlyRho{}$ (\shStrictOnlyRhoLo{}--\shStrictOnlyRhoHi{}), with a lower AUROC on
+the original pairs (\shStrictOnlyBp{} against \shWorkBp{} on the shared problems) and a higher one
+on the rebuilt pairs (\shStrictOnlyS{} against \shWorkS{}). Their difference from the shared
+problems, \shOnlyMinusShared{} (\shOnlyMinusSharedLo{} to \shOnlyMinusSharedHi{}), is not
+resolved at this size. By point estimate, the working-backdoor row's higher $\rho$ comes from
+which problems yield a working backdoor, where the original pairs separate less and the rebuilt
+pairs more, and not from the backdoors working.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
-\caption{\textbf{Sonnet~5's working-backdoor row decomposed by problem.} Bag-of-words AUROC on
-the rebuilt pairs and on the original pairs of the same problems, and $\rho$, from the existing
-out-of-fold scores of the all-attempts and working-backdoor rows, restricted to each subset;
-95\% joint bootstrap intervals over problems. Source: \texttt{shared\_problems.py}.}
+\caption{\textbf{Sonnet~5's working-backdoor row, split by problem.} Bag-of-words AUROC on the
+rebuilt pairs and on the original pairs of the same problems, and $\rho$, from the existing
+out-of-fold scores of the two rows restricted to each subset. 95\% joint bootstrap intervals over
+problems. Source: \texttt{shared\_problems.py}.}
 \label{tab:shared}
 \begin{tabular}{@{}l r l c c l@{}}
 \toprule
@@ -1213,66 +1274,122 @@ working-backdoor row only & \shStrictOnlyN{} & working & \shStrictOnlyS{} & \shS
 \end{tabular}
 \end{table}
 
-\subsection{The prompt-matched variant under the masks, and Haiku~4.5}
+\subsection{Prompt matching, identifier masking and Haiku~4.5}
 \label{app:secondpass}
-The identifier mask, the only token mask that moved the AUROC on the rebuilt pairs
-(appendix~\ref{app:robust}), takes Sonnet~5's prompt-matched all-attempts row
-to \matchedSid{} ($\rho = \matchedRhoId{}$) and the same row without prompt matching, on the same
-\matchedN{} problems, to \matchedSidOrig{}, so identifier normalisation and prompt matching
-remove largely the same thing. This masked row tests whether what remains after prompt matching
-is structure or naming, and it does not decide: its joint interval,
-\matchedRhoIdLo{}--\matchedRhoIdHi{}, straddles the line $\rho = \rhoCollapse{}$ fixed in
-advance, with \matchedRhoIdCollapse{} of the bootstrap draws at or below it. A character model (3--5-grams, same classifier and folds)
-retains more than the word tokeniser, \matchedChar{} ($\rho = \matchedRhoChar{}$), so the
-tokeniser does not produce the drop.
+\paragraph{Prompt matching and identifier masking remove the same thing.} Masking identifiers,
+the only mask that changed the rebuilt AUROC (appendix~\ref{app:robust}), takes Sonnet~5's
+prompt-matched all-attempts row to \matchedSid{} ($\rho = \matchedRhoId{}$) and the same
+\matchedN{} problems without prompt matching to \matchedSidOrig{}. Whether what remains after
+prompt matching is program structure or naming is undecided. The masked row's joint interval,
+\matchedRhoIdLo{}--\matchedRhoIdHi{}, straddles the threshold $\rho = \rhoCollapse{}$ fixed in
+advance, with \matchedRhoIdCollapse{} of bootstrap draws at or below it. A character-level model
+(sequences of 3 to 5 characters, same classifier and folds) keeps more than the word model,
+\matchedChar{} ($\rho = \matchedRhoChar{}$), so the drop does not come from how code is split
+into words.
 
-Haiku~4.5's rebuilt pairs are more alike than Sonnet~5's (mean similarity \haikuPairSim{}
-against \simIndep{}), so its AUROC on the rebuilt pairs was recomputed inside similarity strata.
-It stays \haikuStrataS{} in every stratum, including the \haikuStrataLowSim{}-similarity
-stratum, whose pairs are less alike than the original pairs (mean \simStored{}), while the AUROC
-on the original pairs of the same problems holds \haikuStrataBprime{}; near-copies therefore do
-not produce the low AUROC. Its two honest classes, one written under the honest prompt and one
-prompt-matched, separate at \haikuPromptFloor{}, an interval containing chance. The layout
-vocabulary that makes up what still separates Sonnet~5's rebuilt pairs, \texttt{def main},
-\texttt{sys.stdin} and \texttt{data[}, is present in \haikuDefMain{} of Haiku~4.5's programs in
-\emph{all three} of its classes (honest, prompt-matched honest and backdoored), which read
-standard input with \texttt{input(} in \haikuInputPresent{} of programs on every side, so there
-is no layout difference left for the classifier to read.
+\paragraph{Haiku~4.5.} Haiku~4.5's rebuilt pairs are more alike than Sonnet~5's (mean similarity
+\haikuPairSim{} against \simIndep{}), so we recomputed its rebuilt AUROC within bands of
+similarity. It stays at \haikuStrataS{} in every band, including the
+\haikuStrataLowSim{}-similarity band, whose pairs are less alike than the original pairs (mean
+\simStored{}), while the AUROC on the original pairs of the same problems stays at
+\haikuStrataBprime{}. Near-copies therefore do not cause Haiku~4.5's low AUROC. Its honest
+solutions written under the two prompts separate at \haikuPromptFloor{}, an interval that
+includes chance. The layout that separates Sonnet~5's rebuilt pairs (\texttt{def main},
+\texttt{sys.stdin}, \texttt{data[}) appears in \haikuDefMain{} of Haiku~4.5's programs in
+\emph{all three} of its classes (honest, prompt-matched honest and backdoored), which all read
+input with \texttt{input(} (\haikuInputPresent{} of programs). No layout difference is left for
+the classifier to read.
 
-\subsection{The monitor rows and the class swap}
+\subsection{Pass and work rates for the two models}
+\label{app:counts}
+Both models ran through the same pipeline. Their honest solutions pass the public tests on
+\sonnetHonestPass{} (Sonnet~5) and \haikuHonestPass{} (Haiku~4.5) of 1{,}444 problems.
+Haiku~4.5's backdoored solutions pass on \haikuAttackPass{} problems and \haikuUsable{} of them
+work, below the 50 pairs that \texttt{gate\_s\_samegen.py} requires. Haiku~4.5 therefore has no
+working-backdoor row, and the two models are compared on the all-attempts rows only. In those rows
+\haikuFireInRow{} of Haiku~4.5's \haikuN{} backdoors work (\haikuInert{} do not), against
+\relFireFirst{} of Sonnet~5's \sameGenN{} (\headlineInert{} do not). Haiku~4.5's other
+\haikuUsableOutside{} working backdoors are on problems where its own honest solution failed the
+tests, which therefore have no rebuilt pair.
+
+\subsection{The classifier's class swap}
+\label{app:clfswap}
+Table~\ref{tab:clfswap} fits the bag-of-words classifier to each pairing of an honest and a
+backdoored class, on the problems of each model's all-attempts row, with the same pipeline and
+folds as Table~\ref{tab:gates} (\texttt{classifier\_swap.py}). One bootstrap resamples all four
+cells together, so differences between cells have paired intervals. Two cells reproduce
+Table~\ref{tab:gates}: human honest code against the original backdoors is the original AUROC, and
+our honest code against our backdoors is the rebuilt AUROC. We fixed how to read the remaining
+cells before computing them. If human honest code against our backdoors scored near the original
+AUROC, the drop would be due to authorship; if near the rebuilt AUROC, to our backdoors. For both
+models it scores above the original AUROC. Every pairing of two authors stays at or above the
+original AUROC, and only the pairing with one author falls. Compared with the rebuilt AUROC,
+human honest code with our backdoors is higher by \clfSwapDiffHumanOursS{}
+(\clfSwapDiffHumanOursSLo{}--\clfSwapDiffHumanOursSHi{}) on Sonnet~5 and
+\clfSwapHaikuDiffHumanOursS{} (\clfSwapHaikuDiffHumanOursSLo{}--\clfSwapHaikuDiffHumanOursSHi{})
+on Haiku~4.5, and our honest code with the original backdoors by \clfSwapDiffOursStoredS{}
+(\clfSwapDiffOursStoredSLo{}--\clfSwapDiffOursStoredSHi{}) and \clfSwapHaikuDiffOursStoredS{}
+(\clfSwapHaikuDiffOursStoredSLo{}--\clfSwapHaikuDiffOursStoredSHi{}).
+
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\caption{Bag-of-words AUROC with one class swapped at a time, on each model's all-attempts
+problems (pooled out-of-fold, joint 95\% bootstrap over problems). The human/original cell is the
+original AUROC and the ours/ours cell the rebuilt AUROC of Table~\ref{tab:gates}.}
+\label{tab:clfswap}
+\begin{tabular}{@{}l l l l@{}}
+\toprule
+Model ($n$) & honest class & original backdoors & our backdoors \\
+\midrule
+Sonnet~5 (\sameGenN{}) & human & \clfSwapHumanStored{} & \clfSwapHumanOurs{} (\clfSwapHumanOursLo{}--\clfSwapHumanOursHi{}) \\
+ & ours & \clfSwapOursStored{} (\clfSwapOursStoredLo{}--\clfSwapOursStoredHi{}) & \clfSwapOursOurs{} \\
+\addlinespace
+Haiku~4.5 (\haikuN{}) & human & \clfSwapHaikuHumanStored{} & \clfSwapHaikuHumanOurs{} (\clfSwapHaikuHumanOursLo{}--\clfSwapHaikuHumanOursHi{}) \\
+ & ours & \clfSwapHaikuOursStored{} (\clfSwapHaikuOursStoredLo{}--\clfSwapHaikuOursStoredHi{}) & \clfSwapHaikuOursOurs{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{The monitors}
+
+\subsection{Monitor scores and the class swap}
 \label{app:monitors}
-Both monitors score Sonnet~5's rebuilt pairs and the original pairs of the same problems. The
-monitor's $\rho$ is the same ratio computed from the monitor's AUROCs instead of the
-classifier's.
-Sonnet~5, which wrote both classes of these rebuilt pairs, scores \monitorS{}
-(\monitorSLo{}--\monitorSHi{}) on the rebuilt pairs of the all-attempts row and
-\monStoredHeadAbs{} on the original pairs of the same problems, a monitor's $\rho$ of
-\monRhoHead{} (\monRhoHeadLo{}--\monRhoHeadHi{}); on the working-backdoor problems it scores
-\monitorStrict{} (\monitorStrictLo{}--\monitorStrictHi{}) against \monStoredStrictAbs{}, a
-monitor's $\rho$ of \monRhoStrict{} (\monRhoStrictLo{}--\monRhoStrictHi{}). Haiku~4.5, which
-wrote neither class, scores \monHaikuHead{} against \monHaikuStoredHead{} on the all-attempts
-problems and \monHaikuStrict{} against \monHaikuStoredStrict{} on the working-backdoor ones.
-Its 512-token reply ceiling left \monHaikuMissHead{} replies on the rebuilt pairs unparseable,
-and on the original pairs the missing share differs by class (\monHaikuMissHonest{} honest
-against \monHaikuMissAttack{} backdoored), a bias of unknown sign. With a 1{,}024-token ceiling
-on the working-backdoor problems \monHaikuMissStrictK{} replies on the rebuilt pairs are missing
-and its monitor's $\rho$ moves from \monHaikuRhoStrict{} to \monHaikuRhoStrictMt{}, inside the
-bootstrap interval. On the original pairs both monitors score above bag-of-words over the same
-problems ($+$\monBowGapSonHead{} and $+$\monBowGapSonStrict{} for Sonnet~5 on the all-attempts
-and working-backdoor problems, $+$\monBowGapHaiHead{} and $+$\monBowGapHaiStrict{} for
-Haiku~4.5), so Figure~\ref{fig:monitors}'s ranking describes those monitors on that split and
-does not show that bag-of-words beats a monitor here. Classifier and monitor are independent
-pair by pair on the rebuilt pairs ($\phi = \monitorClfPhi{}$), so the two read different things.
+\paragraph{Scores.} We ran two monitors, Sonnet~5 and Haiku~4.5, on Sonnet~5's rebuilt pairs and
+on the original pairs of the same problems. A monitor's $\rho$ is the same ratio as before,
+computed from the monitor's AUROCs. Sonnet~5, which wrote both classes of these rebuilt pairs,
+scores \monitorS{} (\monitorSLo{}--\monitorSHi{}) on the rebuilt pairs of the all-attempts row
+and \monStoredHeadAbs{} on the original pairs of the same problems, $\rho = \monRhoHead{}$
+(\monRhoHeadLo{}--\monRhoHeadHi{}). On the working-backdoor problems it scores \monitorStrict{}
+(\monitorStrictLo{}--\monitorStrictHi{}) against \monStoredStrictAbs{},
+$\rho = \monRhoStrict{}$ (\monRhoStrictLo{}--\monRhoStrictHi{}). Haiku~4.5, which wrote neither
+class, scores \monHaikuHead{} against \monHaikuStoredHead{} on the all-attempts problems and
+\monHaikuStrict{} against \monHaikuStoredStrict{} on the working-backdoor ones.
 
-Table~\ref{tab:swap-full} recombines each monitor's per-program scores from its runs on the
-original and the rebuilt pairs into all four pairings of an honest and a backdoored class, on
-the problems where all four programs have a parseable score. For Sonnet~5 on the all-attempts
-problems, our backdoors in place of the original ones change the AUROC against human honest
-code by \swSonHeadAttackSwap{} (\swSonHeadAttackSwapLo{} to \swSonHeadAttackSwapHi{}), while
-our honest code in place of the human code changes it by \swSonHeadHonestSwapS{}
-(\swSonHeadHonestSwapSLo{} to \swSonHeadHonestSwapSHi{}) against original backdoors and
+\paragraph{Missing replies.} Haiku~4.5's replies were capped at 512 tokens, which left
+\monHaikuMissHead{} replies on the rebuilt pairs unreadable. On the original pairs the missing
+share differs by class (\monHaikuMissHonest{} of honest against \monHaikuMissAttack{} of
+backdoored programs), a bias of unknown direction. With a 1{,}024-token cap on the
+working-backdoor problems, \monHaikuMissStrictK{} replies on the rebuilt pairs are missing, and
+its $\rho$ moves from \monHaikuRhoStrict{} to \monHaikuRhoStrictMt{}, inside the bootstrap
+interval.
+
+\paragraph{Monitors against bag-of-words.} On the original pairs of these problems both monitors
+score above bag-of-words, by \monBowGapSonHead{} and \monBowGapSonStrict{} for Sonnet~5 on the
+all-attempts and working-backdoor problems and by \monBowGapHaiHead{} and \monBowGapHaiStrict{}
+for Haiku~4.5. Figure~\ref{fig:monitors} therefore describes the published monitors on the
+standard split and does not show that bag-of-words beats every monitor. On the rebuilt pairs the
+classifier's and the monitor's decisions are unrelated pair by pair ($\phi = \monitorClfPhi{}$),
+so the two read different things.
+
+\paragraph{Class swap.} Table~\ref{tab:swap-full} recombines each monitor's per-program scores
+from both runs into all four pairings of an honest and a backdoored class, on the problems where
+all four programs have a readable score. For Sonnet~5 on the all-attempts problems, putting our
+backdoors in place of the original ones changes the AUROC against human honest code by
+\swSonHeadAttackSwap{} (\swSonHeadAttackSwapLo{} to \swSonHeadAttackSwapHi{}). Putting our honest
+code in place of the human code changes it by \swSonHeadHonestSwapS{}
+(\swSonHeadHonestSwapSLo{} to \swSonHeadHonestSwapSHi{}) against the original backdoors and
 \swSonHeadHonestSwapO{} (\swSonHeadHonestSwapOLo{} to \swSonHeadHonestSwapOHi{}) against ours.
-On the working-backdoor problems the same three differences are \swSonStrictAttackSwap{}
+On the working-backdoor problems the same three changes are \swSonStrictAttackSwap{}
 (\swSonStrictAttackSwapLo{} to \swSonStrictAttackSwapHi{}), \swSonStrictHonestSwapS{}
 (\swSonStrictHonestSwapSLo{} to \swSonStrictHonestSwapSHi{}) and \swSonStrictHonestSwapO{}
 (\swSonStrictHonestSwapOLo{} to \swSonStrictHonestSwapOHi{}). Haiku~4.5 shows the same pattern
@@ -1280,19 +1397,18 @@ on fewer problems. Figure~\ref{fig:scores} shows the Sonnet~5 scores behind thes
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{3.5pt}
-\caption{\textbf{Monitor AUROC with one class swapped at a time, both monitors,} on the
-problems of Sonnet~5's all-attempts and working-backdoor rows. Each AUROC column pairs the
-honest class named above it with the attack class named in the column (\emph{original}: the
-dataset's backdoors); $n$ is the number of problems on which all four programs have a parseable
-score. Mean suspicion is on the same problems, on the 0--100 scale. $^\ast$Haiku~4.5 re-run with
-a 1{,}024-token reply ceiling. Source: \texttt{monitor\_swap.py}.}
+\caption{\textbf{Monitor AUROC with one class swapped at a time,} on the problems of Sonnet~5's
+all-attempts and working-backdoor rows. Each AUROC column pairs the honest class above it with the
+backdoor class named in the column (\emph{original}: the dataset's backdoors). $n$: problems on
+which all four programs have a readable score. Mean suspicion is on a 0--100 scale over the same
+problems. $^\ast$Haiku~4.5 rerun with a 1{,}024-token cap. Source: \texttt{monitor\_swap.py}.}
 \label{tab:swap-full}
 \begin{tabular}{@{}l r cc cc cc cc@{}}
 \toprule
  & & \multicolumn{4}{c}{AUROC} & \multicolumn{4}{c}{mean suspicion} \\
 \cmidrule(lr){3-6}\cmidrule(l){7-10}
  & & \multicolumn{2}{c}{human honest} & \multicolumn{2}{c}{our honest}
- & \multicolumn{2}{c}{honest} & \multicolumn{2}{c}{attack} \\
+ & \multicolumn{2}{c}{honest} & \multicolumn{2}{c}{backdoored} \\
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(l){9-10}
 Monitor, problems & $n$ & original & ours & original & ours & human & ours & original & ours \\
 \midrule
@@ -1317,109 +1433,66 @@ Haiku~4.5, working backdoors$^\ast$ & \swHaiStrictKN{} & \swHaiStrictKHS{} & \sw
 
 \begin{figure}[h]\centering
 \includegraphics{f8-monitor-scores.pdf}
-\caption{\textbf{The Sonnet~5 monitor's suspicion scores by class,} on original pairs (human
-honest code, original backdoors) and rebuilt pairs, for the problems of Sonnet~5's all-attempts
-and working-backdoor rows. Each panel is normalised within class. Honest programs score near zero in every panel; what
-moves is the backdoored class.}
+\caption{\textbf{The Sonnet~5 monitor's suspicion scores by class} on the original pairs (human
+honest code, original backdoors) and the rebuilt pairs, for the problems of Sonnet~5's
+all-attempts and working-backdoor rows. Each panel is normalised within class. Honest programs
+score near zero in every panel; only the backdoored class moves.}
 \label{fig:scores}
 \end{figure}
 
-The cells combine separate batches. Sonnet~5's runs on the rebuilt and on the original pairs
-were submitted about six hours apart on the same day; Haiku~4.5's runs at each reply ceiling
-were submitted together. Monitor replies use default sampling, so rescoring is noisy. On the
-programs that were scored in two batches (the honest programs and original backdoors of the
-\retestN{} problems in both rows, and the \retestAttackN{} of our backdoors identical in both),
-Sonnet~5 gives the same program the same score only \retestSameLo{}--\retestSameHi{} of the time, depending on the program class, with a Spearman correlation of
-\retestSpearmanLo{}--\retestSpearmanHi{} between the two scorings. The intervals above resample
-problems and do not include this noise, so cell-to-cell differences of a few hundredths, such as
-the honest-side differences against original backdoors, are within what rescoring alone can
-produce.
+\paragraph{Rescoring noise.} The cells combine separate batches. Sonnet~5's runs on the rebuilt
+and the original pairs were submitted about six hours apart on the same day; Haiku~4.5's runs at
+each cap were submitted together. The monitors sample at default settings, so rescoring is noisy.
+On programs scored in both batches (the honest programs and original backdoors of the \retestN{}
+problems in both rows, and the \retestAttackN{} of our backdoors identical in both), Sonnet~5
+gives the same program the same score only \retestSameLo{}--\retestSameHi{} of the time,
+depending on class, with a Spearman correlation of \retestSpearmanLo{}--\retestSpearmanHi{}
+between the two runs. The intervals resample problems and do not include this noise, so
+differences of a few hundredths between cells, such as the honest-side changes against the
+original backdoors, are within what rescoring alone produces.
 
-The monitor runs on the working-backdoor problems and the classifier's working-backdoor row read
-different backdoor files. They hold different backdoors on \monStrictDiffer{} of the
-\strictN{} problems, where one selection kept a draw that works only by crashing on its trigger
-input and the other a later draw that works without crashing: problems 1701, 1972 and 4434.
-Dropping those three backdoors, or the three pairs, moves the monitor's \monitorStrict{} to
-\monStrictMatched{}.
-
-\subsection{The classifier's class swap}
-\label{app:clfswap}
-Table~\ref{tab:clfswap} fits the bag-of-words classifier of Table~\ref{tab:gates} to each
-pairing of an honest and a backdoored class on the problems of each generator's all-attempts
-row: the same pipeline and folds, pooled out-of-fold AUROC, and a joint bootstrap over problems
-of all four cells, so the differences carry paired intervals (\texttt{classifier\_swap.py}). The
-cell of human honest code against original backdoors is that row's AUROC on the original pairs,
-and the cell of our honest code against our backdoors its AUROC on the rebuilt pairs; both
-reproduce Table~\ref{tab:gates}. The reading rule was fixed before the cell of human honest code
-against our backdoors was computed: near the AUROC on the original pairs it puts the
-classifier's drop on the side of authorship, near the AUROC on the rebuilt pairs on the side of
-our backdoors. For both generators the cell is above the AUROC on the original pairs. Every
-pairing of two writers stays at or above the AUROC on the original pairs, and only the pairing
-of one writer falls: against the AUROC on the rebuilt pairs, human honest code with our
-backdoors is higher by \clfSwapDiffHumanOursS{}
-(\clfSwapDiffHumanOursSLo{}--\clfSwapDiffHumanOursSHi{}) on Sonnet~5 and
-\clfSwapHaikuDiffHumanOursS{} (\clfSwapHaikuDiffHumanOursSLo{}--\clfSwapHaikuDiffHumanOursSHi{})
-on Haiku~4.5, and our honest code with original backdoors by \clfSwapDiffOursStoredS{}
-(\clfSwapDiffOursStoredSLo{}--\clfSwapDiffOursStoredSHi{}) and \clfSwapHaikuDiffOursStoredS{}
-(\clfSwapHaikuDiffOursStoredSLo{}--\clfSwapHaikuDiffOursStoredSHi{}).
-
-\begin{table}[h]\centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{Bag-of-words AUROC with one class swapped at a time, on the problems of each
-generator's all-attempts row (pooled out-of-fold, joint 95\% bootstrap over problems). Human
-honest code against the original attack is the AUROC on the original pairs; our honest code
-against our attack is the AUROC on the rebuilt pairs.}
-\label{tab:clfswap}
-\begin{tabular}{@{}l l l l@{}}
-\toprule
-Generator ($n$) & honest class & original attack & our attack \\
-\midrule
-Sonnet~5 (\sameGenN{}) & human & \clfSwapHumanStored{} & \clfSwapHumanOurs{} (\clfSwapHumanOursLo{}--\clfSwapHumanOursHi{}) \\
- & ours & \clfSwapOursStored{} (\clfSwapOursStoredLo{}--\clfSwapOursStoredHi{}) & \clfSwapOursOurs{} \\
-\addlinespace
-Haiku~4.5 (\haikuN{}) & human & \clfSwapHaikuHumanStored{} & \clfSwapHaikuHumanOurs{} (\clfSwapHaikuHumanOursLo{}--\clfSwapHaikuHumanOursHi{}) \\
- & ours & \clfSwapHaikuOursStored{} (\clfSwapHaikuOursStoredLo{}--\clfSwapHaikuOursStoredHi{}) & \clfSwapHaikuOursOurs{} \\
-\bottomrule
-\end{tabular}
-\end{table}
+\paragraph{A file mismatch.} The monitor runs and the classifier's working-backdoor row used
+different backdoor files. They differ on \monStrictDiffer{} of the \strictN{} problems (1701,
+1972 and 4434), where one selection kept a draw that works only by crashing on its trigger input
+and the other a later draw that works without crashing. Dropping those three backdoors, or the
+three pairs, moves the monitor's \monitorStrict{} to \monStrictMatched{}.
 
 \subsection{Detection at a fixed audit budget}
 \label{app:audit}
-Table~\ref{tab:audit} gives the share of attacks a detector flags when its threshold is set on
-the honest programs of one set of pairs to flag 1\%, 2\% or 5\% of them, for the original pairs
-(human honest code, original backdoors) and for the rebuilt pairs of the same problems. Monitor
-scores are integers from 0 to 100, so many honest programs tie at the threshold $t$. We flag
-every program above $t$ and each program at $t$ with the probability that makes the honest
-false-positive rate equal to the target, and report the expected catch rate, which needs no
-random draws. Flagging only above $t$, which keeps the honest rate at or below the target,
-leaves Sonnet~5's 2\% catch rates on the all-attempts problems at \audConsSonHeadSt{} and
-\audConsSonHeadSg{} and gives \audConsSonStrictSt{} and \audConsSonStrictSg{} on the
+Table~\ref{tab:audit} gives the share of backdoors a detector catches when its threshold is set to
+flag 1\%, 2\% or 5\% of honest programs, for the original pairs and for the rebuilt pairs of the
+same problems. Monitor scores are whole numbers from 0 to 100, so many honest programs tie at the
+threshold $t$. We flag every program above $t$ and each program at $t$ with the probability that
+makes the honest flag rate equal the target, and report the expected catch rate, which needs no
+random draws. Flagging only above $t$, which keeps the honest rate at or below the target, leaves
+Sonnet~5's 2\% catch rates on the all-attempts problems at \audConsSonHeadSt{} and
+\audConsSonHeadSg{}, and gives \audConsSonStrictSt{} and \audConsSonStrictSg{} on the
 working-backdoor problems (difference \audConsSonStrictD{}, \audConsSonStrictLo{} to
-\audConsSonStrictHi{}). The bag-of-words rows use the out-of-fold scores of Table~\ref{tab:gates}; they are continuous, so
-the two rules differ by at most one program. The difference is the catch rate on the original
-pairs minus that on the rebuilt pairs, with both thresholds recomputed on each bootstrap draw.
+\audConsSonStrictHi{}). Bag-of-words scores are continuous, so for it the two rules differ by at
+most one program; its rows use the out-of-fold scores of Table~\ref{tab:gates}. Each difference
+is the catch rate on the original pairs minus that on the rebuilt pairs, with both thresholds
+recomputed in every bootstrap draw.
 
-Haiku~4.5's rows are uninformative. Its 512-token runs lost many replies, unevenly by class
-(appendix~\ref{app:monitors}), and it scores many honest programs near the top of the
-scale, so at 1\% and 2\% it flags few attacks of either kind. Every difference interval for it
-contains zero except on the all-attempts problems at 5\%. Figure~\ref{fig:swap-b} extends the
-Sonnet~5 rows on the working-backdoor problems to every false-positive rate up to 20\%.
+Haiku~4.5's rows tell us little. Its 512-token runs lost many replies, unevenly by class
+(appendix~\ref{app:monitors}), and it scores many honest programs near the top of the scale, so
+at 1\% and 2\% it flags few backdoors of either kind. Every difference interval for it includes
+zero except on the all-attempts problems at 5\%. Figure~\ref{fig:swap-b} extends the Sonnet~5
+working-backdoor rows to every flag rate up to 20\%.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
-\caption{\textbf{Share of attacks flagged at a fixed false-positive rate.} The threshold is set
-on the honest programs of each set of pairs; ties at the threshold are broken at random so that the
-honest false-positive rate equals the target. \emph{Original}: human honest code against the
-original backdoors; \emph{rebuilt}: our rebuilt pairs on the same problems. Difference: original
-minus rebuilt, with a paired 95\% bootstrap interval over problems. \emph{All attempts},
-\emph{working backdoors}: the problems of that row of Table~\ref{tab:gates}. $^\ast$Haiku~4.5
-re-run with a 1{,}024-token reply ceiling. Source: \texttt{audit\_budget.py}.}
+\caption{\textbf{Share of backdoors caught at a fixed false-positive rate (FPR).} The threshold is
+set on each set's honest programs, with ties at the threshold broken at random so that the honest
+flag rate equals the target. \emph{Original}: human honest code against the original backdoors.
+\emph{Rebuilt}: our pairs on the same problems. \emph{Difference}: original minus rebuilt, with a
+paired 95\% bootstrap interval over problems. $^\ast$Haiku~4.5 rerun with a 1{,}024-token cap.
+Source: \texttt{audit\_budget.py}.}
 \label{tab:audit}
 \begin{tabular}{@{}l c r r r l@{}}
 \toprule
 Detector, problems & FPR & original & rebuilt & difference & 95\% CI \\
 \midrule
-\multicolumn{6}{@{}l}{\emph{Monitor, on the problems of Sonnet~5's rows}} \\
+\multicolumn{6}{@{}l}{\emph{Monitors, on the problems of Sonnet~5's rows}} \\
 Sonnet~5, all attempts & 1\% & \audSonHeadOneSt{} & \audSonHeadOneSg{} & \audSonHeadOneD{} & \audSonHeadOneLo{} to \audSonHeadOneHi{} \\
  & 2\% & \auditHeadStored{} & \auditHeadOurs{} & \audSonHeadTwoD{} & \audSonHeadTwoLo{} to \audSonHeadTwoHi{} \\
  & 5\% & \audSonHeadFiveSt{} & \audSonHeadFiveSg{} & \audSonHeadFiveD{} & \audSonHeadFiveLo{} to \audSonHeadFiveHi{} \\
@@ -1448,98 +1521,37 @@ Haiku~4.5, all attempts & 2\% & \audClfHaiHeadTwoSt{} & \audClfHaiHeadTwoSg{} & 
 \end{tabular}
 \end{table}
 
-\subsection{Pass and working counts for the two generators}
-Sonnet~5 and Haiku~4.5 were run through the identical pipeline. Their honest draws pass the
-public tests at \sonnetHonestPass{} and \haikuHonestPass{} of 1{,}444 problems; Haiku~4.5's
-backdoored draws pass at \haikuAttackPass{} of 1{,}444 and \haikuUsable{} of those work, below
-the 50-pair minimum \texttt{gate\_s\_samegen.py} requires, so it has no working-backdoor row and
-the two generators are compared on the all-attempts rows only. Those rows differ in how many
-backdoors work: \haikuFireInRow{} of the \haikuN{} in Haiku~4.5's row (\haikuInert{} do not)
-against \relFireFirst{} of \sameGenN{} in Sonnet~5's (\headlineInert{} do not). The other
-\haikuUsableOutside{} of Haiku~4.5's working draws are on problems where its own honest program
-failed the tests, which therefore have no rebuilt pair. The share of single-shot backdoors that
-work depends on our attack prompt, which halves it (appendix~\ref{app:robust}).
+\section{Agentic settings}
 
-\subsection{The five agentic settings}
+\subsection{Five agentic settings}
 \label{app:agentic}
-Removing the authorship gap does not remove every floor. In five settings where the same three
-models write both classes, so no authorship confound is possible, character count alone
-separates the classes within task from \bashFloor{} (\texttt{bash}, below its null) to
+A dataset can leak its labels even without a gap between authors. In five agentic settings where
+the same three models write both classes, character count alone separates the classes within
+each task with AUROC from \bashFloor{} (\texttt{bash}, below its shuffled-label baseline) to
 \agentdojoFloor{} (\texttt{agentdojo}; Figure~\ref{fig:corpora}).
 
 \begin{figure}[h]\centering
 \includegraphics{f2-corpus-floors.pdf}
-\caption{\textbf{The structural floor in five agentic settings where the same models write both
-classes.} Bars: each
-setting's AUROC on character count alone, computed within task: transcripts are grouped by
-main task, a Mann-Whitney AUROC is taken within every task that has both classes, pooled over
-tasks weighted by pair count, and folded to $\max(a, 1-a)$. Ticks: the 95th percentile of a
-null that permutes the labels within each task and recomputes the same folded statistic,
-\permReps{} permutations; because the statistic is folded, the null sits above 0.5. No
-authorship confound is possible here: claude-sonnet-4, gemini-2.5-pro and gpt-5 write both
-classes in all five. \texttt{bash} sits below its null (\bashFloor{}, $p = \bashFloorP{}$);
-the other four are above theirs ($p = \agenticFloorP{}$ each), up to \agentdojoFloor{} for
-\texttt{agentdojo}. Beside each setting is its number of task groups: \texttt{shade} and
-\texttt{iac} pool over \shadeTasks{} each and \texttt{bash} over \bashTasks{}, so these floors
-are not equally well determined. We report the within-task
-statistic because a pooled one also reads which tasks each class came from. These corpora
-declare no licence; we redistribute nothing and report aggregates only.}
+\caption{\textbf{Character count alone separates the classes in four of five agentic settings,}
+although the same models write both. Bars: AUROC of character count, computed within each main
+task, pooled over tasks weighted by pair count, and folded to $\max(a, 1-a)$ because the direction
+can differ between tasks. Ticks: 95th percentile of a baseline that shuffles labels within each
+task and recomputes the same statistic (\permReps{} shuffles); because the statistic is folded,
+this baseline sits above 0.5. claude-sonnet-4, gemini-2.5-pro and gpt-5 write both classes in all
+five settings. \texttt{bash} is below its baseline (\bashFloor{}, $p = \bashFloorP{}$); the other
+four are above theirs ($p = \agenticFloorP{}$ each). Beside each setting is its number of task
+groups (\shadeTasks{} each for \texttt{shade} and \texttt{iac}, \bashTasks{} for \texttt{bash}),
+so the floors are not equally well determined. We use the within-task statistic because a pooled
+one also reads which task each item came from. These datasets have no licence; we redistribute
+nothing.}
 \label{fig:corpora}
 \end{figure}
 
-\subsection{The release}
-\label{app:release}
-The release bundle, attached to the code repository's \texttt{v1.0} release, holds our corpus
-(\relHonest{} honest programs, \relEdit{} edit-variant and \relIndep{} independent-variant
-backdoored programs written by one model, plus every one of the \relRetryDraws{} draws of the
-independent variant's retries), both eligibility rules as pair lists, under an outcome-blind
-selection (\relPassFirst{} passing and \relFireFirst{} working independent-variant pairs) and
-under a survivor selection that keeps, per problem, the earliest retry that works, since the
-original backdoors are likewise the survivors of retries (\relPassBest{} and \relFireBest{},
-or \relFireBestCrash{} counting a crash on the trigger input as working), the \relScripts{}
-scripts behind the measurements (generation for both generators, the test harness, the trigger
-verifier, the selection rules, the prompt-matched variant, the monitor rows, the class swaps and
-each remaining measurement script), a dataset card, and a manifest of row counts and
-checksums. The licence, MIT, is a file inside the bundle and
-covers the data and the scripts alike.
-
-\subsection{The test harness and the pass flag}
-\label{app:harness}
-Rebuilding the pairs requires executing generated code, so we built a runner that feeds each
-shipped input case to a solution under per-case timeouts and address-space limits. It agrees
-with the dataset's own \texttt{solution\_passes\_tests} on \harnessAgreement{} of the
-\baselineBn{} problems we analyse, and is conservative there, never crediting a solution the
-dataset's flag rejects (\harnessFailWePass{} such cases). We use \emph{our own} flag for both
-classes, because a checker that rejects more readily on one class than the other would
-manufacture exactly the kind of class difference this paper documents. The AUROC on the original
-pairs does not depend on that choice: under the dataset's flag it is \baselineB{} on
-\baselineBn{} pairs, under ours \baselineBownflag{} on \baselineBownflagN{}, inside the first's
-interval (\baselineBLo{}--\baselineBHi{}). We do not length-match either class; the model
-chooses its own program length. The monitor scores in Figure~\ref{fig:monitors} are
-\texttt{runs/x0/monitor-summary.json} from the MIT release of the monitor-ensemble harness
-\cite{jha2026decorrelation}, used under its notice. Two quirks of older Python versions in the
-dataset's solutions fall on opposite classes: a \texttt{stdin} without \texttt{.buffer},
-fixed, and \texttt{fractions.gcd}, removed in Python~3.9, not fixable. The AUROC on the original
-pairs is exposed to them; the rebuilt pairs, whose code we generated and ran ourselves, are
-immune.
-
-\subsection{The token test, run and failed}
-\label{app:token}
-We attempted to confirm a reported token-level mechanism \cite{orel2026aicd} in our setting and
-it does not replicate. Separation is \tokenSep{}, the wrong sign, at permutation
-$p = \tokenP{}$. The reason is register. Their human class is general-purpose repository
-code, whereas both of our classes are competitive-programming code, so an identifier
-axis that separates general human code from model code does not separate these two
-populations. Only 8 of their 10 canonical tokens are in our vocabulary, so the test is
-underpowered; but an underpowered true effect would still carry the right sign, and this one
-does not. We report it because a reader who knows that work may run exactly
-this test.
-
-\subsection{A third channel, noted but not developed here}
-In the same five agentic settings a fifteen-word regular expression over the untrusted
-policy's own scratchpad reaches \cotLow{}--\cotHigh{}, because prompted attack policies
-restate their side task in the reasoning the monitor is given. We note this only to bound
-the claim. The instrument is not ours, and the work it comes from \cite{little2026length}
-validates it against an LLM judge and a length-matched null; we defer to that treatment.
+\subsection{A third cue in agent reasoning}
+In the same five settings, a fifteen-word regular expression over the untrusted agent's own
+scratchpad reaches AUROC \cotLow{}--\cotHigh{}, because prompted attack policies restate their
+side task in the reasoning the monitor sees. We mention it only to mark the edge of our claim.
+The method is not ours; \citet{little2026length} validates it against an LLM judge and a
+length-matched baseline.
 
 \end{document}
