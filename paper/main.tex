@@ -28,15 +28,12 @@
 % Figure 1 listings (written by experiments/apps/figures.py)
 \definecolor{bdshade}{HTML}{EADBA9}
 \definecolor{bdrule}{HTML}{B8902A}
-\definecolor{styleshade}{gray}{0.90}
-\newcommand{\codefont}{\ttfamily\fontsize{7}{8.8}\selectfont}
-\newcommand{\codeany}[3]{\noindent{\setlength{\fboxsep}{0pt}\colorbox{#1}{%
-  \makebox[\linewidth][l]{\textcolor{#2}{\rule[-2.5pt]{1.3pt}{8.8pt}}\codefont\hspace{1.5pt}#3}}}\par}
-\newcommand{\codeline}[1]{\codeany{white}{white}{#1}}
-\newcommand{\codemark}[1]{\codeany{bdshade}{bdrule}{#1}}
-\newcommand{\codestyle}[1]{\codeany{styleshade}{styleshade}{#1}}
-\newcommand{\lnum}[1]{\makebox[1.1em][r]{\textcolor{gray}{\fontsize{5.5}{8.8}\selectfont #1}}\hspace{0.7em}}
-\newcommand{\codenote}[1]{\hfill{\normalfont\itshape\fontsize{6.5}{8.8}\selectfont\textcolor{black!70}{#1}}\hspace{2pt}}
+\definecolor{hlgold}{HTML}{F1E6C4}
+\newcommand{\cf}{\ttfamily\fontsize{6.4}{7.7}\selectfont}
+\newcommand{\cstrut}{\vrule height 5.7pt depth 2.0pt width 0pt}
+\newcommand{\pl}[1]{\noindent\makebox[\linewidth][l]{\cstrut\hspace{2pt}#1}\par}
+\newcommand{\hl}[1]{\noindent{\setlength{\fboxsep}{0pt}\colorbox{hlgold}{\makebox[\linewidth][l]{\cstrut\hspace{2pt}#1}}}\par}
+\newcommand{\lnr}[1]{\makebox[0.9em][r]{\textcolor{gray}{\fontsize{5}{7.7}\selectfont #1}}\hspace{0.6em}}
 
 \apptocmd{\thebibliography}{\raggedright}{}{}
 
