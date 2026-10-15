@@ -347,7 +347,7 @@ def fig9_swap():
                      ec=GOLD_D if SWAP_STYLE[c][1] else INK, lw=LW, label=SWAP_STYLE[c][2])
                for c in CELLS]
     ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, 1.045), ncol=4,
-              title=r"honest / attack class", title_fontsize=FS - 1, columnspacing=0.8,
+              title=r"honest / backdoor class", title_fontsize=FS - 1, columnspacing=0.8,
               handlelength=1.3, handletextpad=0.4, borderaxespad=0.0)
     save(fig, "f9a-class-swap.pdf")
 
