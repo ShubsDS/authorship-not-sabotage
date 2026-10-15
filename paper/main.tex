@@ -566,20 +566,20 @@
 \maketitle
 
 \begin{abstract}
-Monitors for AI control are tuned and ranked on fixed datasets of programs, in which each problem
-has an honest solution and a solution with a hidden backdoor. In the public datasets, people wrote
-the honest solutions and language models wrote the backdoors. We show that this lets a detector
-separate the classes without finding a backdoor. A bag-of-words classifier reaches AUROC
-\tfidfKoran{} on a standard split, above \tfidfKoranCount{} of \monN{} published monitors, and does
-almost as well on backdoors that never trigger. The labels leak as well, because a problem whose
-backdoor failed is labelled honest. When we rebuild the pairs so that one model writes both
-solutions, the classifier loses between a third and nine tenths of its advantage over chance,
-depending on the model, and swapping one class at a time traces the loss to authorship.
-An LLM monitor also scores lower on the rebuilt pairs, but because it finds our backdoors less
-suspicious. At a 2\% audit budget it catches \auditStrictOurs{} of our working backdoors against
-\auditStrictStored{} of the original ones. These results suggest that scores on such datasets
-overstate how well monitors detect sabotage. We release the rebuilt pairs and recommend changes to
-how these datasets are built and reported.
+AI-control monitors are tuned and ranked on fixed datasets of programs, in which each problem has an
+honest solution and a solution with a hidden backdoor. A monitor should score well on these datasets
+only by finding the backdoor. In the public datasets, however, people wrote the honest solutions and
+language models wrote the backdoors, so the author is a shortcut. A bag-of-words classifier that
+cannot recognise a backdoor reaches AUROC \tfidfKoran{} on a standard split, above
+\tfidfKoranCount{} of \monN{} published monitors, and does almost as well on backdoors that never
+trigger. The labels add a second shortcut, since a problem whose backdoor failed is labelled honest.
+We rebuild the pairs so that one model writes both solutions. The classifier then loses between a
+third and nine tenths of its advantage over chance, and swapping one class at a time traces the loss
+to authorship. An LLM monitor also loses ground, for a different reason. It finds the rebuilt
+backdoors less suspicious and, at a 2\% audit budget, catches \auditStrictOurs{} of the working ones
+against \auditStrictStored{} of the originals. Scores on these datasets can therefore overstate how
+well monitors detect sabotage. We release the rebuilt pairs and recommend four changes to how such
+datasets are built and reported.
 \end{abstract}
 
 \section{Introduction}
@@ -595,7 +595,8 @@ jha2026decorrelation}, and we call these the \emph{original pairs} (Figure~\ref{
 
 \input{fig/f5-stored-pairs}
 
-The original pairs differ in a way that has nothing to do with sabotage. People wrote the honest
+A monitor should score well on these pairs only by finding the backdoor. The original pairs,
+however, differ in a way that has nothing to do with sabotage. People wrote the honest
 solutions, taken from APPS \cite{hendrycks2021apps}, and language models wrote every backdoor. Human
 and model code differ in spacing, naming and layout (Figure~\ref{fig:pairs}), and these differences
 are easy to detect \cite{orel2026aicd}. A detector can therefore separate the classes by recognising
@@ -608,8 +609,8 @@ visible cue, the comments \cite{koran2026ensemble, jha2026decorrelation}. Other 
 injected text, attack selection and transcript length \cite{terekhov2026adaptive,
 gewang2026attackselection, pinto2026calibration}, but not who wrote each class.
 
-We argue that scores on the original pairs measure how the pairs were built as well as whether a
-monitor detects sabotage, and we trace the extra signal to three choices.
+We show that much of a score on the original pairs can be earned without finding a backdoor, and
+we trace it to three choices in how the pairs were built.
 \begin{itemize}
 \item \textbf{Who wrote each class.} A bag-of-words classifier, which cannot recognise a backdoor,
 beats \tfidfKoranCount{} of \monN{} published monitors on the standard split, works almost as well on
@@ -623,7 +624,8 @@ but its drop follows the backdoors rather than the author. At a 2\% audit budget
 \auditStrictStored{} of the original working backdoors and \auditStrictOurs{} of ours
 (\S\ref{sec:swap}).
 \end{itemize}
-We release the rebuilt pairs and the scripts behind every number,\footnote{Code and data:
+We release the rebuilt pairs and the scripts behind every number under the MIT licence
+(appendix~\ref{app:release}),\footnote{Code and data:
 \url{https://github.com/ShubsDS/authorship-not-sabotage}.} and close with four changes to how such
 datasets are built and reported. Our claims concern monitors developed on fixed datasets;
 ControlArena \cite{controlarena}, which generates both classes live, is not affected.
@@ -639,7 +641,7 @@ which we rebuild with the released code \cite{jha2026decorrelation}, has \splitT
 problems with one solution of each class and \splitTest{} test solutions (\splitAttack{}
 backdoored). It labels each test item by whether its backdoor works. For our own pairs we use the
 \baselineBn{} problems of the full release that have a passing human solution, a working backdoor
-and deterministic tests. Six of the seven datasets we touch, including five agentic settings in
+and deterministic tests. Six of the seven datasets we use, including five agentic settings in
 appendix~\ref{app:agentic}, have no licence, so we report aggregates only
 \cite{sinha2026controlarenacorpora}.
 
@@ -701,7 +703,7 @@ Trained on the split's training problems and tested once, the bag-of-words class
 The monitors are prompted while the classifier is trained on the benchmark, so this does not make
 the classifier a better monitor. It shows how much the dataset gives away.
 
-The classifier is not finding backdoors, for three reasons (appendix~\ref{app:protocol}). Trained on
+Three results show that the classifier is not finding backdoors (appendix~\ref{app:protocol}). Trained on
 one attacking model's backdoors, it recognises another model's in \transfer{} of pairs, so it reads
 something all attackers share. It separates backdoors that never trigger almost as well as working
 ones (\pairInert{} against \pairWorking{} of pairs). And its strongest features are generic. On the
@@ -859,8 +861,7 @@ the problems whose attacks failed.
 \item Report the share of backdoors caught at a fixed audit budget, separately for working backdoors
 and all attempts, with the share of backdoors that work.
 \end{enumerate}
-Otherwise a monitor's score may describe how the pairs were built rather than the monitor. Our
-pairs, retry pool and scripts are released under the MIT licence (appendix~\ref{app:release}).
+Otherwise a monitor's score may describe how its pairs were built rather than the monitor itself.
 
 \begin{ack}
 Compute for this work was provided by the Virginia AI Security Initiative, a student
@@ -1037,7 +1038,8 @@ all \nocodeOutsideHonest{} honest training items come from problems the filter r
 nondeterministic tests, some both). Outside the split, backdoor problems therefore have more tests
 than honest ones (\nocodeOutsideTestsAttack{} against \nocodeOutsideTestsHonest{}); inside it they
 have fewer (\testCasesAttack{} against \testCasesHonest{}). Training only on problems with at least
-four tests, as every test item has, removes most of the reversal. The released training split cannot
+four tests, as every test item has, removes the reversal: the classifier then scores
+\nocodeOutsideFour{} and beats \nocodeOutsideFourCount{} monitors. The released training split cannot
 be used instead, because it pairs each problem's backdoored and honest items, which share their
 metadata.
 
