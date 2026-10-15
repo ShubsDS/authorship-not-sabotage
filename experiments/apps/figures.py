@@ -520,12 +520,12 @@ F1_ROWS = [
     ("Matched pairs, DSPy tutorial", "bag-of-words", "pairwise", "0.897", "removed",
      "monitor 0.69--0.81"),
     ("\\quad working backdoors only", "bag-of-words", "pairwise", "0.935", "removed", "---"),
-    ("\\quad \\textbf{non-working} backdoors only", "bag-of-words", "pairwise", "0.879",
+    ("\\quad backdoors that never trigger", "bag-of-words", "pairwise", "0.879",
      "removed", "not sabotage"),
     ("\\quad transfer across attackers", "bag-of-words", "pairwise", "0.969", "removed", "---"),
     ("\\quad all pairs, comments kept", "bag-of-words", "pairwise", "0.962", "kept", "---"),
     ("\\quad working, comments kept", "bag-of-words", "pairwise", "0.979", "kept", "---"),
-    ("\\quad non-working, comments kept", "bag-of-words", "pairwise", "0.955", "kept", "---"),
+    ("\\quad never trigger, comments kept", "bag-of-words", "pairwise", "0.955", "kept", "---"),
     ("\\quad transfer, comments kept", "bag-of-words", "pairwise", "0.994", "kept", "---"),
     ("\\quad all pairs, comments kept", "code length only", "pairwise", "0.826", "kept", "---"),
 ]
@@ -540,9 +540,13 @@ def fig1_table():
     auroc = [r for r in F1_ROWS if r[2] == "AUROC"]
     pairw = [r for r in F1_ROWS if r[2] != "AUROC"]
 
+    def three(v):
+        # print every value to three decimals, rounding half up as the paper does
+        return f"{math.floor(float(v) * 1000 + 0.5) / 1000:.3f}"
+
     def body(rows):
         # drop the metric cell (index 2); it is carried by the group heading now
-        return [" & ".join((r[0], r[1], r[3], r[4], r[5])) + " \\\\" for r in rows]
+        return [" & ".join((r[0], r[1], three(r[3]), r[4], r[5])) + " \\\\" for r in rows]
 
     # Widths are tuned to the 5.5in block. Column 2 must fit \texttt{solution_passes_tests},
     # which cannot break, so do not narrow it.
