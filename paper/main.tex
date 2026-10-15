@@ -28,11 +28,15 @@
 % Figure 1 listings (written by experiments/apps/figures.py)
 \definecolor{bdshade}{HTML}{EADBA9}
 \definecolor{bdrule}{HTML}{B8902A}
-\newcommand{\codefont}{\ttfamily\fontsize{5.6}{6.6}\selectfont}
+\definecolor{styleshade}{gray}{0.90}
+\newcommand{\codefont}{\ttfamily\fontsize{7}{8.8}\selectfont}
 \newcommand{\codeany}[3]{\noindent{\setlength{\fboxsep}{0pt}\colorbox{#1}{%
-  \makebox[\linewidth][l]{\textcolor{#2}{\rule[-1.85pt]{1.3pt}{6.6pt}}\codefont\hspace{0.9pt}#3}}}\par}
+  \makebox[\linewidth][l]{\textcolor{#2}{\rule[-2.5pt]{1.3pt}{8.8pt}}\codefont\hspace{1.5pt}#3}}}\par}
 \newcommand{\codeline}[1]{\codeany{white}{white}{#1}}
 \newcommand{\codemark}[1]{\codeany{bdshade}{bdrule}{#1}}
+\newcommand{\codestyle}[1]{\codeany{styleshade}{styleshade}{#1}}
+\newcommand{\lnum}[1]{\makebox[1.1em][r]{\textcolor{gray}{\fontsize{5.5}{8.8}\selectfont #1}}\hspace{0.7em}}
+\newcommand{\codenote}[1]{\hfill{\normalfont\itshape\fontsize{6.5}{8.8}\selectfont\textcolor{black!70}{#1}}\hspace{2pt}}
 
 \apptocmd{\thebibliography}{\raggedright}{}{}
 
@@ -566,8 +570,9 @@
 \maketitle
 
 \begin{abstract}
-AI-control monitors are tuned and ranked on fixed datasets of programs, in which each problem has an
-honest solution and a solution with a hidden backdoor. A monitor should score well on these datasets
+As language models take on more autonomous work, one safeguard is a trusted monitor that reads their
+output and flags attempts at sabotage. These monitors are tuned and ranked on fixed datasets of
+programs, in which each problem has an honest solution and a solution with a hidden backdoor. A monitor should score well on these datasets
 only by finding the backdoor. In the public datasets, however, people wrote the honest solutions and
 language models wrote the backdoors, so the author is a shortcut. A bag-of-words classifier that
 cannot recognise a backdoor reaches AUROC \tfidfKoran{} on a standard split, above
@@ -700,8 +705,8 @@ Trained on the split's training problems and tested once, the bag-of-words class
 \tfidfKoran{}, while shuffled labels give at most \tfidfKoranNull{} (95th percentile). It beats
 \tfidfKoranCount{} of the \monN{} published monitors, whose median is \monMedian{}, and
 \tfidfKoranPairedCount{} of them by a margin a paired bootstrap resolves (Figure~\ref{fig:floors-a}).
-The monitors are prompted while the classifier is trained on the benchmark, so this does not make
-the classifier a better monitor. It shows how much the dataset gives away.
+The monitors are prompted while the classifier is trained on the benchmark, so this shows how much
+the dataset gives away, not which detector is better.
 
 Three results show that the classifier is not finding backdoors (appendix~\ref{app:protocol}). Trained on
 one attacking model's backdoors, it recognises another model's in \transfer{} of pairs, so it reads
@@ -840,8 +845,7 @@ wrote the original backdoor matters on its own. Against the same human code it m
 AUROC from \bAttackerLo{} to \bAttackerHi{}, although $\rho$ hardly depends on it (Claude attackers
 only, \rhoClaudeOnly{}; appendix~\ref{app:attackers}). Our monitor results concern backdoors written
 under our prompt, and the comparison of working backdoors rests on \strictN{} pairs from one
-model.\footnote{Three of these \strictN{} backdoors differ from the classifier's; without them the
-monitor's AUROC is \monStrictMatched{} instead of \monitorStrict{} (appendix~\ref{app:monitors}).}
+model.
 The rebuilt pairs cannot be reproduced bit for bit, because the API hides sampling parameters. We
 study one APPS dataset family and five agentic settings repackaged from ControlArena by one user;
 other datasets are untested. Two artifacts of older Python versions in the human solutions give the
@@ -1071,12 +1075,11 @@ no-code & within, held-out slice & \nocodeHeldout{} (\three{\nocodeHeldoutLo}--\
 \begin{figure}[h]\centering
 \includegraphics{f3-monitors-vs-floors.pdf}
 \caption{\textbf{Both floors against the \monN{} published monitors on the standard test split}
-(\splitAttack{} backdoored and \splitHonest{} honest items, comments removed). Monitor scores are
-from \cite{jha2026decorrelation}. Shaded bands: the floors' 95\% bootstrap intervals. Dotted lines:
-95th percentiles on shuffled labels. The monitors are prompted without training, while bag-of-words
-is trained on the split's own training problems, so the figure shows what the split gives away, not
-which detector is better. The no-code line is the classifier cross-validated \emph{within} the split;
-trained outside it, the same classifier scores \nocodeOutside{}.}
+(\splitAttack{} backdoored and \splitHonest{} honest items, comments removed). Grey bars: the
+monitors of \cite{jha2026decorrelation}. Gold bars: bag-of-words and the no-code classifier
+cross-validated within the split. Error bars: 95\% bootstrap intervals over problems. Dashed line:
+chance. The monitors are prompted without training, while bag-of-words is trained on the split's
+own training problems, so the figure shows what the split gives away, not which detector is better.}
 \label{fig:monitors}
 \end{figure}
 
