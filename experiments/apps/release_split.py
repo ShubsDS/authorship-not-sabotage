@@ -66,6 +66,7 @@ Usage:
         --poolpass-independent bdindpass_sonnet5_retry.jsonl \\
         --also-select best --allow-trivial-identical 120
     python release_split.py --check release --allow-trivial-identical 120
+    python release_split.py --refresh release     # new card/licence/scripts, same data
     python release_split.py --render-card-only --card-out CARD.md
 """
 
@@ -986,6 +987,69 @@ def build(args) -> int:
     return 0
 
 
+# --------------------------------------------------------------------------- refresh
+
+def refresh(args) -> int:
+    """Re-render a built bundle's prose and code (dataset card, licence, scripts/) from the current
+    revision, keeping every data file byte for byte. The data files must still match the checksums
+    MANIFEST.json records; only the README, LICENSE and scripts entries and the build metadata are
+    rewritten. Use it when the card, licence or scripts change but the generations do not, e.g.
+    when the paper's title changes; the generated files need not be present."""
+    out = args.refresh
+    mpath = os.path.join(out, "MANIFEST.json")
+    if not os.path.exists(mpath):
+        raise SystemExit(f"--refresh {out}: no MANIFEST.json; build the bundle first")
+    m = json.load(open(mpath))
+    prose = lambda n: n == "README.md" or n.endswith(".py") or n == LICENCE_FILE
+    for name, meta in m["files"].items():
+        if not prose(name) and sha256_file(os.path.join(out, name)) != meta["sha256"]:
+            raise SystemExit(f"--refresh: {name} no longer matches MANIFEST.json; rebuild instead")
+
+    sdir = os.path.join(out, SCRIPTS_DIR)
+    for old in os.listdir(sdir) if os.path.isdir(sdir) else []:
+        if old not in SCRIPT_FILES:
+            os.remove(os.path.join(sdir, old))
+    script_paths, redactions = write_scripts(out, args.scripts_from, args.scripts_from_worktree)
+    shutil.copyfile(args.licence, os.path.join(out, LICENCE_FILE))
+    scrub(open(os.path.join(out, LICENCE_FILE), encoding="utf-8").read(), LICENCE_FILE)
+
+    counts, files = m["counts"], m["files"]
+    built = args.build_date or _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%d")
+    card_vals = grouped({**LEDGER, **counts, "model": m["generator_model"],
+                         "generated": m["generated"], "agreement": m["harness_agreement"],
+                         "built": built,
+                         "pairs_passes_total": files["pairs_passes.csv"]["rows"],
+                         "pairs_usable_total": files["pairs_usable.csv"]["rows"]})
+    card_vals.update(card_extras(counts if "pairs_usable_best.csv" in files else None))
+    card_vals["scripts_row"] = (
+        f"| `{SCRIPTS_DIR}/` | {len(script_paths)} | the scripts behind the paper's numbers, "
+        f"at the revision that produced them |\n" if script_paths else "")
+    card_vals["licence_row"] = f"| `{LICENCE_FILE}` | --- | MIT, covering this bundle |\n"
+    card_vals["trivial_sentence"] = trivial_sentence(m.get("upstream_identical_trivial"))
+    card = CARD_TEMPLATE.format(**card_vals)
+    scrub(card, "README.md")
+    with open(os.path.join(out, "README.md"), "w") as fh:
+        fh.write(card)
+
+    files = {n: v for n, v in files.items() if not prose(n)}
+    for name in ("README.md", *script_paths, LICENCE_FILE):
+        p = os.path.join(out, name)
+        files[name] = {"sha256": sha256_file(p), "bytes": os.path.getsize(p), "rows": None}
+    m["files"], m["built"] = files, built
+    m["scripts"] = {"files": script_paths,
+                    "source": ("the working tree" if args.scripts_from_worktree
+                               else "the committed revision (git show HEAD:...)"),
+                    "commit": git_head(args.scripts_from),
+                    "redacted": f"{redactions} cost figures rewritten to $X"}
+    with open(mpath, "w") as fh:
+        json.dump(m, fh, indent=2, sort_keys=False)
+        fh.write("\n")
+    print(f"refreshed {out}/: card, licence and {len(script_paths)} scripts from "
+          f"{m['scripts']['commit'][:7]}; data files unchanged")
+    print(f"Now validate it:  python {os.path.basename(__file__)} --check {out}")
+    return 0
+
+
 # --------------------------------------------------------------------------- check
 
 def upstream_code_strings(shard_glob: str) -> dict[str, str] | None:
@@ -1318,6 +1382,9 @@ def main() -> int:
                          "problem), declaring each in MANIFEST.json; any longer match, or any match "
                          "with a stored backdoor, still fails. Default 0: every match fails. "
                          "Pass the same value to --check to verify the declaration.")
+    ap.add_argument("--refresh", metavar="DIR", default=None,
+                    help="re-render a built bundle's card, licence and scripts from the current "
+                         "revision, keeping its data files (checked against MANIFEST.json)")
     ap.add_argument("--scripts", action=argparse.BooleanOptionalAction, default=True,
                     help="ship the scripts behind the paper's numbers under scripts/ (default: yes)")
     ap.add_argument("--scripts-from", default=os.path.dirname(os.path.abspath(__file__)),
@@ -1360,6 +1427,8 @@ def main() -> int:
         return 0
     if args.check:
         return check(args)
+    if args.refresh:
+        return refresh(args)
     return build(args)
 
 
