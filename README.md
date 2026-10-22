@@ -82,6 +82,17 @@ make             # main.pdf (pdflatex + bibtex)
 make figures     # regenerate fig/ from experiments/apps/figures.py
 ```
 
+A full TeX Live has everything. A basic install (BasicTeX, TeX Live `scheme-basic`) also needs
+`siunitx`, `tcolorbox` (with `tikzfill`, `pdfcol` and `listingsutf8`) and `inconsolata` for the
+paper, and `cm-super` for `make figures`, which typesets the plots' text with LaTeX. Without
+admin rights they install into your user tree:
+
+```bash
+tlmgr init-usertree
+tlmgr --usermode install siunitx tcolorbox tikzfill pdfcol listings listingsutf8 inconsolata cm-super
+updmap-user --enable Map=zi4.map
+```
+
 ## Data and licence
 
 Our corpus of rebuilt pairs is `same-generator-apps-split.zip`, attached to the
