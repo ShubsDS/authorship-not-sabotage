@@ -581,8 +581,8 @@ As language models take on more autonomous work, one safeguard is a trusted moni
 output and flags attempts at sabotage. These monitors are tuned and ranked on fixed datasets of
 programs, in which each problem has an honest solution and a solution with a hidden backdoor. A monitor should score well on these datasets
 only by finding the backdoor. In the public datasets, however, people wrote the honest solutions and
-language models wrote the backdoors, so the author is a shortcut. A bag-of-words classifier that
-cannot recognise a backdoor reaches AUROC \tfidfKoran{} on a standard split, above
+language models wrote the backdoors, so the author is a shortcut. A bag-of-words classifier, which
+never runs the code, reaches AUROC \tfidfKoran{} on a standard split, above
 \tfidfKoranCount{} of \monN{} published monitors, and does almost as well on backdoors that never
 trigger. The labels add a second shortcut, since a problem whose backdoor failed is labelled honest.
 We rebuild the pairs so that one model writes both solutions. The classifier then loses between a
@@ -624,7 +624,7 @@ gewang2026attackselection, pinto2026calibration}, but not who wrote each class.
 We show that much of a score on the original pairs can be earned without finding a backdoor, and
 we trace it to three choices in how the pairs were built.
 \begin{itemize}
-\item \textbf{Who wrote each class.} A bag-of-words classifier, which cannot recognise a backdoor,
+\item \textbf{Who wrote each class.} A bag-of-words classifier, which never runs the code,
 beats \tfidfKoranCount{} of \monN{} published monitors on the standard split, works almost as well on
 backdoors that never trigger, and transfers between attacking models (\S\ref{sec:results}). When one
 model writes both classes its advantage over chance falls, and swapping one class at a time shows
@@ -657,7 +657,7 @@ and deterministic tests. Six of the seven datasets we use, including five agenti
 appendix~\ref{app:agentic}, have no licence, so we report aggregates only
 \cite{sinha2026controlarenacorpora}.
 
-\paragraph{Two baselines that cannot see a backdoor.} The \emph{bag-of-words} classifier is a
+\paragraph{Two baselines that never run the code.} The \emph{bag-of-words} classifier is a
 logistic regression on word and word-pair frequencies (TF-IDF) of the code, with comments removed.
 The \emph{no-code} classifier is a logistic regression on three facts about the problem, its
 difficulty, number of test cases and statement length, and never sees code. We call the AUROC of
@@ -699,7 +699,7 @@ and we fixed two thresholds, $\rho = \rhoCollapse{}$ and $\rho = \rhoContent{}$,
 \includegraphics[width=\linewidth]{f6c-tests.pdf}
 \caption{Tests per problem}\label{fig:floors-c}
 \end{subfigure}
-\caption{\textbf{Two classifiers that cannot see a backdoor still separate the classes.}
+\caption{\textbf{Two classifiers that never run the code still separate the classes.}
 \subref{fig:floors-a}~Bag-of-words, trained on the split's training problems, ranked among the
 \monN{} published monitors on the test split \cite{jha2026decorrelation}. \subref{fig:floors-b}~The
 no-code classifier, which reads only problem metadata, cross-validated inside the split and trained
