@@ -204,6 +204,21 @@ each value against the macros (b4cd91e, 35c2a84, 84724da, 7ac4639, 3718032, 1ca7
   `if`) are the special-case conditions backdoors are built from, which the Results sentence
   "What it reads is stylistic" does not account for.
 
+### Review of Valmi's rewrite (October 21, 2026)
+
+Valmi's 18 commits (new title, abstract, structure and LaTeX-native figures) were reviewed against
+the data and kept. Corrections on top (7544a93 to e42a1ab):
+
+- The baselines "never run the code" instead of "cannot recognise/see a backdoor"; Section 3 says
+  the classifier's top tokens (`and`, `==`, `if`) partly key on the inserted code.
+- The abstract again reports the working-backdoor row (keeps 0.861) beside the all-attempts rows.
+- Section 3.1's out-of-split explanation and Setup's "as the benchmark does" corrected.
+- The body still ends on page 5 (Recommendations folded into one sentence); the acknowledgments
+  start page 6, as in Valmi's version.
+- README lists the LaTeX packages a basic TeX install lacks; `release_split.py --refresh`
+  rewrites the bundle's card, licence and scripts without the generated files. The zip was
+  refreshed for the new title (SHA-256 3aba6bcc...).
+
 ### Still open
 
 1. The strict monitor re-run (needs an API key; command in `experiments/README.md`, "Pending").
