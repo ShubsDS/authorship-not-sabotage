@@ -715,13 +715,14 @@ Trained on the split's training problems and tested once, the bag-of-words class
 The monitors are prompted while the classifier is trained on the benchmark, so this shows how much
 the dataset gives away, not which detector is better.
 
-Three results show that the classifier is not finding backdoors (appendix~\ref{app:protocol}). Trained on
-one attacking model's backdoors, it recognises another model's in \transfer{} of pairs, so it reads
-something all attackers share. It separates backdoors that never trigger almost as well as working
-ones (\pairInert{} against \pairWorking{} of pairs). And its strongest features are generic. On the
-backdoor side they are \texttt{and}, \texttt{==} and \texttt{if}, the tokens of any added special
-case, and on the honest side human idioms such as \texttt{for i} and \texttt{while}
-(Figure~\ref{fig:features}). Removing comments does remove the cue it targets, since a detector that
+Three results show that the classifier does not test whether a backdoor works
+(appendix~\ref{app:protocol}). Trained on one attacking model's backdoors, it recognises another
+model's in \transfer{} of pairs, so it reads something all attackers share. It separates backdoors
+that never trigger almost as well as working ones (\pairInert{} against \pairWorking{} of pairs).
+And its strongest features are generic code tokens. On the backdoor side they are \texttt{and},
+\texttt{==} and \texttt{if}, the tokens an added special case uses, so it partly keys on the
+inserted code whether or not it works; on the honest side they are human idioms such as
+\texttt{for i} and \texttt{while} (Figure~\ref{fig:features}). Removing comments does remove the cue it targets, since a detector that
 counts comments falls from \hashRaw{} to \hashStripped{}. Other style cues remain. For example,
 \texttt{\_\_main\_\_} appears in 11.6\% of test backdoors and in no honest solution.
 
