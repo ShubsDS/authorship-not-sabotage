@@ -585,9 +585,10 @@ language models wrote the backdoors, so the author is a shortcut. A bag-of-words
 never runs the code, reaches AUROC \tfidfKoran{} on a standard split, above
 \tfidfKoranCount{} of \monN{} published monitors, and does almost as well on backdoors that never
 trigger. The labels add a second shortcut, since a problem whose backdoor failed is labelled honest.
-We rebuild the pairs so that one model writes both solutions. The classifier then loses between a
-third and nine tenths of its advantage over chance, and swapping one class at a time traces the loss
-to authorship. An LLM monitor also loses ground, for a different reason. It finds the rebuilt
+We rebuild the pairs so that one model writes both solutions. On one sampled attempt per problem,
+most of which fail, the classifier then loses between a third and nine tenths of its advantage over
+chance, and swapping one class at a time traces the loss to authorship; on \strictN{} rebuilt
+backdoors that work it keeps \strictRho{} of that advantage. An LLM monitor also loses ground, for a different reason. It finds the rebuilt
 backdoors less suspicious and, at a 2\% audit budget, catches \auditStrictOurs{} of the working ones
 against \auditStrictStored{} of the originals. Scores on these datasets can therefore overstate how
 well monitors detect sabotage. We release the rebuilt pairs and recommend four changes to how such
