@@ -670,7 +670,7 @@ Haiku~4.5, writes both solutions to each problem. It writes an honest solution a
 request that sees only the problem, a backdoored solution with an input meant to trigger it. Our
 test runner checks both (appendix~\ref{app:harness}). A backdoor \emph{works} if it passes the public
 tests and gives a wrong answer on its trigger input. We report two sets. \emph{All attempts} keeps
-one backdoor per problem, chosen before we know whether it works, as the benchmark does.
+one backdoor per problem, chosen before we know whether it works.
 \emph{Working backdoors} keeps only backdoors that work, drawn from repeated tries. In a
 \emph{prompt-matched} version the honest solution is requested with the backdoor prompt itself,
 minus the request for a flaw, so the two requests differ only in that clause.
@@ -737,8 +737,9 @@ attack, which is visible without reading code. Backdoor-class problems have abou
 cases as honest ones (\testCasesAttack{} against \testCasesHonest{}; Figure~\ref{fig:floors-c}).
 Cross-validated within the test split, the no-code classifier reaches \nocodeCV{}, above
 \nocodeCVCount{} monitors. Trained on problems outside the split it scores \nocodeOutside{}, below
-chance (Figure~\ref{fig:floors-b}), because outside the split every problem has a working backdoor
-and the relation between test count and label reverses. The no-code classifier measures how the
+chance (Figure~\ref{fig:floors-b}): outside the split every problem that passes the split's filter
+has a working backdoor, so the honest examples come from problems the filter removed, and the
+relation between test count and label reverses. The no-code classifier measures how the
 labels were chosen, not anything in the code.
 
 \section{One author for both classes}
