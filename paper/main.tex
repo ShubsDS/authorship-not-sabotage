@@ -629,19 +629,20 @@ different processes, and each difference below can be used without finding a bac
 beats \tfidfKoranCount{} of \monN{} published monitors on the standard split, works almost as well on
 backdoors that never trigger, and transfers between attacking models (\S\ref{sec:results}). When one
 model writes both classes its advantage over chance falls, and swapping one class at a time shows
-that the fall comes from authorship (\S\ref{sec:samegen}). This leak matters for detectors trained or
-tuned on the pairs; the zero-shot monitor we test does not use it.
+that the fall comes from authorship (\S\ref{sec:samegen}). A monitor trained or tuned on the pairs
+could learn this shortcut; the zero-shot monitor we test does not use it.
 \item \textbf{How the labels were assigned.} A problem whose backdoor failed is labelled honest, so
 a classifier that reads only problem metadata also beats most monitors (\S\ref{sec:label}).
-\item \textbf{Which process made the backdoors.} A zero-shot LLM monitor also drops on the rebuilt
-pairs, but its drop follows the backdoors rather than the author. At a 2\% audit budget it catches
-\auditStrictStored{} of the original working backdoors and \auditStrictOurs{} of ours
-(\S\ref{sec:swap}).
+\item \textbf{How the backdoors were generated.} A strong zero-shot monitor is not fooled by
+authorship, but its score follows the backdoors. On working backdoors written by a newer model, at a
+2\% audit budget, it catches \auditStrictOurs{} against \auditStrictStored{} of the original ones
+(\S\ref{sec:swap}), so a score is tied to whoever wrote the attacks.
 \end{itemize}}
-We release the rebuilt pairs and the scripts behind every number under the MIT licence
-(appendix~\ref{app:release}),\footnote{Code and data:
-\url{https://github.com/ShubsDS/authorship-not-sabotage}.} and close with four changes to how such
-datasets are built and reported. Our claims concern monitors developed on fixed datasets;
+Each of these comes from how the dataset was built, so other monitor benchmarks built the same way
+may share them. We have not tested those; the checks we use cost CPU minutes or one generation run,
+and we close with them as next steps. We release the rebuilt pairs and the scripts behind every
+number under the MIT licence (appendix~\ref{app:release}).\footnote{Code and data:
+\url{https://github.com/ShubsDS/authorship-not-sabotage}.} Our claims concern monitors developed on fixed datasets;
 ControlArena \cite{controlarena}, which generates both classes live, is not affected.
 
 \section{Setup}
