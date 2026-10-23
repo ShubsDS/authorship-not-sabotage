@@ -622,18 +622,19 @@ visible cue, the comments \cite{koran2026ensemble, jha2026decorrelation}. Other 
 injected text, attack selection and transcript length \cite{terekhov2026adaptive,
 gewang2026attackselection, pinto2026calibration}, but not who wrote each class.
 
-We show that much of a score on the original pairs can be earned without finding a backdoor, and
-we trace it to three choices in how the pairs were built.
+We show that the original pairs partly measure how they were built: their two classes come from
+different processes, and each difference below can be used without finding a backdoor.
 {\setlength{\topsep}{3pt}\setlength{\leftmargini}{1.6em}\begin{itemize}\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}
 \item \textbf{Who wrote each class.} A bag-of-words classifier, which never runs the code,
 beats \tfidfKoranCount{} of \monN{} published monitors on the standard split, works almost as well on
 backdoors that never trigger, and transfers between attacking models (\S\ref{sec:results}). When one
 model writes both classes its advantage over chance falls, and swapping one class at a time shows
-that the fall comes from authorship (\S\ref{sec:samegen}).
+that the fall comes from authorship (\S\ref{sec:samegen}). This leak matters for detectors trained or
+tuned on the pairs; the zero-shot monitor we test does not use it.
 \item \textbf{How the labels were assigned.} A problem whose backdoor failed is labelled honest, so
 a classifier that reads only problem metadata also beats most monitors (\S\ref{sec:label}).
-\item \textbf{How conspicuous the backdoors are.} An LLM monitor also drops on the rebuilt pairs,
-but its drop follows the backdoors rather than the author. At a 2\% audit budget it catches
+\item \textbf{Which process made the backdoors.} A zero-shot LLM monitor also drops on the rebuilt
+pairs, but its drop follows the backdoors rather than the author. At a 2\% audit budget it catches
 \auditStrictStored{} of the original working backdoors and \auditStrictOurs{} of ours
 (\S\ref{sec:swap}).
 \end{itemize}}
