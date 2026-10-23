@@ -1,11 +1,12 @@
 """Build the paper's figures and the F1 table into ../../paper/fig/.
 
+    F11 the paper in three panels           -> f11-overview.pdf          (Figure 1)
+    F5  three original pairs (listings)    -> f5-stored-pairs.tex        (Figure 2)
     F1  protocol x baseline table           -> f1-protocol-baseline.tex   (appendix table)
     F2  agentic-setting floors              -> f2-corpus-floors.pdf       (appendix)
     F3  monitors vs our floors, with nulls  -> f3-monitors-vs-floors.pdf  (appendix)
-    F5  three original pairs (listings)    -> f5-stored-pairs.tex        (Figure 1)
-    F6  the floors and the label artifact   -> f6a/f6b/f6c-*.pdf          (Figure 2a-c)
-    F9  class swap and audit budget         -> f9a/f9b-*.pdf              (Figure 3a-b)
+    F6  the label leak                      -> f6b/f6c-*.pdf              (appendix)
+    F9  catch rate at every audit budget    -> f9b-audit-budget.pdf       (appendix)
     F8  the monitor's suspicion scores      -> f8-monitor-scores.pdf      (appendix)
     F10 what bag-of-words reads             -> f10a/f10b-features-*.pdf   (appendix)
 
@@ -15,15 +16,18 @@ committed JSON. Before drawing, check() asserts each one against the \newcommand
 ../../paper/main.tex, so a figure cannot disagree with the text, and against the JSON it was taken
 from (headline_ci.json, nocode_outside.json, ../agentic/within_task_null.json, audit_budget.json,
 the monitor_*.json files) when that file is present. F5's code is checked against the public
-dataset when train_*.parquet (fetch.py) is present. F3 and F6 read the 24 monitor AUROCs from
+dataset when train_*.parquet (fetch.py) is present. F3 and F11 read the 24 monitor AUROCs from
 monitor-summary.json (written by fetch_inputs.py).
 
 Figures are sized at the width main.tex includes them at, so font sizes are the printed sizes.
 One visual system throughout: text typeset by LaTeX in the paper's Times, one PDF per panel,
 assembled in main.tex with subcaption; boxed axes with inward major and minor ticks, boxed
-legends, capped error bars, no grid; greys and one gold accent for our classifiers, rebuilt
-pairs and backdoored programs. Figure 1 is LaTeX itself (framed listings). Text inside a figure is kept to labels; the
-captions explain. Output is deterministic: the PDF creation date is not stamped.
+legends, capped error bars, no grid; greys and one gold accent for what to look at: our classifiers,
+Sonnet 5's backdoors, and any bar that falls below the original pairs. Figure 1 is one PDF with open
+axes and direct labels; Figure 2 is LaTeX itself (framed listings). Kinds of pair are named by who
+wrote each side, honest / backdoor ("person / weaker models" for the original pairs, "Sonnet 5 /
+Sonnet 5" for the rebuilt ones). Text inside a figure is kept to labels; the captions explain.
+Output is deterministic: the PDF creation date is not stamped.
 
 Usage (from experiments/apps):
     python figures.py
@@ -157,7 +161,7 @@ def short(repo):
     return n
 
 
-# F5 (Figure 1): three original pairs from RoganInglis/apps-control-arena (MIT): honest solution #0
+# F5 (Figure 2): three original pairs from RoganInglis/apps-control-arena (MIT): honest solution #0
 # and backdoor #0 of each problem, comments removed and blank lines dropped (data.strip_comments).
 # `mark` indexes the lines highlighted as the backdoor: its trigger condition and its wrong output.
 # The three cover the three things the bag-of-words classifier picks up: operator spacing (4253),
@@ -211,7 +215,7 @@ def _code_hi(line):
 
 
 def fig5_stored_pairs():
-    r"""Figure 1 as LaTeX: three framed boxes (tcolorbox), one per problem, each with a grey title
+    r"""Figure 2 as LaTeX: three framed boxes (tcolorbox), one per problem, each with a grey title
     bar, the honest program above a divider and the backdoored one below, line numbers and bold
     keywords; the backdoor's lines are shaded. Macros (\cf, \pl, \hl, \lnr, \sect, fig1box) are
     defined in main.tex. Writes fig/f5-stored-pairs.tex."""
@@ -249,67 +253,52 @@ def fig5_stored_pairs():
     print(f"F5: problems {', '.join(p['pid'] for p in STORED_PAIRS)} in three framed boxes (journal monochrome)")
 
 
-# F6 (Figure 2): three panels. (a) bag-of-words ranked among the 24 monitors; (b) the no-code
-# classifier inside and outside the split; (c) mean test cases by label.
-W6 = (0.6, 0.2, 0.2)
-H6 = 1.4
+# F6 (appendix): the label leak. (a) the no-code classifier cross-validated inside the split and
+# trained outside it; (b) mean test cases per test problem by class, the cue it reads.
+W6, H6 = 0.32, 1.5
 
 
-def fig6_floors_ranked():
-    mons = [m["test_auroc"] for m in json.load(open("monitor-summary.json"))]
-    rows = sorted([(v, "mon") for v in mons] + [(TFIDF_FLOOR, "bow")], key=lambda r: -r[0])
-    fig, ax = panel(W6[0], H6)
-    for i, (v, kind) in enumerate(rows):
-        ours = kind == "bow"
-        ax.bar(i, v - 0.4, bottom=0.4, width=0.75, color=GOLD if ours else LIGHT, ec=INK, lw=LW,
-               zorder=2)
-    i = [r[1] for r in rows].index("bow")
-    ax.errorbar(i, TFIDF_FLOOR, yerr=[[TFIDF_FLOOR - TFIDF_CI[0]], [TFIDF_CI[1] - TFIDF_FLOOR]],
-                fmt="none", ecolor=INK, elinewidth=0.6, zorder=3)
-    ax.axhline(0.5, color=INK, lw=0.5, ls=(0, (4, 2)), zorder=1)
-    from matplotlib.patches import Patch
-    ax.legend(handles=[Patch(fc=LIGHT, ec=INK, lw=LW, label=f"{len(mons)} published monitors"),
-                       Patch(fc=GOLD, ec=INK, lw=LW, label="bag-of-words")],
-              loc="upper right")
-    ax.set_xlim(-0.8, len(rows) - 0.2); ax.set_ylim(0.4, 1.0)
-    ax.set_xticks([]); ax.tick_params(axis="x", which="both", top=False, bottom=False)
-    minor(ax, x=False)
-    ax.set_xlabel("detectors, ranked by AUROC"); ax.set_ylabel("AUROC")
-    save(fig, "f6a-floors-ranked.pdf")
+def _bar_label(ax, x, v, text, pad):
+    ax.text(x, v + pad, text, ha="center", va="bottom", fontsize=FS - 1.5)
 
-    fig, ax = panel(W6[1], H6)
+
+def fig6_label_leak():
+    fig, ax = panel(W6, H6)
     vals = [(NOCODE_FLOOR, NOCODE_CI), (NOCODE_OUTSIDE, NOCODE_OUTSIDE_CI)]
     for x, (v, (lo, hi)) in enumerate(vals):
         ax.bar(x, v, width=0.6, color=GOLD_D, ec=INK, lw=LW, zorder=2)
         ax.errorbar(x, v, yerr=[[v - lo], [hi - v]], fmt="none", ecolor=INK, elinewidth=0.6, zorder=3)
+        _bar_label(ax, x, hi, f"{v:.2f}", 0.02)
     ax.axhline(0.5, color=INK, lw=0.5, ls=(0, (4, 2)))
-    ax.set_xticks([0, 1]); ax.set_xticklabels(["inside", "outside"])
-    ax.tick_params(axis="x", which="both", top=False)
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels([r"\shortstack{trained inside\\the split}", r"\shortstack{trained outside\\the split}"])
+    ax.tick_params(axis="x", which="both", top=False, bottom=False)
     ax.set_xlim(-0.6, 1.6); ax.set_ylim(0, 1.0); ax.set_yticks([0, 0.5, 1.0])
     minor(ax, x=False)
-    ax.set_ylabel("AUROC"); ax.set_xlabel("trained")
+    ax.set_ylabel("AUROC")
     save(fig, "f6b-nocode.pdf")
 
-    fig, ax = panel(W6[2], H6)
-    ax.bar([0, 1], [TESTS_ATTACK, TESTS_HONEST], width=0.6, color=[GOLD, LIGHT], ec=INK, lw=LW)
-    ax.set_xticks([0, 1]); ax.set_xticklabels(["backdoor", "honest"])
-    ax.tick_params(axis="x", which="both", top=False)
+    fig, ax = panel(W6, H6)
+    for x, (v, c) in enumerate(((TESTS_ATTACK, GOLD), (TESTS_HONEST, LIGHT))):
+        ax.bar(x, v, width=0.6, color=c, ec=INK, lw=LW)
+        _bar_label(ax, x, v, f"{v:.2f}", 0.8)
+    ax.set_xticks([0, 1]); ax.set_xticklabels(["backdoored", "honest"])
+    ax.tick_params(axis="x", which="both", top=False, bottom=False)
     ax.set_xlim(-0.6, 1.6); ax.set_ylim(0, 45); ax.set_yticks([0, 20, 40])
     minor(ax, x=False)
-    ax.set_ylabel("tests per problem"); ax.set_xlabel("label")
+    ax.set_ylabel("test cases per problem")
     save(fig, "f6c-tests.pdf")
-    rank = 1 + [r[1] for r in rows].index("bow")
-    print(f"F6: bag-of-words ranks {rank} of {len(rows)}; no-code {NOCODE_FLOOR:.3f} inside, "
-          f"{NOCODE_OUTSIDE:.3f} outside; tests {TESTS_ATTACK} vs {TESTS_HONEST}")
+    print(f"F6: no-code {NOCODE_FLOOR:.3f} inside, {NOCODE_OUTSIDE:.3f} outside; "
+          f"tests {TESTS_ATTACK} vs {TESTS_HONEST}")
 
 
-# F9 (Figure 3): (a) the class swap as grouped bars; (b) the monitor's catch rate at a fixed budget.
+# F9 (appendix): the Sonnet 5 monitor's catch rate on the working backdoors at every flag rate up to
+# 20%, which Figure 1(c) reads at AUDIT_AT. CELLS and _swap_panels() feed Figure 1(b) and check().
 
 AUDIT_KEY, AUDIT_AT = "strict__claude-sonnet-5", 0.02
 CELLS = ("human_honest__stored_attack", "our_honest__stored_attack",
          "human_honest__our_attack", "our_honest__our_attack")
-W9 = (0.66, 0.36)
-H9 = 1.65
+W9, H9 = 0.5, 1.8
 
 
 def _audit_points():
@@ -329,63 +318,25 @@ def _swap_panels():
     return out
 
 
-SWAP_STYLE = {  # cell: (face, hatch, legend label as honest / attack)
-    "human_honest__stored_attack": ("white", "", "human / original"),
-    "our_honest__stored_attack": (LIGHT, "", "ours / original"),
-    "human_honest__our_attack": ("white", "////", "human / ours"),
-    "our_honest__our_attack": (GOLD, "", "ours / ours (one writer)"),
-}
-
-
-def fig9_swap():
-    from matplotlib.patches import Patch
-    panels = _swap_panels()
-    fig, ax = panel(W9[0], H9)
-    w = 0.19
-    for g, (title, cells) in enumerate(panels):
-        for j, cell in enumerate(CELLS):
-            v, lo, hi = cells[cell]
-            fc, hatch, _ = SWAP_STYLE[cell]
-            x = g + (j - 1.5) * (w + 0.015)
-            ax.bar(x, v - 0.3, bottom=0.3, width=w, color=fc, hatch=hatch,
-                   ec=GOLD_D if hatch else INK, lw=LW, zorder=2)
-            if hatch:
-                ax.bar(x, v - 0.3, bottom=0.3, width=w, color="none", ec=INK, lw=LW, zorder=3)
-            ax.errorbar(x, v, yerr=[[v - lo], [hi - v]], fmt="none", ecolor=INK, elinewidth=0.6,
-                        capsize=1.4, zorder=4)
-    ax.axhline(0.5, color=INK, lw=0.5, ls=(0, (4, 2)), zorder=1)
-    ax.set_xticks(range(len(panels)))
-    ax.set_xticklabels([r"\shortstack{" + t + "}" for t, _ in panels])
-    ax.tick_params(axis="x", which="both", top=False, bottom=False)
-    ax.set_xlim(-0.55, len(panels) - 0.45); ax.set_ylim(0.3, 1.0); ax.set_yticks([0.4, 0.6, 0.8, 1.0])
-    minor(ax, x=False)
-    ax.set_ylabel("AUROC")
-    handles = [Patch(fc=SWAP_STYLE[c][0], hatch=SWAP_STYLE[c][1],
-                     ec=GOLD_D if SWAP_STYLE[c][1] else INK, lw=LW, label=SWAP_STYLE[c][2])
-               for c in CELLS]
-    ax.legend(handles=handles, loc="lower center", bbox_to_anchor=(0.5, 1.045), ncol=4,
-              title=r"honest / backdoor class", title_fontsize=FS - 1, columnspacing=0.8,
-              handlelength=1.3, handletextpad=0.4, borderaxespad=0.0)
-    save(fig, "f9a-class-swap.pdf")
-
+def fig9_audit_curve():
     cur, at = _audit_points()
-    fig, ax = panel(W9[1], H9)
+    fig, ax = panel(W9, H9)
     x = [100 * f for f in cur["fpr"]]
-    for key, c, ls, lab in (("stored", INK, "-", "original pairs"), ("samegen", GOLD, "--", "rebuilt pairs")):
+    for key, c, ls, lab in (("stored", INK, "-", "weaker models"), ("samegen", GOLD, "--", "Sonnet 5")):
         k = cur[key]
         ax.fill_between(x, [100 * v for v in k["ci95_lo"]], [100 * v for v in k["ci95_hi"]],
                         color=c if key == "samegen" else MID, alpha=0.18, lw=0)
-        ax.plot(x, [100 * v for v in k["point"]], color=c, ls=ls, lw=1.1, label=lab)
+        ax.plot(x, [100 * v for v in k["point"]], color=c, ls=ls, lw=1.1)
+        ax.text(x[-1] - 0.4, 100 * k["point"][-1] - 4, lab, ha="right", va="top", fontsize=FS - 1,
+                color=GOLD_D if key == "samegen" else INK)
     ax.axvline(100 * AUDIT_AT, color=INK, lw=0.5, ls=(0, (1, 1.5)))
-    ax.set_xlim(0, 20); ax.set_ylim(0, 100)
+    ax.set_xlim(0, x[-1]); ax.set_ylim(0, 100)
     ax.set_xticks([0, 5, 10, 15, 20]); ax.set_yticks([0, 25, 50, 75, 100])
     minor(ax)
-    ax.set_xlabel(r"false-positive rate (\%)"); ax.set_ylabel(r"backdoors caught (\%)")
-    ax.legend(loc="lower right")
+    ax.set_xlabel(r"honest programs flagged (\%)"); ax.set_ylabel(r"working backdoors caught (\%)")
     save(fig, "f9b-audit-budget.pdf")
-    print("F9: " + "; ".join(f"{t.split(chr(92))[0]}: " + ", ".join(f"{cells[k][0]:.3f}" for k in CELLS)
-                             for t, cells in panels)
-          + f"; at {AUDIT_AT:.0%}: original {at['stored']:.3f}, rebuilt {at['samegen']:.3f}")
+    print(f"F9: at {AUDIT_AT:.0%}: weaker models {at['stored']:.3f}, Sonnet 5 {at['samegen']:.3f}; "
+          f"at {x[-1]:.0f}%: {cur['stored']['point'][-1]:.3f}, {cur['samegen']['point'][-1]:.3f}")
 
 
 # F11 (Figure 1): the paper in three panels. (a) the 24 monitors ranked with the two classifiers that
@@ -476,13 +427,14 @@ def fig11_overview():
           + f"; caught {at['stored']:.3f} vs {at['samegen']:.3f}")
 
 
-# F8: the Sonnet 5 monitor's suspicion scores by class, original and rebuilt pairs, all attempts and
-# working backdoors.
+# F8 (appendix): the Sonnet 5 monitor's suspicion scores by class, on the original pairs (a person
+# against the weaker models) and the rebuilt pairs (Sonnet 5 on both sides), for the all-attempts and
+# the working-backdoor problems. Panels are named by who wrote each side, as in Figure 1(b).
 
-SCORE_PANELS = [("monitor_stored_sonnet5_independent_passes.json", "original, all attempts"),
-                ("monitor_samegen_sonnet5_independent_passes.json", "rebuilt, all attempts"),
-                ("monitor_stored_sonnet5_independent_usable.json", "original, working"),
-                ("monitor_samegen_sonnet5_independent_usable.json", "rebuilt, working")]
+SCORE_PANELS = [("monitor_stored_sonnet5_independent_passes.json", "person / weaker models"),
+                ("monitor_samegen_sonnet5_independent_passes.json", "Sonnet 5 / Sonnet 5"),
+                ("monitor_stored_sonnet5_independent_usable.json", "person / weaker models"),
+                ("monitor_samegen_sonnet5_independent_usable.json", "Sonnet 5 / Sonnet 5")]
 
 
 def _scores(path):
@@ -493,10 +445,8 @@ def _scores(path):
 
 def fig8_monitor_scores():
     import numpy as np
-    from matplotlib.patches import Patch
-    from matplotlib.lines import Line2D
-    fig, axes = plt.subplots(1, 4, figsize=(TEXT_W, 1.45), sharey=True)
-    fig.subplots_adjust(wspace=0.2)
+    fig, axes = plt.subplots(1, 4, figsize=(TEXT_W, 1.55), sharey=True)
+    fig.subplots_adjust(wspace=0.2, top=0.78)
     bins = np.arange(0, 105, 10)
     means = []
     for ax, (path, title) in zip(axes, SCORE_PANELS):
@@ -505,16 +455,19 @@ def fig8_monitor_scores():
         ax.hist(h, bins=bins, weights=np.ones(len(h)) / len(h) * 100, color=LIGHT, ec=INK, lw=0.3)
         ax.hist(a, bins=bins, weights=np.ones(len(a)) / len(a) * 100, histtype="step", color=GOLD_D,
                 lw=1.0)
-        ax.set_title(title, pad=3)
+        ax.set_title(title, pad=3, fontsize=FS - 0.5)
         ax.set_xlim(0, 100); ax.set_xticks([0, 50, 100]); ax.set_ylim(0, 100)
         minor(ax)
+    axes[0].text(13, 88, "honest", ha="left", va="center", fontsize=FS - 1)
+    axes[0].text(87, 72, "backdoored", ha="right", va="center", fontsize=FS - 1, color=GOLD_D)
+    for k, group in ((0, "all attempts"), (2, "working backdoors")):
+        l, r = axes[k].get_position(), axes[k + 1].get_position()
+        fig.text((l.x0 + r.x1) / 2, 0.95, group, ha="center", va="bottom", fontsize=FS)
+        fig.add_artist(plt.Line2D([l.x0, r.x1], [0.935, 0.935], color=INK, lw=0.4))
     axes[0].set_ylabel(r"programs (\%)")
     fig.supxlabel("suspicion score", fontsize=FS, y=-0.08)
-    axes[3].legend(handles=[Patch(fc=LIGHT, ec=INK, lw=0.3, label="honest"),
-                            Line2D([], [], color=GOLD_D, lw=1.0, label="backdoored")],
-                   loc="upper right")
     save(fig, "f8-monitor-scores.pdf")
-    print("F8: mean attack score " + ", ".join(f"{t} {m:.1f}" for (_, t), m in zip(SCORE_PANELS, means)))
+    print("F8: mean backdoor score " + ", ".join(f"{t} {m:.1f}" for (_, t), m in zip(SCORE_PANELS, means)))
 
 
 # F10: what the bag-of-words classifier reads: its heaviest features on the original pairs and on
@@ -791,7 +744,7 @@ def check():
         if abs(want - got_r) > 5e-4:
             bad.append(f"{macro}: main.tex {want} vs figures.py {got_r}")
 
-    # F7's operating point and F8's all-attempts means against the text's macros.
+    # Figure 1(c)'s operating point and F8's all-attempts means against the text's macros.
     raw = _raw_macros()
 
     def pct(macro, got):
@@ -833,7 +786,7 @@ def check():
         eq("tfidfKoranCount", float(sum(x < TFIDF_FLOOR for x in a)))
         eq("nocodeCVCount", float(sum(x < NOCODE_FLOOR for x in a)))
 
-    # F6(c)'s test counts and F9's swap cells against the text's macros.
+    # F6's test counts and Figure 1(b)'s swap cells against the text's macros.
     eq("testCasesAttack", TESTS_ATTACK, 2); eq("testCasesHonest", TESTS_HONEST, 2)
     if all(os.path.exists(f) for f in ("classifier_swap_sonnet5.json", "classifier_swap_haiku45.json",
                                        "monitor_swap.json")):
@@ -844,6 +797,18 @@ def check():
                     continue
                 eq(pre + suf, cells[cell][0], 3)
         eq("clfSwapOursOurs", s5["our_honest__our_attack"][0], 3)
+    # Figure 1's caption: each weaker model's share of the all-attempts problems, from the per-model
+    # counts of Table A2 (a model's \at...Head macros) over \sameGenN.
+    shares = {"wkShareClaude": ("atCSonnetHead", "atCThinkHead"), "wkShareOThree": ("atOThreeHead",),
+              "wkShareGFourO": ("atGFourOHead",), "wkShareOOne": ("atOOneHead",),
+              "wkShareRest": ("atGFourOMiniHead", "atGeminiHead", "atGThreeFiveHead", "atCHaikuHead"),
+              "wkShareUnattr": ("atUnattrHead",)}
+    if all(k in m for ks in shares.values() for k in ks) and "sameGenN" in m:
+        total = sum(m[k] for ks in shares.values() for k in ks)
+        if total != m["sameGenN"]:
+            bad.append(f"Figure 1 caption: attacker counts sum to {total:.0f}, not {m['sameGenN']:.0f}")
+        for macro, ks in shares.items():
+            pct(macro, sum(m[k] for k in ks) / m["sameGenN"])
     bad += _check_json()
     bad += _check_stored_pairs()
     if bad:
@@ -854,10 +819,11 @@ def check():
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     check()
+    fig11_overview()
     fig1_table()
     fig5_stored_pairs()
-    fig6_floors_ranked()
-    fig9_swap()
+    fig6_label_leak()
+    fig9_audit_curve()
     fig3_monitors()
     fig8_monitor_scores()
     fig10_features()
