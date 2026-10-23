@@ -845,28 +845,27 @@ how well it catches less conspicuous ones.
 \section{Limitations}
 
 A high floor shows that a dataset's labels can be predicted without finding a backdoor, not that any
-monitor predicts them that way, and nothing here corrects a published monitor score. Which model
-wrote the original backdoor matters on its own. Against the same human code it moves the original
-AUROC from \bAttackerLo{} to \bAttackerHi{}, although $\rho$ hardly depends on it (Claude attackers
-only, \rhoClaudeOnly{}; appendix~\ref{app:attackers}). Our monitor results concern backdoors written
-under our prompt, and the comparison of working backdoors rests on \strictN{} pairs from one
-model.
-The rebuilt pairs cannot be reproduced bit for bit, because the API hides sampling parameters. We
-study one APPS dataset family and five agentic settings repackaged from ControlArena by one user;
-other datasets are untested. Two artifacts of older Python versions in the human solutions give the
+monitor predicts them that way, and nothing here corrects a published monitor score. We tested two
+monitors, zero-shot; a monitor trained or tuned on these pairs could learn the shortcuts, and we have
+not tested one. Which model wrote the original backdoor matters on its own: against the same human
+code it moves the original AUROC from \bAttackerLo{} to \bAttackerHi{}, although $\rho$ hardly depends
+on it (Claude attackers only, \rhoClaudeOnly{}; appendix~\ref{app:attackers}). Our backdoors come from
+one prompt, and the comparison of working backdoors rests on \strictN{} pairs from one model. The
+rebuilt pairs cannot be reproduced bit for bit, because the API hides sampling parameters. We study
+one APPS dataset family and five agentic settings; other benchmarks are untested. Two artifacts of older Python versions in the human solutions give the
 original pairs a small extra cue (appendix~\ref{app:harness}).
 
-\section{Recommendations}
+\section{Next steps}
 
-Fixed datasets of pairs are the cheapest way to develop a monitor. Four changes would make the
-scores they produce easier to interpret: (1)~report both floors, with their shuffled-label
-baselines, beside every monitor score; (2)~have one model write both classes from the same prompt,
-and check both with the same tests, so that the backdoor is the only intended difference;
-(3)~choose honest examples independently of whether an attack on the problem succeeded, or drop the
-problems whose attacks failed; and (4)~report the share of backdoors caught at a fixed audit budget,
-separately for working backdoors and all attempts, with the share of backdoors that work, and on
-backdoors from more than one generator. Otherwise
-a monitor's score may describe how its pairs were built rather than the monitor itself.
+Fixed datasets of pairs are the cheapest way to develop a monitor, but their scores are only as
+robust as the datasets are clean. The first step is to run the same checks on other monitor
+benchmarks: (1)~report both floors, with their shuffled-label baselines, beside every monitor score;
+(2)~swap one class at a time to see whether a detector reads the author; and (3)~report the share of
+backdoors caught at a fixed audit budget, on working backdoors and on backdoors from more than one
+generator. Where the checks find shortcuts, (4)~have one model write both classes from the same
+prompt and check both with the same tests, and (5)~choose honest examples independently of whether an
+attack on the problem succeeded. A further step is to test whether monitors trained or tuned on such
+pairs learn the shortcuts.
 
 \begin{ack}
 Compute for this work was provided by the Virginia AI Security Initiative, a student
@@ -1518,7 +1517,9 @@ A dataset can leak its labels without any gap between authors. In five agentic s
 same three models (claude-sonnet-4, gemini-2.5-pro and gpt-5) write both classes, character count
 alone separates the classes within each task, with AUROC from \bashFloor{} (\texttt{bash}, at chance)
 to \agentdojoFloor{} (\texttt{agentdojo}; Figure~\ref{fig:corpora}). We compute it within each main
-task because a pooled AUROC would also read which task each item came from.
+task because a pooled AUROC would also read which task each item came from. The five datasets are one
+user's repackaging of ControlArena releases \cite{sinha2026controlarenacorpora}, so these results
+are scoped to them as published.
 
 \begin{figure}[h]\centering
 \includegraphics{f2-corpus-floors.pdf}
