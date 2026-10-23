@@ -34,14 +34,16 @@ APPS-backdoor dataset (RoganInglis/apps-control-arena) and call its pairs the or
    ρ is 0.861 (95% CI 0.662-1.089). Using the same prompt for both classes takes Sonnet 5's ρ to
    0.390 and leaves Haiku 4.5's unchanged (0.110). ρ is not the backdoor's share: rebuilding with
    one model changes the attacks as well as the author.
-4. **Swapping one class at a time separates the two detectors.** The bag-of-words classifier
-   stays high whenever the two classes have different writers: human honest code against our
-   backdoors scores 0.981, and our honest code against original backdoors 0.956. It falls, to
-   0.750, only when one model wrote both, so its drop is authorship. The LLM monitor's drop is in
-   the attacks instead. A Sonnet 5 monitor scores 0.958 on original pairs and 0.566 on rebuilt
-   pairs; human honest code against our backdoors scores 0.446, and our honest code against
-   original backdoors 0.974. At a 2% false-positive rate it catches 77% of the original backdoors
-   and 48% of ours on the working-backdoor problems, and 85% against 6% over all attempts.
+4. **Swapping one class at a time separates the two detectors.** We name each kind of pair by
+   who wrote its honest and its backdoored side. The original pairs are person / weaker models,
+   where the weaker models are the nine models, all released by early 2025, that wrote the
+   dataset's backdoors. Bag-of-words stays high whenever the two sides have different writers
+   (person / Sonnet 5 0.981, Sonnet 5 / weaker models 0.956, original pairs 0.865) and falls, to
+   0.750, only for Sonnet 5 / Sonnet 5, so its drop is authorship. The Sonnet 5 monitor's drop is
+   in the attacks instead: 0.958 on the original pairs and 0.974 on Sonnet 5 / weaker models, but
+   0.446 on person / Sonnet 5 and 0.564 on Sonnet 5 / Sonnet 5. At a 2% false-positive rate it
+   catches 77% of the weaker models' working backdoors and 48% of Sonnet 5's, and 85% against 6%
+   over all attempts. Figure 1 of the paper shows the floors, the swap and this catch rate.
 5. **The label adds a second confound.** When a problem's backdoor fails, its human solution is
    kept as a negative. So the negative class partly records which attacks failed.
 
