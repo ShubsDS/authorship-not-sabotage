@@ -88,8 +88,9 @@ passes the filter has a working backdoor, so the relation between test count and
 reverses. The paper now leads with that value. It reports the within-split 0.766 as a measure of
 how the split's filter selects the label, not as authorship.
 
-**6. Repetition, and no fixed audit budget.** We cut the repeated numbers and verdict words and
-replaced the band labels with P(ρ > 0.72). We now report detection at a fixed audit budget. At a
+**6. Repetition, and no fixed audit budget.** We cut the repeated numbers and verdict words. The band
+labels are gone: the body reports ρ with its interval, and the two values we fixed in advance (0.33
+and 0.72) are disclosed in the appendix with why we no longer use them. We now report detection at a fixed audit budget. At a
 2% false-positive rate, with the threshold set on each set's own honest programs, the Sonnet 5
 monitor catches:
 - on the 99 working-backdoor problems: 77% of the original backdoors and 48% of ours (paired
