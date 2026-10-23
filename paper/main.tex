@@ -683,8 +683,7 @@ $\rho = (\text{rebuilt AUROC} - 0.5)/(\text{original AUROC} - 0.5)$, the fractio
 classifier's advantage over chance that remains when one model writes both classes. At $\rho = 1$
 nothing is lost; at $\rho = 0$ the classifier is at chance. The rebuild changes the backdoors as well
 as the author, so $\rho$ is not the share of the signal due to the backdoor. AUROCs come from
-five-fold cross-validation with 95\% bootstrap intervals over problems (appendix~\ref{app:stats}),
-and we fixed two thresholds, $\rho = \rhoCollapse{}$ and $\rho = \rhoContent{}$, before any run.
+five-fold cross-validation with 95\% bootstrap intervals over problems (appendix~\ref{app:stats}).
 
 \section{A bag-of-words baseline beats most monitors}
 \label{sec:results}
@@ -751,34 +750,32 @@ labels were chosen, not anything in the code.
 \setlength{\tabcolsep}{5pt}
 \caption{\textbf{What is left when one model writes both classes.} Bag-of-words AUROC on the
 rebuilt pairs and on the original pairs of the same problems, and $\rho$, the fraction of the
-advantage over chance that remains. $P$ is the share of bootstrap draws with $\rho$ above
-\rhoContent{}, a threshold fixed in advance. \emph{Working/$n$} counts rebuilt backdoors that work;
+advantage over chance that remains. \emph{Working/$n$} counts rebuilt backdoors that work;
 every original backdoor here works. Prompt-matched rows reuse the backdoors of the row above.
 Intervals: 95\% bootstrap over problems (appendix~\ref{app:stats}).}
 \label{tab:gates}
-\begin{tabular}{@{}l r l r l r@{}}
+\begin{tabular}{@{}l r l r l@{}}
 \toprule
-Model & working/$n$ & rebuilt (95\% CI) & original & $\rho$ (95\% CI) & $P(\rho > \rhoContent{})$ \\
+Model & working/$n$ & rebuilt (95\% CI) & original & $\rho$ (95\% CI) \\
 \midrule
-\multicolumn{6}{@{}l}{\emph{All attempts: one backdoor sampled per problem}} \\
+\multicolumn{5}{@{}l}{\emph{All attempts: one backdoor sampled per problem}} \\
 Sonnet 5 & \relFireFirst{}/\sameGenN{} & \three{\sameGenS} (\three{\sameGenLo}--\three{\sameGenHi})
-  & \three{\sameGenBprime} & \sameGenRho{} (\sameGenRhoLo{}--\sameGenRhoHi{}) & \pContentHead{} \\
+  & \three{\sameGenBprime} & \sameGenRho{} (\sameGenRhoLo{}--\sameGenRhoHi{}) \\
 Sonnet 5, prompt-matched & \matchedFire{}/\matchedN{} & \three{\matchedS} (\three{\matchedLo}--\three{\matchedHi})
-  & \three{\matchedBprime} & \matchedRho{} (\matchedRhoLo{}--\matchedRhoHi{}) & \pContentMatched{} \\
+  & \three{\matchedBprime} & \matchedRho{} (\matchedRhoLo{}--\matchedRhoHi{}) \\
 Haiku 4.5 & \haikuFireInRow{}/\haikuN{} & \three{\haikuS} (\three{\haikuSLo}--\three{\haikuSHi})
-  & \three{\haikuBprime} & \haikuRho{} (\haikuRhoLo{}--\haikuRhoHi{}) & \pContentHaiku{} \\
+  & \three{\haikuBprime} & \haikuRho{} (\haikuRhoLo{}--\haikuRhoHi{}) \\
 Haiku 4.5, prompt-matched & \haikuMatchedFire{}/\haikuMatchedN{}
   & \three{\haikuSMatched} (\three{\haikuSMatchedLo}--\three{\haikuSMatchedHi})
-  & \three{\haikuMatchedBprime} & \haikuMatchedRho{} (\haikuMatchedRhoLo{}--\haikuMatchedRhoHi{})
-  & \pContentHaikuMatched{} \\
+  & \three{\haikuMatchedBprime} & \haikuMatchedRho{} (\haikuMatchedRhoLo{}--\haikuMatchedRhoHi{}) \\
 \midrule
-\multicolumn{6}{@{}l}{\emph{Working backdoors: only backdoors that work}} \\
+\multicolumn{5}{@{}l}{\emph{Working backdoors: only backdoors that work}} \\
 Sonnet 5 & \strictN{}/\strictN{} & \three{\strictS} (\three{\strictLo}--\three{\strictHi})
-  & \three{\strictBprime} & \strictRho{} (\strictRhoLo{}--\strictRhoHi{}) & \pContentStrict{} \\
+  & \three{\strictBprime} & \strictRho{} (\strictRhoLo{}--\strictRhoHi{}) \\
 Sonnet 5, prompt-matched & \matchedStrictN{}/\matchedStrictN{}
   & \three{\matchedStrictS} (\three{\matchedStrictLo}--\three{\matchedStrictHi})
   & \three{\matchedStrictBprime} & \matchedStrictRho{} (\matchedStrictRhoLo{}--\matchedStrictRhoHi{})
-  & \pContentStrictMatched{} \\
+  \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1008,6 +1005,14 @@ so the interval reflects how the two move together; we call this a joint interva
 floor against a monitor, original against rebuilt pairs) are computed on the same draws. We chose the
 bootstrap, over an earlier rule of two fold standard deviations, before looking at the retries
 behind the working-backdoor rows.
+
+\paragraph{Two reference values for $\rho$.} Before any run we fixed two values, $\rho =
+\rhoCollapse{}$ and $\rho = \rhoContent{}$, meant to separate a drop mostly due to authorship from
+one mostly due to the backdoor. The rebuild changes the backdoors as well as the author, so $\rho$
+cannot be split that way, and the body does not use them. The share of bootstrap draws with $\rho$
+above \rhoContent{} is \pContentHead{} for Sonnet~5's all-attempts row, \pContentMatched{} for its
+prompt-matched row, \pContentHaiku{} and \pContentHaikuMatched{} for Haiku~4.5's two rows, and
+\pContentStrict{} and \pContentStrictMatched{} for Sonnet~5's two working-backdoor rows.
 
 \paragraph{Shuffled labels.} Each permutation test shuffles the labels, reruns the whole pipeline
 including fitting, and recomputes the statistic, \permReps{} times, with
