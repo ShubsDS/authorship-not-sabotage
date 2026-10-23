@@ -579,20 +579,20 @@
 \begin{abstract}
 As language models take on more autonomous work, one safeguard is a trusted monitor that reads their
 output and flags attempts at sabotage. These monitors are tuned and ranked on fixed datasets of
-programs, in which each problem has an honest solution and a solution with a hidden backdoor. A monitor should score well on these datasets
-only by finding the backdoor. In the public datasets, however, people wrote the honest solutions and
-language models wrote the backdoors, so the author is a shortcut. A bag-of-words classifier, which
-never runs the code, reaches AUROC \tfidfKoran{} on a standard split, above
-\tfidfKoranCount{} of \monN{} published monitors, and does almost as well on backdoors that never
-trigger. The labels add a second shortcut, since a problem whose backdoor failed is labelled honest.
-We rebuild the pairs so that one model writes both solutions. On one attempt per problem, most of
-which fail, the classifier then loses a third to nine tenths of its advantage over chance, and
-swapping one class at a time traces the loss to authorship; on \strictN{} backdoors that work it
-keeps \strictRho{}. An LLM monitor also loses ground, for a different reason. It finds the rebuilt
-backdoors less suspicious and, at a 2\% audit budget, catches \auditStrictOurs{} of the working ones
-against \auditStrictStored{} of the originals. Scores on these datasets therefore depend on how the
-pairs were built, and can overstate how well monitors catch less conspicuous sabotage. We release the rebuilt pairs and recommend four changes to how such
-datasets are built and reported.
+programs, in which each problem has an honest solution and a solution with a hidden backdoor. A
+monitor should score well on these datasets only by finding the backdoor. We show that a standard
+dataset of this kind can be scored on without finding one, because its two classes were made by
+different processes. People wrote the honest solutions and language models wrote the backdoors, and
+a bag-of-words classifier, which never runs the code, reads the difference: it reaches AUROC
+\tfidfKoran{}, above \tfidfKoranCount{} of \monN{} published monitors. The labels leak too, since a
+problem whose backdoor failed is labelled honest. When one model writes both solutions, the
+classifier loses a third to nine tenths of its advantage over chance on single attempts (less on
+working backdoors), and swapping one class at a time traces the loss to authorship. A strong LLM
+monitor is not fooled by authorship, but its score depends on who wrote the attacks: on working
+backdoors written by a newer model, at a 2\% audit budget, it catches \auditStrictOurs{} against
+\auditStrictStored{} of the original ones. Scores on fixed datasets are therefore less robust than
+they look. We release the rebuilt pairs and the checks we used, and recommend running them on other
+monitor benchmarks.
 \end{abstract}
 
 \section{Introduction}
