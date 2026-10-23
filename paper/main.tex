@@ -825,8 +825,8 @@ against our backdoors and \clfSwapOursStored{} on our honest code against the or
 both above the \clfSwapHumanStored{} of the original pairs. It falls, to \clfSwapOursOurs{}, only
 when one model wrote both classes. Haiku~4.5 shows the same pattern (appendix~\ref{app:clfswap}).
 
-\paragraph{The monitor responds to the backdoors.} A Sonnet~5 monitor, prompted without examples, behaves
-differently, although the same model wrote the rebuilt pairs. With our honest code against the
+\paragraph{The monitor responds to the backdoors.} A Sonnet~5 monitor, prompted without examples, is
+not fooled by authorship, although the same model wrote the rebuilt pairs. With our honest code against the
 original backdoors it still scores \monSwapOursStored{}, against \monStoredHeadAbs{} on the original
 pairs. With human honest code against our backdoors it falls to \monSwapHumanOurs{}.\footnote{The
 four cells combine batches run the same day. Rescoring a program returns the same score
@@ -837,8 +837,10 @@ The monitor gives our working backdoors a mean suspicion of \swSonStrictSuspOA{}
 \swSonStrictSuspSA{} for the original ones (appendix~\ref{app:monitors}). Allowed to flag \auditFPR{}
 of honest programs, it catches \auditStrictStored{} of the original and \auditStrictOurs{} of our
 working backdoors (difference \auditStrictDiff{}, 95\% CI \auditStrictDiffLo{}--\auditStrictDiffHi{};
-Figure~\ref{fig:swap-b}). Both sets of backdoors work, so catch rates measured on the original
-pairs may overstate how well a monitor catches less conspicuous working backdoors.
+Figure~\ref{fig:swap-b}). The original backdoors come from earlier models or an unattributed source
+(appendix~\ref{app:attackers}), ours from a newer model under our prompt. Both sets work, so a catch
+rate measured on the original pairs describes their attacks as much as the monitor, and may overstate
+how well it catches less conspicuous ones.
 
 \section{Limitations}
 
