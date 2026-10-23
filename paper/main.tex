@@ -590,8 +590,8 @@ which fail, the classifier then loses a third to nine tenths of its advantage ov
 swapping one class at a time traces the loss to authorship; on \strictN{} backdoors that work it
 keeps \strictRho{}. An LLM monitor also loses ground, for a different reason. It finds the rebuilt
 backdoors less suspicious and, at a 2\% audit budget, catches \auditStrictOurs{} of the working ones
-against \auditStrictStored{} of the originals. Scores on these datasets can therefore overstate how
-well monitors detect sabotage. We release the rebuilt pairs and recommend four changes to how such
+against \auditStrictStored{} of the originals. Scores on these datasets therefore depend on how the
+pairs were built, and can overstate how well monitors catch less conspicuous sabotage. We release the rebuilt pairs and recommend four changes to how such
 datasets are built and reported.
 \end{abstract}
 
@@ -724,9 +724,9 @@ that never trigger almost as well as working ones (\pairInert{} against \pairWor
 Its strongest backdoor-side features, \texttt{and}, \texttt{==} and \texttt{if}, are the tokens
 an added special case uses, so it partly keys on the inserted code whether or not it works; on the
 honest side they are human idioms such as \texttt{for i} and \texttt{while}
-(Figure~\ref{fig:features}). Removing comments does remove the cue it targets, since a detector that
-counts comments falls from \hashRaw{} to \hashStripped{}. Other style cues remain. For example,
-\texttt{\_\_main\_\_} appears in 11.6\% of test backdoors and in no honest solution.
+(Figure~\ref{fig:features}). Removing comments removes only the comment cue (a comment counter falls
+from \hashRaw{} to \hashStripped{}); \texttt{\_\_main\_\_} still appears in 11.6\% of test
+backdoors and in no honest solution.
 
 \subsection{The labels record which attacks failed}
 \label{sec:label}
@@ -817,7 +817,7 @@ against the original backdoors is \emph{easier} to separate than the original pa
 \includegraphics[width=\linewidth]{f9b-audit-budget.pdf}
 \caption{Monitor at a fixed audit budget}\label{fig:swap-b}
 \end{subfigure}
-\caption{\textbf{The classifier reads the author; the monitor reads the backdoor.}
+\caption{\textbf{The classifier reads the author; the monitor responds to the backdoors.}
 \subref{fig:swap-a}~AUROC on Sonnet~5's all-attempts problems for every pairing of an honest class
 (human or ours) with a backdoor class (original or ours). Bag-of-words drops only when one model
 wrote both classes. The Sonnet~5 monitor drops whenever the backdoors are ours.
@@ -833,7 +833,7 @@ against our backdoors and \clfSwapOursStored{} on our honest code against the or
 both above the \clfSwapHumanStored{} of the original pairs. It falls, to \clfSwapOursOurs{}, only
 when one model wrote both classes. Haiku~4.5 shows the same pattern (appendix~\ref{app:clfswap}).
 
-\paragraph{The monitor reads the backdoor.} A Sonnet~5 monitor, prompted without examples, behaves
+\paragraph{The monitor responds to the backdoors.} A Sonnet~5 monitor, prompted without examples, behaves
 differently, although the same model wrote the rebuilt pairs. With our honest code against the
 original backdoors it still scores \monSwapOursStored{}, against \monStoredHeadAbs{} on the original
 pairs. With human honest code against our backdoors it falls to \monSwapHumanOurs{}.\footnote{The
@@ -870,7 +870,8 @@ baselines, beside every monitor score; (2)~have one model write both classes fro
 and check both with the same tests, so that the backdoor is the only intended difference;
 (3)~choose honest examples independently of whether an attack on the problem succeeded, or drop the
 problems whose attacks failed; and (4)~report the share of backdoors caught at a fixed audit budget,
-separately for working backdoors and all attempts, with the share of backdoors that work. Otherwise
+separately for working backdoors and all attempts, with the share of backdoors that work, and on
+backdoors from more than one generator. Otherwise
 a monitor's score may describe how its pairs were built rather than the monitor itself.
 
 \begin{ack}
