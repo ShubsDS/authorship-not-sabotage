@@ -731,17 +731,15 @@ backdoors and in no honest solution.
 \subsection{The labels record which attacks failed}
 \label{sec:label}
 
-The split puts a test problem in the backdoor class only if its backdoor works. If the backdoor
-fails, the problem contributes its human solution to the honest class instead, and this happens for
-\inertShare{} of the split's backdoors. The label therefore depends on how hard a problem was to
-attack, which is visible without reading code. Backdoor-class problems have about half as many test
-cases as honest ones (\testCasesAttack{} against \testCasesHonest{}; Figure~\ref{fig:floors-c}).
-Cross-validated within the test split, the no-code classifier reaches \nocodeCV{}, above
-\nocodeCVCount{} monitors. Trained on problems outside the split it scores \nocodeOutside{}, below
-chance (Figure~\ref{fig:floors-b}): outside the split every problem that passes the filter has a
-working backdoor, so the honest examples are problems the filter removed and the test-count
-relation reverses. The no-code classifier measures how the
-labels were chosen, not anything in the code.
+The split puts a test problem in the backdoor class only if its backdoor works; otherwise the
+problem contributes its human solution to the honest class, as happens for \inertShare{} of the
+split's backdoors. The label therefore depends on how hard a problem was to attack, which shows
+without reading code: backdoor-class problems have about half as many test cases
+(\testCasesAttack{} against \testCasesHonest{}; Figure~\ref{fig:floors-c}), and the no-code classifier
+reaches \nocodeCV{} cross-validated within the split, above \nocodeCVCount{} monitors. Trained
+outside the split it scores \nocodeOutside{}, below chance (Figure~\ref{fig:floors-b}), because there
+every problem that passes the filter has a working backdoor and the test-count relation reverses.
+This leak comes from the filter, not the code.
 
 \section{One author for both classes}
 \label{sec:samegen}
