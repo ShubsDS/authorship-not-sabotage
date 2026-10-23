@@ -780,26 +780,22 @@ Sonnet 5, prompt-matched & \matchedStrictN{}/\matchedStrictN{}
 
 \paragraph{How much survives.} When one model writes both classes, the classifier keeps
 $\rho = \sameGenRho{}$ of its advantage over chance on Sonnet~5's pairs and \haikuRho{} on Haiku~4.5's
-(Table~\ref{tab:gates}). Random subsets of the original pairs of the same size do not drop
-(appendix~\ref{app:robust}), so this is not a small-sample effect. In these rows almost all our
-backdoors fail. Only \relFireFirst{} of \sameGenN{} Sonnet~5 backdoors and \haikuFireInRow{} of
-\haikuN{} Haiku~4.5 backdoors work, while every original backdoor on those problems does. On the
-\strictN{} Sonnet~5 pairs where every backdoor works, $\rho = \strictRho{}$. Working backdoors alone
-do not explain the higher value. On the \sharedN{} problems in both sets, $\rho$ is \sharedRhoHead{}
-with sampled attempts and \sharedRhoWorking{} with working backdoors (paired 95\% CI on the
-difference \sharedDiffLo{} to \sharedDiffHi{}). By point estimate the higher value comes from which
-problems yield a working backdoor (appendix~\ref{app:shared}).
+(Table~\ref{tab:gates}); random subsets of the original pairs of the same size do not drop
+(appendix~\ref{app:robust}). In these rows almost all our backdoors fail: \relFireFirst{} of
+\sameGenN{} Sonnet~5 backdoors and \haikuFireInRow{} of \haikuN{} Haiku~4.5 backdoors work, while
+every original backdoor on those problems does. On the \strictN{} Sonnet~5 pairs where every
+backdoor works, $\rho = \strictRho{}$. On the \sharedN{} problems in both sets, working backdoors do
+not raise $\rho$ (\sharedRhoHead{} with attempts, \sharedRhoWorking{} with working backdoors;
+appendix~\ref{app:shared}).
 
-\paragraph{What remains.} On Sonnet~5, what remains is a program layout that the backdoor prompt
-invites. Of our feature ablations only renaming identifiers changes its rebuilt AUROC
-(appendix~\ref{app:robust}), and its top features are \texttt{def main}, in \defMainAttack{} of
-backdoored and \defMainHonest{} of honest programs, and \texttt{data[} (Figure~\ref{fig:features-b}).
-Haiku~4.5 never adopts that layout (appendix~\ref{app:secondpass}). Requesting the honest solution
-with the backdoor prompt lowers Sonnet~5's $\rho$ to \matchedRho{} and leaves Haiku~4.5's at
-\haikuMatchedRho{}. Rewriting only the honest class does not help. Qwen3-Coder-30B honest code
-against the original backdoors is \emph{easier} to separate than the original pairs
-($\rho = \armOneRho{}$), since it replaces one gap between authors with another
-(appendix~\ref{app:robust}).
+\paragraph{What remains.} What survives on Sonnet~5 is another tic of construction: a program layout
+the backdoor prompt invites, with \texttt{def main} in \defMainAttack{} of backdoored and
+\defMainHonest{} of honest programs (Figure~\ref{fig:features-b}), which Haiku~4.5 never adopts
+(appendix~\ref{app:secondpass}). Requesting the honest solution with the backdoor prompt lowers
+Sonnet~5's $\rho$ to \matchedRho{} and leaves Haiku~4.5's at \haikuMatchedRho{}. Regenerating only the
+honest class does not help: Qwen3-Coder-30B honest code against the original backdoors is
+\emph{easier} to separate than the original pairs ($\rho = \armOneRho{}$), one gap between authors
+replaced by another (appendix~\ref{app:robust}).
 
 \subsection{Swapping one class at a time}
 \label{sec:swap}
