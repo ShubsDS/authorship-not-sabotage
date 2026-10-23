@@ -219,6 +219,24 @@ the data and kept. Corrections on top (7544a93 to e42a1ab):
   rewrites the bundle's card, licence and scripts without the generated files. The zip was
   refreshed for the new title (SHA-256 3aba6bcc...).
 
+### Overview figure (October 23, 2026)
+
+Figure 1 is now a three-panel overview (`fig11_overview` in `figures.py`, f11-overview.pdf):
+(a) the 24 monitors ranked with bag-of-words and the no-code classifier; (b) the class swap for
+bag-of-words and the Sonnet 5 monitor, one row per kind of pair, named by who wrote each side
+(person / weaker models, Sonnet 5 / weaker models, person / Sonnet 5, Sonnet 5 / Sonnet 5);
+(c) the share of the 99 working backdoors caught at 2% FPR. Gold marks bars below the original
+pairs. The caption lists the weaker models and their share of the pairs (macros checked by
+`check()` against Table A2's counts). The code pairs become Figure 2.
+
+- The old Figure 2 (floors) and Figure 3 (swap, audit) leave the body. The no-code and
+  test-count panels and the audit curve move to the appendix (Figures A1, A5); the ranked bars
+  (f6a) and grouped swap bars (f9a) are deleted, since Figure 1 and Figure A2 cover them.
+- Appendix figures and tables use the same names (Figures A3, A4; Tables A8, A10, A11).
+- Body text: "weaker models" defined in Setup (by release date, not measured skill); "a newer
+  model" / "earlier models" replaced; citable lead sentences in Sections 3, 4, 4.1 and 6.
+- Body still ends on page 5.
+
 ### Still open
 
 1. The strict monitor re-run (needs an API key; command in `experiments/README.md`, "Pending").
