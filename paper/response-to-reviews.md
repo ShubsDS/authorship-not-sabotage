@@ -41,7 +41,7 @@ and working backdoors. The text says what the all-attempts rows compare.
 - ρ does not depend on which model wrote the original backdoors: with Claude attackers only it is
   0.715, against 0.687 for the full mix.
 - We ran the experiment that isolates authorship for the classifier: fit it to every pairing
-  of an honest and an attack class (Figure 3a). We fixed the reading rule before
+  of an honest and an attack class (Figure 1b). We fixed the reading rule before
   computing the missing cell. On Sonnet 5's all-attempts problems:
   - human honest code against our attacks scores 0.981, above the 0.865 of the original pairs;
   - our honest code against original backdoors scores 0.956;
@@ -52,7 +52,7 @@ and working backdoors. The text says what the all-attempts rows compare.
   code. For the monitor it is the reverse (point 4).
 
 **4. Verified attacks qualify the result.**
-- **Monitor.** Valid, and it changes our claim. Swapping one class at a time (Figure 3a), the
+- **Monitor.** Valid, and it changes our claim. Swapping one class at a time (Figure 1b), the
   Sonnet 5 monitor scores:
   - 0.958 for human honest against original backdoors;
   - 0.446 for human honest against our attacks;
