@@ -697,6 +697,32 @@ def _check_stored_pairs():
     return bad
 
 
+def _weaker_shares():
+    """Figure 1's caption: the share of the working-backdoor problems whose original backdoor
+    (data._pick_backdoor, as that row is built) each weaker model wrote. Needs train_*.parquet."""
+    import glob
+    shards = sorted(glob.glob("train_*.parquet"))
+    if not shards or not os.path.exists("sg_indep_best_usable_v2.json"):
+        return {}
+    import pandas as pd
+    from data import _pick_backdoor
+    ids = {str(p) for p in json.load(open("sg_indep_best_usable_v2.json"))["problem_ids"]}
+    df = pd.concat([pd.read_parquet(f, columns=["problem_id", "solutions", "backdoors"])
+                    for f in shards], ignore_index=True)
+    df["problem_id"] = df.problem_id.astype(str)
+    group = {"anthropic/claude-3-7-sonnet-latest": "wkShareClaude",
+             "anthropic/claude-3-7-sonnet-thinking-latest": "wkShareClaude",
+             "openai/o3-mini": "wkShareOThree", "openai/o1-mini": "wkShareOOne",
+             "openai/gpt-4o": "wkShareGFourO", "unknown": "wkShareUnattr"}
+    counts = {}
+    for _, r in df[df.problem_id.isin(ids)].iterrows():
+        row = {"problem_id": r.problem_id, "backdoors": [dict(b) for b in r.backdoors],
+               "solutions": [dict(s) for s in r.solutions], "top_backdoor_model": None}
+        k = group.get(_pick_backdoor(row).get("model"), "wkShareRest")
+        counts[k] = counts.get(k, 0) + 1
+    return {k: v / len(ids) for k, v in counts.items()}
+
+
 def _check_json():
     """Compare the figure constants with the JSONs they were copied from, where those exist."""
     bad = []
@@ -817,18 +843,9 @@ def check():
         eq("auditSwapDiff", diff["point"], 2)
         eq("auditSwapDiffLo", diff["ci95"][0], 2); eq("auditSwapDiffHi", diff["ci95"][1], 2)
 
-    # Figure 1's caption: each weaker model's share of the all-attempts problems, from the per-model
-    # counts of Table A2 (a model's \at...Head macros) over \sameGenN.
-    shares = {"wkShareClaude": ("atCSonnetHead", "atCThinkHead"), "wkShareOThree": ("atOThreeHead",),
-              "wkShareGFourO": ("atGFourOHead",), "wkShareOOne": ("atOOneHead",),
-              "wkShareRest": ("atGFourOMiniHead", "atGeminiHead", "atGThreeFiveHead", "atCHaikuHead"),
-              "wkShareUnattr": ("atUnattrHead",)}
-    if all(k in m for ks in shares.values() for k in ks) and "sameGenN" in m:
-        total = sum(m[k] for ks in shares.values() for k in ks)
-        if total != m["sameGenN"]:
-            bad.append(f"Figure 1 caption: attacker counts sum to {total:.0f}, not {m['sameGenN']:.0f}")
-        for macro, ks in shares.items():
-            pct(macro, sum(m[k] for k in ks) / m["sameGenN"])
+    # Figure 1's caption: each weaker model's share of the working-backdoor problems.
+    for macro, share in _weaker_shares().items():
+        pct(macro, share)
     bad += _check_json()
     bad += _check_stored_pairs()
     if bad:
