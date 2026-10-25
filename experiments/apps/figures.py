@@ -370,7 +370,7 @@ def _working_panels():
 def fig11_overview():
     mons = [m["test_auroc"] for m in json.load(open("monitor-summary.json"))]
     bow, mon, caught, _ = _working_panels()
-    fig = plt.figure(figsize=(TEXT_W, 3.0))
+    fig = plt.figure(figsize=(TEXT_W, 2.8))
     top = fig.add_gridspec(1, 1, left=0.075, right=0.99, top=0.93, bottom=0.64)
     low = fig.add_gridspec(1, 3, left=0.215, right=0.985, top=0.47, bottom=0.11, wspace=0.3)
 
