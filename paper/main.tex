@@ -373,6 +373,17 @@
 \newcommand{\clfSwapHaikuDiffOursStoredSLo}{0.412}
 \newcommand{\clfSwapHaikuDiffOursStoredSHi}{0.452}
 % Audit budget: catch rate at a 2% false-positive rate, threshold set on each set's own honest programs.
+% Class swap on the working-backdoor problems (Figure 1b-d): bag-of-words from
+% classifier_swap_sonnet5_working.json (pooled OOF AUROC, joint bootstrap); the Sonnet 5 monitor's
+% catch rate at 2% FPR for the two crossed pairings and the paired change from swapping only the
+% backdoors, person honest code held fixed (audit_budget.json "swap").
+\newcommand{\clfSwapWorkHumanStored}{0.789}\newcommand{\clfSwapWorkOursOurs}{0.749}
+\newcommand{\clfSwapWorkHumanOurs}{0.953}\newcommand{\clfSwapWorkHumanOursLo}{0.925}
+\newcommand{\clfSwapWorkHumanOursHi}{0.976}
+\newcommand{\clfSwapWorkOursStored}{0.905}\newcommand{\clfSwapWorkOursStoredLo}{0.865}
+\newcommand{\clfSwapWorkOursStoredHi}{0.941}
+\newcommand{\auditSwapOursStored}{82\%}\newcommand{\auditSwapHumanOurs}{37\%}
+\newcommand{\auditSwapDiff}{0.40}\newcommand{\auditSwapDiffLo}{0.28}\newcommand{\auditSwapDiffHi}{0.52}
 \newcommand{\auditFPR}{2\%}
 \newcommand{\auditStrictStored}{77\%}
 \newcommand{\auditStrictOurs}{48\%}
