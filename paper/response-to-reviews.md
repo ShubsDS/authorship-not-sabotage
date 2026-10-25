@@ -41,26 +41,31 @@ and working backdoors. The text says what the all-attempts rows compare.
 - ρ does not depend on which model wrote the original backdoors: with Claude attackers only it is
   0.715, against 0.687 for the full mix.
 - We ran the experiment that isolates authorship for the classifier: fit it to every pairing
-  of an honest and an attack class (Figure 1b). We fixed the reading rule before
-  computing the missing cell. On Sonnet 5's all-attempts problems:
+  of an honest and an attack class (Table A8; Figure 1b shows the working-backdoor problems). We
+  fixed the reading rule before computing the missing cell. On Sonnet 5's all-attempts problems:
   - human honest code against our attacks scores 0.981, above the 0.865 of the original pairs;
   - our honest code against original backdoors scores 0.956;
   - only the pairing in which one model wrote both classes (the rebuilt pairs) falls, to 0.750.
 
-  Haiku 4.5 gives 0.973 and 0.966 against 0.534 on its rebuilt pairs. So for the classifier the
+  Haiku 4.5 gives 0.973 and 0.966 against 0.534 on its rebuilt pairs, and on Sonnet 5's 99
+  working-backdoor problems the two mixed pairings score 0.953 and 0.905 against 0.789 (original)
+  and 0.749 (rebuilt). So for the classifier the
   drop is authorship, not our attacks: our attacks are easier, not harder, to separate from human
   code. For the monitor it is the reverse (point 4).
 
 **4. Verified attacks qualify the result.**
-- **Monitor.** Valid, and it changes our claim. Swapping one class at a time (Figure 1b), the
-  Sonnet 5 monitor scores:
+- **Monitor.** Valid, and it changes our claim. Swapping one class at a time (Table A10; Figure 1c
+  shows the working-backdoor problems), the Sonnet 5 monitor scores, over all attempts:
   - 0.958 for human honest against original backdoors;
   - 0.446 for human honest against our attacks;
   - 0.974 for our honest against original backdoors.
 
   Its mean suspicion is 6.6 for our attacks and 78.8 for the original backdoors. The monitor's
   drop is in the attacks, not in authorship: it measures how conspicuous the attacks are. This
-  holds on working backdoors too: human honest code against our working backdoors scores 0.755.
+  holds on working backdoors too: human honest code against our working backdoors scores 0.755,
+  against 0.944 on the original pairs. Flagging 2% of the human solutions, it catches 77% of the
+  original working backdoors and 37% of ours (Figure 1d). Haiku 4.5, which wrote neither class,
+  falls the same way (0.875 to 0.729), so this is not the monitor overlooking its own code.
   The submission's "the monitor moves the same way" is withdrawn.
 - **Classifier.** Partly valid. On the 64 problems in both the all-attempts and the
   working-backdoor sets, ρ is about the same with all attempts and with working backdoors: 0.815
