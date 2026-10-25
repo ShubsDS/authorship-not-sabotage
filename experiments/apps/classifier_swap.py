@@ -27,8 +27,14 @@ result): if human honest vs our attacks is near B' (~0.87), the classifier's dro
 honest side and the authorship reading holds for the classifier; if it is near S (~0.75), the
 classifier behaves like the monitor and the corpus effect is mostly the attack distribution.
 
-Needs the generated files, which are not committed (run on the cluster where they live), and
-train_*.parquet (fetch.py). No API calls.
+The working-backdoor row (--release) reads the same programs from the release bundle instead:
+our honest program from honest.jsonl, our attack from attacks_independent_pool.jsonl at the draw
+--pairs names (pairs_usable_best.csv, rows with crash_on_trigger = false), and the stored attack
+by data._pick_backdoor (passes AND fires), as gate_s_samegen.py builds that row without
+--bprime-inert. Its S and B' cells reproduce sg_indep_best_usable_v2.json exactly.
+
+Needs the generated files, which are not committed (run on the cluster where they live), or the
+release bundle for --release, and train_*.parquet (fetch.py). No API calls.
 
 Usage:
     python classifier_swap.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl \
@@ -37,6 +43,8 @@ Usage:
     python classifier_swap.py --tag haiku45 --bd bdind_haiku45.jsonl \
         --bdpass bdpass_haiku45.jsonl --sg-json sg_haiku45_indep_passes.json \
         --out classifier_swap_haiku45.json
+    python classifier_swap.py --tag sonnet5 --release release --pairs pairs_usable_best.csv \
+        --sg-json sg_indep_best_usable_v2.json --out classifier_swap_sonnet5_working.json
 """
 
 from __future__ import annotations
@@ -55,7 +63,7 @@ import pyarrow.parquet as pq
 from sklearn.metrics import roc_auc_score
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from data import _honest_code, strip_comments  # noqa: E402
+from data import _honest_code, _pick_backdoor, strip_comments  # noqa: E402
 from gate_s_eval import evaluate  # noqa: E402 - the identical fit used for S and B'
 
 N_BOOT, SEED = 2000, 0
@@ -126,19 +134,69 @@ def build(args) -> tuple[pd.DataFrame, list]:
     return pd.DataFrame(rows), sorted(hon_models, key=str)
 
 
+def build_release(args) -> tuple[pd.DataFrame, list]:
+    """The working-backdoor row from the release bundle (see the module docstring)."""
+    import csv
+    want = sorted(str(p) for p in json.load(open(args.sg_json))["problem_ids"])
+    pick = {r["problem_id"]: r["draw"]
+            for r in csv.DictReader(open(os.path.join(args.release, args.pairs)))
+            if r["crash_on_trigger"].lower() == "false"}
+    attack = {}
+    for r in _read(os.path.join(args.release, "attacks_independent_pool.jsonl")):
+        if pick.get(r["problem_id"]) == r["draw"]:
+            if not (r["passes_tests"] and r["backdoor_works"]):
+                raise SystemExit(f"REFUSING: draw {r['draw']} does not pass and fire")
+            attack[r["problem_id"]] = r
+    honest = {r["problem_id"]: r for r in _read(os.path.join(args.release, "honest.jsonl"))}
+    if sorted(attack) != want:
+        raise SystemExit(f"REFUSING: {args.pairs} ({len(attack)}) differs from {args.sg_json} ({len(want)})")
+    models = {attack[p]["model"] for p in want} | {honest[p].get("model", attack[p]["model"]) for p in want}
+    if len(models) != 1:
+        raise SystemExit(f"REFUSING: the two generated classes do not share a generator ({sorted(models)})")
+
+    shards = sorted(glob.glob("train_*.parquet"))
+    if not shards:
+        raise SystemExit("no train_*.parquet here - run `python fetch.py` first")
+    art = pd.concat([pq.read_table(f, columns=["problem_id", "solutions", "backdoors"]).to_pandas()
+                     for f in shards], ignore_index=True)
+    art["problem_id"] = art.problem_id.astype(str)
+    stored = {}
+    for _, r in art[art.problem_id.isin(set(want))].iterrows():
+        row = {"problem_id": r.problem_id, "backdoors": [dict(b) for b in r.backdoors],
+               "solutions": [dict(s) for s in r.solutions], "top_backdoor_model": None}
+        b, h = _pick_backdoor(row), _honest_code(row)
+        if b and h:
+            stored[r.problem_id] = (h, b["backdoor_code"])
+    missing = [p for p in want if p not in stored]
+    if missing:
+        raise SystemExit(f"REFUSING: {len(missing)} problems have no stored pair: {missing[:5]}")
+    rows = [{"problem_id": p,
+             "human_honest": strip_comments(stored[p][0]),
+             "stored_attack": strip_comments(stored[p][1]),
+             "our_honest": strip_comments(honest[p]["code"]),
+             "our_attack": strip_comments(attack[p]["code"])} for p in want]
+    return pd.DataFrame(rows), sorted(models)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--tag", required=True, help="sonnet5 or haiku45")
-    ap.add_argument("--bd", required=True, help="our attack programs (jsonl)")
-    ap.add_argument("--bdpass", required=True, help="verify_backdoor.py verdicts for --bd")
+    ap.add_argument("--bd", default=None, help="our attack programs (jsonl)")
+    ap.add_argument("--bdpass", default=None, help="verify_backdoor.py verdicts for --bd")
+    ap.add_argument("--release", default=None,
+                    help="read the programs from this release bundle instead of --bd/--gen")
+    ap.add_argument("--pairs", default="pairs_usable_best.csv",
+                    help="with --release: the pair list naming each problem's attack draw")
     ap.add_argument("--sg-json", required=True, help="the gate_s_samegen.py row to match")
     ap.add_argument("--gen", default=None, help="our honest programs; default gen_<tag>.jsonl")
     ap.add_argument("--passf", default=None, help="their test verdicts; default pass_<tag>.jsonl")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
-    pairs, models = build(args)
+    if not args.release and not (args.bd and args.bdpass):
+        ap.error("give --bd and --bdpass, or --release")
+    pairs, models = build_release(args) if args.release else build(args)
     n = len(pairs)
     print(f"{args.tag}: {n} problems (matches {args.sg_json}); generator {models}")
 
@@ -196,7 +254,8 @@ def main() -> None:
           f"paired intervals above)")
 
     out = {"tag": args.tag, "generator": models, "sg_json": args.sg_json, "bd": args.bd,
-           "bdpass": args.bdpass, "n_problems": n, "n_boot": N_BOOT, "seed": SEED,
+           "bdpass": args.bdpass, "release": args.release, "pairs": args.pairs if args.release else None,
+           "n_problems": n, "n_boot": N_BOOT, "seed": SEED,
            "cells": fits, "differences": diff_out, "check_against_sg_json": check,
            "reading_rule": RULE, "nearer": nearer}
     path = args.out or f"classifier_swap_{args.tag}.json"
