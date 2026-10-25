@@ -222,6 +222,9 @@ python classifier_swap.py --tag sonnet5 --bd bdind_sonnet5_first.jsonl --bdpass 
     --sg-json sg_indep_first_passes_v2.json --out classifier_swap_sonnet5.json
 python classifier_swap.py --tag haiku45 --bd bdind_haiku45.jsonl --bdpass bdpass_haiku45.jsonl \
     --sg-json sg_haiku45_indep_passes.json --out classifier_swap_haiku45.json
+# working-backdoor row (Figure 1b), from the release bundle unpacked at experiments/apps/release
+python classifier_swap.py --tag sonnet5 --release release --pairs pairs_usable_best.csv \
+    --sg-json sg_indep_best_usable_v2.json --out classifier_swap_sonnet5_working.json
 ```
 
 The `_v2` files repeat the all-attempts and working-backdoor runs with out-of-fold scores saved,
@@ -284,10 +287,10 @@ python release_split.py --check release --allow-trivial-identical 120
 | Pooled out-of-fold rebuilt and original AUROCs, ρ and joint intervals for every rebuilt-pair point; P(ρ > 0.72); macro map | `pooled_stats.py` | `pooled_stats.json` |
 | Backdoors that work, per Table 1 row (14/623, 13/586 prompt-matched, 2/611, 2/562 Haiku prompt-matched, 99/99, 96/96); every original backdoor works | `fire_counts.py` | `fire_counts.json` |
 | Monitor class-swap table (0.958 / 0.446 / 0.974 / 0.564; mean suspicion 78.8 / 6.6; working backdoors, human honest vs ours 0.755); batch provenance; working-backdoor file mismatch (1701, 1972, 4434; the monitor's working-backdoor AUROC 0.821 without their attacks, 0.812–0.839 dropping any three) | `monitor_swap.py` | `monitor_swap.json` |
-| Catch rate at a fixed false-positive rate (audit budget): Sonnet 5 monitor at 2%, working backdoors 77% original vs 48% rebuilt (difference 0.28, 0.15–0.42), all attempts 85% vs 6% | `audit_budget.py` | `audit_budget.json` |
+| Catch rate at a fixed false-positive rate (audit budget): Sonnet 5 monitor at 2%, working backdoors 77% original vs 48% rebuilt (difference 0.28, 0.15–0.42), all attempts 85% vs 6%; crossed pairings on working backdoors (Figure 1d): person honest vs Sonnet 5 backdoors 37%, Sonnet 5 honest vs original backdoors 82%, swapping only the backdoors 0.40 (0.28–0.52) | `audit_budget.py` | `audit_budget.json` |
 | All attempts vs working backdoors on the 64 shared problems: ρ 0.82 vs 0.75 (paired difference −0.24 to +0.13) | `shared_problems.py` | `shared_problems.json` |
 | Models that wrote the original backdoors; original AUROC per attacker 0.75–0.93; ρ with Claude attackers only (0.715) | `attacker_mix.py` | `attacker_mix.json` |
-| Classifier class-swap table: human honest vs our backdoors 0.981 (Haiku 0.973), our honest vs original backdoors 0.956 (0.966), against the rebuilt AUROC 0.750 (0.534) | `classifier_swap.py` | `classifier_swap_{sonnet5,haiku45}.json` |
+| Classifier class-swap table: human honest vs our backdoors 0.981 (Haiku 0.973), our honest vs original backdoors 0.956 (0.966), against the rebuilt AUROC 0.750 (0.534); on working backdoors (Figure 1b) 0.953 and 0.905 against 0.789 original and 0.749 rebuilt | `classifier_swap.py` | `classifier_swap_{sonnet5,haiku45,sonnet5_working}.json` |
 
 A few appendix counts were computed with ad hoc joins of the files above and have no script of
 their own:
