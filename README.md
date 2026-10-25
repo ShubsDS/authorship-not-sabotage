@@ -37,13 +37,15 @@ APPS-backdoor dataset (RoganInglis/apps-control-arena) and call its pairs the or
 4. **Swapping one class at a time separates the two detectors.** We name each kind of pair by
    who wrote its honest and its backdoored side. The original pairs are person / weaker models,
    where the weaker models are the nine models, all released by early 2025, that wrote the
-   dataset's backdoors. Bag-of-words stays high whenever the two sides have different writers
-   (person / Sonnet 5 0.981, Sonnet 5 / weaker models 0.956, original pairs 0.865) and falls, to
-   0.750, only for Sonnet 5 / Sonnet 5, so its drop is authorship. The Sonnet 5 monitor's drop is
-   in the attacks instead: 0.958 on the original pairs and 0.974 on Sonnet 5 / weaker models, but
-   0.446 on person / Sonnet 5 and 0.564 on Sonnet 5 / Sonnet 5. At a 2% false-positive rate it
-   catches 77% of the weaker models' working backdoors and 48% of Sonnet 5's, and 85% against 6%
-   over all attempts. Figure 1 of the paper shows the floors, the swap and this catch rate.
+   dataset's backdoors. On the 99 problems where every backdoor works (Figure 1 of the paper),
+   bag-of-words scores 0.789 on the original pairs and 0.749 on Sonnet 5 / Sonnet 5, but 0.953 on
+   person / Sonnet 5 and 0.905 on Sonnet 5 / weaker models: mixing Sonnet 5's code with another
+   author's raises it, so it reads the author (the same holds over all attempts). Most of its
+   advantage on working backdoors still survives one author. The Sonnet 5 monitor's drop is in the
+   attacks instead: 0.944 on the original pairs and 0.966 on Sonnet 5 / weaker models, but 0.755 on
+   person / Sonnet 5 and 0.819 on Sonnet 5 / Sonnet 5. Flagging 2% of the human solutions, it
+   catches 77% of the weaker models' working backdoors and 37% of Sonnet 5's (difference 0.40,
+   0.28-0.52). Haiku 4.5, which wrote neither class, falls the same way as a monitor.
 5. **The label adds a second confound.** When a problem's backdoor fails, its human solution is
    kept as a negative. So the negative class partly records which attacks failed.
 
