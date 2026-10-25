@@ -237,6 +237,26 @@ pairs. The caption lists the weaker models and their share of the pairs (macros 
   model" / "earlier models" replaced; citable lead sentences in Sections 3, 4, 4.1 and 6.
 - Body still ends on page 5.
 
+### Cold-read fixes (October 25, 2026)
+
+A fresh reader (abstract, then figures, then conclusions, then the body) found where the paper
+misleads a first-time reader. Changes:
+
+- New runs, CPU only: the classifier class swap on the 99 working-backdoor pairs
+  (`classifier_swap.py --release`, from the release bundle; diagonal cells reproduce Table 1
+  exactly), and the Sonnet 5 monitor's catch rate for all four pairings (`audit_budget.py`,
+  `swap`; existing numbers unchanged). With the human solutions' threshold: 77% of the weaker
+  models' working backdoors against 37% of Sonnet 5's (difference 0.40, 0.28-0.52).
+- Figure 1 has four panels; (b)-(d) are on the working-backdoor problems, one row per kind of
+  pair, so the monitor panel no longer rests on backdoors that mostly fail. Gold means Sonnet 5's
+  backdoors only. (a) says open-weight monitors; the caption says what each classifier reads.
+- Body: the abstract matches Limitations and states that on working backdoors most of the
+  classifier's advantage survives one author; why the attempts fail and the 0.62 check; the
+  swap's reading rule; the Haiku 4.5 monitor as a check on self-recognition; "current models"
+  instead of "stronger models"; pairwise accuracy defined; per-model range and agentic finding in
+  Limitations. Body still five pages.
+- Appendix Table A8 gains the working-backdoor rows; D.3 gives the crossed catch rates.
+
 ### Still open
 
 1. The strict monitor re-run (needs an API key; command in `experiments/README.md`, "Pending").
