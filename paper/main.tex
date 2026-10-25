@@ -1341,13 +1341,18 @@ person / model pairs are higher by \clfSwapDiffHumanOursS{}
 (\clfSwapHaikuDiffHumanOursSLo{}--\clfSwapHaikuDiffHumanOursSHi{}) for Haiku~4.5, and model / weaker
 models pairs by \clfSwapDiffOursStoredS{}
 (\clfSwapDiffOursStoredSLo{}--\clfSwapDiffOursStoredSHi{}) and \clfSwapHaikuDiffOursStoredS{}
-(\clfSwapHaikuDiffOursStoredSLo{}--\clfSwapHaikuDiffOursStoredSHi{}).
+(\clfSwapHaikuDiffOursStoredSLo{}--\clfSwapHaikuDiffOursStoredSHi{}). On Sonnet~5's \strictN{}
+working-backdoor problems, which Figure~\ref{fig:overview}b shows, the pattern is the same: the two
+mixed pairings score \clfSwapWorkHumanOurs{} and \clfSwapWorkOursStored{}, above both the original
+(\clfSwapWorkHumanStored{}) and the rebuilt AUROC (\clfSwapWorkOursOurs{}). That row is built from the
+release bundle by \texttt{classifier\_swap.py -{}-release}, and its two diagonal cells reproduce
+Table~\ref{tab:gates} exactly.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
 \caption{\textbf{Bag-of-words with one class swapped at a time.} AUROC on each model's all-attempts
-problems (95\% bootstrap over problems), by who wrote the honest side (rows) and the backdoors
-(columns). The person / weaker models cell is the original AUROC and the model / model cell the
+problems and on Sonnet~5's working-backdoor problems (95\% bootstrap over problems), by who wrote the
+honest side (rows) and the backdoors (columns). The person / weaker models cell is the original AUROC and the model / model cell the
 rebuilt AUROC of Table~\ref{tab:gates}.}
 \label{tab:clfswap}
 \begin{tabular}{@{}l l l l@{}}
@@ -1359,6 +1364,9 @@ Sonnet~5 (\sameGenN{}) & person & \clfSwapHumanStored{} & \clfSwapHumanOurs{} (\
 \addlinespace
 Haiku~4.5 (\haikuN{}) & person & \clfSwapHaikuHumanStored{} & \clfSwapHaikuHumanOurs{} (\clfSwapHaikuHumanOursLo{}--\clfSwapHaikuHumanOursHi{}) \\
  & Haiku~4.5 & \clfSwapHaikuOursStored{} (\clfSwapHaikuOursStoredLo{}--\clfSwapHaikuOursStoredHi{}) & \clfSwapHaikuOursOurs{} \\
+\addlinespace
+Sonnet~5, working (\strictN{}) & person & \clfSwapWorkHumanStored{} & \clfSwapWorkHumanOurs{} (\clfSwapWorkHumanOursLo{}--\clfSwapWorkHumanOursHi{}) \\
+ & Sonnet~5 & \clfSwapWorkOursStored{} (\clfSwapWorkOursStoredLo{}--\clfSwapWorkOursStoredHi{}) & \clfSwapWorkOursOurs{} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1492,6 +1500,13 @@ rate. Flagging only above the threshold gives similar results: Sonnet~5's 2\% ca
 replies and scores many honest programs near the top of the scale, so at 1\% and 2\% it flags few
 backdoors of either kind. Figure~\ref{fig:audit} extends the Sonnet~5 working-backdoor rows to
 every flag rate up to 20\%.
+
+The original and rebuilt rows change the honest side along with the backdoors. Crossing them holds
+one side fixed. With the threshold set on the human solutions for both, the Sonnet~5 monitor catches
+\auditStrictStored{} of the weaker models' working backdoors and \auditSwapHumanOurs{} of Sonnet~5's
+(difference \auditSwapDiff{}, \auditSwapDiffLo{} to \auditSwapDiffHi{}); with the threshold set on
+Sonnet~5's honest code, \auditSwapOursStored{} and \auditStrictOurs{}. These are the four bars of
+Figure~\ref{fig:overview}d (\texttt{audit\_budget.json}, \texttt{swap}).
 
 \begin{figure}[h]\centering
 \includegraphics{f9b-audit-budget.pdf}
