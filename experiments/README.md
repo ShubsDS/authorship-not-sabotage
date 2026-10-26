@@ -9,9 +9,11 @@ The paper uses no symbol except ρ; the scripts and JSON files keep `S`, `B_prim
 | In the paper | Meaning | In the scripts and JSON files |
 |---|---|---|
 | the dataset | RoganInglis/apps-control-arena, of which we analyse 1,444 problems | `rogan`; "the artifact" or "the analysis pool" in older comments |
-| filtered test split | The filtered release of Koran et al. on which the 24 monitors are ranked (1,375 test items) | `koran` |
+| standard split | The split of Koran et al., built from the dataset's high-quality (filtered) release; the 24 monitors are ranked on its 1,375 test problems, one program each (the backdoored one if its backdoor works, otherwise the honest one) | `koran` |
+| older models | The eight models (Claude 3.7 Sonnet in two variants) and the unattributed source that wrote the dataset's backdoors, all released by early 2025 | model names in `attacker_mix.json` |
 | original pairs | The pairs that ship with the dataset: per problem, a human-written honest solution and a model-written backdoored solution (the original backdoor) | `stored` |
 | rebuilt pairs | Pairs in which one model (Sonnet 5 or Haiku 4.5) writes both the honest and the backdoored solution to the same problem | `samegen`, `sg_*`, `same_generator` |
+| person / older models, Sonnet 5 / older models, person / Sonnet 5, Sonnet 5 / Sonnet 5 | The four kinds of pair in the class swap, named by who wrote the honest and the backdoored side; the first is the original pairs, the last the rebuilt pairs | `human_honest__stored_attack`, `our_honest__stored_attack`, `human_honest__our_attack`, `our_honest__our_attack` |
 | original AUROC on all 1,444 problems | Bag-of-words AUROC on the original pairs (human honest against model backdoor) over the 1,444 problems we analyse | `B` |
 | original AUROC on the same problems | The same classifier on the original pairs, refitted on exactly the problems the rebuilt pairs cover | `B_prime` (`B′` in older text; in `gate_s_q3c30.json` this value is under `B`) |
 | rebuilt AUROC | The same classifier on the rebuilt pairs | `S` |
@@ -29,7 +31,7 @@ AUROC and the original AUROC on the same problems). Every null is 1,000 label pe
 shuffle the fitting and the scoring labels alike and rerun the pipeline; p = (1 + #{null ≥
 observed}) / (1 + 1,000). Floors fit once and scored once on held-out items (bag-of-words 0.806,
 the held-out and outside-split no-code floors) report that one AUROC. The agentic nulls (Figure
-F2) permute labels within each task group, because their statistic is within-task. The `auroc`
+A6; F2 in `figures.py`) permute labels within each task group, because their statistic is within-task. The `auroc`
 field of the `sg_*.json` files is the fold mean; `pooled_stats.py` gives every point's pooled
 value. Four groups of points predate the pooled field and were regenerated from the generated
 files, which reproduces their fold means exactly and adds the pooled values: the open-weight
