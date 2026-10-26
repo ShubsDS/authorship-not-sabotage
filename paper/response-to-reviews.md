@@ -10,7 +10,10 @@ result files. All six are valid, and two were worse than stated. The camera-read
 as follows. It also renames terms the reviewer knows from the submission: the stored pairs are now
 the original pairs, the same-generator pairs the rebuilt pairs, the headline rows all attempts,
 the strict rows working backdoors, and an attack that fires is one that works. B′ and S are
-written out as the AUROC on the original and on the rebuilt pairs of the same problems.
+written out as the AUROC on the original and on the rebuilt pairs of the same problems. The models
+that wrote the original backdoors, all released by early 2025, are called the older models, and
+each kind of pair is named by who wrote its honest and its backdoored side (person / older models
+for the original pairs, Sonnet 5 / Sonnet 5 for the rebuilt ones).
 
 **1. The abstract did not state the problem, method, why the method works, or the insight.**
 We rewrote it in that order. It also had three errors, now removed:
@@ -20,8 +23,9 @@ We rewrote it in that order. It also had three errors, now removed:
   not on Haiku 4.5 (0.097 → 0.110).
 - It said the monitor "moves the same way" as the classifier (see point 4).
 
-The new abstract reports the all-attempts and working-backdoor rows side by side and says what ρ
-is not.
+The new abstract states the problem, the two baselines that never run the code, the class swap
+and the catch rate at a fixed audit budget. ρ, the all-attempts and working-backdoor rows, and what
+ρ is not are in Section 4 and Table 1.
 
 **2. The all-attempts sets are mostly failed attacks.** Agreed, and it is worse than stated:
 - Only 14 of 623 (Sonnet 5) and 2 of 611 (Haiku 4.5) of these attacks work, while every original
@@ -64,7 +68,7 @@ and working backdoors. The text says what the all-attempts rows compare.
   drop is in the attacks, not in authorship: it measures how conspicuous the attacks are. This
   holds on working backdoors too: human honest code against our working backdoors scores 0.755,
   against 0.944 on the original pairs. Flagging 2% of the human solutions, it catches 77% of the
-  original working backdoors and 37% of ours (Figure 1d). Haiku 4.5, which wrote neither class,
+  older models' working backdoors and 37% of ours (Figure 1d). Haiku 4.5, which wrote neither class,
   falls the same way (0.875 to 0.729), so this is not the monitor overlooking its own code.
   The submission's "the monitor moves the same way" is withdrawn.
 - **Classifier.** Partly valid. On the 64 problems in both the all-attempts and the
@@ -82,7 +86,7 @@ The appendix now states one convention:
   of that same quantity (joint for ρ).
 - Every permutation null is 1,000 permutations that shuffle the labels for fitting and scoring
   alike.
-- The agentic nulls (Figure F2) are within-task permutations of the plotted statistic.
+- The agentic nulls (Figure A6) are within-task permutations of the plotted statistic.
 
 No conclusion changes. The working-backdoor ρ moves from 0.921 to 0.861. The held-out no-code null
 moves from 0.702 to 0.558 (p = 0.001), so that row is no longer "barely above its null".
@@ -90,16 +94,18 @@ moves from 0.702 to 0.558 (p = 0.001), so that row is no longer "barely above it
 We also ran the no-code floor under the bag-of-words protocol: trained on problems outside the
 test split and scored once, it scores 0.298, below chance. Outside the split, every problem that
 passes the filter has a working backdoor, so the relation between test count and label
-reverses. The paper now leads with that value. It reports the within-split 0.766 as a measure of
-how the split's filter selects the label, not as authorship.
+reverses. Section 3.1 reports it beside the within-split 0.766, as the same relation reversed, and
+presents both as a measure of how the split chose its labels, not as authorship.
 
 **6. Repetition, and no fixed audit budget.** We cut the repeated numbers and verdict words. The band
 labels are gone: the body reports ρ with its interval, and the two values we fixed in advance (0.33
 and 0.72) are disclosed in the appendix with why we no longer use them. We now report detection at a fixed audit budget. At a
 2% false-positive rate, with the threshold set on each set's own honest programs, the Sonnet 5
 monitor catches:
-- on the 99 working-backdoor problems: 77% of the original backdoors and 48% of ours (paired
+- on the 99 working-backdoor problems: 77% of the older models' backdoors and 48% of ours (paired
   difference 0.28, 95% CI 0.15–0.42);
+- on the same problems with the threshold set on the human solutions for both, so that only the
+  backdoors change: 77% and 37% (difference 0.40, 0.28–0.52), the comparison Figure 1d leads with;
 - over all attempts: 85% and 6%.
 
 The appendix gives the full table at 1%, 2% and 5% for both monitors.
