@@ -25,7 +25,7 @@ assembled in main.tex with subcaption; boxed axes with inward major and minor ti
 legends, capped error bars, no grid; greys and one gold accent for what to look at: in Figure 1 the
 backdoors Sonnet 5 wrote, elsewhere our classifiers and backdoored programs. Figure 1 is one PDF with open
 axes and direct labels; Figure 2 is LaTeX itself (framed listings). Kinds of pair are named by who
-wrote each side, honest / backdoor ("person / weaker models" for the original pairs, "Sonnet 5 /
+wrote each side, honest / backdoor ("person / older models" for the original pairs, "Sonnet 5 /
 Sonnet 5" for the rebuilt ones). Text inside a figure is kept to labels; the captions explain.
 Output is deterministic: the PDF creation date is not stamped.
 
@@ -293,7 +293,7 @@ def fig6_label_leak():
 
 
 # F9 (appendix): the Sonnet 5 monitor's catch rate on the working backdoors at every flag rate up to
-# 20%, which Figure 1(c) reads at AUDIT_AT. CELLS and _swap_panels() feed Figure 1(b) and check().
+# 20%, for the original pairs, the rebuilt pairs and person / Sonnet 5; Figure 1(d) reads them at AUDIT_AT. CELLS and _swap_panels() feed Figure 1(b) and check().
 
 AUDIT_KEY, AUDIT_AT = "strict__claude-sonnet-5", 0.02
 CELLS = ("human_honest__stored_attack", "our_honest__stored_attack",
@@ -320,23 +320,26 @@ def _swap_panels():
 
 def fig9_audit_curve():
     cur, at = _audit_points()
+    sw = json.load(open("audit_budget.json"))["curve_swap"][AUDIT_KEY]
+    lines = (("person / older models", cur["stored"], INK, "-", MID, (-4, "top")),
+             ("Sonnet 5 / Sonnet 5", cur["samegen"], GOLD, "--", GOLD, (3, "bottom")),
+             ("person / Sonnet 5", sw["human_honest__our_attack"], GOLD, "-", GOLD, (-4, "top")))
     fig, ax = panel(W9, H9)
     x = [100 * f for f in cur["fpr"]]
-    for key, c, ls, lab in (("stored", INK, "-", "weaker models"), ("samegen", GOLD, "--", "Sonnet 5")):
-        k = cur[key]
+    for lab, k, c, ls, band, (dy, va) in lines:
         ax.fill_between(x, [100 * v for v in k["ci95_lo"]], [100 * v for v in k["ci95_hi"]],
-                        color=c if key == "samegen" else MID, alpha=0.18, lw=0)
+                        color=band, alpha=0.14, lw=0)
         ax.plot(x, [100 * v for v in k["point"]], color=c, ls=ls, lw=1.1)
-        ax.text(x[-1] - 0.4, 100 * k["point"][-1] - 4, lab, ha="right", va="top", fontsize=FS - 1,
-                color=GOLD_D if key == "samegen" else INK)
+        ax.text(x[-1] - 0.4, 100 * k["point"][-1] + dy, lab, ha="right", va=va, fontsize=FS - 1,
+                color=INK if c == INK else GOLD_D)
     ax.axvline(100 * AUDIT_AT, color=INK, lw=0.5, ls=(0, (1, 1.5)))
     ax.set_xlim(0, x[-1]); ax.set_ylim(0, 100)
     ax.set_xticks([0, 5, 10, 15, 20]); ax.set_yticks([0, 25, 50, 75, 100])
     minor(ax)
     ax.set_xlabel(r"honest programs flagged (\%)"); ax.set_ylabel(r"working backdoors caught (\%)")
     save(fig, "f9b-audit-budget.pdf")
-    print(f"F9: at {AUDIT_AT:.0%}: weaker models {at['stored']:.3f}, Sonnet 5 {at['samegen']:.3f}; "
-          f"at {x[-1]:.0f}%: {cur['stored']['point'][-1]:.3f}, {cur['samegen']['point'][-1]:.3f}")
+    j = cur["fpr"].index(AUDIT_AT)
+    print(f"F9: at {AUDIT_AT:.0%}: " + ", ".join(f"{lab} {k['point'][j]:.3f}" for lab, k, *_ in lines))
 
 
 # F11 (Figure 1): the paper in four panels. (a) the 24 monitors ranked with the two classifiers that
@@ -345,7 +348,7 @@ def fig9_audit_curve():
 # monitor's AUROC, and the share of backdoors that monitor catches at AUDIT_AT, with the threshold
 # set on each row's own honest programs. Gold has one meaning: backdoors written by Sonnet 5. Open
 # axes and direct labels, so no legend.
-OVERVIEW_ROWS = ("person / weaker models", "Sonnet 5 / weaker models", "person / Sonnet 5",
+OVERVIEW_ROWS = ("person / older models", "Sonnet 5 / older models", "person / Sonnet 5",
                  "Sonnet 5 / Sonnet 5")  # CELLS in order, honest / backdoor by
 GREY = "#8C8C8C"
 
@@ -370,7 +373,7 @@ def _working_panels():
 def fig11_overview():
     mons = [m["test_auroc"] for m in json.load(open("monitor-summary.json"))]
     bow, mon, caught, _ = _working_panels()
-    fig = plt.figure(figsize=(TEXT_W, 2.8))
+    fig = plt.figure(figsize=(TEXT_W, 2.65))
     top = fig.add_gridspec(1, 1, left=0.075, right=0.99, top=0.93, bottom=0.64)
     low = fig.add_gridspec(1, 3, left=0.215, right=0.985, top=0.47, bottom=0.11, wspace=0.3)
 
@@ -430,12 +433,12 @@ def fig11_overview():
 
 
 # F8 (appendix): the Sonnet 5 monitor's suspicion scores by class, on the original pairs (a person
-# against the weaker models) and the rebuilt pairs (Sonnet 5 on both sides), for the all-attempts and
+# against the older models) and the rebuilt pairs (Sonnet 5 on both sides), for the all-attempts and
 # the working-backdoor problems. Panels are named by who wrote each side, as in Figure 1(b).
 
-SCORE_PANELS = [("monitor_stored_sonnet5_independent_passes.json", "person / weaker models"),
+SCORE_PANELS = [("monitor_stored_sonnet5_independent_passes.json", "person / older models"),
                 ("monitor_samegen_sonnet5_independent_passes.json", "Sonnet 5 / Sonnet 5"),
-                ("monitor_stored_sonnet5_independent_usable.json", "person / weaker models"),
+                ("monitor_stored_sonnet5_independent_usable.json", "person / older models"),
                 ("monitor_samegen_sonnet5_independent_usable.json", "Sonnet 5 / Sonnet 5")]
 
 
@@ -697,9 +700,9 @@ def _check_stored_pairs():
     return bad
 
 
-def _weaker_shares():
-    """Figure 1's caption: the share of the working-backdoor problems whose original backdoor
-    (data._pick_backdoor, as that row is built) each weaker model wrote. Needs train_*.parquet."""
+def _older_counts():
+    """Table A2's working-row column: how many of the working-backdoor problems each older model's
+    backdoor covers (data._pick_backdoor, as that row is built). Needs train_*.parquet."""
     import glob
     shards = sorted(glob.glob("train_*.parquet"))
     if not shards or not os.path.exists("sg_indep_best_usable_v2.json"):
@@ -710,17 +713,17 @@ def _weaker_shares():
     df = pd.concat([pd.read_parquet(f, columns=["problem_id", "solutions", "backdoors"])
                     for f in shards], ignore_index=True)
     df["problem_id"] = df.problem_id.astype(str)
-    group = {"anthropic/claude-3-7-sonnet-latest": "wkShareClaude",
-             "anthropic/claude-3-7-sonnet-thinking-latest": "wkShareClaude",
-             "openai/o3-mini": "wkShareOThree", "openai/o1-mini": "wkShareOOne",
-             "openai/gpt-4o": "wkShareGFourO", "unknown": "wkShareUnattr"}
-    counts = {}
+    macro = {"openai/o3-mini": "atOThreeWork", "anthropic/claude-3-7-sonnet-latest": "atCSonnetWork",
+             "openai/gpt-4o": "atGFourOWork", "anthropic/claude-3-7-sonnet-thinking-latest": "atCThinkWork",
+             "openai/o1-mini": "atOOneWork", "unknown": "atUnattrWork",
+             "openai/gpt-4o-mini": "atGFourOMiniWork", "anthropic/claude-3-5-haiku-latest": "atCHaikuWork",
+             "google/gemini-2.0-flash": "atGeminiWork", "openai/gpt-3.5-turbo": "atGThreeFiveWork"}
+    counts = {m: 0 for m in macro.values()}
     for _, r in df[df.problem_id.isin(ids)].iterrows():
         row = {"problem_id": r.problem_id, "backdoors": [dict(b) for b in r.backdoors],
                "solutions": [dict(s) for s in r.solutions], "top_backdoor_model": None}
-        k = group.get(_pick_backdoor(row).get("model"), "wkShareRest")
-        counts[k] = counts.get(k, 0) + 1
-    return {k: v / len(ids) for k, v in counts.items()}
+        counts[macro[_pick_backdoor(row).get("model")]] += 1
+    return counts
 
 
 def _check_json():
@@ -843,9 +846,12 @@ def check():
         eq("auditSwapDiff", diff["point"], 2)
         eq("auditSwapDiffLo", diff["ci95"][0], 2); eq("auditSwapDiffHi", diff["ci95"][1], 2)
 
-    # Figure 1's caption: each weaker model's share of the working-backdoor problems.
-    for macro, share in _weaker_shares().items():
-        pct(macro, share)
+    # Table A2's working-row column: problems per older model among the working-backdoor problems.
+    counts = _older_counts()
+    for macro, n in counts.items():
+        eq(macro, float(n))
+    if counts and "strictN" in m and sum(counts.values()) != m["strictN"]:
+        bad.append(f"Table A2 working column sums to {sum(counts.values())}, not {m['strictN']:.0f}")
     bad += _check_json()
     bad += _check_stored_pairs()
     if bad:
