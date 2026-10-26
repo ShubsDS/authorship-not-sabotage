@@ -257,6 +257,34 @@ misleads a first-time reader. Changes:
   Limitations. Body still five pages.
 - Appendix Table A8 gains the working-backdoor rows; D.3 gives the crossed catch rates.
 
+### Second cold read: clarity (October 26, 2026)
+
+A second fresh reader, reading for clarity, found three errors from the previous round and
+several unclear passages. Changes:
+
+- Errors fixed: the abstract no longer says the classifier reads "the inserted code" on
+  one-author pairs (masking operators moves it by at most 0.002; what survives is the prompt's
+  layout); the working-backdoor rho is higher because of which problems those are, not because
+  the backdoors work (appendix C.3); the swap's reading rule is tied to the all-attempts run it
+  was fixed for; Figure 1's caption says "when Sonnet 5's code is paired with another author's";
+  Figure A5 cites Figure 1d; eight models, not nine.
+- "Weaker models" is now "older models" everywhere (paper, figures, README, card, LessWrong
+  draft). Figure 1's caption names the models without shares; the shares are now Table A2's
+  working-backdoor column, checked by figures.py.
+- New output: the catch-rate curve for person / Sonnet 5 (`audit_budget.json`, `curve_swap`),
+  drawn as Figure A5's third line so the appendix shows the same comparison as Figure 1d.
+- Clarity: what the test split keeps per problem (720 of 892 problems with a backdoor have one
+  that fails); trained classifier against prompted monitors from prior work; the Haiku 4.5
+  check in the abstract and caption; Table 1's intended reading; Section 3.1 in steps; 0.298 as
+  a reversed relation; the 24 scores as reused; the agentic settings as ControlArena
+  repackagings; length added to the recommended floors.
+- Docs: README summary rewritten to match the paper; experiments/README glossary adds the new
+  terms; response draft brought up to date; the dataset card uses the paper's terms (no
+  "stored", "arm", "fires"), and the bundle was refreshed and re-zipped
+  (same-generator-apps-split.zip, SHA-256 d91ce881...).
+- The LessWrong draft (claude.ai artifact RVqXhxzugSaQdbw4o1sMt2) now reports 77% against 37%
+  with the honest code fixed, the Haiku check, older models and the label-leak counts.
+
 ### Still open
 
 1. The strict monitor re-run (needs an API key; command in `experiments/README.md`, "Pending").
