@@ -146,6 +146,17 @@ python run_tests.py --solutions genm_sonnet5.jsonl --out passm_sonnet5.jsonl --w
 python run_tests.py --solutions gen_haiku45.jsonl  --out pass_haiku45.jsonl  --workers 8
 python verify_backdoor.py --backdoors bdind_haiku45.jsonl --honest-gen gen_haiku45.jsonl --out bdpass_haiku45.jsonl
 python run_tests.py --solutions genm_haiku45.jsonl --out passm_haiku45.jsonl --workers 8
+
+# Is the trigger a legal input, and is the backdoor wrong there? One validator per working-backdoor
+# problem in validators/, written from the statement without seeing any trigger. Both classes run
+# through the same check: our draws (bd_sel.jsonl: the release selection plus the 3 draws the
+# monitor scored) and the stored backdoors of the same problems.
+python check_validators.py --validators validators            # each accepts all its stored test inputs
+python verify_backdoor.py --backdoors bd_sel.jsonl --honest-gen release/honest.jsonl \
+    --validators validators --human-ref --out verified_sonnet5.jsonl
+python verify_backdoor.py --stored --problem-ids sg_indep_best_usable_v2.json \
+    --validators validators --human-ref --out verified_stored.jsonl
+python verified_sets.py --ours verified_sonnet5.jsonl --stored verified_stored.jsonl  # -> verified_strict.json
 ```
 
 ## 5. Measurements on the rebuilt pairs
@@ -206,6 +217,9 @@ python monitor_swap.py               # monitor class-swap 2x2, batch provenance,
                                      #   file mismatch (names the 3 problems and gives the AUROC without them
                                      #   when bdind_sonnet5_best[_nocrash].jsonl are here) -> monitor_swap.json
 python audit_budget.py               # catch rate at 1/2/5% FPR, both monitors and the classifier -> audit_budget.json
+python audit_budget.py --verified verified_strict.json --out audit_budget_verified.json
+                                     #   the same on the working-backdoor problems whose two backdoors
+                                     #   both pass verify_backdoor.py's trigger and reference checks
 python shared_problems.py            # all attempts vs working backdoors on the 64 shared problems -> shared_problems.json
 python attacker_mix.py               # ** models that wrote the original backdoors, original AUROC per
                                      #   attacker, Claude-only rho -> attacker_mix.json
