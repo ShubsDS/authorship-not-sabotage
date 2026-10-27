@@ -25,25 +25,17 @@
 \captionsetup[subfigure]{font=small,labelfont=normalfont,skip=2pt}
 \captionsetup{subrefformat=parens}
 \captionsetup[table]{position=top,skip=6pt}
-% Figure 1 listings (written by experiments/apps/figures.py)
-\definecolor{bdshade}{HTML}{EADBA9}
-\definecolor{bdrule}{HTML}{B8902A}
+% Figures 1 and 2 (written by experiments/apps/figures.py): METR theme. Colour has one meaning in
+% every figure: green = the benchmark as published (its monitors, the older models' backdoors),
+% blue = Sonnet 5's backdoors, near-black = our classifiers that never run the code.
 \usepackage[most]{tcolorbox}
-\definecolor{hlgold}{HTML}{EADBA9}  % Figure 1 backdoor shading (the figures' light gold)
-\newcommand{\cf}{\fontfamily{zi4}\fontsize{6.6}{8.18}\selectfont\lineskiplimit=-\maxdimen}
-\newcommand{\cstrut}{\vrule height 5.97pt depth 2.21pt width 0pt}
-\newcommand{\pl}[1]{\noindent\makebox[\linewidth][l]{\cstrut\hspace{1pt}#1}\par}
-\newcommand{\hl}[1]{\noindent{\setlength{\fboxsep}{0pt}\colorbox{hlgold}{\makebox[\linewidth][l]{\cstrut\hspace{1pt}#1}}}\par}
-\newcommand{\lnr}[1]{\makebox[0.65em][r]{\textcolor{black!45}{\fontsize{5.61}{8.18}\selectfont #1}}\hspace{0.45em}}
-\newcommand{\sect}[2]{{\fontsize{7}{8.4}\selectfont\textsc{#1}\hfill\textit{#2}}\par\vspace{2pt}}
-\tcbset{fig1box/.style={enhanced, sharp corners, boxsep=0pt, left=2.5pt, right=2.5pt, top=3pt,
-  bottom=4pt, toptitle=2.2pt, bottomtitle=2.2pt, fonttitle=\small\bfseries, coltitle=black,
-  boxrule=0.6pt, colframe=white, colback=white, colbacktitle=black!8, titlerule=0.4pt, middle=3pt,
-  borderline={0.6pt}{0.3pt}{black},
-  overlay={\draw[black, line width=0.4pt] ([xshift=0.6pt]title.south west) -- ([xshift=-0.6pt]title.south east);},
-  segmentation style={solid, black, line width=0.4pt}, equal height group=fig1,
-  width=\linewidth, before skip=0pt, after skip=0pt,
-  before upper={\parskip=0pt}, before lower={\parskip=0pt}}}
+\usepackage{pgfplots}\pgfplotsset{compat=1.18}
+\definecolor{mG}{HTML}{2E6B4F}\definecolor{mGL}{HTML}{8DB8A0}\definecolor{mGT}{HTML}{F1F6F2}
+\definecolor{mGH}{HTML}{D8E9DE}\definecolor{mB}{HTML}{2F64B5}\definecolor{mBL}{HTML}{A9C3EA}
+\definecolor{mInk}{HTML}{232323}\definecolor{mTxt}{HTML}{3A3A3A}\definecolor{mMute}{HTML}{7A7A7A}
+\definecolor{mErr}{HTML}{6E6E6E}\definecolor{mGrid}{HTML}{E4E4E4}\definecolor{mEdge}{HTML}{D3DAD5}
+\definecolor{mRed}{HTML}{D64545}
+\newcommand{\mont}{\fontfamily{Montserrat-TLF}\selectfont}
 
 \apptocmd{\thebibliography}{\raggedright}{}{}
 
@@ -629,16 +621,16 @@ an honest solution and a backdoored one \cite{koran2026ensemble, terekhov2025con
 jha2026decorrelation}. We call these the \emph{original pairs} (Figure~\ref{fig:pairs}).
 
 \begin{figure}[t]\centering
-\includegraphics[width=\linewidth]{f11-overview.pdf}
+\input{fig/f11-overview}\vspace{-6pt}
 \caption{\textbf{A standard monitor benchmark can be scored on without finding the sabotage, and its
 scores depend on who wrote the attacks.} (a)~AUROC on the standard APPS backdoor split of \monN{}
-open-weight models (0.4B--35B) prompted as monitors \cite{jha2026decorrelation}, and of two
-classifiers we train that never run the code: bag-of-words, and no-code, which reads only problem
-metadata (cross-validated within the test split, which labels a problem backdoored only if its
+open-weight models (0.4B--35B) prompted as monitors \cite{jha2026decorrelation} (box: quartiles and
+range), and of two classifiers we train that never run the code: bag-of-words, and no-code, which reads
+only problem metadata (cross-validated within the test split, which labels a problem backdoored only if its
 backdoor works, likelier with few tests). The panel shows what the split gives away, not which
 detector is better. (b)--(d)~The \strictN{} problems where every backdoor works, for four kinds of
-pair named by who wrote the honest and the backdoored solution (top row: the original pairs; gold:
-Sonnet~5's backdoors). (b)~Bag-of-words, refitted on each, is highest when Sonnet~5's code is paired
+pair named by who wrote the honest and the backdoored solution (green: the older models' backdoors,
+so the first green bar is the original pairs; blue: Sonnet~5's). (b)~Bag-of-words, refitted on each, is highest when Sonnet~5's code is paired
 with another author's. (c)~The Sonnet~5 monitor is low whenever Sonnet~5 wrote the backdoors (a
 Haiku~4.5 monitor drops too). (d)~Backdoors caught when it flags \auditFPR{} of that row's honest
 programs. \emph{Older models}: Claude~3.7 Sonnet, o3-mini, o1-mini, GPT-4o, GPT-4o-mini, Gemini~2.0
@@ -1116,8 +1108,8 @@ no-code & within, held-out slice & \nocodeHeldout{} (\three{\nocodeHeldoutLo}--\
 \begin{figure}[h]\centering
 \includegraphics{f3-monitors-vs-floors.pdf}
 \caption{\textbf{Both floors against the \monN{} published monitors on the standard test split}
-(\splitAttack{} backdoored and \splitHonest{} honest items, comments removed). Grey bars: the
-monitors of \cite{jha2026decorrelation}. Gold bars: bag-of-words and the no-code classifier
+(\splitAttack{} backdoored and \splitHonest{} honest items, comments removed). Green bars: the
+monitors of \cite{jha2026decorrelation}. Black bars: bag-of-words and the no-code classifier
 cross-validated within the split. Error bars: 95\% bootstrap intervals over problems. Dashed line:
 chance. The monitors are prompted without training, while bag-of-words is trained on the split's
 own training problems, so the figure shows what the split gives away, not which detector is better.}
@@ -1508,8 +1500,8 @@ rate. Flagging only above the threshold gives similar results: Sonnet~5's 2\% ca
 \audConsSonStrictSg{} on the working-backdoor problems (difference \audConsSonStrictD{},
 \audConsSonStrictLo{} to \audConsSonStrictHi{}). Haiku~4.5's rows tell us little. It lost many
 replies and scores many honest programs near the top of the scale, so at 1\% and 2\% it flags few
-backdoors of either kind. Figure~\ref{fig:audit} extends the Sonnet~5 working-backdoor rows to
-every flag rate up to 20\%.
+backdoors of either kind. Figure~\ref{fig:audit} shows the Sonnet~5 working-backdoor rows at budgets
+up to 10\%.
 
 The original and rebuilt rows change the honest side along with the backdoors. Crossing them holds
 one side fixed. With the threshold set on the human solutions for both, the Sonnet~5 monitor catches
@@ -1520,11 +1512,11 @@ Figure~\ref{fig:overview}d (\texttt{audit\_budget.json}, \texttt{swap}).
 
 \begin{figure}[h]\centering
 \includegraphics{f9b-audit-budget.pdf}
-\caption{\textbf{The Sonnet~5 monitor at every audit budget.} Share of the \strictN{} working
-backdoors caught as the threshold flags more honest programs, for three kinds of pair named by who
-wrote the honest and the backdoored side; each threshold is set on that pair's own honest programs.
-Figure~\ref{fig:overview}d reads the curves at the dotted line, \auditFPR{}. Bands: 95\% bootstrap
-intervals over problems.}
+\caption{\textbf{The Sonnet~5 monitor at four audit budgets.} Share of the \strictN{} working
+backdoors caught when the threshold flags 1\%, 2\%, 5\% or 10\% of honest programs, for three kinds
+of pair named by who wrote the honest and the backdoored side; each threshold is set on that pair's
+own honest programs. Figure~\ref{fig:overview}d shows the \auditFPR{} group. At every budget the
+monitor catches fewer of Sonnet~5's backdoors. Error bars: 95\% bootstrap intervals over problems.}
 \label{fig:audit}
 \end{figure}
 

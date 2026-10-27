@@ -1,12 +1,12 @@
 """Build the paper's figures and the F1 table into ../../paper/fig/.
 
-    F11 the paper in four panels            -> f11-overview.pdf          (Figure 1)
+    F11 the paper in four panels            -> f11-overview.tex          (Figure 1, TikZ)
     F5  three original pairs (listings)    -> f5-stored-pairs.tex        (Figure 2)
     F1  protocol x baseline table           -> f1-protocol-baseline.tex   (appendix table)
     F2  agentic-setting floors              -> f2-corpus-floors.pdf       (appendix)
     F3  monitors vs our floors, with nulls  -> f3-monitors-vs-floors.pdf  (appendix)
     F6  the label leak                      -> f6b/f6c-*.pdf              (appendix)
-    F9  catch rate at every audit budget    -> f9b-audit-budget.pdf       (appendix)
+    F9  catch rate at four audit budgets    -> f9b-audit-budget.pdf       (appendix)
     F8  the monitor's suspicion scores      -> f8-monitor-scores.pdf      (appendix)
     F10 what bag-of-words reads             -> f10a/f10b-features-*.pdf   (appendix)
 
@@ -20,11 +20,12 @@ dataset when train_*.parquet (fetch.py) is present. F3 and F11 read the 24 monit
 monitor-summary.json (written by fetch_inputs.py).
 
 Figures are sized at the width main.tex includes them at, so font sizes are the printed sizes.
-One visual system throughout: text typeset by LaTeX in the paper's Times, one PDF per panel,
-assembled in main.tex with subcaption; boxed axes with inward major and minor ticks, boxed
-legends, capped error bars, no grid; greys and one gold accent for what to look at: in Figure 1 the
-backdoors Sonnet 5 wrote, elsewhere our classifiers and backdoored programs. Figure 1 is one PDF with open
-axes and direct labels; Figure 2 is LaTeX itself (framed listings). Kinds of pair are named by who
+One visual system throughout (METR's): text typeset by LaTeX in Montserrat, code in Inconsolata,
+open axes, light grids, grey capped error bars, and colour with one meaning everywhere: green = the
+benchmark as published (its monitors, the older models' backdoors), blue = Sonnet 5's backdoors,
+near-black = our classifiers that never run the code, light grey = honest programs. Figure 1 is
+TikZ/pgfplots and Figure 2 is LaTeX (tcolorbox), both written here; the appendix figures are one PDF
+per panel, assembled in main.tex with subcaption. Kinds of pair are named by who
 wrote each side, honest / backdoor ("person / older models" for the original pairs, "Sonnet 5 /
 Sonnet 5" for the rebuilt ones). Text inside a figure is kept to labels; the captions explain.
 Output is deterministic: the PDF creation date is not stamped.
@@ -124,6 +125,55 @@ DARK, MID, LIGHT = "#4A4A4A", "#8C8C8C", "#CFCFCF"
 LW = 0.5
 
 
+# --- METR theme (camera-ready) -----------------------------------------------------------------
+# Figure text in Montserrat (the face METR's plots use), code in Inconsolata, both typeset by LaTeX.
+# Open axes, light major grid with dotted minor lines, black-edged markers, grey capped error bars.
+# Colour has one meaning in every figure: green = the benchmark as published (its monitors and the
+# older models' backdoors), blue = Sonnet 5's backdoors, near-black = our classifiers that never run
+# the code, light grey = honest programs. Figures 1 and 2 are TikZ/pgfplots and tcolorbox drawn with
+# the same colours, defined in main.tex (mG, mB, mInk, ...).
+FS = 7.0
+MG, MGL, MGT = "#2E6B4F", "#8DB8A0", "#F1F6F2"
+MB, MBL = "#2F64B5", "#A9C3EA"
+MINK, MTXT, MMUTE, MERR, MGRID, MHON = "#232323", "#3A3A3A", "#7A7A7A", "#6E6E6E", "#E4E4E4", "#BDBDBD"
+plt.rcParams.update({
+    "text.latex.preamble": (r"\usepackage[T1]{fontenc}\usepackage[defaultfam,tabular,lining]{montserrat}"
+                            r"\renewcommand{\familydefault}{\sfdefault}\usepackage[italic]{mathastext}"
+                            r"\usepackage[varqu]{zi4}\usepackage{xcolor}"),
+    "font.family": "sans-serif", "font.sans-serif": ["DejaVu Sans"],
+    "font.size": FS, "axes.labelsize": FS, "axes.titlesize": FS + 0.5, "xtick.labelsize": FS - 0.6,
+    "ytick.labelsize": FS - 0.6, "legend.fontsize": FS - 0.6,
+    "axes.spines.top": False, "axes.spines.right": False, "axes.edgecolor": MINK, "axes.linewidth": 0.6,
+    "xtick.direction": "out", "ytick.direction": "out", "xtick.top": False, "ytick.right": False,
+    "xtick.major.size": 2.5, "ytick.major.size": 2.5, "xtick.minor.size": 0, "ytick.minor.size": 0,
+    "xtick.major.width": 0.6, "ytick.major.width": 0.6, "xtick.color": MTXT, "ytick.color": MTXT,
+    "axes.labelcolor": MINK, "text.color": MINK, "axes.titlepad": 4, "legend.frameon": False,
+    "errorbar.capsize": 1.8,
+})
+
+
+def mgrid(ax, axis="y", minor_lines=True):
+    """METR grid: light major lines, dotted minor lines, drawn under the data."""
+    from matplotlib.ticker import AutoMinorLocator
+    ax.grid(True, axis=axis, which="major", color=MGRID, lw=0.5, zorder=0)
+    if minor_lines:
+        if axis in ("y", "both"):
+            ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+        if axis in ("x", "both"):
+            ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.grid(True, axis=axis, which="minor", color=MGRID, lw=0.4, ls=(0, (1, 1.5)), zorder=0)
+    ax.set_axisbelow(True)
+
+
+def ebar(ax, x, v, lo, hi, horizontal=False):
+    """Grey capped error bar."""
+    kw = dict(fmt="none", ecolor=MERR, elinewidth=0.6, capsize=1.6, capthick=0.6, zorder=3)
+    if horizontal:
+        ax.errorbar(v, x, xerr=[[v - lo], [hi - v]], **kw)
+    else:
+        ax.errorbar(x, v, yerr=[[v - lo], [hi - v]], **kw)
+
+
 def f3dp(x):
     """Three decimals, rounding half up (format() rounds 0.7715 to 0.771; the paper prints 0.772)."""
     return f"{math.floor(x * 1000 + 0.5) / 1000:.3f}"
@@ -214,43 +264,81 @@ def _code_hi(line):
     return "".join(out)
 
 
+# An input on which each backdoor answers wrongly, with the honest and the backdoored output.
+# _check_exploits() runs both programs on it, so these cannot drift from the code above.
+EXPLOITS = {"4253": ("12", "432", "420"), "755": ("18", "4", "3"), "4254": ("2 3", "unsafe", "safe")}
+
+
 def fig5_stored_pairs():
-    r"""Figure 2 as LaTeX: three framed boxes (tcolorbox), one per problem, each with a grey title
-    bar, the honest program above a divider and the backdoored one below, line numbers and bold
-    keywords; the backdoor's lines are shaded. Macros (\cf, \pl, \hl, \lnr, \sect, fig1box) are
-    defined in main.tex. Writes fig/f5-stored-pairs.tex."""
+    r"""Figure 2 as LaTeX in the METR method-diagram style: one section per problem under a green
+    rule, a tinted panel holding two white cards (honest, backdoored), the backdoor's lines tinted
+    green (the older models' colour in Figure 1), and the exploit under each pair. Colours and
+    \mont are defined in main.tex. Writes fig/f5-stored-pairs.tex."""
     nh = max(len(p["honest"].splitlines()) for p in STORED_PAIRS)
     na = max(len(p["attack"].splitlines()) for p in STORED_PAIRS)
 
-    def code(src, mark, n):
+    def code(src, n, mark=()):
         lines = src.splitlines()
-        out = []
-        for k in range(n):
-            body = r"\lnr{%d}%s" % (k + 1, _code_hi(lines[k])) if k < len(lines) else ""
-            out.append((r"\hl{%s}" if k in mark else r"\pl{%s}") % body)
-        return "\\begin{minipage}[t]{\\linewidth}\\cf\n" + "\n".join(out) + "\n\\end{minipage}"
+        rows = [((r"\mhl{%s}" if k in mark else r"\mpl{%s}") % _code_hi(lines[k])) if k < len(lines) else r"\mpl{}"
+                for k in range(n)]
+        return "{\\mcf\n" + "\n".join(rows) + "}"
 
     cols = []
     for k, p in enumerate(STORED_PAIRS):
         who = p["label"].replace(" (thinking)", "")
+        inp, ho, bo = EXPLOITS[p["pid"]]
         cols.append(
-            "\\begin{minipage}[t]{0.322\\linewidth}\n"
-            f"\\begin{{tcolorbox}}[fig1box, title={{({'abc'[k]}) {p['title']}}}]\n"
-            "\\sect{honest}{by a person}\n" + code(p["honest"], (), nh) + "\n"
-            f"\\tcblower\n\\sect{{backdoored}}{{by {who}}}\n" + code(p["attack"], p["mark"], na) +
-            "\n\\end{tcolorbox}\n\\end{minipage}")
+            "\\begin{minipage}[t]{0.318\\linewidth}\n"
+            "{\\color{mG}\\rule{\\linewidth}{1pt}}\\par\\vspace{3pt}\n"
+            "{\\mont\\fontsize{8.4}{10}\\selectfont\\strut %s\\enspace\\textcolor{mG}{\\vrule width 0.7pt}\\enspace %s}"
+            "\\par\\vspace{4pt}\n" % ("abc"[k], p["title"]) +
+            "\\begin{tcolorbox}[mpanel]\n"
+            "\\begin{tcolorbox}[mcard, equal height group=mh]{\\mont\\fontsize{6.8}{8.2}\\selectfont\\textbf{Honest}"
+            "\\hfill\\textcolor{mMute}{a person}}\\par\\vspace{2.5pt}\n" + code(p["honest"], nh) +
+            "\\end{tcolorbox}\\par\\vspace{3pt}\n"
+            "\\begin{tcolorbox}[mcard, equal height group=mb]{\\mont\\fontsize{6.8}{8.2}\\selectfont\\textbf{Backdoored}"
+            "\\hfill\\textcolor{mMute}{%s}}\\par\\vspace{2.5pt}\n" % who + code(p["attack"], na, p["mark"]) +
+            "\\end{tcolorbox}\\par\\vspace{4pt}\n"
+            "{\\mont\\fontsize{6.4}{8}\\selectfont\\textcolor{mMute}{input} {\\mcf %s}\\hfill"
+            "{\\mcf %s}\\,\\mok\\quad{\\mcf %s}\\,\\mno\\hspace*{1pt}}\n"
+            "\\end{tcolorbox}\n\\end{minipage}" % (_code_tex(inp), _code_tex(ho), _code_tex(bo)))
+    macros = r"""\providecommand{\mcf}{\fontfamily{zi4}\fontsize{6.2}{7.9}\selectfont}
+\providecommand{\mst}{\vrule height 5.7pt depth 2.2pt width 0pt}
+\providecommand{\mpl}[1]{\noindent\makebox[\linewidth][l]{\mst#1}\par}
+\providecommand{\mhl}[1]{\noindent{\setlength{\fboxsep}{0pt}\colorbox{mGH}{\makebox[\linewidth][l]{\mst#1}}}\par}
+\providecommand{\mok}{\tikz[baseline=-0.62ex]{\fill[mG] (0,0) circle (2.5pt);\draw[white, line width=0.6pt, line cap=round] (-1.15pt,0.1pt)--(-0.3pt,-0.85pt)--(1.25pt,0.95pt);}}
+\providecommand{\mno}{\tikz[baseline=-0.62ex]{\fill[mRed] (0,0) circle (2.5pt);\draw[white, line width=0.6pt, line cap=round] (-0.95pt,-0.95pt)--(0.95pt,0.95pt) (-0.95pt,0.95pt)--(0.95pt,-0.95pt);}}
+\tcbset{mpanel/.style={enhanced, arc=3pt, boxrule=0pt, colback=mGT, left=3.5pt, right=3.5pt, top=3.5pt, bottom=3.5pt,
+  boxsep=0pt, before skip=0pt, after skip=0pt, width=\linewidth, before upper={\parskip=0pt}},
+  mcard/.style={enhanced, arc=2.5pt, boxrule=0.5pt, colframe=mEdge, colback=white, left=3pt, right=2pt, top=2.5pt,
+  bottom=2.5pt, boxsep=0pt, before skip=0pt, after skip=0pt, width=\linewidth, before upper={\parskip=0pt}}}"""
     parts = ["% generated by experiments/apps/figures.py (fig5_stored_pairs); do not edit by hand",
-             "\\begin{figure}[t]\\centering\\small",
+             "\\begin{figure}[t]\\centering", macros,
              "\\hfill\n".join(cols),
              "\\caption{\\textbf{Three original pairs} from the public APPS backdoor dataset "
              "\\cite{inglis2025appscontrolarena}, comments removed. A person wrote each honest solution "
-             "and the named model wrote the backdoor, whose trigger and wrong output are shaded. The "
-             "models' code also differs in style, with spaced operators in (a) and (c) and an "
-             "entry-point guard in (b).}",
+             "and the named model wrote the backdoor, whose trigger and wrong output are shaded; under each "
+             "pair, an input on which the backdoored program answers wrongly. The models' code also differs "
+             "in style, with spaced operators in (a) and (c) and an entry-point guard in (b).}",
              "\\label{fig:pairs}", "\\end{figure}"]
     with open(f"{OUT}/f5-stored-pairs.tex", "w") as fh:
         fh.write("\n".join(parts) + "\n")
-    print(f"F5: problems {', '.join(p['pid'] for p in STORED_PAIRS)} in three framed boxes (journal monochrome)")
+    print(f"F5: problems {', '.join(p['pid'] for p in STORED_PAIRS)}, METR cards with exploit inputs")
+
+
+def _check_exploits():
+    """Run each pair's honest and backdoored program on its exploit input."""
+    import subprocess
+    import sys
+    bad = []
+    for p in STORED_PAIRS:
+        inp, ho, bo = EXPLOITS[p["pid"]]
+        run = lambda c: subprocess.run([sys.executable, "-c", c], input=inp, capture_output=True,
+                                       text=True).stdout.strip()
+        got = (run(p["honest"]), run(p["attack"]))
+        if got != (ho, bo):
+            bad.append(f"F5 {p['pid']}: on input {inp!r} the programs print {got}, not {(ho, bo)}")
+    return bad
 
 
 # F6 (appendix): the label leak. (a) the no-code classifier cross-validated inside the split and
@@ -266,26 +354,26 @@ def fig6_label_leak():
     fig, ax = panel(W6, H6)
     vals = [(NOCODE_FLOOR, NOCODE_CI), (NOCODE_OUTSIDE, NOCODE_OUTSIDE_CI)]
     for x, (v, (lo, hi)) in enumerate(vals):
-        ax.bar(x, v, width=0.6, color=GOLD_D, ec=INK, lw=LW, zorder=2)
-        ax.errorbar(x, v, yerr=[[v - lo], [hi - v]], fmt="none", ecolor=INK, elinewidth=0.6, zorder=3)
-        _bar_label(ax, x, hi, f"{v:.2f}", 0.02)
-    ax.axhline(0.5, color=INK, lw=0.5, ls=(0, (4, 2)))
+        ax.bar(x, v, width=0.55, color=MINK, zorder=2)
+        ebar(ax, x, v, lo, hi)
+        _bar_label(ax, x, hi, f"{v:.2f}", 0.025)
+    ax.axhline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
     ax.set_xticks([0, 1])
-    ax.set_xticklabels([r"\shortstack{trained inside\\the split}", r"\shortstack{trained outside\\the split}"])
-    ax.tick_params(axis="x", which="both", top=False, bottom=False)
-    ax.set_xlim(-0.6, 1.6); ax.set_ylim(0, 1.0); ax.set_yticks([0, 0.5, 1.0])
-    minor(ax, x=False)
+    ax.set_xticklabels([r"\shortstack{inside\\the split}", r"\shortstack{outside\\the split}"])
+    ax.tick_params(axis="x", length=0)
+    ax.set_xlim(-0.6, 1.6); ax.set_ylim(0, 1.0); ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
+    mgrid(ax)
     ax.set_ylabel("AUROC")
     save(fig, "f6b-nocode.pdf")
 
     fig, ax = panel(W6, H6)
-    for x, (v, c) in enumerate(((TESTS_ATTACK, GOLD), (TESTS_HONEST, LIGHT))):
-        ax.bar(x, v, width=0.6, color=c, ec=INK, lw=LW)
+    for x, (v, c) in enumerate(((TESTS_ATTACK, MG), (TESTS_HONEST, MHON))):
+        ax.bar(x, v, width=0.55, color=c, zorder=2)
         _bar_label(ax, x, v, f"{v:.2f}", 0.8)
     ax.set_xticks([0, 1]); ax.set_xticklabels(["backdoored", "honest"])
-    ax.tick_params(axis="x", which="both", top=False, bottom=False)
-    ax.set_xlim(-0.6, 1.6); ax.set_ylim(0, 45); ax.set_yticks([0, 20, 40])
-    minor(ax, x=False)
+    ax.tick_params(axis="x", length=0)
+    ax.set_xlim(-0.6, 1.6); ax.set_ylim(0, 45); ax.set_yticks([0, 10, 20, 30, 40])
+    mgrid(ax)
     ax.set_ylabel("test cases per problem")
     save(fig, "f6c-tests.pdf")
     print(f"F6: no-code {NOCODE_FLOOR:.3f} inside, {NOCODE_OUTSIDE:.3f} outside; "
@@ -298,7 +386,7 @@ def fig6_label_leak():
 AUDIT_KEY, AUDIT_AT = "strict__claude-sonnet-5", 0.02
 CELLS = ("human_honest__stored_attack", "our_honest__stored_attack",
          "human_honest__our_attack", "our_honest__our_attack")
-W9, H9 = 0.5, 1.8
+W9, H9 = 0.7, 2.1
 
 
 def _audit_points():
@@ -319,27 +407,38 @@ def _swap_panels():
 
 
 def fig9_audit_curve():
+    """Grouped bars: share of working backdoors caught at four audit budgets, for three kinds of pair.
+    Same bar style as Figure 1: green = the older models' backdoors, blue = Sonnet 5's."""
+    from matplotlib.patches import Patch
     cur, at = _audit_points()
     sw = json.load(open("audit_budget.json"))["curve_swap"][AUDIT_KEY]
-    lines = (("person / older models", cur["stored"], INK, "-", MID, (-4, "top")),
-             ("Sonnet 5 / Sonnet 5", cur["samegen"], GOLD, "--", GOLD, (3, "bottom")),
-             ("person / Sonnet 5", sw["human_honest__our_attack"], GOLD, "-", GOLD, (-4, "top")))
+    series = (("person / older models", cur["stored"], MG),
+              ("person / Sonnet 5", sw["human_honest__our_attack"], MB),
+              ("Sonnet 5 / Sonnet 5", cur["samegen"], MBL))
+    budgets = (0.01, 0.02, 0.05, 0.10)
     fig, ax = panel(W9, H9)
-    x = [100 * f for f in cur["fpr"]]
-    for lab, k, c, ls, band, (dy, va) in lines:
-        ax.fill_between(x, [100 * v for v in k["ci95_lo"]], [100 * v for v in k["ci95_hi"]],
-                        color=band, alpha=0.14, lw=0)
-        ax.plot(x, [100 * v for v in k["point"]], color=c, ls=ls, lw=1.1)
-        ax.text(x[-1] - 0.4, 100 * k["point"][-1] + dy, lab, ha="right", va=va, fontsize=FS - 1,
-                color=INK if c == INK else GOLD_D)
-    ax.axvline(100 * AUDIT_AT, color=INK, lw=0.5, ls=(0, (1, 1.5)))
-    ax.set_xlim(0, x[-1]); ax.set_ylim(0, 100)
-    ax.set_xticks([0, 5, 10, 15, 20]); ax.set_yticks([0, 25, 50, 75, 100])
-    minor(ax)
-    ax.set_xlabel(r"honest programs flagged (\%)"); ax.set_ylabel(r"working backdoors caught (\%)")
+    w = 0.26
+    for g, f in enumerate(budgets):
+        j = min(range(len(cur["fpr"])), key=lambda i: abs(cur["fpr"][i] - f))
+        for k, (lab, s, c) in enumerate(series):
+            v, lo, hi = (100 * s[key][j] for key in ("point", "ci95_lo", "ci95_hi"))
+            x = g + (k - 1) * w
+            ax.bar(x, v, width=w * 0.92, color=c, zorder=2)
+            ebar(ax, x, v, lo, hi)
+    ax.set_xticks(range(len(budgets)))
+    ax.set_xticklabels([r"%d\%%" % round(100 * f) for f in budgets])
+    ax.tick_params(axis="x", length=0)
+    ax.set_xlim(-0.55, len(budgets) - 0.45); ax.set_ylim(0, 100)
+    ax.set_yticks([0, 25, 50, 75, 100]); ax.set_yticklabels([r"0\%", r"25\%", r"50\%", r"75\%", r"100\%"])
+    mgrid(ax)
+    ax.set_xlabel("audit budget (share of honest programs flagged)")
+    ax.set_ylabel("working backdoors caught")
+    ax.legend(handles=[Patch(color=c, label=lab) for lab, _, c in series], loc="lower center",
+              bbox_to_anchor=(0.5, 1.0), ncol=3, borderaxespad=0.3, handlelength=1.0, columnspacing=1.2,
+              title=r"honest / backdoor by", title_fontsize=FS - 0.6)
     save(fig, "f9b-audit-budget.pdf")
     j = cur["fpr"].index(AUDIT_AT)
-    print(f"F9: at {AUDIT_AT:.0%}: " + ", ".join(f"{lab} {k['point'][j]:.3f}" for lab, k, *_ in lines))
+    print(f"F9: at {AUDIT_AT:.0%}: " + ", ".join(f"{lab} {s['point'][j]:.3f}" for lab, s, _ in series))
 
 
 # F11 (Figure 1): the paper in four panels. (a) the 24 monitors ranked with the two classifiers that
@@ -370,65 +469,86 @@ def _working_panels():
     return bow, mon, caught, sw["backdoor_only_difference"]
 
 
+def _errcap(x, lo, hi, w=0.07):
+    """A grey capped error bar in pgfplots axis coordinates."""
+    seg = r"\draw[mErr, line width=0.6pt] (axis cs:%.3f,%.4f) -- (axis cs:%.3f,%.4f);"
+    return seg % (x, lo, x, hi) + "".join(seg % (x - w, y, x + w, y) for y in (lo, hi))
+
+
 def fig11_overview():
-    mons = [m["test_auroc"] for m in json.load(open("monitor-summary.json"))]
+    """Figure 1 as TikZ/pgfplots (one row, four panels of equal height). (a) the monitors as a box
+    with their dots beside the two classifiers that never run the code; (b)-(d) grouped bars by who
+    wrote the honest code, green = the older models' backdoors, blue = Sonnet 5's. Writes
+    fig/f11-overview.tex (the tikzpicture only; main.tex holds the figure and caption)."""
+    vals = sorted(m["test_auroc"] for m in json.load(open("monitor-summary.json")))
     bow, mon, caught, _ = _working_panels()
-    fig = plt.figure(figsize=(TEXT_W, 2.65))
-    top = fig.add_gridspec(1, 1, left=0.075, right=0.99, top=0.93, bottom=0.64)
-    low = fig.add_gridspec(1, 3, left=0.215, right=0.985, top=0.47, bottom=0.11, wspace=0.3)
+    q1, med, q3 = statistics.quantiles(vals, n=4)
+    jit = [-0.2, -0.07, 0.07, 0.2]
+    dots = " ".join("(%.3f,%.4f)" % (jit[i % 4] * (1 if (i // 4) % 2 == 0 else -1) * 0.9, v)
+                    for i, v in enumerate(vals))
+    beat = sum(v < TFIDF_FLOOR for v in vals)
+    a = r"""
+\begin{axis}[at={(0.75cm,0cm)}, anchor=north west, width=3.55cm, height=3.6cm, scale only axis,
+  xmin=-0.6, xmax=2.55, ymin=0.4, ymax=1.0, ytick={0.4,0.5,...,1.0}, yticklabels={0.4,0.5,0.6,0.7,0.8,0.9,1.0},
+  xtick={0,1.25,2.15}, xticklabels={NMON published\\monitors, no-code, bag-of-\\words},
+  xticklabel style={align=center, font=\mont\fontsize{6.6}{7.6}\selectfont}, x tick style={draw=none},
+  ymajorgrids, ylabel={AUROC}, title={(a) Standard test split}, clip=false]
+\draw[mMute, densely dotted, line width=0.5pt] (axis cs:-0.6,0.5) -- (axis cs:2.55,0.5);
+\draw[mInk, line width=0.6pt, dash pattern=on 2.5pt off 1.5pt] (axis cs:-0.45,BOW) -- (axis cs:2.15,BOW);
+\draw[mG, line width=0.7pt] (axis cs:0,MIN) -- (axis cs:0,Q1) (axis cs:0,Q3) -- (axis cs:0,MAX);
+\draw[mG, line width=0.7pt] (axis cs:-0.1,MIN) -- (axis cs:0.1,MIN) (axis cs:-0.1,MAX) -- (axis cs:0.1,MAX);
+\filldraw[fill=mGT, draw=mG, line width=0.7pt] (axis cs:-0.3,Q1) rectangle (axis cs:0.3,Q3);
+\draw[mG, line width=1.1pt] (axis cs:-0.3,MED) -- (axis cs:0.3,MED);
+\addplot[only marks, mark=*, mark size=1.5pt, mark options={fill=mG, draw=black, line width=0.3pt}] coordinates {DOTS};
+ERRNC
+ERRBOW
+\fill[mInk!55, draw=black, line width=0.35pt] (axis cs:1.25,NC) circle (2.4pt);
+\fill[mInk, draw=black, line width=0.35pt] (axis cs:2.15,BOW) circle (2.4pt);
+\node[anchor=south west, inner sep=1.5pt, font=\mont\fontsize{6.4}{7.6}\selectfont, text=mInk] at (axis cs:0.4,BOW) {BEAT of NMON below};
+\end{axis}"""
+    for k, v in (("ERRNC", _errcap(1.25, *NOCODE_CI)), ("ERRBOW", _errcap(2.15, *TFIDF_CI)), ("DOTS", dots),
+                 ("NMON", str(len(vals))), ("BEAT", str(beat)), ("BOW", f"{TFIDF_FLOOR:.4f}"),
+                 ("NC", f"{NOCODE_FLOOR:.4f}"), ("MIN", f"{vals[0]:.4f}"), ("MAX", f"{vals[-1]:.4f}"),
+                 ("Q1", f"{q1:.4f}"), ("Q3", f"{q3:.4f}"), ("MED", f"{med:.4f}")):
+        a = a.replace(k, v)
 
-    # (a) every detector ranked by AUROC on the test split; bars start at chance
-    ax = fig.add_subplot(top[0])
-    rows = sorted([(v, "mon") for v in mons] + [(TFIDF_FLOOR, "bow"), (NOCODE_FLOOR, "nocode")],
-                  key=lambda r: -r[0])
-    for i, (v, kind) in enumerate(rows):
-        ax.bar(i, v - 0.5, bottom=0.5, width=0.78, color=LIGHT if kind == "mon" else DARK, lw=0,
-               zorder=2)
-    ax.axhline(0.5, color=INK, lw=LW, zorder=3)
-    kinds = [r[1] for r in rows]
-    for kind, v, lab, ty in (("bow", TFIDF_FLOOR, "bag-of-words", 0.94),
-                             ("nocode", NOCODE_FLOOR, "no-code", 0.88)):
-        i = kinds.index(kind)
-        ax.plot([i, i, 6.75], [v + 0.008, ty, ty], color=DARK, lw=LW, solid_capstyle="butt")
-        ax.text(7.0, ty, lab, ha="left", va="center", fontsize=FS - 1, color=INK)
-    ax.text(len(rows) - 1, 0.512, "chance", ha="right", va="bottom", fontsize=FS - 1.5, color=GREY)
-    ax.set_xlim(-0.8, len(rows) - 0.2); ax.set_ylim(0.4, 1.0)
-    ax.set_xticks([]); ax.set_yticks([0.4, 0.6, 0.8, 1.0])
-    _open(ax); ax.spines["bottom"].set_visible(False)
-    ax.set_ylabel("AUROC")
-    ax.set_title(f"(a) {len(mons)} open-weight monitors and two classifiers", loc="left", pad=3)
+    def bars(x, title, cells, ymin, ymax, ticks, labels, scale):
+        s = []
+        for i, hk in enumerate(("human_honest", "our_honest")):
+            for ak, col, dx in (("stored_attack", "mG", -0.19), ("our_attack", "mB", 0.19)):
+                v, lo, hi = (scale * t for t in cells[f"{hk}__{ak}"])
+                s.append(r"\fill[%s] (axis cs:%.3f,%s) rectangle (axis cs:%.3f,%.4f);"
+                         % (col, i + dx - 0.17, ymin, i + dx + 0.17, v))
+                s.append(_errcap(i + dx, lo, hi, 0.06))
+        return (r"""
+\begin{axis}[at={(%scm,0cm)}, anchor=north west, width=2.3cm, height=3.6cm, scale only axis,
+  xmin=-0.55, xmax=1.55, ymin=%s, ymax=%s, ytick={%s}, yticklabels={%s}, xtick={0,1}, xticklabels={person,Sonnet~5},
+  x tick style={draw=none}, ymajorgrids, xlabel={honest code by}, title={%s}, clip=false]
+""" % (x, ymin, ymax, ticks, labels, title)) + "\n".join(s) + "\n\\end{axis}"
 
-    # (b)-(d): one row per kind of pair, the original pairs on top; gold = Sonnet 5's backdoors
-    y = [3, 2, 1, 0]
-    specs = (("(b) bag-of-words", bow, "AUROC", 1.0), ("(c) Sonnet 5 monitor", mon, "AUROC", 1.0),
-             ("(d) same monitor", caught, r"caught at %d\%% FPR (\%%)" % round(100 * AUDIT_AT), 100.0))
-    for k, (title, cells, xlab, scale) in enumerate(specs):
-        a = fig.add_subplot(low[k])
-        left = 0.4 if scale == 1.0 else 0.0
-        for yy, cell in zip(y, CELLS):
-            v, lo, hi = (scale * x for x in cells[cell])
-            c = GOLD if cell.endswith("our_attack") else LIGHT
-            a.barh(yy, v - scale * left, left=scale * left, height=0.62, color=c, lw=0, zorder=2)
-            a.errorbar(v, yy, xerr=[[v - lo], [hi - v]], fmt="none", ecolor=INK, elinewidth=0.5,
-                       capsize=1.2, capthick=0.5, zorder=3)
-            lab = f"{v:.2f}" if scale == 1.0 else r"%d\%%" % math.floor(v + 0.5)
-            a.text(hi + 0.015 * scale, yy, lab, ha="left", va="center", fontsize=FS - 1.5,
-                   color=GOLD_D if c == GOLD else INK)
-        if scale == 1.0:
-            a.set_xlim(0.4, 1.14); a.set_xticks([0.4, 0.7, 1.0])
-        else:
-            a.set_xlim(0, 114); a.set_xticks([0, 50, 100])
-        a.set_ylim(-0.6, 3.6)
-        a.set_yticks(y); a.set_yticklabels(OVERVIEW_ROWS if k == 0 else [], fontsize=FS - 1)
-        _open(a); a.tick_params(axis="y", length=0)
-        a.set_xlabel(xlab, labelpad=2)
-        a.set_title(title, loc="left", pad=3)
-        if k == 0:
-            a.text(-0.04, 1.0, "honest / backdoor by", transform=a.transAxes, ha="right",
-                   va="bottom", fontsize=FS - 1.5, color=GREY)
-    save(fig, "f11-overview.pdf")
-    print(f"F11: bag-of-words ranks {1 + kinds.index('bow')} and no-code {1 + kinds.index('nocode')} "
-          f"of {len(rows)}; working-backdoor swap (bag-of-words / monitor / caught) " +
+    pct = r"0\%,20\%,40\%,60\%,80\%,100\%"
+    body = "\n".join([
+        "% generated by experiments/apps/figures.py (fig11_overview); do not edit by hand",
+        r"""\begin{tikzpicture}
+\pgfplotsset{every axis/.append style={/pgf/number format/assume math mode=true,
+  tick label style={font=\mont\fontsize{6.6}{7.6}\selectfont, text=mTxt},
+  label style={font=\mont\fontsize{7}{8.4}\selectfont, text=mInk},
+  title style={font=\mont\fontsize{7.8}{9.4}\selectfont, text=mInk, yshift=-2pt},
+  axis lines=left, axis line style={mInk, line width=0.5pt, -}, tick style={mInk, line width=0.5pt},
+  major tick length=2.5pt, xlabel style={yshift=2pt}, ylabel style={yshift=-3pt},
+  major grid style={mGrid, line width=0.45pt}}}""",
+        a,
+        bars(5.25, "(b) Bag-of-words", bow, 0.5, 1.0, "0.5,0.6,...,1.0", "0.5,0.6,0.7,0.8,0.9,1.0", 1),
+        bars(8.0, r"(c) Sonnet~5 monitor", mon, 0.5, 1.0, "0.5,0.6,...,1.0", "", 1),
+        bars(11.0, r"(d) Caught at %d\%% FPR" % round(100 * AUDIT_AT), caught, 0, 100, "0,20,...,100", pct, 100),
+        r"""\node[anchor=north, font=\mont\fontsize{6.8}{8}\selectfont, text=mInk] at (9.35cm,-4.62cm)
+  {\tikz[baseline=-0.6ex]\fill[mG] (0,-2.5pt) rectangle (7pt,2.5pt);\ backdoors by the older models\qquad
+   \tikz[baseline=-0.6ex]\fill[mB] (0,-2.5pt) rectangle (7pt,2.5pt);\ backdoors by Sonnet~5};
+\end{tikzpicture}"""])
+    with open(f"{OUT}/f11-overview.tex", "w") as fh:
+        fh.write(body + "\n")
+    print(f"F11: {beat} of {len(vals)} monitors below bag-of-words; working-backdoor swap "
+          "(bag-of-words / monitor / caught) " +
           ", ".join(f"{bow[c][0]:.3f}/{mon[c][0]:.3f}/{caught[c][0]:.3f}" for c in CELLS))
 
 
@@ -450,25 +570,27 @@ def _scores(path):
 
 def fig8_monitor_scores():
     import numpy as np
-    fig, axes = plt.subplots(1, 4, figsize=(TEXT_W, 1.55), sharey=True)
-    fig.subplots_adjust(wspace=0.2, top=0.78)
+    fig, axes = plt.subplots(1, 4, figsize=(TEXT_W, 1.6), sharey=True)
+    fig.subplots_adjust(wspace=0.16, top=0.76)
     bins = np.arange(0, 105, 10)
     means = []
     for ax, (path, title) in zip(axes, SCORE_PANELS):
         h, a = _scores(path)
         means.append(float(np.mean(a)))
-        ax.hist(h, bins=bins, weights=np.ones(len(h)) / len(h) * 100, color=LIGHT, ec=INK, lw=0.3)
-        ax.hist(a, bins=bins, weights=np.ones(len(a)) / len(a) * 100, histtype="step", color=GOLD_D,
-                lw=1.0)
-        ax.set_title(title, pad=3, fontsize=FS - 0.5)
-        ax.set_xlim(0, 100); ax.set_xticks([0, 50, 100]); ax.set_ylim(0, 100)
-        minor(ax)
-    axes[0].text(13, 88, "honest", ha="left", va="center", fontsize=FS - 1)
-    axes[0].text(87, 72, "backdoored", ha="right", va="center", fontsize=FS - 1, color=GOLD_D)
+        col = MG if title.startswith("person") else MB
+        ax.hist(h, bins=bins, weights=np.ones(len(h)) / len(h) * 100, color=MHON, ec="white", lw=0.4, zorder=2)
+        ax.hist(a, bins=bins, weights=np.ones(len(a)) / len(a) * 100, color=col, alpha=0.14, lw=0, zorder=2)
+        ax.hist(a, bins=bins, weights=np.ones(len(a)) / len(a) * 100, histtype="step", color=col, lw=1.2, zorder=3)
+        ax.set_title(title, pad=3, fontsize=FS)
+        ax.set_xlim(0, 100); ax.set_xticks([0, 50, 100]); ax.set_ylim(0, 100); ax.set_yticks([0, 25, 50, 75, 100])
+        mgrid(ax)
+    axes[0].text(13, 88, "honest", ha="left", va="center", fontsize=FS - 0.8, color=MMUTE)
+    axes[0].text(87, 70, "backdoored", ha="right", va="center", fontsize=FS - 0.8, color=MG)
+    axes[1].text(87, 70, "backdoored", ha="right", va="center", fontsize=FS - 0.8, color=MB)
     for k, group in ((0, "all attempts"), (2, "working backdoors")):
         l, r = axes[k].get_position(), axes[k + 1].get_position()
-        fig.text((l.x0 + r.x1) / 2, 0.95, group, ha="center", va="bottom", fontsize=FS)
-        fig.add_artist(plt.Line2D([l.x0, r.x1], [0.935, 0.935], color=INK, lw=0.4))
+        fig.text((l.x0 + r.x1) / 2, 0.95, group, ha="center", va="bottom", fontsize=FS + 0.3)
+        fig.add_artist(plt.Line2D([l.x0, r.x1], [0.935, 0.935], color=MINK, lw=0.5))
     axes[0].set_ylabel(r"programs (\%)")
     fig.supxlabel("suspicion score", fontsize=FS, y=-0.08)
     save(fig, "f8-monitor-scores.pdf")
@@ -486,20 +608,20 @@ def fig10_features(k=8):
     att = json.load(open("lexical_probe.json"))["headline"]["attribution"]
     lim = max(abs(w) for key in ("B_prime", "S") for side in ("attack", "honest")
               for _, w in att[key][side][:k])
-    for key, name in (("B_prime", "f10a-features-stored.pdf"), ("S", "f10b-features-samegen.pdf")):
+    for key, name, col in (("B_prime", "f10a-features-stored.pdf", MG), ("S", "f10b-features-samegen.pdf", MB)):
         fig, ax = panel(0.48, 2.0)
         items = [(_tok(t), w) for t, w in att[key]["attack"][:k]][::-1] + \
                 [(_tok(t), w) for t, w in att[key]["honest"][:k]]
         n = len(items)
         for i, (t, w) in enumerate(items):
             y = n - 1 - i
-            ax.barh(y, w, height=0.7, color=GOLD if w > 0 else LIGHT, ec=INK, lw=LW)
+            ax.barh(y, w, height=0.66, color=col if w > 0 else MHON, zorder=2)
             ax.text(-0.15 if w > 0 else 0.15, y, r"\texttt{" + tex(t) + "}", ha="right" if w > 0 else "left",
-                    va="center", fontsize=FS - 1.5)
-        ax.axvline(0, color=INK, lw=0.5)
+                    va="center", fontsize=FS - 0.8)
+        ax.axvline(0, color=MINK, lw=0.6, zorder=3)
         ax.set_xlim(-lim * 1.05, lim * 1.05); ax.set_ylim(-0.8, n + 0.2)
-        ax.set_yticks([]); ax.tick_params(axis="y", which="both", left=False, right=False)
-        minor(ax, y=False)
+        ax.set_yticks([]); ax.spines["left"].set_visible(False)
+        mgrid(ax, "x")
         ax.set_xlabel(r"weight (honest $\leftarrow$ \, $\rightarrow$ backdoored)")
         save(fig, name)
     print("F10: original attack-side " + ", ".join(t for t, _ in att["B_prime"]["attack"][:k]))
@@ -508,27 +630,26 @@ def fig10_features(k=8):
 # F3: the 24 monitors ranked on the filtered split against our two floors, with intervals and nulls.
 
 def fig3_monitors():
-    # Drawn like Figure 2: outlined bars from 0.4, black error bars, gold for our two floors,
-    # a dashed line at chance. One row per detector, ranked, named on the axis.
+    # METR leaderboard: one row per detector, ranked and named on the axis; light green bars for the
+    # published monitors, near-black for our two classifiers, grey capped intervals, dashed chance.
     mons = json.load(open("monitor-summary.json"))
     aurocs = [m["test_auroc"] for m in mons]
     n = len(aurocs)
-    rows = [(tex(short(m["repo"])), m["test_auroc"], tuple(m["ci"]), LIGHT) for m in mons]
-    rows += [(r"\textbf{bag-of-words}", TFIDF_FLOOR, TFIDF_CI, GOLD),
-             (r"\textbf{no-code}, within split", NOCODE_FLOOR, NOCODE_CI, GOLD_D)]
+    rows = [(tex(short(m["repo"])), m["test_auroc"], tuple(m["ci"]), MGL) for m in mons]
+    rows += [(r"\textbf{bag-of-words}", TFIDF_FLOOR, TFIDF_CI, MINK),
+             (r"\textbf{no-code}, within split", NOCODE_FLOOR, NOCODE_CI, MINK)]
     rows.sort(key=lambda r: r[1])
     fig, ax = panel(0.8, 4.4)
     for y, (name, v, (lo, hi), c) in enumerate(rows):
-        ax.barh(y, v - 0.4, left=0.4, height=0.7, color=c, ec=INK, lw=LW, zorder=2)
-        ax.errorbar(v, y, xerr=[[v - lo], [hi - v]], fmt="none", ecolor=INK, elinewidth=0.6,
-                    capsize=1.2, capthick=0.6, zorder=3)
-    ax.axvline(0.5, color=INK, lw=0.5, ls=(0, (4, 2)), zorder=1)
+        ax.barh(y, v - 0.4, left=0.4, height=0.68, color=c, zorder=2)
+        ebar(ax, y, v, lo, hi, horizontal=True)
+    ax.axvline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
     ax.set_yticks(range(len(rows)))
-    ax.set_yticklabels([r[0] for r in rows], fontsize=FS - 0.5)
-    ax.tick_params(axis="y", which="both", left=False, right=False)
+    ax.set_yticklabels([r[0] for r in rows], fontsize=FS - 0.3)
+    ax.tick_params(axis="y", length=0)
     ax.set_ylim(-0.7, len(rows) - 0.3)
     ax.set_xlim(0.4, 1.0); ax.set_xticks([0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-    minor(ax, y=False)
+    mgrid(ax, "x")
     ax.set_xlabel(f"AUROC on the {1375:,}-item test split")
     save(fig, "f3-monitors-vs-floors.pdf")
     print(f"F3: {n} monitors, median {statistics.median(aurocs):.4f}, max {aurocs[-1]:.3f}; "
@@ -544,17 +665,18 @@ def fig2_corpora():
     rows = SCAN[::-1]
     fig, ax = panel(0.7, 1.7)
     for i, (name, v, nv, k) in enumerate(rows):
-        ax.barh(i, v - 0.5, left=0.5, height=0.6, color=GOLD, ec=INK, lw=LW)
-        ax.plot([nv, nv], [i - 0.38, i + 0.38], color=INK, lw=1.0)
+        ax.barh(i, v - 0.5, left=0.5, height=0.5, color=MINK, zorder=2)
+        ax.plot([nv, nv], [i - 0.38, i + 0.38], color=MG, lw=1.6, zorder=3, solid_capstyle="butt")
     ax.set_yticks(range(len(rows)))
     ax.set_yticklabels([f"\\texttt{{{tex(r[0])}}} ({r[3]})" for r in rows])
-    ax.tick_params(axis="y", which="both", left=False, right=False)
-    ax.set_xlim(0.45, 0.85); ax.set_xticks([0.5, 0.6, 0.7, 0.8]); minor(ax, y=False)
+    ax.tick_params(axis="y", length=0)
+    ax.set_xlim(0.45, 0.85); ax.set_xticks([0.5, 0.6, 0.7, 0.8]); mgrid(ax, "x")
     ax.set_xlabel("AUROC from character count, within task")
-    ax.axvline(0.5, color=INK, lw=0.5, ls=(0, (4, 2)))
-    ax.legend(handles=[Patch(fc=GOLD, ec=INK, lw=LW, label="observed"),
-                       Line2D([], [], color=INK, lw=1.0, marker="|", ls="", ms=7,
-                              label="shuffled labels, 95th pct.")], loc="upper right")
+    ax.axvline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
+    ax.legend(handles=[Patch(fc=MINK, label="observed"),
+                       Line2D([], [], color=MG, lw=1.6, marker="|", ls="", ms=7, mew=1.6,
+                              label="shuffled labels, 95th pct.")], loc="lower right",
+              bbox_to_anchor=(1.0, 1.0), ncol=2, borderaxespad=0.2)
     save(fig, "f2-corpus-floors.pdf")
     nulls = [r[2] for r in SCAN]
     below = [r[0] for r in SCAN if r[1] <= r[2]]
@@ -854,6 +976,7 @@ def check():
         bad.append(f"Table A2 working column sums to {sum(counts.values())}, not {m['strictN']:.0f}")
     bad += _check_json()
     bad += _check_stored_pairs()
+    bad += _check_exploits()
     if bad:
         raise SystemExit("CHECK FAILED against main.tex:\n  " + "\n  ".join(bad))
     print(f"CHECK: {len(m)} macros read from main.tex; every figure value agrees")
