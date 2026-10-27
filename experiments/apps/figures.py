@@ -426,7 +426,8 @@ def fig9_audit_curve():
         ax.set_xticklabels(["0", "", "50", "", "100"])
         mgrid(ax, "x")
         ax.set_title(r"%d\%% flagged" % round(100 * f), fontsize=FS + 0.3, pad=3)
-    fig.text(0.19 - 0.012, 0.86, "honest / backdoored by", fontsize=FS - 1.2, color=MMUTE, ha="right", va="bottom")
+    axes[0].annotate("honest / backdoored by", xy=(0, 1), xycoords="axes fraction", xytext=(-4, 3),
+                     textcoords="offset points", ha="right", va="baseline", fontsize=FS - 1.2, color=MMUTE)
     fig.supxlabel(r"working backdoors caught (\%)", fontsize=FS, y=0.0)
     save(fig, "f9b-audit-budget.pdf")
     j = cur["fpr"].index(AUDIT_AT)
@@ -516,7 +517,9 @@ def fig11_overview():
             b.axvline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
         mgrid(b, "x")
         b.set_title(title, fontsize=FS + 0.5, pad=4)
-    fig.text(0.745 - 0.005, top + 0.035, "honest / backdoored by", fontsize=FS - 1.5, color=MMUTE, ha="right", va="bottom")
+        if i == 0:  # column header over the row labels, on the title's baseline
+            b.annotate("honest / backdoored by", xy=(0, 1), xycoords="axes fraction", xytext=(-4, 4),
+                       textcoords="offset points", ha="right", va="baseline", fontsize=FS - 1.2, color=MMUTE)
     save(fig, "f11-overview.pdf")
     PO, PS = order[0], order[2]
     print(f"F11: monitor {mon[PO][0]:.3f} -> {mon[PS][0]:.3f}; bag-of-words {bow[PO][0]:.3f} -> {bow[PS][0]:.3f}; "
