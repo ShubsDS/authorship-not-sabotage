@@ -340,38 +340,39 @@ def _check_exploits():
 
 # F6 (appendix): the label leak. (a) the no-code classifier cross-validated inside the split and
 # trained outside it; (b) mean test cases per test problem by class, the cue it reads.
-W6, H6 = 0.32, 1.5
+W6, H6 = 0.46, 0.8
 
 
 def _bar_label(ax, x, v, text, pad):
     ax.text(x, v + pad, text, ha="center", va="bottom", fontsize=FS - 1.5)
 
 
+def _hbars(ax, rows, x0):
+    """Figure 1's bars: one horizontal bar per row from x0, grey capped interval when given."""
+    n = len(rows)
+    for i, (lab, v, ci, c) in enumerate(rows):
+        y = n - 1 - i
+        ax.barh(y, v - x0, left=x0, height=0.62, color=c, zorder=2)
+        if ci:
+            ebar(ax, y, v, ci[0], ci[1], horizontal=True)
+    ax.set_yticks(range(n)[::-1]); ax.set_yticklabels([r[0] for r in rows])
+    ax.tick_params(axis="y", length=0)
+    ax.set_ylim(-0.6, n - 0.4)
+
+
 def fig6_label_leak():
     fig, ax = panel(W6, H6)
-    vals = [(NOCODE_FLOOR, NOCODE_CI), (NOCODE_OUTSIDE, NOCODE_OUTSIDE_CI)]
-    for x, (v, (lo, hi)) in enumerate(vals):
-        ax.bar(x, v, width=0.55, color=MINK, zorder=2)
-        ebar(ax, x, v, lo, hi)
-        _bar_label(ax, x, hi, f"{v:.2f}", 0.025)
-    ax.axhline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
-    ax.set_xticks([0, 1])
-    ax.set_xticklabels([r"\shortstack{inside\\the split}", r"\shortstack{outside\\the split}"])
-    ax.tick_params(axis="x", length=0)
-    ax.set_xlim(-0.6, 1.6); ax.set_ylim(0, 1.0); ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
-    mgrid(ax)
-    ax.set_ylabel("AUROC")
+    _hbars(ax, [("inside the split", NOCODE_FLOOR, NOCODE_CI, MINK),
+                ("outside the split", NOCODE_OUTSIDE, NOCODE_OUTSIDE_CI, MINK)], 0)
+    ax.axvline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
+    ax.set_xlim(0, 1.0); ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0]); ax.set_xticklabels(["0", "", "0.5", "", "1"])
+    mgrid(ax, "x"); ax.set_xlabel("AUROC")
     save(fig, "f6b-nocode.pdf")
 
     fig, ax = panel(W6, H6)
-    for x, (v, c) in enumerate(((TESTS_ATTACK, MG), (TESTS_HONEST, MHON))):
-        ax.bar(x, v, width=0.55, color=c, zorder=2)
-        _bar_label(ax, x, v, f"{v:.2f}", 0.8)
-    ax.set_xticks([0, 1]); ax.set_xticklabels(["backdoored", "honest"])
-    ax.tick_params(axis="x", length=0)
-    ax.set_xlim(-0.6, 1.6); ax.set_ylim(0, 45); ax.set_yticks([0, 10, 20, 30, 40])
-    mgrid(ax)
-    ax.set_ylabel("test cases per problem")
+    _hbars(ax, [("backdoored", TESTS_ATTACK, None, MGL), ("honest", TESTS_HONEST, None, MHON)], 0)
+    ax.set_xlim(0, 45); ax.set_xticks([0, 10, 20, 30, 40])
+    mgrid(ax, "x"); ax.set_xlabel("test cases per problem")
     save(fig, "f6c-tests.pdf")
     print(f"F6: no-code {NOCODE_FLOOR:.3f} inside, {NOCODE_OUTSIDE:.3f} outside; "
           f"tests {TESTS_ATTACK} vs {TESTS_HONEST}")
@@ -404,38 +405,32 @@ def _swap_panels():
 
 
 def fig9_audit_curve():
-    """Grouped bars: share of working backdoors caught at four audit budgets, for three kinds of pair.
-    Same bar style as Figure 1: green = the older models' backdoors, blue = Sonnet 5's."""
-    from matplotlib.patches import Patch
+    """Small multiples, one per audit budget, in Figure 1(d)'s style: one bar per kind of pair, light
+    green for the older models' backdoors and light blue for Sonnet 5's."""
     cur, at = _audit_points()
     sw = json.load(open("audit_budget.json"))["curve_swap"][AUDIT_KEY]
-    series = (("person / older models", cur["stored"], MG),
-              ("person / Sonnet 5", sw["human_honest__our_attack"], MB),
+    series = ((r"\textbf{person / older}", cur["stored"], MGL),
+              ("person / Sonnet 5", sw["human_honest__our_attack"], MBL),
               ("Sonnet 5 / Sonnet 5", cur["samegen"], MBL))
     budgets = (0.01, 0.02, 0.05, 0.10)
-    fig, ax = panel(W9, H9)
-    w = 0.26
-    for g, f in enumerate(budgets):
+    fig, axes = plt.subplots(1, 4, figsize=(TEXT_W * 0.97, 1.15), sharey=True)
+    fig.subplots_adjust(wspace=0.24, left=0.19, right=0.985, top=0.82, bottom=0.27)
+    for ax, f in zip(axes, budgets):
         j = min(range(len(cur["fpr"])), key=lambda i: abs(cur["fpr"][i] - f))
-        for k, (lab, s, c) in enumerate(series):
-            v, lo, hi = (100 * s[key][j] for key in ("point", "ci95_lo", "ci95_hi"))
-            x = g + (k - 1) * w
-            ax.bar(x, v, width=w * 0.92, color=c, zorder=2)
-            ebar(ax, x, v, lo, hi)
-    ax.set_xticks(range(len(budgets)))
-    ax.set_xticklabels([r"%d\%%" % round(100 * f) for f in budgets])
-    ax.tick_params(axis="x", length=0)
-    ax.set_xlim(-0.55, len(budgets) - 0.45); ax.set_ylim(0, 100)
-    ax.set_yticks([0, 25, 50, 75, 100]); ax.set_yticklabels([r"0\%", r"25\%", r"50\%", r"75\%", r"100\%"])
-    mgrid(ax)
-    ax.set_xlabel("audit budget (share of honest programs flagged)")
-    ax.set_ylabel("working backdoors caught")
-    ax.legend(handles=[Patch(color=c, label=lab) for lab, _, c in series], loc="lower center",
-              bbox_to_anchor=(0.5, 1.0), ncol=3, borderaxespad=0.3, handlelength=1.0, columnspacing=1.2,
-              title=r"honest / backdoor by", title_fontsize=FS - 0.6)
+        rows = []
+        for lab, s_, c in series:
+            v, lo, hi = (100 * s_[key][j] for key in ("point", "ci95_lo", "ci95_hi"))
+            rows.append((lab, v, (lo, hi), c))
+        _hbars(ax, rows, 0)
+        ax.set_xlim(0, 100); ax.set_xticks([0, 25, 50, 75, 100])
+        ax.set_xticklabels(["0", "", "50", "", "100"])
+        mgrid(ax, "x")
+        ax.set_title(r"%d\%% flagged" % round(100 * f), fontsize=FS + 0.3, pad=3)
+    fig.text(0.19 - 0.012, 0.86, "honest / backdoored by", fontsize=FS - 1.2, color=MMUTE, ha="right", va="bottom")
+    fig.supxlabel(r"working backdoors caught (\%)", fontsize=FS, y=0.0)
     save(fig, "f9b-audit-budget.pdf")
     j = cur["fpr"].index(AUDIT_AT)
-    print(f"F9: at {AUDIT_AT:.0%}: " + ", ".join(f"{lab} {s['point'][j]:.3f}" for lab, s, _ in series))
+    print(f"F9: at {AUDIT_AT:.0%}: " + ", ".join(f"{lab} {s_['point'][j]:.3f}" for lab, s_, _ in series))
 
 
 # F11 (Figure 1): the paper in four panels. (a) the 24 monitors ranked with the two classifiers that
@@ -533,9 +528,9 @@ def fig11_overview():
 # against the older models) and the rebuilt pairs (Sonnet 5 on both sides), for the all-attempts and
 # the working-backdoor problems. Panels are named by who wrote each side, as in Figure 1(b).
 
-SCORE_PANELS = [("monitor_stored_sonnet5_independent_passes.json", "person / older models"),
+SCORE_PANELS = [("monitor_stored_sonnet5_independent_passes.json", "person / older"),
                 ("monitor_samegen_sonnet5_independent_passes.json", "Sonnet 5 / Sonnet 5"),
-                ("monitor_stored_sonnet5_independent_usable.json", "person / older models"),
+                ("monitor_stored_sonnet5_independent_usable.json", "person / older"),
                 ("monitor_samegen_sonnet5_independent_usable.json", "Sonnet 5 / Sonnet 5")]
 
 
@@ -556,9 +551,9 @@ def fig8_monitor_scores():
         means.append(float(np.mean(a)))
         col = MG if title.startswith("person") else MB
         ax.hist(h, bins=bins, weights=np.ones(len(h)) / len(h) * 100, color=MHON, ec="white", lw=0.4, zorder=2)
-        ax.hist(a, bins=bins, weights=np.ones(len(a)) / len(a) * 100, color=col, alpha=0.14, lw=0, zorder=2)
+        ax.hist(a, bins=bins, weights=np.ones(len(a)) / len(a) * 100, color=MGL if col == MG else MBL, alpha=0.45, lw=0, zorder=2)
         ax.hist(a, bins=bins, weights=np.ones(len(a)) / len(a) * 100, histtype="step", color=col, lw=1.2, zorder=3)
-        ax.set_title(title, pad=3, fontsize=FS)
+        ax.set_title(title, pad=3, fontsize=FS - 0.3)
         ax.set_xlim(0, 100); ax.set_xticks([0, 50, 100]); ax.set_ylim(0, 100); ax.set_yticks([0, 25, 50, 75, 100])
         mgrid(ax)
     axes[0].text(13, 88, "honest", ha="left", va="center", fontsize=FS - 0.8, color=MMUTE)
@@ -585,14 +580,14 @@ def fig10_features(k=8):
     att = json.load(open("lexical_probe.json"))["headline"]["attribution"]
     lim = max(abs(w) for key in ("B_prime", "S") for side in ("attack", "honest")
               for _, w in att[key][side][:k])
-    for key, name, col in (("B_prime", "f10a-features-stored.pdf", MG), ("S", "f10b-features-samegen.pdf", MB)):
+    for key, name, col in (("B_prime", "f10a-features-stored.pdf", MGL), ("S", "f10b-features-samegen.pdf", MBL)):
         fig, ax = panel(0.48, 2.0)
         items = [(_tok(t), w) for t, w in att[key]["attack"][:k]][::-1] + \
                 [(_tok(t), w) for t, w in att[key]["honest"][:k]]
         n = len(items)
         for i, (t, w) in enumerate(items):
             y = n - 1 - i
-            ax.barh(y, w, height=0.66, color=col if w > 0 else MHON, zorder=2)
+            ax.barh(y, w, height=0.62, color=col if w > 0 else MHON, zorder=2)
             ax.text(-0.15 if w > 0 else 0.15, y, r"\texttt{" + tex(t) + "}", ha="right" if w > 0 else "left",
                     va="center", fontsize=FS - 0.8)
         ax.axvline(0, color=MINK, lw=0.6, zorder=3)
@@ -637,23 +632,21 @@ def fig3_monitors():
 # F2: the structural floor in the five same-generator agentic settings.
 
 def fig2_corpora():
-    from matplotlib.lines import Line2D
-    from matplotlib.patches import Patch
     rows = SCAN[::-1]
-    fig, ax = panel(0.7, 1.7)
+    fig, ax = panel(0.7, 1.45)
     for i, (name, v, nv, k) in enumerate(rows):
-        ax.barh(i, v - 0.5, left=0.5, height=0.5, color=MINK, zorder=2)
-        ax.plot([nv, nv], [i - 0.38, i + 0.38], color=MG, lw=1.6, zorder=3, solid_capstyle="butt")
+        ax.barh(i, v - 0.5, left=0.5, height=0.62, color=MINK, zorder=2)
+        ax.plot([nv, nv], [i - 0.4, i + 0.4], color=MMUTE, lw=1.4, zorder=3, solid_capstyle="butt")
     ax.set_yticks(range(len(rows)))
     ax.set_yticklabels([f"\\texttt{{{tex(r[0])}}} ({r[3]})" for r in rows])
     ax.tick_params(axis="y", length=0)
+    ax.set_ylim(-0.6, len(rows) - 0.4)
     ax.set_xlim(0.45, 0.85); ax.set_xticks([0.5, 0.6, 0.7, 0.8]); mgrid(ax, "x")
     ax.set_xlabel("AUROC from character count, within task")
     ax.axvline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
-    ax.legend(handles=[Patch(fc=MINK, label="observed"),
-                       Line2D([], [], color=MG, lw=1.6, marker="|", ls="", ms=7, mew=1.6,
-                              label="shuffled labels, 95th pct.")], loc="lower right",
-              bbox_to_anchor=(1.0, 1.0), ncol=2, borderaxespad=0.2)
+    top = rows[-1]
+    ax.text(top[2] + 0.006, len(rows) - 1 + 0.42, "shuffled, 95th pct.", fontsize=FS - 1.4, color=MMUTE,
+            ha="left", va="bottom")
     save(fig, "f2-corpus-floors.pdf")
     nulls = [r[2] for r in SCAN]
     below = [r[0] for r in SCAN if r[1] <= r[2]]
@@ -967,7 +960,6 @@ if __name__ == "__main__":
     fig5_stored_pairs()
     fig6_label_leak()
     fig9_audit_curve()
-    fig3_monitors()
     fig8_monitor_scores()
     fig10_features()
     fig2_corpora()
