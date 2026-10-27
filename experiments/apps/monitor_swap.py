@@ -241,10 +241,34 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", default="monitor_swap.json")
+    ap.add_argument("--verified", help="verified_sets.py output: only the 2x2 tables, on the "
+                                       "strict problems whose two backdoors are both verified")
     args = ap.parse_args()
 
     out = {"n_boot": N_BOOT, "seed": SEED, "tables": {}, "retest": {}}
     loaded = {}
+    if args.verified:
+        v = json.load(open(args.verified))
+        keep = [p for p in json.load(open(SETS["strict"][1]))["problem_ids"]
+                if v["stored"][str(p)]["verified"] and v["ours_monitor"][str(p)]["verified"]]
+        out["verified"] = {"source": args.verified, "n_problems": len(keep)}
+        for mname, suf in MONITORS:
+            try:
+                same, _ = load(f"monitor_samegen_sonnet5_independent_usable{suf}.json")
+                stored, _ = load(f"monitor_stored_sonnet5_independent_usable{suf}.json")
+            except FileNotFoundError:
+                continue
+            t = swap_table([str(p) for p in keep], same, stored)
+            out["tables"][f"strict_verified__{mname}"] = t
+            A = t["auroc"]
+            d = t["differences"]["attack_swap_at_human_honest"]
+            print(f"{mname}: {t['n_problems_all_four_scored']} problems; "
+                  + ", ".join(f"{k} {x:.3f}" for k, x in A.items())
+                  + f"; attack swap at human honest {d['point']:+.3f} "
+                    f"({d['ci95'][0]:+.3f} to {d['ci95'][1]:+.3f})")
+        json.dump(out, open(args.out, "w"), indent=2)
+        print(f"wrote {args.out}")
+        return
     for set_name, (elig, sg) in SETS.items():
         pids = [str(p) for p in json.load(open(sg))["problem_ids"]]
         for mname, suf in MONITORS:

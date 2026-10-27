@@ -14,7 +14,7 @@ F5-F8 follow the designs of the archived camera-ready branch (tag archive/camera
 redrawn from the current numbers. Every plotted value is a named constant below or is read from a
 committed JSON. Before drawing, check() asserts each one against the \newcommand macros in
 ../../paper/main.tex, so a figure cannot disagree with the text, and against the JSON it was taken
-from (headline_ci.json, nocode_outside.json, ../agentic/within_task_null.json, audit_budget.json,
+from (headline_ci.json, nocode_outside.json, ../agentic/within_task_null.json, audit_budget_verified.json,
 the monitor_*.json files) when that file is present. F5's code is checked against the public
 dataset when train_*.parquet (fetch.py) is present. F3 and F11 read the 24 monitor AUROCs from
 monitor-summary.json (written by fetch_inputs.py).
@@ -296,13 +296,16 @@ def fig6_label_leak():
 # 20%, for the original pairs, the rebuilt pairs and person / Sonnet 5; Figure 1(d) reads them at AUDIT_AT. CELLS and _swap_panels() feed Figure 1(b) and check().
 
 AUDIT_KEY, AUDIT_AT = "strict__claude-sonnet-5", 0.02
+# Catch rates on the checked backdoors: the working-backdoor problems whose two backdoors are both
+# wrong on a legal input (audit_budget.py --verified verified_strict.json).
+AUDIT_FILE = "audit_budget_verified.json"
 CELLS = ("human_honest__stored_attack", "our_honest__stored_attack",
          "human_honest__our_attack", "our_honest__our_attack")
 W9, H9 = 0.5, 1.8
 
 
 def _audit_points():
-    cur = json.load(open("audit_budget.json"))["curve"][AUDIT_KEY]
+    cur = json.load(open(AUDIT_FILE))["curve"][AUDIT_KEY]
     j = cur["fpr"].index(AUDIT_AT)
     return cur, {k: cur[k]["point"][j] for k in ("stored", "samegen")}
 
@@ -320,7 +323,7 @@ def _swap_panels():
 
 def fig9_audit_curve():
     cur, at = _audit_points()
-    sw = json.load(open("audit_budget.json"))["curve_swap"][AUDIT_KEY]
+    sw = json.load(open(AUDIT_FILE))["curve_swap"][AUDIT_KEY]
     lines = (("person / older models", cur["stored"], INK, "-", MID, (-4, "top")),
              ("Sonnet 5 / Sonnet 5", cur["samegen"], GOLD, "--", GOLD, (3, "bottom")),
              ("person / Sonnet 5", sw["human_honest__our_attack"], GOLD, "-", GOLD, (-4, "top")))
@@ -329,14 +332,15 @@ def fig9_audit_curve():
     for lab, k, c, ls, band, (dy, va) in lines:
         ax.fill_between(x, [100 * v for v in k["ci95_lo"]], [100 * v for v in k["ci95_hi"]],
                         color=band, alpha=0.14, lw=0)
-        ax.plot(x, [100 * v for v in k["point"]], color=c, ls=ls, lw=1.1)
-        ax.text(x[-1] - 0.4, 100 * k["point"][-1] + dy, lab, ha="right", va=va, fontsize=FS - 1,
-                color=INK if c == INK else GOLD_D)
+        ax.plot(x, [100 * v for v in k["point"]], color=c, ls=ls, lw=1.1, label=lab)
+    # On the checked backdoors the three curves run close together, so a legend in the empty lower
+    # right replaces the direct labels, which would overlap.
+    ax.legend(loc="lower right", fontsize=FS - 1)
     ax.axvline(100 * AUDIT_AT, color=INK, lw=0.5, ls=(0, (1, 1.5)))
     ax.set_xlim(0, x[-1]); ax.set_ylim(0, 100)
     ax.set_xticks([0, 5, 10, 15, 20]); ax.set_yticks([0, 25, 50, 75, 100])
     minor(ax)
-    ax.set_xlabel(r"honest programs flagged (\%)"); ax.set_ylabel(r"working backdoors caught (\%)")
+    ax.set_xlabel(r"honest programs flagged (\%)"); ax.set_ylabel(r"checked backdoors caught (\%)")
     save(fig, "f9b-audit-budget.pdf")
     j = cur["fpr"].index(AUDIT_AT)
     print(f"F9: at {AUDIT_AT:.0%}: " + ", ".join(f"{lab} {k['point'][j]:.3f}" for lab, k, *_ in lines))
@@ -365,7 +369,7 @@ def _working_panels():
     bow = {k: (c[k]["pooled"], *c[k]["pooled_ci95_joint"]) for k in CELLS}
     t = json.load(open("monitor_swap.json"))["tables"]["strict__claude-sonnet-5"]
     mon = {k: (t["auroc"][k], *t["auroc_ci95"][k]) for k in CELLS}
-    sw = json.load(open("audit_budget.json"))["swap"][AUDIT_KEY][f"fpr_{AUDIT_AT:.2f}"]
+    sw = json.load(open(AUDIT_FILE))["swap"][AUDIT_KEY][f"fpr_{AUDIT_AT:.2f}"]
     caught = {k: (sw[k]["tpr_randomized"], *sw[k]["tpr_randomized_ci95"]) for k in CELLS}
     return bow, mon, caught, sw["backdoor_only_difference"]
 
@@ -401,7 +405,7 @@ def fig11_overview():
     # (b)-(d): one row per kind of pair, the original pairs on top; gold = Sonnet 5's backdoors
     y = [3, 2, 1, 0]
     specs = (("(b) bag-of-words", bow, "AUROC", 1.0), ("(c) Sonnet 5 monitor", mon, "AUROC", 1.0),
-             ("(d) same monitor", caught, r"caught at %d\%% FPR (\%%)" % round(100 * AUDIT_AT), 100.0))
+             ("(d) checked backdoors", caught, r"caught at %d\%% FPR (\%%)" % round(100 * AUDIT_AT), 100.0))
     for k, (title, cells, xlab, scale) in enumerate(specs):
         a = fig.add_subplot(low[k])
         left = 0.4 if scale == 1.0 else 0.0
@@ -664,7 +668,7 @@ def _macros(path=PAPER_TEX):
     out = {}
     for name, val in re.findall(r"\\newcommand\{\\(\w+)\}\{([^{}]*)\}", open(path).read()):
         try:
-            out[name] = float(val)
+            out[name] = float(val.replace("$-$", "-"))   # the paper typesets minus as $-$
         except ValueError:
             pass
     return out
@@ -785,7 +789,7 @@ def check():
         if f"{100 * got:.0f}" != want:
             bad.append(f"{macro}: main.tex {want}% vs figures.py {100 * got:.1f}%")
 
-    if os.path.exists("audit_budget.json"):
+    if os.path.exists(AUDIT_FILE):
         _, at = _audit_points()
         pct("auditStrictStored", at["stored"]); pct("auditStrictOurs", at["samegen"])
     if all(os.path.exists(p) for p, _ in SCORE_PANELS[:2]):
@@ -830,7 +834,7 @@ def check():
         eq("clfSwapOursOurs", s5["our_honest__our_attack"][0], 3)
     # Figure 1(b)-(d): the class swap on the working-backdoor problems.
     if all(os.path.exists(f) for f in ("classifier_swap_sonnet5_working.json", "monitor_swap.json",
-                                       "audit_budget.json")):
+                                       AUDIT_FILE)):
         bow, mon, caught, diff = _working_panels()
         for cells, names in ((bow, ("clfSwapWorkHumanStored", "clfSwapWorkOursStored",
                                     "clfSwapWorkHumanOurs", "clfSwapWorkOursOurs")),

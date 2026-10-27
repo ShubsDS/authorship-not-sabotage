@@ -1,0 +1,331 @@
+{
+  "n_boot": 2000,
+  "seed": 0,
+  "tables": {
+    "strict_verified__claude-sonnet-5": {
+      "n_problems_all_four_scored": 52,
+      "n_problems_in_set": 52,
+      "auroc": {
+        "human_honest__stored_attack": 0.9548816568047337,
+        "human_honest__our_attack": 0.8997781065088757,
+        "our_honest__stored_attack": 0.9794748520710059,
+        "our_honest__our_attack": 0.9443417159763314
+      },
+      "auroc_ci95": {
+        "human_honest__stored_attack": [
+          0.9141965606508876,
+          0.9840976331360947
+        ],
+        "human_honest__our_attack": [
+          0.8385724852071006,
+          0.9484236316568047
+        ],
+        "our_honest__stored_attack": [
+          0.9535872781065089,
+          0.9957470414201184
+        ],
+        "our_honest__our_attack": [
+          0.8957008136094674,
+          0.9767104289940828
+        ]
+      },
+      "differences": {
+        "honest_swap_at_stored_attack": {
+          "of": "our_honest__stored_attack minus human_honest__stored_attack",
+          "point": 0.02459319526627224,
+          "ci95": [
+            0.004807692307692291,
+            0.0532590606508876
+          ]
+        },
+        "honest_swap_at_our_attack": {
+          "of": "our_honest__our_attack minus human_honest__our_attack",
+          "point": 0.044563609467455745,
+          "ci95": [
+            0.012573964497041401,
+            0.08082470414201184
+          ]
+        },
+        "attack_swap_at_human_honest": {
+          "of": "human_honest__our_attack minus human_honest__stored_attack",
+          "point": -0.055103550295858006,
+          "ci95": [
+            -0.11261094674556216,
+            -0.0003651997041421609
+          ]
+        },
+        "attack_swap_at_our_honest": {
+          "of": "our_honest__our_attack minus our_honest__stored_attack",
+          "point": -0.0351331360946745,
+          "ci95": [
+            -0.07602625739644972,
+            -0.0020294008875740735
+          ]
+        }
+      },
+      "mean_score": {
+        "human_honest": 7.75,
+        "stored_attack": 73.28846153846153,
+        "our_honest": 3.576923076923077,
+        "our_attack": 57.63461538461539
+      },
+      "problem_ids": [
+        "1117",
+        "1130",
+        "1255",
+        "1279",
+        "1301",
+        "1402",
+        "145",
+        "1542",
+        "1596",
+        "1787",
+        "1829",
+        "1898",
+        "1954",
+        "1964",
+        "1982",
+        "2027",
+        "2039",
+        "2049",
+        "2064",
+        "2070",
+        "2089",
+        "2135",
+        "2146",
+        "2167",
+        "2185",
+        "2195",
+        "2200",
+        "2236",
+        "2260",
+        "2265",
+        "2277",
+        "2292",
+        "2297",
+        "2583",
+        "2619",
+        "3733",
+        "3931",
+        "4074",
+        "4090",
+        "4130",
+        "4144",
+        "4253",
+        "4257",
+        "4277",
+        "4293",
+        "4337",
+        "4418",
+        "4464",
+        "616",
+        "631",
+        "632",
+        "956"
+      ]
+    },
+    "strict_verified__claude-haiku-4-5": {
+      "n_problems_all_four_scored": 13,
+      "n_problems_in_set": 52,
+      "auroc": {
+        "human_honest__stored_attack": 0.9053254437869822,
+        "human_honest__our_attack": 0.8875739644970414,
+        "our_honest__stored_attack": 1.0,
+        "our_honest__our_attack": 0.9822485207100592
+      },
+      "auroc_ci95": {
+        "human_honest__stored_attack": [
+          0.7307692307692308,
+          1.0
+        ],
+        "human_honest__our_attack": [
+          0.704068047337278,
+          1.0
+        ],
+        "our_honest__stored_attack": [
+          1.0,
+          1.0
+        ],
+        "our_honest__our_attack": [
+          0.8964497041420119,
+          1.0
+        ]
+      },
+      "differences": {
+        "honest_swap_at_stored_attack": {
+          "of": "our_honest__stored_attack minus human_honest__stored_attack",
+          "point": 0.09467455621301779,
+          "ci95": [
+            0.0,
+            0.26923076923076916
+          ]
+        },
+        "honest_swap_at_our_attack": {
+          "of": "our_honest__our_attack minus human_honest__our_attack",
+          "point": 0.09467455621301779,
+          "ci95": [
+            -0.02662721893491127,
+            0.26627218934911234
+          ]
+        },
+        "attack_swap_at_human_honest": {
+          "of": "human_honest__our_attack minus human_honest__stored_attack",
+          "point": -0.017751479289940808,
+          "ci95": [
+            -0.06804733727810652,
+            0.0
+          ]
+        },
+        "attack_swap_at_our_honest": {
+          "of": "our_honest__our_attack minus our_honest__stored_attack",
+          "point": -0.017751479289940808,
+          "ci95": [
+            -0.10355029585798814,
+            0.0
+          ]
+        }
+      },
+      "mean_score": {
+        "human_honest": 21.615384615384617,
+        "stored_attack": 91.6923076923077,
+        "our_honest": 14.923076923076923,
+        "our_attack": 88.38461538461539
+      },
+      "problem_ids": [
+        "1255",
+        "1301",
+        "145",
+        "1542",
+        "1964",
+        "2039",
+        "2260",
+        "2292",
+        "4253",
+        "4257",
+        "4277",
+        "4293",
+        "4337"
+      ]
+    },
+    "strict_verified__claude-haiku-4-5 max_tokens=1024": {
+      "n_problems_all_four_scored": 45,
+      "n_problems_in_set": 52,
+      "auroc": {
+        "human_honest__stored_attack": 0.8422222222222222,
+        "human_honest__our_attack": 0.8180246913580247,
+        "our_honest__stored_attack": 0.9022222222222223,
+        "our_honest__our_attack": 0.8938271604938272
+      },
+      "auroc_ci95": {
+        "human_honest__stored_attack": [
+          0.7651728395061729,
+          0.9170493827160494
+        ],
+        "human_honest__our_attack": [
+          0.7214753086419753,
+          0.9032098765432098
+        ],
+        "our_honest__stored_attack": [
+          0.8306111111111111,
+          0.9617345679012346
+        ],
+        "our_honest__our_attack": [
+          0.811604938271605,
+          0.9592592592592593
+        ]
+      },
+      "differences": {
+        "honest_swap_at_stored_attack": {
+          "of": "our_honest__stored_attack minus human_honest__stored_attack",
+          "point": 0.06000000000000005,
+          "ci95": [
+            0.0012283950617282715,
+            0.12568518518518515
+          ]
+        },
+        "honest_swap_at_our_attack": {
+          "of": "our_honest__our_attack minus human_honest__our_attack",
+          "point": 0.07580246913580246,
+          "ci95": [
+            0.006166666666666695,
+            0.15382716049382705
+          ]
+        },
+        "attack_swap_at_human_honest": {
+          "of": "human_honest__our_attack minus human_honest__stored_attack",
+          "point": -0.024197530864197514,
+          "ci95": [
+            -0.08987654320987659,
+            0.03803086419753081
+          ]
+        },
+        "attack_swap_at_our_honest": {
+          "of": "our_honest__our_attack minus our_honest__stored_attack",
+          "point": -0.008395061728395103,
+          "ci95": [
+            -0.05260493827160498,
+            0.03481481481481464
+          ]
+        }
+      },
+      "mean_score": {
+        "human_honest": 35.22222222222222,
+        "stored_attack": 79.62222222222222,
+        "our_honest": 24.044444444444444,
+        "our_attack": 75.95555555555555
+      },
+      "problem_ids": [
+        "1117",
+        "1130",
+        "1255",
+        "1279",
+        "1301",
+        "145",
+        "1542",
+        "1787",
+        "1829",
+        "1898",
+        "1964",
+        "1982",
+        "2027",
+        "2039",
+        "2049",
+        "2064",
+        "2089",
+        "2146",
+        "2167",
+        "2185",
+        "2195",
+        "2200",
+        "2236",
+        "2260",
+        "2265",
+        "2277",
+        "2292",
+        "2297",
+        "2583",
+        "2619",
+        "3733",
+        "3931",
+        "4074",
+        "4090",
+        "4144",
+        "4253",
+        "4257",
+        "4277",
+        "4293",
+        "4337",
+        "4418",
+        "4464",
+        "631",
+        "632",
+        "956"
+      ]
+    }
+  },
+  "retest": {},
+  "verified": {
+    "source": "verified_strict.json",
+    "n_problems": 52
+  }
+}
