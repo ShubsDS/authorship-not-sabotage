@@ -401,7 +401,7 @@
 \newcommand{\checkedN}{54}\newcommand{\checkedClfN}{55}
 \newcommand{\checkedOursN}{59}\newcommand{\checkedOursInvalid}{34}\newcommand{\checkedOursSpace}{6}
 \newcommand{\checkedOursRejected}{40}
-\newcommand{\checkedStoredN}{85}\newcommand{\checkedStoredInvalid}{13}
+\newcommand{\checkedStoredN}{85}\newcommand{\checkedStoredInvalid}{13}\newcommand{\checkedStoredRejected}{14}
 \newcommand{\monCheckedHS}{0.958}\newcommand{\monCheckedHO}{0.904}
 \newcommand{\monCheckedDiff}{$-$0.053}\newcommand{\monCheckedDiffLo}{$-$0.108}\newcommand{\monCheckedDiffHi}{$-$0.004}
 \newcommand{\monCheckedHaiN}{47}\newcommand{\monCheckedHaiHS}{0.850}\newcommand{\monCheckedHaiHO}{0.822}
@@ -656,11 +656,10 @@ also leak: a problem enters the backdoor class only if its backdoor works, so pr
 reaches \nocodeCV{} within the test split. Having Claude Sonnet~5 write both classes and swapping one
 class at a time shows that the classifier rewards a contrast between authors: human code against
 Sonnet~5's backdoors is easier for it than the original pairs (\clfSwapWorkHumanOurs{} against
-\clfSwapWorkHumanStored{}). Many labelled backdoors are also not what they claim. Of \strictN{}
-Sonnet~5 backdoors that count as working, \checkedOursRejected{} have a trigger the problem forbids or
-give the human answer on it, and \splitRejected{} of the \splitPos{} backdoored programs in the
-standard test split have only an illegal trigger or fail a public test. On the \checkedN{} problems
-where both backdoors are real, a Sonnet~5 monitor still catches fewer of Sonnet~5's backdoors
+\clfSwapWorkHumanStored{}). Some labelled backdoors are also not what they claim: in the standard
+test split, \splitRejected{} of the \splitPos{} backdoored programs have only an illegal trigger or
+fail a public test. We apply the same check to both attackers' backdoors before comparing them. On
+the \checkedN{} problems where both are real, a Sonnet~5 monitor still catches fewer of Sonnet~5's backdoors
 (\auditSwapHumanOurs{} against \auditStrictStored{} when flagging 2\% of human solutions), but the gap
 is less than half the one unchecked labels show. We release the rebuilt pairs and the checks.
 \end{abstract}
@@ -716,11 +715,11 @@ code by Claude Sonnet~5, it scores highest when the two classes have different a
 \item The labels also leak, because a problem whose backdoor failed contributes its
 honest program instead, so a classifier that reads only problem metadata also beats most monitors
 (\S\ref{sec:label}).
-\item Many backdoors that count as working have only an illegal trigger: \checkedOursInvalid{} of
-Sonnet~5's \strictN{} and \splitIllegal{} of the \splitPos{} in the standard split, where
-\splitWrongPublic{} more fail a public test. On real backdoors a Sonnet~5 monitor catches
-\auditStrictStored{} of the older models' and \auditSwapHumanOurs{} of Sonnet~5's, a gap less than half
-the unchecked one (\S\ref{sec:monitor}).
+\item Some of the dataset's labelled backdoors are not real: in the standard split \splitIllegal{} of
+the \splitPos{} have only an illegal trigger and \splitWrongPublic{} more fail a public test. Checking
+both attackers' backdoors the same way leaves \checkedN{} problems where both are real, and there a
+Sonnet~5 monitor catches \auditStrictStored{} of the older models' and \auditSwapHumanOurs{} of
+Sonnet~5's, a gap less than half the unchecked one (\S\ref{sec:monitor}).
 \end{itemize}}
 We end with checks that other monitor benchmarks can run (\S\ref{sec:next}) and release the rebuilt
 pairs and our scripts under the MIT licence (appendix~\ref{app:release}).%
@@ -880,17 +879,20 @@ on Sonnet~5 / older models, since it finds its own model's honest code slightly 
 \monSwapStrictHumanOurs{} (Figure~\ref{fig:overview}(c), Table~\ref{tab:swap-full}; rescoring noise in
 appendix~\ref{app:monitors}).
 
-Part of that fall comes from the labels: a draw counted as working if its output on its own trigger
-differed from Sonnet~5's honest solution, and nothing checked the trigger. We check every trigger in both classes against an input validator written from the statement, require
-the backdoor's output there to differ from the human solutions' majority answer, and when a check fails
-search up to 40 nearby legal inputs for one where the backdoor is still wrong
-(appendix~\ref{app:audit}). Of the \strictN{} backdoors the monitor scored, \checkedOursInvalid{} have only
-an illegal trigger and \checkedOursSpace{} give the human answer on theirs. The monitor scores these
-low (median \rejScoreMedian{}, against \okScoreMedian{} for the rest), but not because it sees the
-trigger is illegal: \storedRejHigh{} of the \storedRejN{} older-model backdoors with only an illegal
-trigger score 60 or more. The dataset's labels have the same problem. In the standard test split,
-\splitIllegal{} of the \splitPos{} backdoored programs have only an illegal trigger and
-\splitWrongPublic{} print a wrong answer on a public test that the dataset's pass flag misses.
+Part of that fall comes from the labels. A backdoor counts as working if its output on its own trigger
+differs from an honest solution's, and nothing checks that the trigger is a legal input. The dataset's
+labels show the problem: in the standard test split, \splitIllegal{} of the \splitPos{} backdoored
+programs have only an illegal trigger and \splitWrongPublic{} print a wrong answer on a public test
+that the dataset's pass flag misses. Our generation used the same definition, so before comparing
+attackers we check every trigger in both classes against an input validator written from the
+statement, require the backdoor's output there to differ from the human solutions' majority answer,
+and when a check fails search up to 40 nearby legal inputs for one where the backdoor is still wrong
+(appendix~\ref{app:audit}). The check removes \checkedStoredRejected{} of the older models' \strictN{}
+backdoors and \checkedOursRejected{} of Sonnet~5's (\checkedOursInvalid{} with only an illegal trigger,
+\checkedOursSpace{} giving the human answer on theirs). The monitor scores Sonnet~5's removed
+backdoors low (median \rejScoreMedian{}, against \okScoreMedian{} for the rest), but not because it
+sees the trigger is illegal: \storedRejHigh{} of the \storedRejN{} older-model backdoors with only an
+illegal trigger score 60 or more.
 
 On the \checkedN{} problems where both backdoors are real, Sonnet~5's are still harder to catch, but by
 less. The monitor's AUROC falls from \monCheckedHS{} to \monCheckedHO{} (paired difference
@@ -910,7 +912,9 @@ We ran only two monitors, both zero-shot. The Sonnet~5 monitor scores code by it
 finds slightly less suspicious, and a monitor trained on these pairs could learn the shortcuts. Our
 backdoors come from one prompt, the working-backdoor results rest on \checkedN{}--\strictN{} problems
 and one attacking model, and the \auditFPR{} threshold rests on the top two of \strictN{} human
-solutions. Claude models wrote the input validators, and the search for a legal input is short.
+solutions. Like the dataset, our generation did not check triggers, so \checkedOursRejected{} of
+Sonnet~5's \strictN{} working backdoors are dropped after the fact; running the validators during
+generation would avoid this. Claude models wrote the validators, and the search for a legal input is short.
 In four of five agentic ControlArena \cite{controlarena} settings, character count alone separates
 classes written by one model (up to \agentdojoFloor{}, appendix~\ref{app:agentic}).
 
