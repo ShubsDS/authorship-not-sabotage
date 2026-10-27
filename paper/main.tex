@@ -593,22 +593,23 @@
 \maketitle
 
 \begin{abstract}
-AI-control monitors are tuned and ranked on datasets of honest and backdoored code, on the assumption
-that a good score means a monitor can find sabotage. We show that the standard APPS backdoor dataset
-breaks this assumption in two ways. First, its classes have different authors: people wrote the honest
-solutions and older language models wrote the backdoors. A bag-of-words classifier that never runs the
-code reaches AUROC \tfidfKoran{} on the test split, higher than \tfidfKoranCount{} of \monN{}
-published open-weight monitors. Second, the labels leak. A problem keeps its
-backdoored program only if the backdoor works, which is easier when the problem has few tests, so
-problem metadata alone reaches \nocodeCV{}. To pull authorship apart from sabotage, we have Claude
-Sonnet~5 write both solutions to each problem and swap one class at a time. The classifier follows
-the authors, not the backdoors: it separates human code from Sonnet~5's backdoors more easily than from
-the original ones. A Sonnet~5 monitor is not fooled by authorship, but its results depend on the
-attacker. On \strictN{} problems where every backdoor works, flagging 2\% of human solutions, it
-catches \auditStrictStored{} of the older models' backdoors and only \auditSwapHumanOurs{} of
-Sonnet~5's; a Haiku~4.5 monitor drops too. A high score on this benchmark therefore says little about
-whether a monitor detects sabotage, or how it would fare against a current model. We release the
-rebuilt pairs and our checks so other monitor benchmarks can be tested the same way.
+Monitors for AI control are tuned and ranked on datasets that pair honest code with backdoored code,
+assuming that a high score means a monitor can find sabotage. We show that
+the standard APPS backdoor dataset can be scored on without finding any backdoor. Its honest solutions
+were written by people and its backdoors by older language models, and a bag-of-words classifier that
+never runs the code reaches AUROC \tfidfKoran{} on its test split, above \tfidfKoranCount{} of
+\monN{} published monitors. The labels also leak, because the split keeps a backdoored
+program only when its backdoor works, which is easier on problems with few tests, so problem
+metadata alone reaches \nocodeCV{}. To separate authorship from sabotage, we have Claude Sonnet~5 write
+both solutions to each problem and swap one class at a time. The classifier tracks who wrote the code
+rather than whether it is backdoored, and separates human code from Sonnet~5's backdoors more easily
+than from the original ones. A Sonnet~5 monitor does not rely on authorship, yet its results depend on
+the attacker. On \strictN{} problems where every backdoor works, flagging 2\% of
+human solutions, it catches \auditStrictStored{} of the older models' backdoors but only
+\auditSwapHumanOurs{} of Sonnet~5's, and a Haiku~4.5 monitor drops as well. Scores on
+this benchmark therefore say little about whether a monitor detects sabotage or how it would perform
+against current models. We release the rebuilt pairs and our checks so other monitor benchmarks
+can be tested the same way.
 \end{abstract}
 
 \section{Introduction}
