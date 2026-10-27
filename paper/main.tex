@@ -594,23 +594,21 @@
 \maketitle
 
 \begin{abstract}
-Monitors for AI control are tuned and ranked on datasets that pair honest code with backdoored code,
-assuming that a high score means a monitor can find sabotage. We show that
-the standard APPS backdoor dataset can be scored on without finding any backdoor. Its honest solutions
-were written by people and its backdoors by older language models, and a bag-of-words classifier that
-never runs the code reaches AUROC \tfidfKoran{} on its test split, above \tfidfKoranCount{} of
-\monN{} published monitors. The labels also leak, because the split keeps a backdoored
-program only when its backdoor works, which is easier on problems with few tests, so problem
-metadata alone reaches \nocodeCV{}. To separate authorship from sabotage, we have Claude Sonnet~5 write
-both solutions to each problem and swap one class at a time. The classifier tracks who wrote the code
-rather than whether it is backdoored, and separates human code from Sonnet~5's backdoors more easily
-than from the original ones. A Sonnet~5 monitor does not rely on authorship, yet its results depend on
-the attacker. On \strictN{} problems where every backdoor works, flagging 2\% of
-human solutions, it catches \auditStrictStored{} of the older models' backdoors but only
-\auditSwapHumanOurs{} of Sonnet~5's, and a Haiku~4.5 monitor drops as well. Scores on
-this benchmark therefore say little about whether a monitor detects sabotage or how it would perform
-against current models. We release the rebuilt pairs and our checks so other monitor benchmarks
-can be tested the same way.
+AI systems are often checked by another model that looks for signs of sabotage.
+These checkers, called monitors, are compared on datasets that pair honest code with code hiding a
+backdoor, assuming that a high score means a monitor can find sabotage. We show that the
+standard dataset for this task can be scored well without finding any backdoor. People wrote its
+honest code and older language models wrote its backdoors, so a simple classifier that counts words
+and never runs the code beats \tfidfKoranCount{} of \monN{} published monitors. The labels also leak,
+because a problem counts as backdoored only when its backdoor works, which is easier with few tests,
+so basic facts about each problem predict the label. To separate the
+author from the sabotage, we have Claude Sonnet~5 write both versions of each program and swap one
+side at a time. The word-counting classifier follows the authors, not the backdoors. A Sonnet~5
+monitor is not fooled by authorship, but its results depend on the attacker. On problems where every
+backdoor works, it catches \auditStrictStored{} of the older models' backdoors but only
+\auditSwapHumanOurs{} of Sonnet~5's. Scores on this benchmark therefore say little about whether a
+monitor detects sabotage or how it would fare against current models. We release the rebuilt dataset
+and our checks for testing other monitor benchmarks.
 \end{abstract}
 
 \section{Introduction}
@@ -659,14 +657,14 @@ gewang2026attackselection, pinto2026calibration} does not ask who wrote each cla
 We show that the original pairs partly measure how they were built, and that the catch rates
 measured on them depend on who wrote the attacks (Figure~\ref{fig:overview}).
 {\setlength{\topsep}{3pt}\setlength{\leftmargini}{1.6em}\begin{itemize}\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}
-\item \textbf{Who wrote each class.} A bag-of-words classifier that never runs the code scores above
+\item A bag-of-words classifier that never runs the code scores above
 \tfidfKoranCount{} of \monN{} published monitors on the standard split (\S\ref{sec:results}). When we
 swap one class at a time for code by Claude Sonnet~5, it follows the authors and not the backdoors
 (\S\ref{sec:samegen}).
-\item \textbf{How the labels were assigned.} A problem whose backdoor failed contributes its honest
-program instead, so a classifier that reads only problem metadata also beats most monitors
+\item The labels also leak, because a problem whose backdoor failed contributes its
+honest program instead, so a classifier that reads only problem metadata also beats most monitors
 (\S\ref{sec:label}).
-\item \textbf{Who wrote the attacks.} A Sonnet~5 monitor does not rely on authorship, but when it
+\item A Sonnet~5 monitor does not rely on authorship, but when it
 flags 2\% of the human solutions it catches \auditStrictStored{} of the older models' working
 backdoors and only \auditSwapHumanOurs{} of Sonnet~5's (\S\ref{sec:monitor}).
 \end{itemize}}
@@ -677,7 +675,7 @@ pairs and our scripts under the MIT licence (appendix~\ref{app:release}).%
 \section{Setup}
 \label{sec:setup}
 
-\paragraph{The dataset.} We study the public APPS backdoor dataset \cite{inglis2025appscontrolarena}
+We study the public APPS backdoor dataset \cite{inglis2025appscontrolarena}
 in its full and high-quality releases (appendix~\ref{app:schema}). People wrote its honest solutions,
 and \storedAttackers{} models released by early 2025, led by Claude~3.7 Sonnet and o3-mini, wrote most
 of its backdoors (appendix~\ref{app:attackers}). We call them the \emph{older models}, as opposed to
@@ -688,14 +686,14 @@ backdoored one if its backdoor works (\splitAttack{} problems) and otherwise the
 own pairs we use the \baselineBn{} problems of the full release that have a passing human solution, a
 backdoor the dataset marks as working, and deterministic tests.
 
-\paragraph{Two baselines that never run the code.} The \emph{bag-of-words} classifier is a
+We use two baselines that never run the code. The \emph{bag-of-words} classifier is a
 logistic regression on word and word-pair frequencies (TF-IDF) of the code, with comments removed.
 The \emph{no-code} classifier is a logistic regression on three facts about the problem (its
 difficulty, number of test cases and statement length) and never sees code. We call the AUROC of
 such a baseline a \emph{floor}. A monitor that scores at or below the floor has not shown that it
 finds backdoors. Each floor is compared with its score on shuffled labels (1{,}000 shuffles).
 
-\paragraph{Rebuilt pairs.} To remove the difference in authors, one model, Claude Sonnet~5 or Claude
+To remove the difference in authors, one model, Claude Sonnet~5 or Claude
 Haiku~4.5, writes both solutions to each problem. It writes an honest solution and, in a separate
 request that sees only the problem, a backdoored solution with an input meant to trigger it. Our
 test runner checks both (appendix~\ref{app:harness}). A backdoor \emph{works} if it passes the public
@@ -706,7 +704,7 @@ model's solutions pass the public tests (\sameGenN{} for Sonnet~5, of whose back
 tries per problem (\strictN{} problems). In a \emph{prompt-matched} version the honest solution is
 requested with the backdoor prompt minus the request for a flaw.
 
-\paragraph{Measuring what survives.} We fit the same bag-of-words classifier to the rebuilt pairs and
+We fit the same bag-of-words classifier to the rebuilt pairs and
 to the original pairs of the same problems. Since 0.5 is chance, we report
 $\rho = (\text{rebuilt AUROC} - 0.5)/(\text{original AUROC} - 0.5)$, the fraction of the
 classifier's advantage over chance that remains when one model writes both classes. It exceeds 1 if
@@ -789,7 +787,7 @@ Sonnet 5, prompt-matched & \matchedStrictN{}/\matchedStrictN{}
 \end{tabular}
 \end{table}
 
-\paragraph{One author for both classes.} When one model writes both classes, the classifier keeps
+When one model writes both classes, the classifier keeps
 $\rho = \sameGenRho{}$ of its advantage over chance on Sonnet~5's all attempts and \haikuRho{} on
 Haiku~4.5's (Table~\ref{tab:gates}). Almost all of these attempts fail (\relFireFirst{} of
 \sameGenN{} and \haikuFireInRow{} of \haikuN{} work), and half name a public test input as their
@@ -1288,7 +1286,7 @@ working-backdoor row only & \shStrictOnlyN{} & working & \shStrictOnlyS{} & \shS
 
 \subsection{Prompt matching and Haiku~4.5}
 \label{app:secondpass}
-\paragraph{Prompt matching removes much of the same signal as masking identifiers.} Masking
+Prompt matching removes much of the same signal as masking identifiers. Masking
 identifiers takes Sonnet~5's prompt-matched all-attempts row to \three{\matchedSid}
 ($\rho = \matchedRhoId{}$) and the same \matchedN{} problems without prompt matching to
 \three{\matchedSidOrig}. Whether what remains is program structure or naming is undecided: the
@@ -1298,7 +1296,7 @@ and folds) keeps more than the word model, \three{\matchedChar} ($\rho = \matche
 drop does not come from how code is split into words. Under the two prompts, Sonnet~5's correct
 honest solutions separate at \promptOnly{}.
 
-\paragraph{Haiku~4.5's low AUROC is not caused by near-copies.} Its rebuilt pairs are more alike than
+Haiku~4.5's low AUROC is not caused by near-copies. Its rebuilt pairs are more alike than
 Sonnet~5's (mean similarity \haikuPairSim{} against \simIndep{}), so we recomputed its rebuilt AUROC
 within bands of similarity. It stays at \haikuStrataS{} in every band, including the band at
 \haikuStrataLowSim{}, whose pairs are less alike than the original pairs, while the original AUROC on
@@ -1393,13 +1391,13 @@ Haiku~4.5 & working backdoors & \three{\monHaikuStoredStrict} & \three{\monHaiku
 \end{tabular}
 \end{table}
 
-\paragraph{Haiku~4.5 lost replies.} The 512-token cap left \monHaikuMissHead{} replies on the rebuilt
+Haiku~4.5 lost some replies. The 512-token cap left \monHaikuMissHead{} replies on the rebuilt
 pairs unreadable. On the original pairs the missing share differs by class (\monHaikuMissHonest{} of
 honest against \monHaikuMissAttack{} of backdoored programs), a bias of unknown direction. With a
 1{,}024-token cap on the working-backdoor problems only \monHaikuMissStrictK{} replies are missing,
 and its $\rho$ moves from \monHaikuRhoStrict{} to \monHaikuRhoStrictMt{}, inside the interval.
 
-\paragraph{On these problems the monitors beat bag-of-words.} On the original pairs both monitors
+On these problems the monitors beat bag-of-words. On the original pairs both monitors
 score above bag-of-words, by \monBowGapSonHead{} and \monBowGapSonStrict{} for Sonnet~5 on the
 all-attempts and working-backdoor problems and by \monBowGapHaiHead{} and \monBowGapHaiStrict{} for
 Haiku~4.5. Figure~\ref{fig:overview}(a) describes the published monitors on the standard split, not
@@ -1466,14 +1464,14 @@ score near zero in every panel; only the backdoored class moves.}
 \label{fig:scores}
 \end{figure}
 
-\paragraph{Rescoring is noisy.} The four cells combine separate batches, submitted about six hours
+Rescoring is noisy. The four cells combine separate batches, submitted about six hours
 apart on the same day for Sonnet~5. The monitors sample at default settings. On programs scored in
 both batches, Sonnet~5 gives the same program the same score only \retestSameLo{}--\retestSameHi{}
 of the time, depending on class, with a Spearman correlation of
 \retestSpearmanLo{}--\retestSpearmanHi{}. The intervals resample problems and leave out this noise,
 so differences of a few hundredths between cells are within what rescoring alone produces.
 
-\paragraph{One file mismatch.} The monitor runs and the classifier's working-backdoor row used
+One file differs between runs. The monitor runs and the classifier's working-backdoor row used
 different backdoors on \monStrictDiffer{} of the \strictN{} problems (1701, 1972 and 4434). On these,
 one selection kept a draw that works only by crashing on its trigger input, and the other a later
 draw that works without crashing. Dropping the three moves the monitor's \monitorStrict{} to
