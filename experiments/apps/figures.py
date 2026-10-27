@@ -289,9 +289,8 @@ def fig5_stored_pairs():
         inp, ho, bo = EXPLOITS[p["pid"]]
         cols.append(
             "\\begin{minipage}[t]{0.318\\linewidth}\n"
-            "{\\color{mG}\\rule{\\linewidth}{1pt}}\\par\\vspace{3pt}\n"
-            "{\\mont\\fontsize{8.4}{10}\\selectfont\\strut %s\\enspace\\textcolor{mG}{\\vrule width 0.7pt}\\enspace %s}"
-            "\\par\\vspace{4pt}\n" % ("abc"[k], p["title"]) +
+            "{\\centering\\mont\\fontsize{7.6}{9.2}\\selectfont\\strut (%s) %s\\par}\\vspace{3pt}\n"
+            % ("abc"[k], p["title"]) +
             "\\begin{tcolorbox}[mpanel]\n"
             "\\begin{tcolorbox}[mcard, equal height group=mh]{\\mont\\fontsize{6.8}{8.2}\\selectfont\\textbf{Honest}"
             "\\hfill\\textcolor{mMute}{a person}}\\par\\vspace{2.5pt}\n" + code(p["honest"], nh) +
@@ -488,13 +487,13 @@ def fig11_overview():
                     for i, v in enumerate(vals))
     beat = sum(v < TFIDF_FLOOR for v in vals)
     a = r"""
-\begin{axis}[at={(0.75cm,0cm)}, anchor=north west, width=3.55cm, height=3.6cm, scale only axis,
-  xmin=-0.6, xmax=2.55, ymin=0.4, ymax=1.0, ytick={0.4,0.5,...,1.0}, yticklabels={0.4,0.5,0.6,0.7,0.8,0.9,1.0},
-  xtick={0,1.25,2.15}, xticklabels={NMON published\\monitors, no-code, bag-of-\\words},
+\begin{axis}[at={(0.75cm,0cm)}, anchor=north west, width=3.3cm, height=3.6cm, scale only axis,
+  xmin=-0.55, xmax=2.85, ymin=0.4, ymax=1.0, ytick={0.4,0.5,...,1.0}, yticklabels={0.4,0.5,0.6,0.7,0.8,0.9,1.0},
+  xtick={0,1.35,2.45}, xticklabels={NMON\\monitors, no-code, bag-of-\\words},
   xticklabel style={align=center, font=\mont\fontsize{6.6}{7.6}\selectfont}, x tick style={draw=none},
   ymajorgrids, ylabel={AUROC}, title={(a) Standard test split}, clip=false]
-\draw[mMute, densely dotted, line width=0.5pt] (axis cs:-0.6,0.5) -- (axis cs:2.55,0.5);
-\draw[mInk, line width=0.6pt, dash pattern=on 2.5pt off 1.5pt] (axis cs:-0.45,BOW) -- (axis cs:2.15,BOW);
+\draw[mMute, densely dotted, line width=0.5pt] (axis cs:-0.55,0.5) -- (axis cs:2.85,0.5);
+\draw[mInk, line width=0.6pt, dash pattern=on 2.5pt off 1.5pt] (axis cs:-0.45,BOW) -- (axis cs:2.45,BOW);
 \draw[mG, line width=0.7pt] (axis cs:0,MIN) -- (axis cs:0,Q1) (axis cs:0,Q3) -- (axis cs:0,MAX);
 \draw[mG, line width=0.7pt] (axis cs:-0.1,MIN) -- (axis cs:0.1,MIN) (axis cs:-0.1,MAX) -- (axis cs:0.1,MAX);
 \filldraw[fill=mGT, draw=mG, line width=0.7pt] (axis cs:-0.3,Q1) rectangle (axis cs:0.3,Q3);
@@ -502,11 +501,11 @@ def fig11_overview():
 \addplot[only marks, mark=*, mark size=1.5pt, mark options={fill=mG, draw=black, line width=0.3pt}] coordinates {DOTS};
 ERRNC
 ERRBOW
-\fill[mInk!55, draw=black, line width=0.35pt] (axis cs:1.25,NC) circle (2.4pt);
-\fill[mInk, draw=black, line width=0.35pt] (axis cs:2.15,BOW) circle (2.4pt);
-\node[anchor=south west, inner sep=1.5pt, font=\mont\fontsize{6.4}{7.6}\selectfont, text=mInk] at (axis cs:0.4,BOW) {BEAT of NMON below};
+\fill[mInk!55, draw=black, line width=0.35pt] (axis cs:1.35,NC) circle (2.4pt);
+\fill[mInk, draw=black, line width=0.35pt] (axis cs:2.45,BOW) circle (2.4pt);
+\node[anchor=south west, inner sep=1.5pt, font=\mont\fontsize{6.4}{7.6}\selectfont, text=mInk] at (axis cs:0.35,BOW) {BEAT of NMON below};
 \end{axis}"""
-    for k, v in (("ERRNC", _errcap(1.25, *NOCODE_CI)), ("ERRBOW", _errcap(2.15, *TFIDF_CI)), ("DOTS", dots),
+    for k, v in (("ERRNC", _errcap(1.35, *NOCODE_CI)), ("ERRBOW", _errcap(2.45, *TFIDF_CI)), ("DOTS", dots),
                  ("NMON", str(len(vals))), ("BEAT", str(beat)), ("BOW", f"{TFIDF_FLOOR:.4f}"),
                  ("NC", f"{NOCODE_FLOOR:.4f}"), ("MIN", f"{vals[0]:.4f}"), ("MAX", f"{vals[-1]:.4f}"),
                  ("Q1", f"{q1:.4f}"), ("Q3", f"{q3:.4f}"), ("MED", f"{med:.4f}")):
@@ -522,7 +521,7 @@ ERRBOW
                 s.append(_errcap(i + dx, lo, hi, 0.06))
         return (r"""
 \begin{axis}[at={(%scm,0cm)}, anchor=north west, width=2.3cm, height=3.6cm, scale only axis,
-  xmin=-0.55, xmax=1.55, ymin=%s, ymax=%s, ytick={%s}, yticklabels={%s}, xtick={0,1}, xticklabels={person,Sonnet~5},
+  xmin=-0.5, xmax=1.5, ymin=%s, ymax=%s, ytick={%s}, yticklabels={%s}, xtick={0,1}, xticklabels={person,Sonnet~5},
   x tick style={draw=none}, ymajorgrids, xlabel={honest code by}, title={%s}, clip=false]
 """ % (x, ymin, ymax, ticks, labels, title)) + "\n".join(s) + "\n\\end{axis}"
 
@@ -533,15 +532,15 @@ ERRBOW
 \pgfplotsset{every axis/.append style={/pgf/number format/assume math mode=true,
   tick label style={font=\mont\fontsize{6.6}{7.6}\selectfont, text=mTxt},
   label style={font=\mont\fontsize{7}{8.4}\selectfont, text=mInk},
-  title style={font=\mont\fontsize{7.8}{9.4}\selectfont, text=mInk, yshift=-2pt},
+  title style={font=\mont\fontsize{7.6}{9.2}\selectfont, text=mInk, yshift=-2pt},
   axis lines=left, axis line style={mInk, line width=0.5pt, -}, tick style={mInk, line width=0.5pt},
   major tick length=2.5pt, xlabel style={yshift=2pt}, ylabel style={yshift=-3pt},
   major grid style={mGrid, line width=0.45pt}}}""",
         a,
-        bars(5.25, "(b) Bag-of-words", bow, 0.5, 1.0, "0.5,0.6,...,1.0", "0.5,0.6,0.7,0.8,0.9,1.0", 1),
-        bars(8.0, r"(c) Sonnet~5 monitor", mon, 0.5, 1.0, "0.5,0.6,...,1.0", "", 1),
-        bars(11.0, r"(d) Caught at %d\%% FPR" % round(100 * AUDIT_AT), caught, 0, 100, "0,20,...,100", pct, 100),
-        r"""\node[anchor=north, font=\mont\fontsize{6.8}{8}\selectfont, text=mInk] at (9.35cm,-4.62cm)
+        bars(4.85, "(b) Bag-of-words", bow, 0.5, 1.0, "0.5,0.6,...,1.0", "0.5,0.6,0.7,0.8,0.9,1.0", 1),
+        bars(7.95, r"(c) Sonnet~5 monitor", mon, 0.5, 1.0, "0.5,0.6,...,1.0", "0.5,0.6,0.7,0.8,0.9,1.0", 1),
+        bars(11.04, r"(d) Caught at %d\%% FPR" % round(100 * AUDIT_AT), caught, 0, 100, "0,20,...,100", pct, 100),
+        r"""\node[anchor=north, font=\mont\fontsize{6.8}{8}\selectfont, text=mInk] at (7.6cm,-4.62cm)
   {\tikz[baseline=-0.6ex]\fill[mG] (0,-2.5pt) rectangle (7pt,2.5pt);\ backdoors by the older models\qquad
    \tikz[baseline=-0.6ex]\fill[mB] (0,-2.5pt) rectangle (7pt,2.5pt);\ backdoors by Sonnet~5};
 \end{tikzpicture}"""])
