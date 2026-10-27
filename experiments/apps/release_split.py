@@ -331,7 +331,7 @@ figures in the scripts' comments are redacted to `$X`; nothing else in them was 
 
 ```
 @inproceedings{{debsarkar2026samegenerator,
-  title     = {{Authorship and Attacker Confounds in AI-Control Monitor Benchmarks}},
+  title     = {{Who Wrote the Backdoor? Authorship Confounds in AI-Control Monitor Benchmarks}},
   author    = {{Debsarkar, Shubhrangshu and Nahata, Valmik}},
   booktitle = {{NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI
                Systems (EvoRobust)}},
