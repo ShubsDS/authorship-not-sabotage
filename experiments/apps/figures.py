@@ -1,6 +1,6 @@
 """Build the paper's figures and the F1 table into ../../paper/fig/.
 
-    F11 the paper in four panels            -> f11-overview.tex          (Figure 1, TikZ)
+    F11 the headline result                 -> f11-overview.pdf          (Figure 1)
     F5  three original pairs (listings)    -> f5-stored-pairs.tex        (Figure 2)
     F1  protocol x baseline table           -> f1-protocol-baseline.tex   (appendix table)
     F2  agentic-setting floors              -> f2-corpus-floors.pdf       (appendix)
@@ -23,9 +23,8 @@ Figures are sized at the width main.tex includes them at, so font sizes are the 
 One visual system throughout (METR's): text typeset by LaTeX in Montserrat, code in Inconsolata,
 open axes, light grids, grey capped error bars, and colour with one meaning everywhere: green = the
 benchmark as published (its monitors, the older models' backdoors), blue = Sonnet 5's backdoors,
-near-black = our classifiers that never run the code, light grey = honest programs. Figure 1 is
-TikZ/pgfplots and Figure 2 is LaTeX (tcolorbox), both written here; the appendix figures are one PDF
-per panel, assembled in main.tex with subcaption. Kinds of pair are named by who
+near-black = our classifiers that never run the code, light grey = honest programs. Figure 2 is
+LaTeX (tcolorbox); the other figures are PDFs drawn here with one shared theme. Kinds of pair are named by who
 wrote each side, honest / backdoor ("person / older models" for the original pairs, "Sonnet 5 /
 Sonnet 5" for the rebuilt ones). Text inside a figure is kept to labels; the captions explain.
 Output is deterministic: the PDF creation date is not stamped.
@@ -147,20 +146,19 @@ plt.rcParams.update({
     "xtick.direction": "out", "ytick.direction": "out", "xtick.top": False, "ytick.right": False,
     "xtick.major.size": 2.5, "ytick.major.size": 2.5, "xtick.minor.size": 0, "ytick.minor.size": 0,
     "xtick.major.width": 0.6, "ytick.major.width": 0.6, "xtick.color": MTXT, "ytick.color": MTXT,
-    "axes.labelcolor": MINK, "text.color": MINK, "axes.titlepad": 4, "legend.frameon": False,
+    "axes.labelcolor": MINK, "text.color": MINK, "axes.titlepad": 4, "legend.frameon": True, "legend.fancybox": True, "legend.edgecolor": "#CFCFCF", "legend.framealpha": 1.0,
     "errorbar.capsize": 1.8,
 })
 
 
 def mgrid(ax, axis="y", minor_lines=True):
-    """METR grid: light major lines, dotted minor lines, drawn under the data."""
-    from matplotlib.ticker import AutoMinorLocator
+    """METR grid (their headline chart): light solid major lines, dotted minor lines, under the data."""
+    from matplotlib.ticker import AutoMinorLocator, LogLocator
     ax.grid(True, axis=axis, which="major", color=MGRID, lw=0.5, zorder=0)
     if minor_lines:
-        if axis in ("y", "both"):
-            ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-        if axis in ("x", "both"):
-            ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+        for name, axx in (("y", ax.yaxis), ("x", ax.xaxis)):
+            if axis in (name, "both") and axx.get_scale() == "linear":
+                axx.set_minor_locator(AutoMinorLocator(2))
         ax.grid(True, axis=axis, which="minor", color=MGRID, lw=0.4, ls=(0, (1, 1.5)), zorder=0)
     ax.set_axisbelow(True)
 
@@ -474,81 +472,61 @@ def _errcap(x, lo, hi, w=0.07):
     return seg % (x, lo, x, hi) + "".join(seg % (x - w, y, x + w, y) for y in (lo, hi))
 
 
+# F11 (Figure 1), drawn like Figure A2: (a) the A2 leaderboard, every detector one ranked bar; (b)-(d)
+# the class swap on the working-backdoor problems as the same bars, one row per kind of pair named
+# honest / backdoored by, light green for the older models' backdoors and light blue for Sonnet 5's.
+
 def fig11_overview():
-    """Figure 1 as TikZ/pgfplots (one row, four panels of equal height). (a) the monitors as a box
-    with their dots beside the two classifiers that never run the code; (b)-(d) grouped bars by who
-    wrote the honest code, green = the older models' backdoors, blue = Sonnet 5's. Writes
-    fig/f11-overview.tex (the tikzpicture only; main.tex holds the figure and caption)."""
-    vals = sorted(m["test_auroc"] for m in json.load(open("monitor-summary.json")))
+    from matplotlib.ticker import AutoMinorLocator
     bow, mon, caught, _ = _working_panels()
-    q1, med, q3 = statistics.quantiles(vals, n=4)
-    jit = [-0.2, -0.07, 0.07, 0.2]
-    dots = " ".join("(%.3f,%.4f)" % (jit[i % 4] * (1 if (i // 4) % 2 == 0 else -1) * 0.9, v)
-                    for i, v in enumerate(vals))
-    beat = sum(v < TFIDF_FLOOR for v in vals)
-    a = r"""
-\begin{axis}[at={(0.75cm,0cm)}, anchor=north west, width=3.3cm, height=3.6cm, scale only axis,
-  xmin=-0.55, xmax=2.85, ymin=0.4, ymax=1.0, ytick={0.4,0.5,...,1.0}, yticklabels={0.4,0.5,0.6,0.7,0.8,0.9,1.0},
-  xtick={0,1.35,2.45}, xticklabels={NMON\\monitors, no-code, bag-of-\\words},
-  xticklabel style={align=center, font=\mont\fontsize{6.6}{7.6}\selectfont}, x tick style={draw=none},
-  ymajorgrids, ylabel={AUROC}, title={(a) Standard test split}, clip=false]
-\draw[mMute, densely dotted, line width=0.5pt] (axis cs:-0.55,0.5) -- (axis cs:2.85,0.5);
-\draw[mInk, line width=0.6pt, dash pattern=on 2.5pt off 1.5pt] (axis cs:-0.45,BOW) -- (axis cs:2.45,BOW);
-\draw[mG, line width=0.7pt] (axis cs:0,MIN) -- (axis cs:0,Q1) (axis cs:0,Q3) -- (axis cs:0,MAX);
-\draw[mG, line width=0.7pt] (axis cs:-0.1,MIN) -- (axis cs:0.1,MIN) (axis cs:-0.1,MAX) -- (axis cs:0.1,MAX);
-\filldraw[fill=mGT, draw=mG, line width=0.7pt] (axis cs:-0.3,Q1) rectangle (axis cs:0.3,Q3);
-\draw[mG, line width=1.1pt] (axis cs:-0.3,MED) -- (axis cs:0.3,MED);
-\addplot[only marks, mark=*, mark size=1.5pt, mark options={fill=mG, draw=black, line width=0.3pt}] coordinates {DOTS};
-ERRNC
-ERRBOW
-\fill[mInk!55, draw=black, line width=0.35pt] (axis cs:1.35,NC) circle (2.4pt);
-\fill[mInk, draw=black, line width=0.35pt] (axis cs:2.45,BOW) circle (2.4pt);
-\node[anchor=south west, inner sep=1.5pt, font=\mont\fontsize{6.4}{7.6}\selectfont, text=mInk] at (axis cs:0.35,BOW) {BEAT of NMON below};
-\end{axis}"""
-    for k, v in (("ERRNC", _errcap(1.35, *NOCODE_CI)), ("ERRBOW", _errcap(2.45, *TFIDF_CI)), ("DOTS", dots),
-                 ("NMON", str(len(vals))), ("BEAT", str(beat)), ("BOW", f"{TFIDF_FLOOR:.4f}"),
-                 ("NC", f"{NOCODE_FLOOR:.4f}"), ("MIN", f"{vals[0]:.4f}"), ("MAX", f"{vals[-1]:.4f}"),
-                 ("Q1", f"{q1:.4f}"), ("Q3", f"{q3:.4f}"), ("MED", f"{med:.4f}")):
-        a = a.replace(k, v)
+    mons = json.load(open("monitor-summary.json"))
+    rows = [(tex(short(m["repo"])), m["test_auroc"], tuple(m["ci"]), MGL) for m in mons]
+    rows += [(r"\textbf{bag-of-words}", TFIDF_FLOOR, TFIDF_CI, MINK), (r"\textbf{no-code}", NOCODE_FLOOR, NOCODE_CI, MINK)]
+    rows.sort(key=lambda r: r[1])
+    fig = plt.figure(figsize=(TEXT_W, 3.55))
+    ax = fig.add_axes([0.2, 0.1, 0.3, 0.83])
+    for y, (name, v, (lo, hi), c) in enumerate(rows):
+        ax.barh(y, v - 0.4, left=0.4, height=0.68, color=c, zorder=2)
+        ebar(ax, y, v, lo, hi, horizontal=True)
+    ax.axvline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
+    ax.set_yticks(range(len(rows))); ax.set_yticklabels([r[0] for r in rows], fontsize=FS - 1.2)
+    ax.tick_params(axis="y", length=0)
+    ax.set_ylim(-0.7, len(rows) - 0.3)
+    ax.set_xlim(0.4, 1.0); ax.set_xticks([0.4, 0.6, 0.8, 1.0])
+    mgrid(ax, "x"); ax.set_xlabel("AUROC")
+    ax.set_title(r"(a) Standard test split", fontsize=FS + 0.5, pad=5)
+    names = [r"\textbf{person / older}", "Sonnet 5 / older", "person / Sonnet 5", "Sonnet 5 / Sonnet 5"]
+    cols = [MGL, MGL, MBL, MBL]
+    order = ["human_honest__stored_attack", "our_honest__stored_attack", "human_honest__our_attack", "our_honest__our_attack"]
+    specs = [(r"(b) Bag-of-words", bow, False), (r"(c) Sonnet~5 monitor", mon, False),
+             (r"(d) Caught at %d\%% FPR" % round(100 * AUDIT_AT), caught, True)]
+    H, gap, top = 0.2, 0.115, 0.93
+    for i, (title, D, pct) in enumerate(specs):
+        b = fig.add_axes([0.745, top - H - i * (H + gap), 0.245, H])
+        for y, (k, c) in enumerate(zip(order, cols)):
+            yy = 3 - y
+            v, lo, hi = D[k]
+            if pct:
+                v, lo, hi = 100 * v, 100 * lo, 100 * hi
+            base = 0 if pct else 0.4
+            b.barh(yy, v - base, left=base, height=0.68, color=c, zorder=2)
+            ebar(b, yy, v, lo, hi, horizontal=True)
+        b.set_yticks([3, 2, 1, 0]); b.set_yticklabels(names, fontsize=FS - 1.2); b.tick_params(axis="y", length=0)
+        b.set_ylim(-0.7, 3.7)
+        if pct:
+            b.set_xlim(0, 100); b.set_xticks([0, 25, 50, 75, 100])
+            b.set_xticklabels([r"0\%", "", r"50\%", "", r"100\%"])
+        else:
+            b.set_xlim(0.4, 1.0); b.set_xticks([0.4, 0.6, 0.8, 1.0])
+            b.axvline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
+        mgrid(b, "x")
+        b.set_title(title, fontsize=FS + 0.5, pad=4)
+    fig.text(0.745 - 0.005, top + 0.035, "honest / backdoored by", fontsize=FS - 1.5, color=MMUTE, ha="right", va="bottom")
+    save(fig, "f11-overview.pdf")
+    PO, PS = order[0], order[2]
+    print(f"F11: monitor {mon[PO][0]:.3f} -> {mon[PS][0]:.3f}; bag-of-words {bow[PO][0]:.3f} -> {bow[PS][0]:.3f}; "
+          f"caught {caught[PO][0]:.3f} -> {caught[PS][0]:.3f}; {sum(r[1] < TFIDF_FLOOR for r in rows if r[3] == MGL)} of {len(mons)} monitors below bag-of-words")
 
-    def bars(x, title, cells, ymin, ymax, ticks, labels, scale):
-        s = []
-        for i, hk in enumerate(("human_honest", "our_honest")):
-            for ak, col, dx in (("stored_attack", "mG", -0.19), ("our_attack", "mB", 0.19)):
-                v, lo, hi = (scale * t for t in cells[f"{hk}__{ak}"])
-                s.append(r"\fill[%s] (axis cs:%.3f,%s) rectangle (axis cs:%.3f,%.4f);"
-                         % (col, i + dx - 0.17, ymin, i + dx + 0.17, v))
-                s.append(_errcap(i + dx, lo, hi, 0.06))
-        return (r"""
-\begin{axis}[at={(%scm,0cm)}, anchor=north west, width=2.3cm, height=3.6cm, scale only axis,
-  xmin=-0.5, xmax=1.5, ymin=%s, ymax=%s, ytick={%s}, yticklabels={%s}, xtick={0,1}, xticklabels={person,Sonnet~5},
-  x tick style={draw=none}, ymajorgrids, xlabel={honest code by}, title={%s}, clip=false]
-""" % (x, ymin, ymax, ticks, labels, title)) + "\n".join(s) + "\n\\end{axis}"
-
-    pct = r"0\%,20\%,40\%,60\%,80\%,100\%"
-    body = "\n".join([
-        "% generated by experiments/apps/figures.py (fig11_overview); do not edit by hand",
-        r"""\begin{tikzpicture}
-\pgfplotsset{every axis/.append style={/pgf/number format/assume math mode=true,
-  tick label style={font=\mont\fontsize{6.6}{7.6}\selectfont, text=mTxt},
-  label style={font=\mont\fontsize{7}{8.4}\selectfont, text=mInk},
-  title style={font=\mont\fontsize{7.6}{9.2}\selectfont, text=mInk, yshift=-2pt},
-  axis lines=left, axis line style={mInk, line width=0.5pt, -}, tick style={mInk, line width=0.5pt},
-  major tick length=2.5pt, xlabel style={yshift=2pt}, ylabel style={yshift=-3pt},
-  major grid style={mGrid, line width=0.45pt}}}""",
-        a,
-        bars(4.85, "(b) Bag-of-words", bow, 0.5, 1.0, "0.5,0.6,...,1.0", "0.5,0.6,0.7,0.8,0.9,1.0", 1),
-        bars(7.95, r"(c) Sonnet~5 monitor", mon, 0.5, 1.0, "0.5,0.6,...,1.0", "0.5,0.6,0.7,0.8,0.9,1.0", 1),
-        bars(11.04, r"(d) Caught at %d\%% FPR" % round(100 * AUDIT_AT), caught, 0, 100, "0,20,...,100", pct, 100),
-        r"""\node[anchor=north, font=\mont\fontsize{6.8}{8}\selectfont, text=mInk] at (7.6cm,-4.62cm)
-  {\tikz[baseline=-0.6ex]\fill[mG] (0,-2.5pt) rectangle (7pt,2.5pt);\ backdoors by the older models\qquad
-   \tikz[baseline=-0.6ex]\fill[mB] (0,-2.5pt) rectangle (7pt,2.5pt);\ backdoors by Sonnet~5};
-\end{tikzpicture}"""])
-    with open(f"{OUT}/f11-overview.tex", "w") as fh:
-        fh.write(body + "\n")
-    print(f"F11: {beat} of {len(vals)} monitors below bag-of-words; working-backdoor swap "
-          "(bag-of-words / monitor / caught) " +
-          ", ".join(f"{bow[c][0]:.3f}/{mon[c][0]:.3f}/{caught[c][0]:.3f}" for c in CELLS))
 
 
 # F8 (appendix): the Sonnet 5 monitor's suspicion scores by class, on the original pairs (a person
