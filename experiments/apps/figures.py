@@ -413,8 +413,8 @@ def fig9_audit_curve():
               ("person / Sonnet 5", sw["human_honest__our_attack"], MBL),
               ("Sonnet 5 / Sonnet 5", cur["samegen"], MBL))
     budgets = (0.01, 0.02, 0.05, 0.10)
-    fig, axes = plt.subplots(1, 4, figsize=(TEXT_W * 0.97, 1.15), sharey=True)
-    fig.subplots_adjust(wspace=0.24, left=0.19, right=0.985, top=0.82, bottom=0.27)
+    fig, axes = plt.subplots(1, 4, figsize=(TEXT_W * 0.97, 1.4), sharey=True)
+    fig.subplots_adjust(wspace=0.24, left=0.23, right=0.985, top=0.85, bottom=0.23)
     for ax, f in zip(axes, budgets):
         j = min(range(len(cur["fpr"])), key=lambda i: abs(cur["fpr"][i] - f))
         rows = []
@@ -426,8 +426,7 @@ def fig9_audit_curve():
         ax.set_xticklabels(["0", "", "50", "", "100"])
         mgrid(ax, "x")
         ax.set_title(r"%d\%% flagged" % round(100 * f), fontsize=FS + 0.3, pad=3)
-    axes[0].annotate("honest / backdoored by", xy=(0, 1), xycoords="axes fraction", xytext=(-4, 3),
-                     textcoords="offset points", ha="right", va="baseline", fontsize=FS - 1.2, color=MMUTE)
+    axes[0].set_ylabel("honest / backdoored\ncode by", fontsize=FS - 0.5, linespacing=1.2)
     fig.supxlabel(r"working backdoors caught (\%)", fontsize=FS, y=0.0)
     save(fig, "f9b-audit-budget.pdf")
     j = cur["fpr"].index(AUDIT_AT)
@@ -517,9 +516,9 @@ def fig11_overview():
             b.axvline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
         mgrid(b, "x")
         b.set_title(title, fontsize=FS + 0.5, pad=4)
-        if i == 0:  # column header over the row labels, on the title's baseline
-            b.annotate("honest / backdoored by", xy=(0, 1), xycoords="axes fraction", xytext=(-4, 4),
-                       textcoords="offset points", ha="right", va="baseline", fontsize=FS - 1.2, color=MMUTE)
+    # one axis label for the row names of (b)-(d), run vertically beside them
+    mid = top - (3 * H + 2 * gap) / 2
+    fig.text(0.56, mid, "honest / backdoored code by", rotation=90, ha="center", va="center", fontsize=FS)
     save(fig, "f11-overview.pdf")
     PO, PS = order[0], order[2]
     print(f"F11: monitor {mon[PO][0]:.3f} -> {mon[PS][0]:.3f}; bag-of-words {bow[PO][0]:.3f} -> {bow[PS][0]:.3f}; "
