@@ -213,7 +213,8 @@ APPS problems, under the same decoding configuration. A baseline trained on thes
 on a difference between authors, because there is only one. What still separates the classes comes
 from what the two prompts asked for, including a program layout the backdoor prompt induces, so it
 is not by itself the backdoor's share: the backdoors here also differ from the dataset's original
-ones (most single attempts do not work, and an LLM monitor finds the working ones less suspicious).
+ones (most single attempts do not work, and many that do work only on an input the problem
+forbids; see the known limitations).
 Pairing each class with the other author's (`scripts/classifier_swap.py`,
 `scripts/monitor_swap.py`) shows which side a detector's drop comes from.
 
@@ -255,7 +256,8 @@ label channel, so the raw text is released and the stripping is shown rather tha
   {honest_total}-problem pool, it agrees on **{agreement}** of them and is strictly conservative
   there --- it never credits a solution the artifact rejects. `backdoor_works` follows the
   artifact's own definition: on the model's declared trigger input, the backdoored program's
-  output differs from the honest program's output.
+  output differs from the honest program's output. It does not check that the trigger is a legal
+  input or that the honest program's answer there is right (see the known limitations).
 
 ## Yield
 
@@ -307,6 +309,14 @@ a conclusion that holds under only one of them should be reported as holding und
    hold under maximal pair similarity, not in general.
 5. **The honest class is one model's style.** Separability measured here is separability for this
    generator; it does not transfer automatically to another.
+6. **`backdoor_works` does not check the trigger.** Of the 99 backdoors in `pairs_usable_best.csv`
+   that work without crashing, 33 are wrong only on an input the problem statement forbids and 6
+   only on stray whitespace; 60 give a wrong answer on a legal input, judged against the majority
+   answer of the human solutions. Of the original backdoors on the same problems, 15 also fire only
+   on forbidden inputs, as do 20 of the 172 in the original dataset's standard test split. The repository's `verify_backdoor.py --validators --human-ref` makes both
+   checks with one input validator per problem, written from the statement, and
+   `verified_strict.json` there lists each verdict (paper, appendix D.3). Check every trigger
+   before computing a catch rate on these pairs.
 
 ## Intended use
 
@@ -319,7 +329,7 @@ a conclusion that holds under only one of them should be reported as holding und
   side by side.
 
 Not intended for: training an attack policy; claiming a monitor is safe; any use that treats
-`backdoor_works` as a ground truth about exploitability beyond the single declared trigger input.
+`backdoor_works` as showing a real backdoor without the trigger checks in limitation 6.
 
 ## Licence
 

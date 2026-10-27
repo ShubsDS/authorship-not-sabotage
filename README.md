@@ -36,21 +36,28 @@ source). We call its pairs the original pairs. Figure 1 of the paper summarises 
    classifier keeps rho = 0.687 of its advantage over chance on Sonnet 5's single attempts and
    0.097 on Haiku 4.5's; part of what Sonnet 5 keeps is a layout our attack prompt induces
    (`def main`), and requesting the honest solution with that prompt lowers rho to 0.390.
-4. **A monitor's catch rate depends on who wrote the attacks.** A Sonnet 5 monitor is not fooled
-   by authorship (0.944 on the original pairs, 0.966 when Sonnet 5 wrote the honest side), but it
-   falls to 0.755 on person / Sonnet 5. Flagging 2% of the human solutions, it catches 77% of the
-   older models' working backdoors and 37% of Sonnet 5's (difference 0.40, 95% CI 0.28-0.52). A
-   Haiku 4.5 monitor, which wrote neither class, also falls (0.875 to 0.729), so this is not the
-   monitor overlooking its own code. A catch rate measured on the original pairs describes their
-   attacks as much as the monitor.
+4. **Which backdoors work.** A Sonnet 5 monitor is not fooled by authorship (0.944 on the original
+   pairs, 0.966 when Sonnet 5 wrote the honest side). It seems to fall on person / Sonnet 5
+   (0.755), but 41 of the 99 Sonnet 5 backdoors it scored are wrong only on inputs the problem
+   forbids (35) or only on stray whitespace (6), and it scores them low. We check every trigger in
+   both classes against an input validator written from the statement, and require the backdoor's
+   output there to differ from the human solutions' majority answer. Of the older models' 99
+   backdoors on the same problems, 15 also fire only on forbidden inputs, as do 20 of the 172 in the
+   standard test split (bag-of-words still scores 0.810 without them). Both backdoors pass on
+   52 problems. On these the monitor's AUROC falls only from 0.955 to 0.900, and flagging 2% of the
+   human solutions it catches 77% of the older models' backdoors and 61% of Sonnet 5's (difference
+   0.15, 95% CI -0.01 to 0.31). On real backdoors the catch rate does not clearly depend on who
+   wrote them.
 
-So a score on a dataset built this way shows neither that a monitor finds sabotage nor how well it
-would catch a current model's attacks. We release the rebuilt pairs and recommend running the same
-checks on other monitor benchmarks: report baselines that never run the code (bag-of-words,
-problem metadata, length) with their shuffled-label scores; pair each class with another author's
-code; report catch rates at a fixed audit budget on working backdoors from several generators,
-including current models; and where the checks find shortcuts, have one model write both classes
-from the same prompt and choose honest examples independently of whether an attack succeeded.
+So a score on a dataset built this way does not show that a monitor finds sabotage, and a catch
+rate means little until every trigger is checked. We release the rebuilt pairs, the input
+validators and the checks, and recommend running them on other monitor benchmarks: report
+baselines that never run the code (bag-of-words, problem metadata, length) with their
+shuffled-label scores; pair each class with another author's code; check that every trigger is a
+legal input on which the backdoor's answer is wrong; report catch rates at a fixed audit budget on
+the backdoors that pass, from several generators including current models; and where the checks
+find shortcuts, have one model write both classes from the same prompt and choose honest examples
+independently of whether an attack succeeded.
 
 ## Repository layout
 

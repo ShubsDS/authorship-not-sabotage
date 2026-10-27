@@ -1,0 +1,882 @@
+{
+ "106": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "205": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "363": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "437": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "457": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "498": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "549": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "556": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: need 1<=l<=r<=1e18"
+ },
+ "593": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "769": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "869": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "905": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "923": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "966": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1033": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1066": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "1128": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1203": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "1284": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1301": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1342": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1367": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1368": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "1394": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1395": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1415": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1497": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1512": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1538": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1553": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1594": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1605": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1658": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1711": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1728": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: c=6 > 5"
+ },
+ "1739": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1822": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: self loop"
+ },
+ "1823": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1831": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1856": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1860": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1885": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1896": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "1929": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1944": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: value out of range"
+ },
+ "1979": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1987": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "1992": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2008": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2029": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "2060": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: x out of range"
+ },
+ "2068": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2097": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2152": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2156": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2157": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2192": {
+  "verified": false,
+  "why": "reference undecided (several correct outputs)",
+  "rejected": false
+ },
+ "2228": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2253": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: bad suffix"
+ },
+ "2254": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2257": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2271": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2277": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "2292": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3691": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: x0/y0 out of range"
+ },
+ "3718": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3732": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "3743": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3748": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3772": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: fraction not irreducible"
+ },
+ "3790": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3795": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: d out of range"
+ },
+ "3798": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3815": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: k does not divide n+1"
+ },
+ "3816": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3825": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3835": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3844": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3863": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3867": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3868": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3869": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "3872": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3875": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3877": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3881": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3885": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3890": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "3891": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: black cells are not a square of odd side"
+ },
+ "3892": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3894": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3915": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3920": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: no equiangular hexagon with these sides"
+ },
+ "3929": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3932": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3936": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: letter a covers 1 cells"
+ },
+ "3949": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3962": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "3973": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "3987": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4051": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4085": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4093": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4095": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: not a permutation"
+ },
+ "4107": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: bad string"
+ },
+ "4111": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4130": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4138": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4143": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4148": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4156": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4159": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "4162": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "4173": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4184": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4186": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4189": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: bad name"
+ },
+ "4190": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4192": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4202": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4203": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4222": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4225": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4227": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4252": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4253": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4259": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4269": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4273": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4277": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4283": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4286": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4300": {
+  "verified": false,
+  "why": "fails public tests",
+  "rejected": false
+ },
+ "4310": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4316": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4319": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4321": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4325": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4328": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4342": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4348": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4349": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4351": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4353": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: bad format"
+ },
+ "4354": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4356": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4357": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4363": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4373": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4389": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: odd length b cannot be built"
+ },
+ "4394": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4396": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: N=1 out of [2,10]"
+ },
+ "4398": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4403": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4407": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4413": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4419": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4422": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4424": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4427": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4430": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4434": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4442": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4454": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4455": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4459": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4462": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4463": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4464": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4465": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4466": {
+  "verified": true,
+  "why": "verified",
+  "rejected": false
+ },
+ "4467": {
+  "verified": false,
+  "why": "invalid trigger",
+  "rejected": true,
+  "trigger_reason": "ValueError: y=6 out of [0, 5]"
+ }
+}

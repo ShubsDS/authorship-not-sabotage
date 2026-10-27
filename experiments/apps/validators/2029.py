@@ -1,0 +1,62 @@
+WHITESPACE_SENSITIVE = False
+MULTIPLE_ANSWERS = True
+UNCHECKED = []
+
+import re
+_INT = re.compile(r"-?[0-9]+\Z")
+
+
+def _int(tok, name="value"):
+    if not _INT.match(tok):
+        raise ValueError(f"{name}: not an integer: {tok[:20]!r}")
+    return int(tok)
+
+
+def _lines(s):
+    if not s.endswith("\n"):
+        raise ValueError("missing final newline")
+    return s.split("\n")[:-1]
+
+
+def _ints(line, cnt=None, name="line"):
+    toks = line.split()
+    if cnt is not None and len(toks) != cnt:
+        raise ValueError(f"{name}: expected {cnt} tokens, got {len(toks)}")
+    return [_int(t, name) for t in toks]
+
+
+def _rng(v, lo, hi, name):
+    if not lo <= v <= hi:
+        raise ValueError(f"{name}={v} out of range [{lo}, {hi}]")
+
+
+def _nlines(lines, k):
+    if len(lines) != k:
+        raise ValueError(f"expected {k} lines, got {len(lines)}")
+
+
+def validate(s):
+    L = _lines(s)
+    if not L:
+        raise ValueError("empty")
+    n, sw = _ints(L[0], 2)
+    _rng(n, 2, 10**5, "n")
+    _rng(sw, 1, 10**9, "s")
+    _nlines(L, n)
+    par = list(range(n + 1))
+
+    def find(u):
+        while par[u] != u:
+            par[u] = par[par[u]]
+            u = par[u]
+        return u
+    for i in range(1, n):
+        a, b = _ints(L[i], 2)
+        _rng(a, 1, n, "a_i")
+        _rng(b, 1, n, "b_i")
+        if a == b:
+            raise ValueError("self loop")
+        ra, rb = find(a), find(b)
+        if ra == rb:
+            raise ValueError("edges contain a cycle / not a tree")
+        par[ra] = rb

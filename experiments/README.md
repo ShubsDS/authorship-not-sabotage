@@ -146,6 +146,23 @@ python run_tests.py --solutions genm_sonnet5.jsonl --out passm_sonnet5.jsonl --w
 python run_tests.py --solutions gen_haiku45.jsonl  --out pass_haiku45.jsonl  --workers 8
 python verify_backdoor.py --backdoors bdind_haiku45.jsonl --honest-gen gen_haiku45.jsonl --out bdpass_haiku45.jsonl
 python run_tests.py --solutions genm_haiku45.jsonl --out passm_haiku45.jsonl --workers 8
+
+# Is the trigger a legal input, and is the backdoor wrong there? One validator per working-backdoor
+# problem in validators/, written from the statement without seeing any trigger. Both classes run
+# through the same check: our draws (bd_sel.jsonl: the release selection plus the 3 draws the
+# monitor scored) and the stored backdoors of the same problems.
+python check_validators.py --validators validators            # each accepts all its stored test inputs
+python verify_backdoor.py --backdoors bd_sel.jsonl --honest-gen release/honest.jsonl \
+    --validators validators --human-ref --out verified_sonnet5.jsonl
+python verify_backdoor.py --stored --problem-ids sg_indep_best_usable_v2.json \
+    --validators validators --human-ref --out verified_stored.jsonl
+python verified_sets.py --ours verified_sonnet5.jsonl --stored verified_stored.jsonl  # -> verified_strict.json
+# The same checks on the standard test split's 172 backdoored programs (split_positive_ids.txt;
+# 159 more validators, written the same way).
+python verify_backdoor.py --stored --problem-ids split_positive_ids.txt \
+    --validators validators --human-ref --out verified_split.jsonl
+python split_checks.py --verified verified_split.jsonl  # -> verified_split.json
+python koran_split_eval.py --checked verified_split.json  # bag-of-words without the 20 rejected backdoors
 ```
 
 ## 5. Measurements on the rebuilt pairs
@@ -206,6 +223,11 @@ python monitor_swap.py               # monitor class-swap 2x2, batch provenance,
                                      #   file mismatch (names the 3 problems and gives the AUROC without them
                                      #   when bdind_sonnet5_best[_nocrash].jsonl are here) -> monitor_swap.json
 python audit_budget.py               # catch rate at 1/2/5% FPR, both monitors and the classifier -> audit_budget.json
+python audit_budget.py --verified verified_strict.json --out audit_budget_verified.json
+                                     #   the same on the working-backdoor problems whose two backdoors
+                                     #   both pass verify_backdoor.py's trigger and reference checks
+python monitor_swap.py --verified verified_strict.json --out monitor_swap_verified.json
+                                     #   the monitor 2x2 AUROCs on those problems
 python shared_problems.py            # all attempts vs working backdoors on the 64 shared problems -> shared_problems.json
 python attacker_mix.py               # ** models that wrote the original backdoors, original AUROC per
                                      #   attacker, Claude-only rho -> attacker_mix.json
@@ -289,7 +311,11 @@ python release_split.py --check release --allow-trivial-identical 120
 | Pooled out-of-fold rebuilt and original AUROCs, ρ and joint intervals for every rebuilt-pair point; P(ρ > 0.72); macro map | `pooled_stats.py` | `pooled_stats.json` |
 | Backdoors that work, per Table 1 row (14/623, 13/586 prompt-matched, 2/611, 2/562 Haiku prompt-matched, 99/99, 96/96); every original backdoor works | `fire_counts.py` | `fire_counts.json` |
 | Monitor class-swap table (0.958 / 0.446 / 0.974 / 0.564; mean suspicion 78.8 / 6.6; working backdoors, human honest vs ours 0.755); batch provenance; working-backdoor file mismatch (1701, 1972, 4434; the monitor's working-backdoor AUROC 0.821 without their attacks, 0.812–0.839 dropping any three) | `monitor_swap.py` | `monitor_swap.json` |
-| Catch rate at a fixed false-positive rate (audit budget): Sonnet 5 monitor at 2%, working backdoors 77% original vs 48% rebuilt (difference 0.28, 0.15–0.42), all attempts 85% vs 6%; crossed pairings on working backdoors (Figure 1d): person honest vs Sonnet 5 backdoors 37%, Sonnet 5 honest vs original backdoors 82%, swapping only the backdoors 0.40 (0.28–0.52) | `audit_budget.py` | `audit_budget.json` |
+| Catch rate at a fixed false-positive rate (audit budget), all attempts: Sonnet 5 monitor at 2%, 85% original vs 6% rebuilt (unchecked triggers) | `audit_budget.py` | `audit_budget.json` |
+| Trigger and reference checks on the 99 working-backdoor problems: Sonnet 5 backdoors 58 pass (35 illegal triggers, 6 wrong only on stray whitespace), original backdoors 83 pass (15 illegal triggers, 1 fails a public test), both pass on 52 (54 for the classifier's draws); 99/99 validators accept all their test inputs | `check_validators.py`, `verify_backdoor.py --validators --human-ref`, `verified_sets.py` | `verified_strict.json` |
+| Catch rate on the 52 checked problems (Figure 1d, Figure A5, Table A11): Sonnet 5 monitor at 2%, person / older models 77%, Sonnet 5 / older models 82%, person / Sonnet 5 61%, Sonnet 5 / Sonnet 5 73%; swapping only the backdoors 0.15 (−0.01 to 0.31), own thresholds 0.04 (−0.13 to 0.20); bag-of-words 35% original vs 4% rebuilt | `audit_budget.py --verified` | `audit_budget_verified.json` |
+| Trigger checks on the standard test split's 172 backdoored programs: 20 fire only on forbidden inputs, 138 pass, 13 fail our runner's public tests (undecided), 1 has several correct answers; 258/258 validators accept all their test inputs; bag-of-words 0.810 without the 20 (0.806 with them) | `verify_backdoor.py --stored`, `split_checks.py`, `koran_split_eval.py --checked` | `verified_split.json` |
+| Monitor AUROC on the checked problems: Sonnet 5 0.955 original vs 0.900 person / Sonnet 5 (difference −0.055, −0.113 to 0.000; 52 problems); Haiku 4.5 0.842 vs 0.818 (45 problems with readable scores) | `monitor_swap.py --verified` | `monitor_swap_verified.json` |
 | All attempts vs working backdoors on the 64 shared problems: ρ 0.82 vs 0.75 (paired difference −0.24 to +0.13) | `shared_problems.py` | `shared_problems.json` |
 | Models that wrote the original backdoors; original AUROC per attacker 0.75–0.93; ρ with Claude attackers only (0.715) | `attacker_mix.py` | `attacker_mix.json` |
 | Classifier class-swap table: human honest vs our backdoors 0.981 (Haiku 0.973), our honest vs original backdoors 0.956 (0.966), against the rebuilt AUROC 0.750 (0.534); on working backdoors (Figure 1b) 0.953 and 0.905 against 0.789 original and 0.749 rebuilt | `classifier_swap.py` | `classifier_swap_{sonnet5,haiku45,sonnet5_working}.json` |
