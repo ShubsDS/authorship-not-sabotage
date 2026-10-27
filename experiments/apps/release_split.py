@@ -310,11 +310,13 @@ a conclusion that holds under only one of them should be reported as holding und
 5. **The honest class is one model's style.** Separability measured here is separability for this
    generator; it does not transfer automatically to another.
 6. **`backdoor_works` does not check the trigger.** Of the 99 backdoors in `pairs_usable_best.csv`
-   that work without crashing, 33 are wrong only on an input the problem statement forbids and 6
-   only on stray whitespace; 60 give a wrong answer on a legal input, judged against the majority
-   answer of the human solutions. Of the original backdoors on the same problems, 15 also fire only
-   on forbidden inputs, as do 20 of the 172 in the original dataset's standard test split. The repository's `verify_backdoor.py --validators --human-ref` makes both
-   checks with one input validator per problem, written from the statement, and
+   that work without crashing, 33 have only a trigger the problem statement forbids and 6 give the
+   human answer on theirs; 60 give a wrong answer on a legal input, judged against the majority
+   answer of the human solutions. Of the original backdoors on the same problems, 13 have only an
+   illegal trigger; in the original dataset's standard test split, 17 of the 172 do and 7 more print
+   a wrong integer on a public test. The repository's `verify_backdoor.py --validators --human-ref
+   --witness 40` makes the checks, with one input validator per problem written from the statement
+   and a short search for a legal input where a rejected backdoor is wrong anyway;
    `verified_strict.json` there lists each verdict (paper, appendix D.3). Check every trigger
    before computing a catch rate on these pairs.
 

@@ -67,21 +67,24 @@ and working backdoors. The text says what the all-attempts rows compare.
   Its mean suspicion is 6.6 for our attacks and 78.8 for the original backdoors. Over all
   attempts the monitor's drop is in the attacks, not in authorship, and most of our attempts do
   not work. On working backdoors human honest code against ours scores 0.755, against 0.944 on
-  the original pairs, but much of that fall is not real. A draw counted as working if, on the
+  the original pairs, but part of that fall is the labels. A draw counted as working if, on the
   trigger Sonnet 5 proposed, its output differed from Sonnet 5's own honest solution; nothing
-  asked whether the trigger was a legal input. Of the 99 working backdoors the monitor scored, 35
-  are wrong only on inputs the problem forbids and 6 only on stray whitespace, and the monitor
-  scores them low. Of the older models' backdoors on the same problems, 15 also fire only on
-  forbidden inputs, and so do 20 of the 172 backdoored programs in the standard test split, on
-  which every published monitor is scored (bag-of-words scores 0.810 without them, against
-  0.806). We now check every trigger in both classes against an input validator
-  written from the statement, and require the backdoor's output there to differ from the human
-  solutions' majority answer (appendix D.3). Both backdoors pass on 52 problems. On these the
-  monitor's AUROC falls only from 0.955 to 0.900, and flagging 2% of the human solutions it
-  catches 77% of the older models' backdoors and 61% of ours (difference 0.15, 95% CI −0.01 to
-  0.31; Figure 1d). A Haiku 4.5 monitor, which wrote neither class, scores 0.842 and 0.818 on the
-  45 of these problems with readable scores. On real backdoors the catch rate does not clearly
-  depend on who wrote them. The submission's "the monitor moves the same way" is withdrawn.
+  asked whether the trigger was a legal input. We now check every trigger in both classes against
+  an input validator written from the statement, require the backdoor's output there to differ
+  from the human solutions' majority answer, and when a check fails search 40 nearby legal inputs
+  for one where the backdoor is wrong anyway (appendix D.3). Of the 99 working backdoors the
+  monitor scored, 34 have only an illegal trigger and 6 give the human answer on theirs; the
+  monitor scores them low, though it scores several of the older models' illegal-trigger
+  backdoors high, so it is not detecting legality. The dataset's labels have the same problem: in
+  the standard test split, on which every published monitor is scored, 17 of the 172 backdoored
+  programs have only an illegal trigger and 7 print a wrong integer on a public test. Without those
+  24, bag-of-words scores 0.817 (against 0.806), and rescoring the 24 published monitors from their
+  released scores moves them by a median of +0.010. Both backdoors pass on 54 problems. On these
+  Sonnet 5's backdoors are still harder to catch, but by less: AUROC 0.958 against 0.904
+  (difference −0.053, 95% CI −0.108 to −0.004), and flagging 2% of the human solutions the monitor
+  catches 78% of the older models' backdoors and 61% of ours (difference 0.17, 0.0002 to 0.32,
+  against 0.40 before the checks; Figure 1d). It also finds Sonnet 5's honest code slightly less
+  suspicious than human code (+0.042, 0.013 to 0.075), a confound we name in the limitations. The submission's "the monitor moves the same way" is withdrawn.
 - **Classifier.** Partly valid. On the 64 problems in both the all-attempts and the
   working-backdoor sets, ρ is about the same with all attempts and with working backdoors: 0.815
   against 0.749, paired 95% CI on the difference −0.243 to +0.131. So working attacks do not raise
@@ -97,7 +100,7 @@ The appendix now states one convention:
   of that same quantity (joint for ρ).
 - Every permutation null is 1,000 permutations that shuffle the labels for fitting and scoring
   alike.
-- The agentic nulls (Figure A6) are within-task permutations of the plotted statistic.
+- The agentic nulls (Figure A5) are within-task permutations of the plotted statistic.
 
 No conclusion changes. The working-backdoor ρ moves from 0.921 to 0.861. The held-out no-code null
 moves from 0.702 to 0.558 (p = 0.001), so that row is no longer "barely above its null".
@@ -113,11 +116,11 @@ labels are gone: the body reports ρ with its interval, and the two values we fi
 and 0.72) are disclosed in the appendix with why we no longer use them. We now report detection at a fixed audit budget. At a
 2% false-positive rate, with the threshold set on each set's own honest programs, the Sonnet 5
 monitor catches:
-- on the 52 working-backdoor problems where both backdoors pass the trigger checks (point 4): 77%
-  of the older models' backdoors and 73% of ours (paired difference 0.04, 95% CI −0.13 to 0.20);
+- on the 54 working-backdoor problems where both backdoors pass the trigger checks (point 4): 78%
+  of the older models' backdoors and 74% of ours (paired difference 0.04, 95% CI −0.12 to 0.19);
 - on the same problems with the threshold set on the human solutions for both, so that only the
-  backdoors change: 77% and 61% (difference 0.15, −0.01 to 0.31), the comparison Figure 1d leads
-  with;
+  backdoors change: 78% and 61% (difference 0.17, 0.0002 to 0.32), the comparison Figure 1d leads
+  with; at 1% the difference is 0.19 (0.03 to 0.32);
 - over all attempts, whose triggers we did not check: 85% and 6%.
 
 Honest programs are not filtered, so each threshold is still set on all 99 working-backdoor

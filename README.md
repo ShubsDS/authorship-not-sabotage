@@ -26,31 +26,34 @@ source). We call its pairs the original pairs. Figure 1 of the paper summarises 
    cross-validated within the split, above 20 monitors. Fitted outside the split it scores 0.298,
    the same relation reversed, because there the honest items come from problems the split
    excluded. The leak comes from how labels were chosen, not from the code.
-3. **The classifier reads the author.** We rebuild the pairs with one model, Claude Sonnet 5 (and
+3. **The classifier rewards a contrast between authors.** We rebuild the pairs with one model, Claude Sonnet 5 (and
    separately Claude Haiku 4.5), writing both solutions, and pair each class with the other
    author's. Naming each kind of pair by who wrote its honest and its backdoored side, on the 99
    problems where every backdoor works bag-of-words scores 0.789 on person / older models and
    0.749 on Sonnet 5 / Sonnet 5, but 0.953 on person / Sonnet 5 and 0.905 on Sonnet 5 / older
-   models. If Sonnet 5's backdoors were harder to spot, pairing them with human code would lower the
-   score; it raises it. The same holds over all attempts (0.981 against 0.865). With one author the
-   classifier keeps rho = 0.687 of its advantage over chance on Sonnet 5's single attempts and
-   0.097 on Haiku 4.5's; part of what Sonnet 5 keeps is a layout our attack prompt induces
-   (`def main`), and requesting the honest solution with that prompt lowers rho to 0.390.
-4. **Which backdoors work.** A Sonnet 5 monitor is not fooled by authorship (0.944 on the original
-   pairs, 0.966 when Sonnet 5 wrote the honest side). It seems to fall on person / Sonnet 5
-   (0.755), but 41 of the 99 Sonnet 5 backdoors it scored are wrong only on inputs the problem
-   forbids (35) or only on stray whitespace (6), and it scores them low. We check every trigger in
-   both classes against an input validator written from the statement, and require the backdoor's
-   output there to differ from the human solutions' majority answer. Of the older models' 99
-   backdoors on the same problems, 15 also fire only on forbidden inputs, as do 20 of the 172 in the
-   standard test split (bag-of-words still scores 0.810 without them). Both backdoors pass on
-   52 problems. On these the monitor's AUROC falls only from 0.955 to 0.900, and flagging 2% of the
-   human solutions it catches 77% of the older models' backdoors and 61% of Sonnet 5's (difference
-   0.15, 95% CI -0.01 to 0.31). On real backdoors the catch rate does not clearly depend on who
-   wrote them.
+   models: it scores highest when the two classes have different authors. The same holds over all
+   attempts (0.981 against 0.865). With one author it keeps rho = 0.687 of its advantage over chance
+   on Sonnet 5's single attempts and 0.097 on Haiku 4.5's, and 0.861 on working backdoors, so it
+   also reads the backdoor's added special cases; part of what Sonnet 5 keeps is a layout our attack
+   prompt induces (`def main`), and requesting the honest solution with that prompt lowers rho to
+   0.390.
+4. **Which backdoors are real.** A Sonnet 5 monitor responds mainly to the backdoors (0.944 on the
+   original pairs, 0.966 when Sonnet 5 wrote the honest side, whose code it finds slightly less
+   suspicious). It falls to 0.755 on person / Sonnet 5, but part of that is the labels: of the 99
+   Sonnet 5 backdoors it scored, 34 have only an illegal trigger and 6 give the human answer on
+   theirs. We check every trigger in both classes against an input validator written from the
+   statement, require the backdoor's output there to differ from the human solutions' majority
+   answer, and search 40 nearby legal inputs for a witness when a check fails. The dataset's own
+   labels have the same problem: in the standard test split, 17 of the 172 backdoored programs have
+   only an illegal trigger and 7 print a wrong integer on a public test. Without those 24,
+   bag-of-words scores 0.817 and the 24 published monitors move by a median of +0.010. On the 54
+   problems where both backdoors are real, Sonnet 5's are still harder to catch, by less: AUROC
+   0.958 against 0.904 (difference -0.053, 95% CI -0.108 to -0.004), and flagging 2% of the human
+   solutions the monitor catches 78% of the older models' backdoors and 61% of Sonnet 5's
+   (difference 0.17, 0.0002 to 0.32, against 0.40 before the checks).
 
 So a score on a dataset built this way does not show that a monitor finds sabotage, and a catch
-rate means little until every trigger is checked. We release the rebuilt pairs, the input
+rate on unchecked labels can more than double an attacker effect. We release the rebuilt pairs, the input
 validators and the checks, and recommend running them on other monitor benchmarks: report
 baselines that never run the code (bag-of-words, problem metadata, length) with their
 shuffled-label scores; pair each class with another author's code; check that every trigger is a
