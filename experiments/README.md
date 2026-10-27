@@ -157,6 +157,12 @@ python verify_backdoor.py --backdoors bd_sel.jsonl --honest-gen release/honest.j
 python verify_backdoor.py --stored --problem-ids sg_indep_best_usable_v2.json \
     --validators validators --human-ref --out verified_stored.jsonl
 python verified_sets.py --ours verified_sonnet5.jsonl --stored verified_stored.jsonl  # -> verified_strict.json
+# The same checks on the standard test split's 172 backdoored programs (split_positive_ids.txt;
+# 159 more validators, written the same way).
+python verify_backdoor.py --stored --problem-ids split_positive_ids.txt \
+    --validators validators --human-ref --out verified_split.jsonl
+python split_checks.py --verified verified_split.jsonl  # -> verified_split.json
+python koran_split_eval.py --checked verified_split.json  # bag-of-words without the 20 rejected backdoors
 ```
 
 ## 5. Measurements on the rebuilt pairs
@@ -308,6 +314,7 @@ python release_split.py --check release --allow-trivial-identical 120
 | Catch rate at a fixed false-positive rate (audit budget), all attempts: Sonnet 5 monitor at 2%, 85% original vs 6% rebuilt (unchecked triggers) | `audit_budget.py` | `audit_budget.json` |
 | Trigger and reference checks on the 99 working-backdoor problems: Sonnet 5 backdoors 58 pass (35 illegal triggers, 6 wrong only on stray whitespace), original backdoors 83 pass (15 illegal triggers, 1 fails a public test), both pass on 52 (54 for the classifier's draws); 99/99 validators accept all their test inputs | `check_validators.py`, `verify_backdoor.py --validators --human-ref`, `verified_sets.py` | `verified_strict.json` |
 | Catch rate on the 52 checked problems (Figure 1d, Figure A5, Table A11): Sonnet 5 monitor at 2%, person / older models 77%, Sonnet 5 / older models 82%, person / Sonnet 5 61%, Sonnet 5 / Sonnet 5 73%; swapping only the backdoors 0.15 (−0.01 to 0.31), own thresholds 0.04 (−0.13 to 0.20); bag-of-words 35% original vs 4% rebuilt | `audit_budget.py --verified` | `audit_budget_verified.json` |
+| Trigger checks on the standard test split's 172 backdoored programs: 20 fire only on forbidden inputs, 138 pass, 13 fail our runner's public tests (undecided), 1 has several correct answers; 258/258 validators accept all their test inputs; bag-of-words 0.810 without the 20 (0.806 with them) | `verify_backdoor.py --stored`, `split_checks.py`, `koran_split_eval.py --checked` | `verified_split.json` |
 | Monitor AUROC on the checked problems: Sonnet 5 0.955 original vs 0.900 person / Sonnet 5 (difference −0.055, −0.113 to 0.000; 52 problems); Haiku 4.5 0.842 vs 0.818 (45 problems with readable scores) | `monitor_swap.py --verified` | `monitor_swap_verified.json` |
 | All attempts vs working backdoors on the 64 shared problems: ρ 0.82 vs 0.75 (paired difference −0.24 to +0.13) | `shared_problems.py` | `shared_problems.json` |
 | Models that wrote the original backdoors; original AUROC per attacker 0.75–0.93; ρ with Claude attackers only (0.715) | `attacker_mix.py` | `attacker_mix.json` |

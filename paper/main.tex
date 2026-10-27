@@ -407,6 +407,11 @@
 \newcommand{\monCheckedHS}{0.955}\newcommand{\monCheckedHO}{0.900}
 \newcommand{\monCheckedDiff}{$-$0.055}\newcommand{\monCheckedDiffLo}{$-$0.113}\newcommand{\monCheckedDiffHi}{0.000}
 \newcommand{\monCheckedHaiN}{45}\newcommand{\monCheckedHaiHS}{0.842}\newcommand{\monCheckedHaiHO}{0.818}
+% the trigger checks on the standard test split's backdoored programs (split_checks.py,
+% koran_split_eval.py --checked)
+\newcommand{\splitPos}{172}\newcommand{\splitRejected}{20}\newcommand{\splitVerified}{138}
+\newcommand{\splitRunnerFail}{13}\newcommand{\splitRunnerFloat}{five}\newcommand{\splitNewValidators}{159}
+\newcommand{\validatorsN}{258}\newcommand{\splitTfidfChecked}{0.810}
 % Stored-attacker mix: B by attacking model, and rho with only the Claude attackers kept.
 \newcommand{\bAttackerLo}{0.75}
 \newcommand{\bAttackerHi}{0.93}
@@ -622,7 +627,8 @@ metadata alone predicts the label. We rebuild the pairs with Claude Sonnet~5 wri
 and pair each class with the other author's. The classifier reads the author: human code against
 Sonnet~5's backdoors is easier for it to separate than the original pairs, not harder. A Sonnet~5
 monitor does not rely on authorship. It seems to catch far fewer of Sonnet~5's backdoors, but
-\checkedOursRejected{} of \strictN{} are wrong only on inputs the problem forbids. Where both
+\checkedOursRejected{} of \strictN{} are wrong only on inputs the problem forbids, as are
+\splitRejected{} of the \splitPos{} backdoors in the dataset's test split. Where both
 backdoors are wrong on a legal input (\checkedN{} problems), flagging 2\% of the human solutions, it
 catches \auditStrictStored{} of the older models' and \auditSwapHumanOurs{} of Sonnet~5's. A score on
 such a dataset therefore does not show that a monitor finds sabotage, and a catch rate needs every
@@ -687,8 +693,8 @@ with another author's shows that it reads the author (Figure~\ref{fig:overview}b
 program instead, so a classifier that reads only problem metadata also beats most monitors
 (Figure~\ref{fig:overview}a, \S\ref{sec:label}).
 \item \textbf{Which backdoors work.} A strong zero-shot monitor does not rely on authorship.
-\checkedOursRejected{} of Sonnet~5's \strictN{} apparently working backdoors are wrong only on inputs
-the problem forbids. Where both backdoors are wrong on a legal input, it catches
+\checkedOursRejected{} of Sonnet~5's \strictN{} apparently working backdoors, and \splitRejected{} of
+the \splitPos{} in the standard split, are wrong only on inputs the problem forbids. Where both backdoors are wrong on a legal input, it catches
 \auditStrictStored{} of the older models' and \auditSwapHumanOurs{} of Sonnet~5's
 (Figure~\ref{fig:overview}c--d, \S\ref{sec:swap}).
 \end{itemize}}
@@ -774,7 +780,7 @@ above \nocodeCVCount{} monitors (Figure~\ref{fig:overview}a). Fitted outside the
 \nocodeOutside{} (Figure~\ref{fig:nocode-a}), a strong relation in the opposite direction: there the
 honest items come from problems the split excluded, many with only two or three tests
 (appendix~\ref{app:protocol}). The leak comes from how the split chose its labels, not from the
-code.
+code. Some labels are also wrong (appendix~\ref{app:audit}), but bag-of-words does not need them.
 
 \section{One author for both classes}
 \label{sec:samegen}
@@ -832,35 +838,30 @@ layout in the code. On Sonnet~5's pairs \texttt{def main} appears in \defMainAtt
 \defMainHonest{} of honest programs (Figure~\ref{fig:features-b}), a layout Haiku~4.5 never adopts
 (appendix~\ref{app:secondpass}). Requesting the honest solution with the backdoor prompt lowers
 Sonnet~5's $\rho$ to \matchedRho{} on all attempts and \matchedStrictRho{} on working backdoors;
-Haiku~4.5's stays at \haikuMatchedRho{}. Regenerating only the honest class does not help either
-(appendix~\ref{app:robust}).
+Haiku~4.5's stays at \haikuMatchedRho{} (more checks: appendix~\ref{app:robust}).
 
 \subsection{Swapping one class at a time}
 \label{sec:swap}
 
-\paragraph{The classifier reads the author.} Swapping one class at a time shows whether a detector
-reads the author or the attack. We pair each of Sonnet~5's classes with the other author's and name
+\paragraph{The classifier reads the author.} We pair each of Sonnet~5's classes with the other author's and name
 each kind of pair by who wrote its honest and its backdoored side; the original pairs are
-\emph{person / older models} and the rebuilt pairs \emph{Sonnet~5 / Sonnet~5}. Before the
-all-attempts run we fixed the reading: if person / Sonnet~5 scored near the original pairs, the drop
-on rebuilding would come from the author; if near the rebuilt pairs, from Sonnet~5's backdoors. It
-scored \clfSwapHumanOurs{}, above the original \clfSwapHumanStored{} (appendix~\ref{app:clfswap}). The
+\emph{person / older models} and the rebuilt pairs \emph{Sonnet~5 / Sonnet~5}. We fixed the
+reading before the all-attempts run: near the original pairs, the drop on rebuilding comes from the
+author; near the rebuilt pairs, from Sonnet~5's backdoors. Person / Sonnet~5 scored \clfSwapHumanOurs{}, above the original \clfSwapHumanStored{} (appendix~\ref{app:clfswap}). The
 working-backdoor problems, run afterwards, agree (Figure~\ref{fig:overview}b): \clfSwapWorkHumanOurs{}
 on person / Sonnet~5 and \clfSwapWorkOursStored{} on Sonnet~5 / older models, against
 \clfSwapWorkHumanStored{} and \clfSwapWorkOursOurs{}. If Sonnet~5's backdoors were harder to spot,
 pairing them with human code would lower the score; it raises it. The classifier rewards a contrast
 between authors, which only the one-author pairs lack. Haiku~4.5 shows the same pattern.
 
-\paragraph{The monitor responds to the backdoors.} A strong monitor is not fooled by who wrote the
-code. On the person / Sonnet~5 pairs where bag-of-words rises to \clfSwapWorkHumanOurs{}, a Sonnet~5
+\paragraph{The monitor responds to the backdoors.} On the person / Sonnet~5 pairs where bag-of-words rises to \clfSwapWorkHumanOurs{}, a Sonnet~5
 monitor prompted without examples falls to \monSwapStrictHumanOurs{}, from \monStoredStrictAbs{} on
 the original pairs (Figure~\ref{fig:overview}c). Replacing the honest code instead barely moves it
 (\swSonStrictOS{} on Sonnet~5 / older models).\footnote{Rescoring a program returns the same score
-only \retestSameLo{}--\retestSameHi{} of the time (appendix~\ref{app:monitors}), so differences of a
-few hundredths are within that noise.} Much of that fall comes from backdoors that are not
-backdoors, because nothing checked their triggers (\S\ref{sec:setup}). Of the \strictN{} the monitor scored, \checkedOursInvalid{} are wrong only on an input the problem forbids
-and \checkedOursSpace{} only on stray whitespace; the monitor scores all of them low. We check every trigger in both classes against an
-input validator written from the statement, and require the backdoor's output there to differ from
+only \retestSameLo{}--\retestSameHi{} of the time (appendix~\ref{app:monitors}).} Much of that fall is backdoors that are not
+backdoors: of the \strictN{} the monitor scored, \checkedOursInvalid{} are wrong only on an input the
+problem forbids and \checkedOursSpace{} only on stray whitespace, and it scores them all low. We
+check every trigger in both classes with an input validator written from the statement and against
 the human solutions' majority answer (appendix~\ref{app:audit}). Both backdoors pass on \checkedN{}
 problems. On these the monitor's AUROC falls only from \monCheckedHS{} to \monCheckedHO{}, and flagging
 \auditFPR{} of the human solutions it catches \auditStrictStored{} of the older models' backdoors and
@@ -872,25 +873,22 @@ rate does not clearly depend on who wrote them.
 \label{sec:limits}
 
 A high floor shows that a dataset's labels can be predicted without finding a backdoor, not that any
-monitor predicts them that way, and nothing here corrects a published monitor score. Besides the
-\monN{} published monitor scores we reuse, we ran two monitors, both zero-shot; a monitor trained or
-tuned on these pairs could learn the shortcuts, and we have not tested one. Our backdoors come from one prompt, and the
-working-backdoor results rest on \strictN{} problems and one attacking model. Beyond this dataset we
-checked only five agentic settings repackaged from ControlArena runs, in which one model wrote both
-classes; in four of them character count alone still separates the classes within a task, up to
-AUROC \agentdojoFloor{} (appendix~\ref{app:agentic}).
+monitor predicts them that way; we rescore no published monitor. Our own two monitors are
+zero-shot; one trained or tuned on these pairs could learn the shortcuts, and we have not tested one.
+Our backdoors come from one prompt, and the working-backdoor results rest on \strictN{} problems and
+one attacking model. In five agentic ControlArena settings where one model wrote both classes,
+character count alone separates them within a task in four (up to \agentdojoFloor{},
+appendix~\ref{app:agentic}).
 
 \section{Next steps}
 
-Fixed datasets are the cheapest way to develop a monitor, but a monitor score on a fixed dataset
-means little without the score of a detector that cannot find the sabotage. The first step is to run
-the same checks on other monitor benchmarks: (1)~report baselines that never run the code
-(bag-of-words, problem metadata, length), with their shuffled-label scores, beside every monitor
-score; (2)~pair each class with another author's code to see whether a detector reads the author; and
-(3)~report catch rates at a fixed audit budget on backdoors from several generators, including
-current models, with every trigger checked. Where the checks find shortcuts, (4)~have one model write both classes from
-the same prompt and check both with the same tests, and (5)~choose honest examples independently of
-whether an attack on the problem succeeded.
+A monitor score on a fixed dataset means little without the score of a detector that cannot find the
+sabotage. Other monitor benchmarks should (1)~report baselines that never run the code
+(bag-of-words, problem metadata, length) with their shuffled-label scores; (2)~pair each class with
+another author's code; and (3)~check every trigger, then report catch rates at a fixed audit budget
+for several attacking models. Where the checks find shortcuts,
+(4)~have one model write both classes from the same prompt and test both alike, and (5)~choose honest
+examples independently of whether an attack on the problem succeeded.
 
 \begin{ack}
 Compute for this work was provided by the Virginia AI Security Initiative, a student
@@ -1545,6 +1543,19 @@ original pairs and \monCheckedHO{} on person / Sonnet~5 (paired difference \monC
 --verified}). Two rejections rest on a reading of the statement: a trigger written with leading zeros,
 and a problem whose statement gives no bounds, where the validator uses the original contest's. We
 read the least clear-cut rejections against their statements, and released the validators.
+
+\paragraph{The standard split.} We ran the same checks on the \splitPos{} backdoored programs of the
+standard test split, each the dataset's designated backdoor for its problem and all but four written
+by Claude~3.7 Sonnet. This needed \splitNewValidators{} more validators, written the same way; all
+\validatorsN{} accept every stored test input of their problem. \splitRejected{} triggers are not
+legal inputs, each a plain breach of the statement: a value out of range, a sequence that is not a
+permutation, a string of the wrong length, a reducible fraction where the statement guarantees an
+irreducible one. \splitVerified{} pass both checks. The other \splitRunnerFail{} fail a public test
+under our runner, which compares outputs exactly (\splitRunnerFloat{} print real numbers checked
+within a tolerance), and one problem has several correct answers; we count these as undecided, not
+as failures. Dropping the \splitRejected{} leaves bag-of-words at \splitTfidfChecked{}, against
+\tfidfKoran{} (\texttt{split\_checks.py}, \texttt{koran\_split\_eval.py --checked}). We do not have the
+published monitors' scores per program, so we cannot rescore them.
 
 \paragraph{Catch rates.} Table~\ref{tab:audit} gives the share of backdoors a detector catches when
 its threshold is set to flag 1\%, 2\% or 5\% of honest programs. Monitor scores are whole numbers

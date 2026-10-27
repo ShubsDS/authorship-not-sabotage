@@ -72,7 +72,9 @@ and working backdoors. The text says what the all-attempts rows compare.
   asked whether the trigger was a legal input. Of the 99 working backdoors the monitor scored, 35
   are wrong only on inputs the problem forbids and 6 only on stray whitespace, and the monitor
   scores them low. Of the older models' backdoors on the same problems, 15 also fire only on
-  forbidden inputs. We now check every trigger in both classes against an input validator
+  forbidden inputs, and so do 20 of the 172 backdoored programs in the standard test split, on
+  which every published monitor is scored (bag-of-words scores 0.810 without them, against
+  0.806). We now check every trigger in both classes against an input validator
   written from the statement, and require the backdoor's output there to differ from the human
   solutions' majority answer (appendix D.3). Both backdoors pass on 52 problems. On these the
   monitor's AUROC falls only from 0.955 to 0.900, and flagging 2% of the human solutions it

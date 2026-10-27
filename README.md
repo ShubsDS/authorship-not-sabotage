@@ -42,7 +42,8 @@ source). We call its pairs the original pairs. Figure 1 of the paper summarises 
    forbids (35) or only on stray whitespace (6), and it scores them low. We check every trigger in
    both classes against an input validator written from the statement, and require the backdoor's
    output there to differ from the human solutions' majority answer. Of the older models' 99
-   backdoors on the same problems, 15 also fire only on forbidden inputs. Both backdoors pass on
+   backdoors on the same problems, 15 also fire only on forbidden inputs, as do 20 of the 172 in the
+   standard test split (bag-of-words still scores 0.810 without them). Both backdoors pass on
    52 problems. On these the monitor's AUROC falls only from 0.955 to 0.900, and flagging 2% of the
    human solutions it catches 77% of the older models' backdoors and 61% of Sonnet 5's (difference
    0.15, 95% CI -0.01 to 0.31). On real backdoors the catch rate does not clearly depend on who

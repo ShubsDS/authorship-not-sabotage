@@ -313,7 +313,7 @@ a conclusion that holds under only one of them should be reported as holding und
    that work without crashing, 33 are wrong only on an input the problem statement forbids and 6
    only on stray whitespace; 60 give a wrong answer on a legal input, judged against the majority
    answer of the human solutions. Of the original backdoors on the same problems, 15 also fire only
-   on forbidden inputs. The repository's `verify_backdoor.py --validators --human-ref` makes both
+   on forbidden inputs, as do 20 of the 172 in the original dataset's standard test split. The repository's `verify_backdoor.py --validators --human-ref` makes both
    checks with one input validator per problem, written from the statement, and
    `verified_strict.json` there lists each verdict (paper, appendix D.3). Check every trigger
    before computing a catch rate on these pairs.
