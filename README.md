@@ -39,14 +39,16 @@ source). We call its pairs the original pairs. Figure 1 of the paper summarises 
    0.390.
 4. **Which backdoors are real.** A Sonnet 5 monitor responds mainly to the backdoors (0.944 on the
    original pairs, 0.966 when Sonnet 5 wrote the honest side, whose code it finds slightly less
-   suspicious). It falls to 0.755 on person / Sonnet 5, but part of that is the labels: of the 99
-   Sonnet 5 backdoors it scored, 34 have only an illegal trigger and 6 give the human answer on
-   theirs. We check every trigger in both classes against an input validator written from the
-   statement, require the backdoor's output there to differ from the human solutions' majority
-   answer, and search 40 nearby legal inputs for a witness when a check fails. The dataset's own
-   labels have the same problem: in the standard test split, 17 of the 172 backdoored programs have
-   only an illegal trigger and 7 print a wrong integer on a public test. Without those 24,
-   bag-of-words scores 0.817 and the 24 published monitors move by a median of +0.010. On the 54
+   suspicious). It falls to 0.755 on person / Sonnet 5, but part of that is the labels. A backdoor
+   counts as working if its output on its own trigger differs from an honest solution's, and
+   nothing checks that the trigger is a legal input. The dataset's labels show the problem: in the
+   standard test split, 17 of the 172 backdoored programs have only an illegal trigger and 7 print
+   a wrong integer on a public test. Without those 24, bag-of-words scores 0.817 and the 24
+   published monitors move by a median of +0.010. Our generation used the same definition, so
+   before comparing attackers we check every trigger in both classes against an input validator
+   written from the statement, require the backdoor's output there to differ from the human
+   solutions' majority answer, and search 40 nearby legal inputs for a witness when a check fails.
+   The check removes 14 of the older models' 99 backdoors and 40 of Sonnet 5's. On the 54
    problems where both backdoors are real, Sonnet 5's are still harder to catch, by less: AUROC
    0.958 against 0.904 (difference -0.053, 95% CI -0.108 to -0.004), and flagging 2% of the human
    solutions the monitor catches 78% of the older models' backdoors and 61% of Sonnet 5's
