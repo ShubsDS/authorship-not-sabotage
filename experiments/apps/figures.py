@@ -430,7 +430,7 @@ def fig9_audit_curve():
         mgrid(ax, "x")
         ax.set_title(r"%d\%% flagged" % round(100 * f), fontsize=FS + 0.3, pad=3)
     axes[0].set_ylabel("honest / backdoored\ncode by", fontsize=FS - 0.5, linespacing=1.2)
-    fig.supxlabel(r"checked backdoors caught (\%)", fontsize=FS, y=0.0)
+    fig.supxlabel(r"real backdoors caught (\%)", fontsize=FS, y=0.0)
     save(fig, "f9b-audit-budget.pdf")
     j = cur["fpr"].index(AUDIT_AT)
     print(f"F9: at {AUDIT_AT:.0%}: " + ", ".join(f"{lab} {s_['point'][j]:.3f}" for lab, s_, _ in series))
@@ -497,7 +497,7 @@ def fig11_overview():
     cols = [MGL, MGL, MBL, MBL]
     order = ["human_honest__stored_attack", "our_honest__stored_attack", "human_honest__our_attack", "our_honest__our_attack"]
     specs = [(r"(b) Bag-of-words", bow, False), (r"(c) Sonnet~5 monitor", mon, False),
-             (r"(d) Checked, caught at %d\%% FPR" % round(100 * AUDIT_AT), caught, True)]
+             (r"(d) Real, caught at %d\%% FPR" % round(100 * AUDIT_AT), caught, True)]
     H, gap, top = 0.2, 0.115, 0.93
     for i, (title, D, pct) in enumerate(specs):
         b = fig.add_axes([0.745, top - H - i * (H + gap), 0.245, H])
