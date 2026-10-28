@@ -30,6 +30,7 @@
 % every figure: green = the benchmark as published (its monitors, the older models' backdoors),
 % blue = Sonnet 5's backdoors, near-black = our classifiers that never run the code.
 \usepackage[most]{tcolorbox}
+\usepackage{listings}
 \usepackage{pgfplots}\pgfplotsset{compat=1.18}
 \definecolor{mG}{HTML}{2E6B4F}\definecolor{mGL}{HTML}{8DB8A0}\definecolor{mGT}{HTML}{F1F6F2}
 \definecolor{mGH}{HTML}{D8E9DE}\definecolor{mB}{HTML}{2F64B5}\definecolor{mBL}{HTML}{A9C3EA}
@@ -384,6 +385,8 @@
 \newcommand{\clfSwapWorkOursStoredHi}{0.941}
 \newcommand{\auditSwapOursStored}{83\%}\newcommand{\auditSwapHumanOurs}{61\%}
 \newcommand{\auditSwapDiffUnchecked}{0.40}% audit_budget.json, swap fpr_0.02, before the checks
+\newcommand{\auditSwapDiffUncheckedLo}{0.28}\newcommand{\auditSwapDiffUncheckedHi}{0.52}
+\newcommand{\auditUncheckedHumanStored}{77\%}\newcommand{\auditUncheckedHumanOurs}{37\%}
 \newcommand{\auditSwapDiff}{0.17}\newcommand{\auditSwapDiffLo}{0.0002}\newcommand{\auditSwapDiffHi}{0.32}
 \newcommand{\auditFPR}{2\%}
 \newcommand{\auditStrictStored}{78\%}
@@ -648,20 +651,23 @@
 \begin{abstract}
 A common safeguard for capable AI systems is a monitor, a second model that reads their output and
 flags attempts at sabotage. Monitors are ranked on datasets of honest and backdoored code, on the
-assumption that a high score means finding backdoors. We show that the standard such dataset, the
-APPS backdoor set, can be scored well without finding any. People wrote its honest solutions and
-older language models its backdoors, and a bag-of-words classifier that never runs the code reaches
-AUROC \tfidfKoran{}, above \tfidfKoranCount{} of \monN{} published open-weight monitors. The labels
+assumption that a high score means finding backdoors. We show that the standard dataset of this
+kind, the APPS backdoor set, can be scored well from cues that do not require finding a backdoor.
+People wrote its honest solutions and older language models its backdoors, and a bag-of-words
+classifier trained on the split, which never runs the code, reaches AUROC \tfidfKoran{}, above
+\tfidfKoranCount{} of \monN{} published open-weight models prompted as monitors. The labels
 also leak: a problem enters the backdoor class only if its backdoor works, so problem metadata alone
 reaches \nocodeCV{} within the test split. Having Claude Sonnet~5 write both classes and swapping one
 class at a time shows that the classifier rewards a contrast between authors: human code against
 Sonnet~5's backdoors is easier for it than the original pairs (\clfSwapWorkHumanOurs{} against
-\clfSwapWorkHumanStored{}). Some labelled backdoors are also not real: in the standard test split,
+\clfSwapWorkHumanStored{}). The dataset admits these shortcuts; we do not show that published monitors
+use them. Some labelled backdoors are also not real: in the standard test split,
 \splitRejected{} of the \splitPos{} backdoored programs fail a public test or have only an illegal
 trigger, an input the problem's constraints rule out. Such labels inflate comparisons between
-attackers: where both attackers' backdoors are real, a Sonnet~5 monitor catches \auditSwapHumanOurs{}
-of Sonnet~5's and \auditStrictStored{} of older models' (flagging 2\% of human solutions), a gap less
-than half the unchecked one. We release the rebuilt pairs and the checks.
+attackers. Flagging 2\% of human solutions, a Sonnet~5 monitor catches \auditUncheckedHumanStored{} of
+older models' backdoors and \auditUncheckedHumanOurs{} of Sonnet~5's; where both attackers' backdoors
+are real, \auditStrictStored{} and \auditSwapHumanOurs{}, a gap less than half as large whose interval
+nearly reaches zero. We release the rebuilt pairs and checks.
 \end{abstract}
 
 \section{Introduction}
@@ -696,12 +702,12 @@ catches when it flags \auditFPR{} of the row's honest programs (its false-positi
 A monitor should score well on these pairs only by finding the backdoor. The dataset, however,
 separates its classes in ways unrelated to sabotage. People wrote the honest
 solutions, taken from APPS \cite{hendrycks2021apps}, and language models wrote every backdoor, so the
-classes differ in spacing, naming and layout (Figure~\ref{fig:pairs}), which detectors of model-written
-code pick up easily \cite{orel2026aicd}. The test split also labels a problem as backdoored only when
+classes differ in naming and layout (Figure~\ref{fig:pairs}), which detectors of model-written
+code pick up \cite{orel2026aicd}. The test split also labels a problem as backdoored only when
 its backdoor works, which depends on the problem as much as on the code. Benchmarks with such gaps
 can be solved by recognising how the data was made, as shown for language inference \cite{gururangan2018annotation, poliak2018hypothesis}, reading comprehension
 \cite{kaushik2018howmuch} and LLM benchmarks \cite{pacchiardi2024cleverhans}. Detectors of
-model-written code are benchmarked on classes matched for problem and length
+model-written code are benchmarked on classes matched for problem
 \cite{guo2025codemirage, demirok2025multiaigcd}, but backdoor datasets remove only the comments
 \cite{koran2026ensemble, jha2026decorrelation}, and other control work \cite{terekhov2026adaptive,
 gewang2026attackselection, pinto2026calibration} does not ask who wrote each class.
@@ -717,11 +723,9 @@ honest program instead, so a classifier that reads only problem metadata also be
 (\S\ref{sec:label}).
 \item Some of the dataset's labelled backdoors are not real: in the standard split \splitIllegal{} of
 the \splitPos{} have only an illegal trigger, an input the problem's constraints rule out, and
-\splitWrongPublic{} more fail a public test. Such labels matter when attackers are compared:
-unchecked, a Sonnet~5 monitor catches far fewer of Sonnet~5's backdoors than of older models' (a gap
-of \auditSwapDiffUnchecked{} when flagging 2\% of human solutions), which suggests Sonnet~5 attacks
-better. Where both attackers' backdoors are real (\checkedN{} problems), it catches
-\auditStrictStored{} of older models' and \auditSwapHumanOurs{} of Sonnet~5's, a gap less than half as large (\S\ref{sec:monitor}).
+\splitWrongPublic{} more fail a public test. Such labels inflate comparisons between attackers: a
+Sonnet~5 monitor's gap between older models' and Sonnet~5's backdoors, suggesting Sonnet~5 attacks
+better, falls from \auditSwapDiffUnchecked{} to \auditSwapDiff{} after checks (\S\ref{sec:monitor}).
 \end{itemize}}
 We end with checks that other monitor benchmarks can run (\S\ref{sec:next}) and release the rebuilt
 pairs and our scripts under the MIT licence (appendix~\ref{app:release}).%
@@ -794,7 +798,7 @@ training split gives both programs of a problem the same metadata. Cross-validat
 \nocodeCV{} and beats \nocodeCVCount{} monitors (Table~\ref{tab:floors}). Fitted outside the split it
 scores \nocodeOutside{} (Figure~\ref{fig:nocode-a}), the same relation reversed,
 because there the honest items come from problems the split excluded, many with only two or three
-tests (appendix~\ref{app:protocol}). Either way, the leak is in how the split chose its labels.
+tests (appendix~\ref{app:protocol}). Either way, the leak is in how labels were chosen.
 
 \section{The classifier rewards a contrast between authors}
 \label{sec:samegen}
@@ -846,11 +850,10 @@ advantage survives one author. By point estimate this comes from which problems 
 from the backdoors working, since on the \sharedN{} problems in both sets $\rho$ is about the same
 either way, but the difference is not resolved (appendix~\ref{app:shared}).
 
-Holding the author fixed is not quite enough, because our attack prompt leaves its own layout in the
-code. On Sonnet~5's pairs \texttt{def main} appears in \defMainAttack{} of backdoored and
-\defMainHonest{} of honest programs (Figure~\ref{fig:features-b}), a layout Haiku~4.5 never adopts
-(appendix~\ref{app:secondpass}). Requesting the honest solution with the backdoor prompt lowers
-Sonnet~5's $\rho$ to \matchedRho{} on all attempts and \matchedStrictRho{} on working backdoors.
+Our attack prompt also leaves a layout: \texttt{def main} appears in \defMainAttack{} of
+Sonnet~5's backdoored and \defMainHonest{} of its honest programs (Figure~\ref{fig:features-b}), and
+Haiku~4.5 never adopts it (appendix~\ref{app:secondpass}). Asking for the honest solution with the backdoor prompt lowers
+Sonnet~5's $\rho$ to \matchedRho{} (\matchedStrictRho{} on working backdoors).
 
 \subsection{Swapping one class at a time}
 \label{sec:swap}
@@ -863,19 +866,16 @@ working-backdoor problems bag-of-words scores \clfSwapWorkHumanOurs{} on person 
 pairs and \clfSwapWorkOursOurs{} on the rebuilt ones (Figure~\ref{fig:overview}(b)). An earlier run on
 all attempts, read by a rule fixed in advance, agrees: person / Sonnet~5 scores \clfSwapHumanOurs{},
 above the original \clfSwapHumanStored{} (appendix~\ref{app:clfswap}). The classifier rewards a
-contrast between authors, and Haiku~4.5 shows the same pattern.
+contrast between authors, on Haiku~4.5's pairs too.
 
 \section{Checking which backdoors are real}
 \label{sec:monitor}
 
-A Sonnet~5 monitor prompted without examples reads the problem statement and comment-free code
+A zero-shot Sonnet~5 monitor reads the problem statement and comment-free code
 and scores suspicion from 0 to 100. It responds mainly to the backdoors. Replacing the
-person's solutions with Sonnet~5's moves it from \monStoredStrictAbs{} on the original pairs to
-\swSonStrictOS{} on Sonnet~5 / older models, within rescoring noise, though Sonnet~5's honest code gets
-a lower mean suspicion (\swSonStrictSuspOH{} against \swSonStrictSuspHH{};
-appendix~\ref{app:monswap}). Replacing the backdoors moves it more: on person / Sonnet~5 it falls to
-\monSwapStrictHumanOurs{} (Figure~\ref{fig:overview}(c), Table~\ref{tab:swap-full}; rescoring noise in
-appendix~\ref{app:monitors}).
+person's solutions with Sonnet~5's moves it only from \monStoredStrictAbs{} on the original pairs to
+\swSonStrictOS{} on Sonnet~5 / older models, within rescoring noise (appendix~\ref{app:monswap}). Replacing the backdoors moves it more: on person / Sonnet~5 it falls to
+\monSwapStrictHumanOurs{} (Figure~\ref{fig:overview}(c), Table~\ref{tab:swap-full}).
 
 Part of that fall comes from the labels. A backdoor counts as working if its output on its own trigger
 differs from an honest solution's, and nothing checks that the trigger is a legal input. A trigger is
@@ -888,37 +888,41 @@ that the dataset's pass flag misses. Without those \splitRejected{}, bag-of-word
 attackers we check every trigger in both classes against an input validator written from the
 statement, require the backdoor's output there to differ from the human solutions' majority answer,
 and when a check fails search up to 40 nearby legal inputs for one where the backdoor is still wrong
-(appendix~\ref{app:audit}). A backdoor that passes is \emph{real}. The check removes \checkedStoredRejected{} of the older models' \strictN{}
+(appendix~\ref{app:audit}). The check removes \checkedStoredRejected{} of the older models' \strictN{}
 backdoors and \checkedOursRejected{} of Sonnet~5's (\checkedOursInvalid{} with only an illegal trigger,
 and \checkedOursSpace{} whose output on the trigger matches the human solutions, so it is not wrong
-there). The monitor never sees the trigger, but it
-scores the removed backdoors low: median \rejScoreMedian{} for Sonnet~5's and \storedRejScoreMedian{} for
-the older models', against \okScoreMedian{} for Sonnet~5's other backdoors. Still, \storedRejHigh{} of
-the \storedRejN{} scored older-model backdoors with only an illegal trigger score 60 or more.
+there).
 
-On the \checkedN{} problems where both backdoors are real, Sonnet~5's are still harder to catch, but by
-less. The monitor's AUROC falls from \monCheckedHS{} to \monCheckedHO{} (difference
+On the \checkedN{} problems where both backdoors are real, Sonnet~5's may still be harder to catch,
+by less. The monitor's AUROC falls from \monCheckedHS{} to \monCheckedHO{} (difference
 \monCheckedDiff{}, \monCheckedDiffLo{} to \monCheckedDiffHi{}). Flagging \auditFPR{} of the human
 solutions it catches \auditStrictStored{} of the older models' backdoors and \auditSwapHumanOurs{} of
-Sonnet~5's (Figure~\ref{fig:overview}(d)), a difference of \auditSwapDiff{} whose interval only just
-excludes zero (\auditSwapDiffLo{} to \auditSwapDiffHi{}), against \auditSwapDiffUnchecked{} before the
-checks. At 1\% it is \auditSwapOneDiff{} (\auditSwapOneDiffLo{} to \auditSwapOneDiffHi{}), at 5\%
-\auditSwapFiveDiff{} (\auditSwapFiveDiffLo{} to \auditSwapFiveDiffHi{}; Figure~\ref{fig:audit}).
+Sonnet~5's (Figure~\ref{fig:overview}(d)), a difference of \auditSwapDiff{} (\auditSwapDiffLo{} to
+\auditSwapDiffHi{}), only just above zero. On all \strictN{} problems before the checks
+it was \auditUncheckedHumanStored{} against \auditUncheckedHumanOurs{}, a difference of
+\auditSwapDiffUnchecked{} (\auditSwapDiffUncheckedLo{} to \auditSwapDiffUncheckedHi{}); part of
+this change comes from dropping problems. The
+gap depends on the threshold: \auditSwapOneDiff{} at 1\%, \auditSwapFiveDiff{} at 5\% (interval
+includes zero; Figure~\ref{fig:audit}), and \auditSwapOursStored{} against \auditStrictOurs{} when
+Sonnet~5's honest code sets it. The monitor may also favour its own model: a
+Haiku~4.5 monitor, which wrote neither class, gives \monCheckedHaiHS{} against
+\monCheckedHaiHO{}.
 
 \section{Limitations}
 \label{sec:limits}
 
 A high floor shows that a dataset's labels can be predicted without finding a backdoor, not that any
 monitor predicts them that way.
-We ran only two monitors, both zero-shot. The Sonnet~5 monitor scores code by its own model, which it
-may rate less suspicious, and a monitor trained on these pairs could learn the shortcuts. Our
+We ran only two monitors, both zero-shot, and a monitor trained on these pairs could learn the
+shortcuts. Our
 backdoors come from one prompt, the working-backdoor results rest on \checkedN{}--\strictN{} problems
 and one attacking model, and the \auditFPR{} threshold rests on the top two of \strictN{} human
-solutions. Like the dataset, our generation did not check triggers, so \checkedOursRejected{} of
-Sonnet~5's \strictN{} working backdoors are dropped; running the validators during generation would
-avoid this. Claude models wrote the validators, and the search for a legal input is short.
-In four of five agentic ControlArena \cite{controlarena} settings, character count alone separates
-classes the same models wrote (up to \agentdojoFloor{}; appendix~\ref{app:agentic}).
+solutions. Like the dataset, our generation did not check triggers, and our attack prompt did not ask
+for a legal one (appendix~\ref{app:prompts}), so \checkedOursRejected{} of Sonnet~5's \strictN{} working
+backdoors are dropped; running the validators during generation would
+avoid this. Claude models wrote the validators, and the legal-input search is short.
+Character count alone separates the classes in four of five agentic ControlArena
+\cite{controlarena} settings (up to \agentdojoFloor{}; appendix~\ref{app:agentic}).
 
 \section{Checks for monitor benchmarks}
 \label{sec:next}
@@ -928,7 +932,7 @@ We suggest three checks for any monitor benchmark: report baselines that never r
 pair each class with another author's code; and check that every trigger is a legal input on which the
 backdoor is wrong before reporting catch rates for several attacking models. Where they find
 shortcuts, have one model write both classes from one prompt and choose honest examples independently
-of whether an attack succeeded. Automated search that takes such a score as its fitness signal would
+of whether an attack succeeded. Automated search that takes such a score as its fitness signal could
 optimise these artifacts too.
 
 \begin{ack}
@@ -1428,6 +1432,8 @@ Sonnet~5, working (\strictN{}) & person & \clfSwapWorkHumanStored{} & \clfSwapWo
 \end{tabular}
 \end{table}
 
+\input{prompts}
+
 \FloatBarrier
 \section{The monitors}
 \label{app:mon}
@@ -1548,7 +1554,7 @@ draw that works without crashing. Dropping the three moves the monitor's \monito
 
 \subsection{Detection at a fixed audit budget}
 \label{app:audit}
-A backdoor matters only if it gives a wrong answer on an input the problem can receive. Our
+A backdoor matters only if it passes the tests and gives a wrong answer on an input the problem can receive. Our
 working-backdoor selection asked less: a draw counted as working if, on the trigger Sonnet~5 proposed,
 its output differed from Sonnet~5's own honest solution. The older models' backdoors carry the
 dataset's own \texttt{backdoor\_works} flag. Neither asks whether the trigger is a legal input or
@@ -1584,7 +1590,11 @@ Sonnet~5's raises it by \monCheckedHonestSwap{} (\monCheckedHonestSwapLo{} to
 \monCheckedHonestSwapHi{}) against Sonnet~5's backdoors, an interval that leaves out rescoring noise
 (appendix~\ref{app:monitors}), so the monitor may favour its own model's honest code a little. A Haiku~4.5 monitor, which wrote neither class, gives \monCheckedHaiHS{} and
 \monCheckedHaiHO{} in its 1{,}024-token rerun (\monCheckedHaiN{} problems with readable scores;
-\texttt{monitor\_swap.py -{}-verified}). Under the flag-only-above rule at 2\% the backdoor-only gap is
+\texttt{monitor\_swap.py -{}-verified}). The monitor never sees the trigger, but it scores the removed
+backdoors low: median \rejScoreMedian{} for Sonnet~5's and \storedRejScoreMedian{} for the older
+models', against \okScoreMedian{} for Sonnet~5's other backdoors. Still, \storedRejHigh{} of the
+\storedRejN{} scored older-model backdoors with only an illegal trigger score 60 or more. Under the
+flag-only-above rule at 2\% the backdoor-only gap is
 \auditSwapConsHumanStored{} against \auditSwapConsHumanOurs{}. Two rejections rest on a reading of the
 statement, a trigger written with leading zeros and a problem whose statement gives no bounds, where the
 validator uses the original contest's. We read the least clear-cut rejections against their

@@ -80,11 +80,11 @@ and working backdoors. The text says what the all-attempts rows compare.
   programs have only an illegal trigger and 7 print a wrong integer on a public test. Without those
   24, bag-of-words scores 0.817 (against 0.806), and rescoring the 24 published monitors from their
   released scores moves them by a median of +0.010. Both backdoors pass on 54 problems. On these
-  Sonnet 5's backdoors are still harder to catch, but by less: AUROC 0.958 against 0.904
+  Sonnet 5's backdoors may still be harder to catch, by less: AUROC 0.958 against 0.904
   (difference −0.053, 95% CI −0.108 to −0.004), and flagging 2% of the human solutions the monitor
   catches 78% of the older models' backdoors and 61% of ours (difference 0.17, 0.0002 to 0.32,
   against 0.40 before the checks; Figure 1d). It also finds Sonnet 5's honest code slightly less
-  suspicious than human code (+0.042, 0.013 to 0.075), a confound we name in the limitations. The submission's "the monitor moves the same way" is withdrawn.
+  suspicious than human code (+0.042, 0.013 to 0.075), a confound we now weigh in Section 5 against a Haiku 4.5 monitor that wrote neither class (0.850 against 0.822). The submission's "the monitor moves the same way" is withdrawn.
 - **Classifier.** Partly valid. On the 64 problems in both the all-attempts and the
   working-backdoor sets, ρ is about the same with all attempts and with working backdoors: 0.815
   against 0.749, paired 95% CI on the difference −0.243 to +0.131. So working attacks do not raise

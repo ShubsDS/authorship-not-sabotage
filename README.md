@@ -49,13 +49,17 @@ source). We call its pairs the original pairs. Figure 1 of the paper summarises 
    written from the statement, require the backdoor's output there to differ from the human
    solutions' majority answer, and search 40 nearby legal inputs for a witness when a check fails.
    The check removes 14 of the older models' 99 backdoors and 40 of Sonnet 5's. On the 54
-   problems where both backdoors are real, Sonnet 5's are still harder to catch, by less: AUROC
+   problems where both backdoors are real, Sonnet 5's may still be harder to catch, by less: AUROC
    0.958 against 0.904 (difference -0.053, 95% CI -0.108 to -0.004), and flagging 2% of the human
    solutions the monitor catches 78% of the older models' backdoors and 61% of Sonnet 5's
-   (difference 0.17, 0.0002 to 0.32, against 0.40 before the checks).
+   (difference 0.17, 0.0002 to 0.32, only just above zero). Before the checks, on all 99 problems,
+   it was 77% against 37% (0.40, 0.28 to 0.52), so part of the change comes from dropping
+   problems. The gap depends on the threshold, and part may be the monitor favouring its own
+   model: a Haiku 4.5 monitor, which wrote neither class, gives 0.850 against 0.822.
 
-So a score on a dataset built this way does not show that a monitor finds sabotage, and a catch
-rate on unchecked labels can more than double an attacker effect. We release the rebuilt pairs, the input
+So a high score on a dataset built this way can come from cues other than the backdoor (we do not
+show that published monitors use them), and a catch rate on unchecked labels can more than double
+an attacker effect. We release the rebuilt pairs, the input
 validators and the checks, and recommend running them on other monitor benchmarks: report
 baselines that never run the code (bag-of-words, problem metadata, length) with their
 shuffled-label scores; pair each class with another author's code; check that every trigger is a
