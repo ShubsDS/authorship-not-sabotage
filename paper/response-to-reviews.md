@@ -6,7 +6,7 @@ the camera-ready values, each from a committed script (`experiments/README.md`, 
 result comes from").
 
 We thank the reviewer. We checked each of the six points against the paper and the committed
-result files. All six are valid, and two were worse than stated. The camera-ready corrects them
+result files. All six are at least partly valid, and two were worse than stated. The camera-ready corrects them
 as follows. It also renames terms the reviewer knows from the submission: the stored pairs are now
 the original pairs, the same-generator pairs the rebuilt pairs, the headline rows all attempts,
 the strict rows working backdoors, and an attack that fires is one that works. B′ and S are

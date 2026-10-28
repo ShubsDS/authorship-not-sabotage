@@ -665,7 +665,7 @@ def fig2_corpora():
 # baseline reads no code at all. Pairwise accuracies get three decimals (one pair is 1/2,641);
 # AUROCs get four.
 F1_ROWS = [
-    ("Filtered test split", "bag-of-words", "AUROC", f"{TFIDF_FLOOR:.4f}", "removed",
+    ("Standard test split", "bag-of-words", "AUROC", f"{TFIDF_FLOOR:.4f}", "removed",
      f"above {TFIDF_COUNT} of 24"),
     ("\\quad same", "bag-of-words", "AUROC", "0.8914", "kept", "above 22 of 24"),
     ("\\quad cross-validated within it", "no-code classifier", "AUROC",
@@ -868,7 +868,7 @@ def check():
         if macro not in m:
             bad.append(f"{macro}: absent from main.tex"); return
         want = m[macro]
-        got_r = math.floor(got * 10 ** dp + 0.5) / 10 ** dp if dp else got
+        got_r = math.floor(got * 10 ** dp + 0.5 + 1e-9) / 10 ** dp if dp else got  # 1e-9: float error at exact halves
         if abs(want - got_r) > 5e-4:
             bad.append(f"{macro}: main.tex {want} vs figures.py {got_r}")
 

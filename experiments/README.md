@@ -287,7 +287,7 @@ python release_split.py --check release --allow-trivial-identical 120
 | No-code floor 0.766 (CV, pooled out-of-fold; 20/24) and 0.716 (held-out; 17/24 on identical items) | `headline_ci.py` (held-out point also `auroc.py`; CV fold mean `analyse2.py`) | `headline_ci.json` |
 | No-code floor trained outside the test split 0.298 (at least four tests: 0.629) | `nocode_outside.py` | `nocode_outside.json` |
 | Intervals, 1,000-permutation nulls under one procedure, paired comparison with the monitors | `headline_ci.py` | `headline_ci.json` |
-| Monitor count, median 0.609, max 0.937 | `fetch_inputs.py` | `monitor-summary.json` |
+| Monitor count, median 0.610, max 0.937 | `fetch_inputs.py` | `monitor-summary.json` |
 | Comment count 0.696 → 0.498; length 0.4726 | `bow.py` | — |
 | Table F1 metadata rows; matched pairs 0.5000 | `floors.py`, `auroc.py` | — |
 | Matched pairs, working vs non-working, transfer, style markers | `strip_recheck.py` | — |

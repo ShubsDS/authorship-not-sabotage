@@ -14,7 +14,7 @@ source). We call its pairs the original pairs. Figure 1 of the paper summarises 
 
 1. **A classifier that never runs the code beats most monitors.** On the standard test split
    (1,375 problems, one program each, comments removed) a bag-of-words classifier trained on the
-   split's training problems reaches AUROC 0.806, above 20 of 24 open-weight models (0.4B-35B)
+   split's training problems reaches AUROC 0.806, above 20 of 24 open-weight models (0.4B-32B)
    prompted as monitors in prior work. What it reads is shared across attacking models and present
    whether or not a backdoor works; its strongest backdoor-side tokens (`and`, `==`, `if`) are a
    shallow trace of any added special case. The classifier is trained and the monitors are not, so
