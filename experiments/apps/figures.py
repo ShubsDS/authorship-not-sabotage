@@ -132,9 +132,9 @@ LW = 0.5
 # the code, light grey = honest programs. Figures 1 and 2 are TikZ/pgfplots and tcolorbox drawn with
 # the same colours, defined in main.tex (mG, mB, mInk, ...).
 FS = 7.0
-MG, MGL, MGT = "#4D4D4D", "#9A9A9A", "#F3F3F3"
-MB, MBL = "#9E2A2B", "#9E2A2B"
-MINK, MTXT, MMUTE, MERR, MGRID, MHON = "#111111", "#3A3A3A", "#7A7A7A", "#2B2B2B", "#E4E4E4", "#D0D0D0"
+MG, MGL, MGT = "#2E6B4F", "#8DB8A0", "#F1F6F2"
+MB, MBL = "#2F64B5", "#A9C3EA"
+MINK, MTXT, MMUTE, MERR, MGRID, MHON = "#232323", "#3A3A3A", "#7A7A7A", "#6E6E6E", "#E4E4E4", "#BDBDBD"
 plt.rcParams.update({
     "text.latex.preamble": (r"\usepackage[T1]{fontenc}\usepackage[defaultfam,tabular,lining]{montserrat}"
                             r"\renewcommand{\familydefault}{\sfdefault}\usepackage[italic]{mathastext}"
@@ -585,7 +585,7 @@ def fig10_features(k=8):
     att = json.load(open("lexical_probe.json"))["headline"]["attribution"]
     lim = max(abs(w) for key in ("B_prime", "S") for side in ("attack", "honest")
               for _, w in att[key][side][:k])
-    for key, name, col in (("B_prime", "f10a-features-stored.pdf", MG), ("S", "f10b-features-samegen.pdf", MB)):
+    for key, name, col in (("B_prime", "f10a-features-stored.pdf", MGL), ("S", "f10b-features-samegen.pdf", MBL)):
         fig, ax = panel(0.48, 1.7)
         items = [(_tok(t), w) for t, w in att[key]["attack"][:k]][::-1] + \
                 [(_tok(t), w) for t, w in att[key]["honest"][:k]]
@@ -640,7 +640,7 @@ def fig2_corpora():
     rows = SCAN[::-1]
     fig, ax = panel(0.7, 1.15)
     for i, (name, v, nv, k) in enumerate(rows):
-        ax.barh(i, v - 0.5, left=0.5, height=0.62, color=MGL, zorder=2)
+        ax.barh(i, v - 0.5, left=0.5, height=0.62, color="#A6A6A6", zorder=2)  # neutral: not the benchmark's green
         ax.plot([nv, nv], [i - 0.42, i + 0.42], color=MINK, lw=1.6, zorder=3, solid_capstyle="butt")
     ax.set_yticks(range(len(rows)))
     ax.set_yticklabels([f"\\texttt{{{tex(r[0])}}} ({r[3]})" for r in rows])
