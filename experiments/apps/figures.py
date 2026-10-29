@@ -949,6 +949,14 @@ def check():
         eq(macro, float(n))
     if counts and "strictN" in m and sum(counts.values()) != m["strictN"]:
         bad.append(f"Table A2 working column sums to {sum(counts.values())}, not {m['strictN']:.0f}")
+    # The abstract's rounded restatements of the audit gaps and the share of rejected split backdoors.
+    for pts, diff_macro in (("auditGapUncheckedPts", "auditSwapDiffUnchecked"), ("auditGapPts", "auditSwapDiff")):
+        if pts in m and diff_macro in m and round(100 * m[diff_macro]) != m[pts]:
+            bad.append(f"{pts} = {m[pts]:.0f} but 100 x {diff_macro} = {100 * m[diff_macro]:.0f}")
+    if all(k in m for k in ("splitRejectedOneInN", "splitPos", "splitRejected")) and \
+            round(m["splitPos"] / m["splitRejected"]) != m["splitRejectedOneInN"]:
+        bad.append(f"splitRejectedOneInN = {m['splitRejectedOneInN']:.0f} but splitPos / splitRejected rounds to "
+                   f"{round(m['splitPos'] / m['splitRejected'])}")
     bad += _check_json()
     bad += _check_stored_pairs()
     bad += _check_exploits()

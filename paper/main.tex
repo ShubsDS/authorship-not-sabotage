@@ -388,6 +388,8 @@
 \newcommand{\auditSwapDiffUncheckedLo}{0.28}\newcommand{\auditSwapDiffUncheckedHi}{0.52}
 \newcommand{\auditUncheckedHumanStored}{77\%}\newcommand{\auditUncheckedHumanOurs}{37\%}
 \newcommand{\auditSwapDiff}{0.17}\newcommand{\auditSwapDiffLo}{0.0002}\newcommand{\auditSwapDiffHi}{0.32}
+\newcommand{\auditGapUncheckedPts}{40}\newcommand{\auditGapPts}{17}% the two gaps above in percentage points (abstract)
+\newcommand{\splitRejectedOneIn}{seven}\newcommand{\splitRejectedOneInN}{7}% splitPos/splitRejected, rounded (abstract)
 \newcommand{\auditFPR}{2\%}
 \newcommand{\auditStrictStored}{78\%}
 \newcommand{\auditStrictOurs}{74\%}
@@ -649,22 +651,21 @@
 \maketitle
 
 \begin{abstract}
-AI-control monitors, which read a stronger model's outputs and flag sabotage, are ranked on datasets
-of honest and backdoored code. In the standard such dataset, built on APPS, people wrote the honest
-code, older language models the backdoors, and a problem is labelled backdoored only if its backdoor
-works. We show that this construction lets the label be predicted without locating any backdoor. A
-bag-of-words classifier trained on the split, which never executes the code, reaches AUROC
-\tfidfKoran{} and outranks \tfidfKoranCount{} of \monN{} open-weight models prompted as monitors,
-while problem metadata alone reaches \nocodeCV{}. Rebuilding the pairs with Claude Sonnet~5 and
-exchanging one class at a time shows that the classifier rewards a contrast between authors, scoring
-higher on human code against Sonnet~5's backdoors than on the original pairs. Auditing the labels, we
-find that \splitRejected{} of the \splitPos{} test-split backdoors fail a public test or misbehave only
-on inputs the problem forbids, and such labels skew comparisons between attackers. A Sonnet~5 monitor
-appears to catch \auditUncheckedHumanStored{} of the older models' backdoors and
-\auditUncheckedHumanOurs{} of Sonnet~5's at a 2\% audit budget, but \auditStrictStored{} and
-\auditSwapHumanOurs{} once both are verified. We do not show that published monitors exploit these
-cues, but a high score here is not, by itself, evidence of sabotage detection. We release the rebuilt
-pairs and checks.
+AI control aims to deploy capable models safely even if they attempt sabotage, and its main safeguard
+is a trusted monitor that reviews their outputs. Monitors are compared on datasets of honest and
+backdoored code, so their scores are only as meaningful as those datasets. We examine the standard
+such dataset, built on APPS, in which people wrote the honest solutions, older language models the
+backdoors, and a problem was labelled backdoored only if its backdoor worked. We find that this
+construction lets the label be predicted without locating any backdoor. A bag-of-words classifier that
+never runs the code outranks \tfidfKoranCount{} of \monN{} open-weight models prompted as monitors,
+and problem metadata alone is nearly as accurate. Rebuilding the pairs with Claude Sonnet~5 writing
+both classes, and exchanging one class at a time, shows that the classifier rewards a contrast between
+authors. Auditing the labels, we find that one in \splitRejectedOneIn{} test-split backdoors is not
+real, and such labels distort comparisons between attackers. Once both sets are verified, the gap
+between how often a Sonnet~5 monitor catches older models' backdoors and its own model's falls from
+\auditGapUncheckedPts{} to \auditGapPts{} points. We do not show that published monitors rely on these
+cues, but a high score on such a dataset is not, by itself, evidence of sabotage detection. We release
+the rebuilt dataset and checks.
 \end{abstract}
 
 \section{Introduction}
