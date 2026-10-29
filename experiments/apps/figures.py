@@ -132,9 +132,9 @@ LW = 0.5
 # the code, light grey = honest programs. Figures 1 and 2 are TikZ/pgfplots and tcolorbox drawn with
 # the same colours, defined in main.tex (mG, mB, mInk, ...).
 FS = 7.0
-MG, MGL, MGT = "#3D5A80", "#8EA3BE", "#EEF1F5"
-MB, MBL = "#C0603A", "#EFC4B0"
-MINK, MTXT, MMUTE, MERR, MGRID, MHON = "#1F1F1F", "#3A3A3A", "#7A7A7A", "#6E6E6E", "#E4E4E4", "#B5B0A8"
+MG, MGL, MGT = "#1F3A68", "#8C9DB8", "#F3F4F6"
+MB, MBL = "#B04A2F", "#E6B3A1"
+MINK, MTXT, MMUTE, MERR, MGRID, MHON = "#1A1A1A", "#3A3A3A", "#7A7A7A", "#6E6E6E", "#E4E4E4", "#B8B3AB"
 plt.rcParams.update({
     "text.latex.preamble": (r"\usepackage[T1]{fontenc}\usepackage[defaultfam,tabular,lining]{montserrat}"
                             r"\renewcommand{\familydefault}{\sfdefault}\usepackage[italic]{mathastext}"
