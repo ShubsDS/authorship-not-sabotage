@@ -7,7 +7,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{hyperref}
-\hypersetup{pdftitle={Who Wrote the Backdoor? Authorship and Attacker Effects in AI-Control Monitor Benchmarks},pdfauthor={Shubhrangshu Debsarkar and Valmik Nahata},colorlinks=true,linkcolor=[HTML]{1F3A68},citecolor=[HTML]{1F3A68},urlcolor=[HTML]{1F3A68}}
+\hypersetup{pdftitle={How Much Sabotage Detection Does a Sabotage Benchmark Require?},pdfauthor={Shubhrangshu Debsarkar and Valmik Nahata},colorlinks=true,linkcolor=[HTML]{1F3A68},citecolor=[HTML]{1F3A68},urlcolor=[HTML]{1F3A68}}
 \usepackage{url}
 \usepackage{booktabs}
 \usepackage{placeins}
@@ -631,7 +631,7 @@
 \newcommand{\rhoNonClaude}{0.675}\newcommand{\rhoNonClaudeLo}{0.598}\newcommand{\rhoNonClaudeHi}{0.751}
 \newcommand{\rhoNonClaudeN}{429}\newcommand{\splitGptFourN}{89}
 
-\title{Who Wrote the Backdoor? Authorship and Attacker\\Effects in AI-Control Monitor Benchmarks}
+\title{How Much Sabotage Detection Does\\a Sabotage Benchmark Require?}
 
 \workshoptitle{Self-Evolving Diversity-Driven Search for Robust AI Systems}
 
@@ -959,31 +959,13 @@ settings of \S\ref{sec:limits}.
 
 \subsection{The dataset}
 \label{app:schema}
-We use \texttt{RoganInglis/apps-control-arena} \cite{inglis2025appscontrolarena}
-(Table~\ref{tab:schema}). Each backdoor record names the system that produced it in its
-\texttt{model} and \texttt{source} fields. Honest solutions have no such field, since people wrote
-them. The high-quality release \cite{koran2026highquality} is a subset of the same dataset: every problem
+We use \texttt{RoganInglis/apps-control-arena} \cite{inglis2025appscontrolarena}. Its solution
+records hold the code and whether it compiles and passes the tests. Its backdoor records add the
+backdoor code, its trigger input, a \texttt{backdoor\_works} flag, and \texttt{model} and
+\texttt{source} fields that name the system that wrote it. Honest solutions have no such field, since
+people wrote them. The high-quality release \cite{koran2026highquality} is a subset of the same dataset: every problem
 in it is identical apart from a re-checked \texttt{backdoor\_works} flag. We therefore treat the two
 releases as two views of one dataset.
-
-\begin{table}[!htbp]\centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{Record fields of the dataset. Checked against its data files; only backdoor
-records carry \texttt{model} and \texttt{source}, which name the system that wrote them.}
-\label{tab:schema}
-\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.80\linewidth}@{}}
-\toprule
-Record & fields \\
-\midrule
-\texttt{solutions} & \texttt{code}, \texttt{compiles}, \texttt{passes\_tests} \\
-\addlinespace
-\texttt{backdoors} & \texttt{backdoor\_code}, \texttt{backdoor\_input},
-                     \texttt{backdoor\_works}, \texttt{compiles},
-                     \texttt{model}, \texttt{passes\_tests},
-                     \texttt{source} \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{Who wrote the original backdoors}
 \label{app:attackers}
@@ -1072,19 +1054,10 @@ floor against a monitor, original against rebuilt pairs) are computed on the sam
 bootstrap, over an earlier rule of two fold standard deviations, before looking at the retries
 behind the working-backdoor rows.
 
-Before any run we also fixed two reference values for $\rho$, $\rho =
-\rhoCollapse{}$ and $\rho = \rhoContent{}$, meant to separate a drop mostly due to authorship from
-one mostly due to the backdoor. The rebuild changes the backdoors as well as the author, so $\rho$
-cannot be split that way, and the body does not use them. The share of bootstrap draws with $\rho$
-above \rhoContent{} is \pContentHead{} for Sonnet~5's all-attempts row, \pContentMatched{} for its
-prompt-matched row, \pContentHaiku{} and \pContentHaikuMatched{} for Haiku~4.5's two rows, and
-\pContentStrict{} and \pContentStrictMatched{} for Sonnet~5's two working-backdoor rows.
-
 Each permutation test shuffles the labels, reruns the whole pipeline
 including fitting, and recomputes the statistic, \permReps{} times, with
 $p = (1 + \#\{\text{shuffled} \ge \text{observed}\})/(1 + \permReps{})$. In the agentic settings labels
-are shuffled within each main task (appendix~\ref{app:agentic}); the token test uses random token
-sets instead (appendix~\ref{app:token}). No per-pair scores were kept for the edit variant, so its
+are shuffled within each main task (appendix~\ref{app:agentic}). No per-pair scores were kept for the edit variant, so its
 $\rho$ has no joint interval.
 
 \subsection{What we release}
@@ -1237,16 +1210,6 @@ backdoor side and the idioms of human competitive code mark the honest side.
 \label{fig:features}
 \end{figure}
 
-\subsection{A token test that does not replicate}
-\label{app:token}
-\citet{orel2026aicd} report that a small set of tokens separates human from model code. In our data
-it does not. The separation is \tokenSep{}, the wrong sign, with permutation $p = \tokenP{}$. We
-think the reason is the kind of code. Their human class is general repository code, whereas both
-our classes are competitive-programming solutions, so tokens that mark general human code do not
-separate them. Only 8 of their 10 tokens occur in our data, so the test has little power, but a real
-effect should still have the right sign. We report it because readers who know that work may try
-the same test.
-
 \FloatBarrier
 \section{The rebuilt pairs}
 \label{app:rebuilt}
@@ -1314,7 +1277,7 @@ Not detectably. Sonnet~5's all-attempts and working-backdoor rows differ in two 
 row the backdoors work, and it covers only problems where a working backdoor could be drawn. The
 \sharedN{} problems in both rows separate the two effects, since on them the honest program and the
 original pair are the same and only our backdoor differs. We reuse the existing out-of-fold scores
-on these subsets without refitting (Table~\ref{tab:shared}).
+on these subsets without refitting.
 
 On the shared problems $\rho$ is \sharedRhoHead{} with the sampled attempts and \sharedRhoWorking{}
 with the working backdoors (paired difference \sharedDiffLo{} to \sharedDiffHi{}). Restricted to the
@@ -1330,40 +1293,13 @@ $\rho = \shStrictOnlyRho{}$ (\shStrictOnlyRhoLo{}--\shStrictOnlyRhoHi{}), with a
 to \shOnlyMinusSharedHi{}), is not resolved at this size, but by point estimate the higher $\rho$ of
 the working-backdoor row comes from which problems yield a working backdoor.
 
-\begin{table}[!htbp]\centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{Sonnet~5's working-backdoor row, split by problem. Bag-of-words AUROC on the
-rebuilt and original pairs of each subset, and $\rho$ with a joint 95\% bootstrap interval. Source:
-\texttt{shared\_problems.py}.}
-\label{tab:shared}
-\begin{tabular}{@{}l r l r r l@{}}
-\toprule
-Problems & $n$ & our backdoors & rebuilt & original & $\rho$ (95\% CI) \\
-\midrule
-in both rows & \sharedN{} & all attempts & \shHeadS{} & \shHeadBp{}
-  & \sharedRhoHead{} (\shHeadRhoLo{}--\shHeadRhoHi{}) \\
-in both rows & \sharedN{} & working & \shWorkS{} & \shWorkBp{}
-  & \sharedRhoWorking{} (\shWorkRhoLo{}--\shWorkRhoHi{}) \\
-\quad backdoors differ & \shDiffN{} & all attempts & \shDiffHeadS{} & \shDiffHeadBp{}
-  & \shDiffHeadRho{} (\shDiffHeadRhoLo{}--\shDiffHeadRhoHi{}) \\
-\quad backdoors differ & \shDiffN{} & working & \shDiffWorkS{} & \shDiffWorkBp{}
-  & \shDiffWorkRho{} (\shDiffWorkRhoLo{}--\shDiffWorkRhoHi{}) \\
-all-attempts row only & \shHeadOnlyN{} & all attempts & \shHeadOnlyS{} & \shHeadOnlyBp{}
-  & \shHeadOnlyRho{} (\shHeadOnlyRhoLo{}--\shHeadOnlyRhoHi{}) \\
-working-backdoor row only & \shStrictOnlyN{} & working & \shStrictOnlyS{} & \shStrictOnlyBp{}
-  & \shStrictOnlyRho{} (\shStrictOnlyRhoLo{}--\shStrictOnlyRhoHi{}) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \subsection{Prompt matching and Haiku~4.5}
 \label{app:secondpass}
 Prompt matching removes much of the same signal as masking identifiers. Masking
 identifiers takes Sonnet~5's prompt-matched all-attempts row to \three{\matchedSid}
 ($\rho = \matchedRhoId{}$) and the same \matchedN{} problems without prompt matching to
-\three{\matchedSidOrig}. Whether what remains is program structure or naming is undecided: the
-masked row's interval, \matchedRhoIdLo{}--\matchedRhoIdHi{}, straddles the threshold
-$\rho = \rhoCollapse{}$ fixed in advance. A character-level model (3 to 5 characters, same classifier
+\three{\matchedSidOrig}. Whether what remains is program structure or naming is undecided, since the
+masked row's interval runs from \matchedRhoIdLo{} to \matchedRhoIdHi{}. A character-level model (3 to 5 characters, same classifier
 and folds) keeps more than the word model, \three{\matchedChar} ($\rho = \matchedRhoChar{}$), so the
 drop does not come from how code is split into words. Under the two prompts, Sonnet~5's correct
 honest solutions separate at \promptOnly{}.
@@ -1625,9 +1561,9 @@ the probability that makes the honest flag rate equal the target, and report the
 rate. Flagging only above the threshold gives similar results: Sonnet~5's 2\% catch rates become
 \audConsSonHeadSt{} and \audConsSonHeadSg{} on the all-attempts problems and \audConsSonStrictSt{} and
 \audConsSonStrictSg{} on the checked backdoors (difference \audConsSonStrictD{},
-\audConsSonStrictLo{} to \audConsSonStrictHi{}). Haiku~4.5's rows tell us little. It lost many
-replies and scores many honest programs near the top of the scale, so at 1\% and 2\% it flags few
-backdoors of either kind. Figure~\ref{fig:audit} shows the Sonnet~5 rows on the checked backdoors at
+\audConsSonStrictLo{} to \audConsSonStrictHi{}). We leave out Haiku~4.5's monitor rows, because it
+lost many replies and scores many honest programs near the top of the scale, so at 1\% and 2\% it
+flags few backdoors of either kind. Figure~\ref{fig:audit} shows the Sonnet~5 rows on the checked backdoors at
 budgets up to 10\%.
 
 The original and rebuilt rows change the honest side along with the backdoors. Crossing them holds
@@ -1653,9 +1589,8 @@ set on each set's honest programs. \emph{Original}: the original pairs (person /
 \emph{Rebuilt}: the rebuilt pairs of the same problems (Sonnet~5 / Sonnet~5, and Haiku~4.5 / Haiku~4.5
 in the last row). \emph{Difference}: original minus rebuilt,
 with a paired 95\% bootstrap interval. \emph{Checked backdoors}: the \checkedN{} working-backdoor
-problems where both backdoors are wrong on a legal input (\checkedClfN{} for bag-of-words; Haiku~4.5
-also loses problems with no readable score). Honest programs come from all \strictN{} problems.
-\emph{All attempts} rows are not checked. $^\ast$Haiku~4.5 rerun with a 1{,}024-token cap. Source:
+problems where both backdoors are wrong on a legal input (\checkedClfN{} for bag-of-words). Honest
+programs come from all \strictN{} problems. \emph{All attempts} rows are not checked. Source:
 \texttt{audit\_budget.py}, and \texttt{-{}-verified} for the checked rows.}
 \label{tab:audit}
 \begin{tabular}{@{}l c r r r l@{}}
@@ -1670,18 +1605,6 @@ Sonnet~5, all attempts & 1\% & \audSonHeadOneSt{} & \audSonHeadOneSg{} & \audSon
 Sonnet~5, checked backdoors & 1\% & \audSonStrictOneSt{} & \audSonStrictOneSg{} & \audSonStrictOneD{} & \audSonStrictOneLo{} to \audSonStrictOneHi{} \\
  & 2\% & \auditStrictStored{} & \auditStrictOurs{} & \auditStrictDiff{} & \auditStrictDiffLo{} to \auditStrictDiffHi{} \\
  & 5\% & \audSonStrictFiveSt{} & \audSonStrictFiveSg{} & \audSonStrictFiveD{} & \audSonStrictFiveLo{} to \audSonStrictFiveHi{} \\
-\addlinespace
-Haiku~4.5, all attempts & 1\% & \audHaiHeadOneSt{} & \audHaiHeadOneSg{} & \audHaiHeadOneD{} & \audHaiHeadOneLo{} to \audHaiHeadOneHi{} \\
- & 2\% & \audHaiHeadTwoSt{} & \audHaiHeadTwoSg{} & \audHaiHeadTwoD{} & \audHaiHeadTwoLo{} to \audHaiHeadTwoHi{} \\
- & 5\% & \audHaiHeadFiveSt{} & \audHaiHeadFiveSg{} & \audHaiHeadFiveD{} & \audHaiHeadFiveLo{} to \audHaiHeadFiveHi{} \\
-\addlinespace
-Haiku~4.5, checked backdoors & 1\% & \audHaiStrictOneSt{} & \audHaiStrictOneSg{} & \audHaiStrictOneD{} & \audHaiStrictOneLo{} to \audHaiStrictOneHi{} \\
- & 2\% & \audHaiStrictTwoSt{} & \audHaiStrictTwoSg{} & \audHaiStrictTwoD{} & \audHaiStrictTwoLo{} to \audHaiStrictTwoHi{} \\
- & 5\% & \audHaiStrictFiveSt{} & \audHaiStrictFiveSg{} & \audHaiStrictFiveD{} & \audHaiStrictFiveLo{} to \audHaiStrictFiveHi{} \\
-\addlinespace
-Haiku~4.5, checked backdoors$^\ast$ & 1\% & \audHaiStrictKOneSt{} & \audHaiStrictKOneSg{} & \audHaiStrictKOneD{} & \audHaiStrictKOneLo{} to \audHaiStrictKOneHi{} \\
- & 2\% & \audHaiStrictKTwoSt{} & \audHaiStrictKTwoSg{} & \audHaiStrictKTwoD{} & \audHaiStrictKTwoLo{} to \audHaiStrictKTwoHi{} \\
- & 5\% & \audHaiStrictKFiveSt{} & \audHaiStrictKFiveSg{} & \audHaiStrictKFiveD{} & \audHaiStrictKFiveLo{} to \audHaiStrictKFiveHi{} \\
 \midrule
 \multicolumn{6}{@{}l}{\emph{Bag-of-words, by the model that wrote the rebuilt pairs}} \\
 Sonnet~5, all attempts & 2\% & \audClfHeadTwoSt{} & \audClfHeadTwoSg{} & \audClfHeadTwoD{} & \audClfHeadTwoLo{} to \audClfHeadTwoHi{} \\
@@ -1716,13 +1639,6 @@ above 0.5. \texttt{bash} is below its tick ($p = \bashFloorP{}$); the other four
 estimates are not equally precise. These datasets have no licence; we redistribute nothing.}
 \label{fig:corpora}
 \end{figure}
-
-\subsection{A third cue in agent reasoning}
-In the same five settings, a fifteen-word regular expression over the untrusted agent's own
-scratchpad reaches AUROC \cotLow{}--\cotHigh{}, because prompted attack policies restate their side
-task in the reasoning the monitor sees. We mention it only to mark the edge of our claim.
-The regular expression adapts the detector of \citet{little2026length}, which was validated against
-an LLM judge and a length-matched baseline in a different setting.
 
 \FloatBarrier
 \end{document}

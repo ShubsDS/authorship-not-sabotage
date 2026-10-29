@@ -1,4 +1,4 @@
-# Who Wrote the Backdoor? Authorship and Attacker Effects in AI-Control Monitor Benchmarks
+# How Much Sabotage Detection Does a Sabotage Benchmark Require?
 
 Code and paper source for the EvoRobust @ NeurIPS 2026 workshop paper.
 
@@ -139,7 +139,7 @@ fetched at run time and not redistributed. Their licences are listed in
 
 ```bibtex
 @inproceedings{debsarkar2026whowrote,
-  title     = {Who Wrote the Backdoor? Authorship and Attacker Effects in {AI}-Control Monitor Benchmarks},
+  title     = {How Much Sabotage Detection Does a Sabotage Benchmark Require?},
   author    = {Debsarkar, Shubhrangshu and Nahata, Valmik},
   booktitle = {NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI Systems (EvoRobust)},
   year      = {2026}

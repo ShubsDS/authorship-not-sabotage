@@ -343,7 +343,7 @@ figures in the scripts' comments are redacted to `$X`; nothing else in them was 
 
 ```
 @inproceedings{{debsarkar2026samegenerator,
-  title     = {{Who Wrote the Backdoor? Authorship and Attacker Effects in AI-Control Monitor Benchmarks}},
+  title     = {{How Much Sabotage Detection Does a Sabotage Benchmark Require?}},
   author    = {{Debsarkar, Shubhrangshu and Nahata, Valmik}},
   booktitle = {{NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI
                Systems (EvoRobust)}},
