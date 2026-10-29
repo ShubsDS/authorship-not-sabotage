@@ -701,8 +701,8 @@ separates its classes in ways unrelated to sabotage. People wrote the honest
 solutions, taken from APPS \cite{hendrycks2021apps}, and language models wrote every backdoor, so the
 classes differ in naming and layout (Figure~\ref{fig:pairs}), which detectors of model-written
 code pick up \cite{orel2026aicd}. The test split also labels a problem as backdoored only when
-its backdoor works, which depends on the problem as much as on the code. Benchmarks with such gaps
-can be solved by recognising how the data was made, as shown for language inference \cite{gururangan2018annotation, poliak2018hypothesis}, reading comprehension
+its backdoor works, which depends on the problem as much as on the code. Benchmarks with such differences
+between classes can be solved by recognising how the data was made, as shown for language inference \cite{gururangan2018annotation, poliak2018hypothesis}, reading comprehension
 \cite{kaushik2018howmuch} and LLM benchmarks \cite{pacchiardi2024cleverhans}. Detectors of
 model-written code are benchmarked on classes matched for problem
 \cite{guo2025codemirage, demirok2025multiaigcd}, but backdoor datasets remove only the comments
@@ -720,9 +720,10 @@ honest program instead, so a classifier that reads only problem metadata also be
 (\S\ref{sec:label}).
 \item Some of the dataset's labelled backdoors are not real: in the standard split \splitIllegal{} of
 the \splitPos{} have only an illegal trigger, an input the problem's constraints rule out, and
-\splitWrongPublic{} more fail a public test. Such labels inflate comparisons between attackers: a
-Sonnet~5 monitor's gap between older models' and Sonnet~5's backdoors, suggesting Sonnet~5 attacks
-better, falls from \auditSwapDiffUnchecked{} to \auditSwapDiff{} after checks (\S\ref{sec:monitor}).
+\splitWrongPublic{} more fail a public test. Such labels inflate comparisons between attackers. A
+Sonnet~5 monitor catches older models' backdoors more often than Sonnet~5's, which suggests Sonnet~5
+attacks better, but the difference falls from \auditSwapDiffUnchecked{} to \auditSwapDiff{} after
+checks (\S\ref{sec:monitor}).
 \end{itemize}}
 We end with checks that other monitor benchmarks can run (\S\ref{sec:next}) and release the rebuilt
 pairs and our scripts under the MIT licence (appendix~\ref{app:release}).%
@@ -899,7 +900,7 @@ Sonnet~5's (Figure~\ref{fig:overview}(d)), a difference of \auditSwapDiff{} (\au
 it was \auditUncheckedHumanStored{} against \auditUncheckedHumanOurs{}, a difference of
 \auditSwapDiffUnchecked{} (\auditSwapDiffUncheckedLo{} to \auditSwapDiffUncheckedHi{}); part of
 this change comes from dropping problems. The
-gap depends on the threshold: \auditSwapOneDiff{} at 1\%, \auditSwapFiveDiff{} at 5\% (interval
+difference depends on the threshold: \auditSwapOneDiff{} at 1\%, \auditSwapFiveDiff{} at 5\% (interval
 includes zero; Figure~\ref{fig:audit}), and \auditSwapOursStored{} against \auditStrictOurs{} when
 Sonnet~5's honest code sets it. The monitor may also favour its own model: a
 Haiku~4.5 monitor, which wrote neither class, gives \monCheckedHaiHS{} against
@@ -1158,7 +1159,7 @@ shown for contrast.
 \label{app:stripped}
 Comments inflate every result on what bag-of-words reads. We first measured them with comments left
 in, then again with comments removed from both classes (Table~\ref{tab:stripped}); the paper reports
-the second set. Removing comments closes the gap in the use of \texttt{\#}, from \hashPresAttack{}
+the second set. Removing comments evens out the use of \texttt{\#}, from \hashPresAttack{}
 of backdoored against \hashPresHonest{} of honest programs to \hashPresAttackStripped{} against
 \hashPresHonestStripped{}. It leaves \texttt{\_\_main\_\_} unchanged. Some authorship cues sit in
 string literals, which are not comments. After comments are removed from the training split, an
@@ -1311,9 +1312,7 @@ at only \three{\haikuPromptFloor}. Haiku~4.5 never uses the layout that marks So
 class, and every program reads input with \texttt{input(}, so no layout difference is left to
 read.
 
-\subsection{How often each model's code passes and works}
-\label{app:counts}
-Both models ran through the same pipeline. Their honest solutions pass the public tests on
+\label{app:counts}Both models ran through the same pipeline. Their honest solutions pass the public tests on
 \three{\sonnetHonestPass} (Sonnet~5) and \three{\haikuHonestPass} (Haiku~4.5) of 1{,}444 problems.
 Haiku~4.5's backdoored solutions pass on \haikuAttackPass{} problems, and only \haikuUsable{} of them
 work, below the 50 pairs we required, so Haiku~4.5 has no working-backdoor row. In the all-attempts
@@ -1328,17 +1327,14 @@ the same pipeline and folds as Table~\ref{tab:gates}. One bootstrap resamples al
 so differences between cells have paired intervals. We fixed how to read the result before computing
 it. If the person / model pairs, a person's honest code against the model's backdoors, scored near
 the original AUROC, the drop would be due to authorship; if near the rebuilt AUROC, to the model's
-backdoors. For both models they score above the original AUROC. Every pairing of two authors stays at
-or above the original AUROC, and only the pairing with one author falls. Against the rebuilt AUROC,
+backdoors. For both models every pairing of two authors stays at or above the original AUROC, and only
+the pairing with one author falls. Against the rebuilt AUROC,
 person / model pairs are higher by \clfSwapDiffHumanOursS{}
 (\clfSwapDiffHumanOursSLo{}--\clfSwapDiffHumanOursSHi{}) for Sonnet~5 and \clfSwapHaikuDiffHumanOursS{}
 (\clfSwapHaikuDiffHumanOursSLo{}--\clfSwapHaikuDiffHumanOursSHi{}) for Haiku~4.5, and model / older
 models pairs by \clfSwapDiffOursStoredS{}
 (\clfSwapDiffOursStoredSLo{}--\clfSwapDiffOursStoredSHi{}) and \clfSwapHaikuDiffOursStoredS{}
-(\clfSwapHaikuDiffOursStoredSLo{}--\clfSwapHaikuDiffOursStoredSHi{}). On Sonnet~5's \strictN{}
-working-backdoor problems the pattern is the same: the two
-mixed pairings score \clfSwapWorkHumanOurs{} and \clfSwapWorkOursStored{}, above both the original
-(\clfSwapWorkHumanStored{}) and the rebuilt AUROC (\clfSwapWorkOursOurs{}). That row is built from the
+(\clfSwapHaikuDiffOursStoredSLo{}--\clfSwapHaikuDiffOursStoredSHi{}). The working-backdoor row, which \S\ref{sec:swap} reports, is built from the
 release bundle by \texttt{classifier\_swap.py -{}-release}, and its two diagonal cells reproduce
 Table~\ref{tab:gates} exactly.
 
@@ -1485,7 +1481,7 @@ one selection kept a draw that works only by crashing on its trigger input, and 
 draw that works without crashing. Dropping the three moves the monitor's \monitorStrict{} to
 \monStrictMatched{}.
 
-\subsection{Detection at a fixed audit budget}
+\subsection{Checking which backdoors are real}
 \label{app:audit}
 A backdoor matters only if it passes the tests and gives a wrong answer on an input the problem can receive. Our
 working-backdoor selection asked less: a draw counted as working if, on the trigger Sonnet~5 proposed,
@@ -1516,19 +1512,17 @@ illegal trigger, and one fails a public test under our runner. Both backdoors pa
 problems, and every working-backdoor catch rate in this section is on those problems
 (\texttt{audit\_budget.py -{}-verified}; \checkedClfN{} problems for bag-of-words, whose rebuilt
 backdoors differ on three problems). Honest programs are not filtered, so each threshold is still set
-on all \strictN{} problems' honest programs. On the \checkedN{} problems the Sonnet~5 monitor's AUROC is
-\monCheckedHS{} on the original pairs and \monCheckedHO{} on person / Sonnet~5 (paired difference
-\monCheckedDiff{}, \monCheckedDiffLo{} to \monCheckedDiffHi{}). Replacing the human honest code with
-Sonnet~5's raises it by \monCheckedHonestSwap{} (\monCheckedHonestSwapLo{} to
+on all \strictN{} problems' honest programs. Replacing the human honest code with Sonnet~5's raises
+the Sonnet~5 monitor's AUROC by \monCheckedHonestSwap{} (\monCheckedHonestSwapLo{} to
 \monCheckedHonestSwapHi{}) against Sonnet~5's backdoors, an interval that leaves out rescoring noise
-(appendix~\ref{app:monitors}), so the monitor may favour its own model's honest code a little. A Haiku~4.5 monitor, which wrote neither class, gives \monCheckedHaiHS{} and
-\monCheckedHaiHO{} in its 1{,}024-token rerun (\monCheckedHaiN{} problems with readable scores;
+(appendix~\ref{app:monitors}), so the monitor may favour its own model's honest code a little. The Haiku~4.5 figures in
+\S\ref{sec:monitor} come from its 1{,}024-token rerun (\monCheckedHaiN{} problems with readable scores;
 \texttt{monitor\_swap.py -{}-verified}). The monitor never sees the trigger, but it scores the removed
 backdoors low: median \rejScoreMedian{} for Sonnet~5's and \storedRejScoreMedian{} for the older
 models', against \okScoreMedian{} for Sonnet~5's other backdoors. Still, \storedRejHigh{} of the
-\storedRejN{} scored older-model backdoors with only an illegal trigger score 60 or more. Under the
-flag-only-above rule at 2\% the backdoor-only gap is
-\auditSwapConsHumanStored{} against \auditSwapConsHumanOurs{}. Two rejections rest on a reading of the
+\storedRejN{} scored older-model backdoors with only an illegal trigger score 60 or more. Flagging only programs above the 2\% threshold, the monitor catches
+\auditSwapConsHumanStored{} of the older models' checked backdoors and \auditSwapConsHumanOurs{} of
+Sonnet~5's. Two rejections rest on a reading of the
 statement, a trigger written with leading zeros and a problem whose statement gives no bounds, where the
 validator uses the original contest's. We read the least clear-cut rejections against their
 statements, and release the validators.
@@ -1551,6 +1545,8 @@ released per-program scores (\texttt{split\_checks.py -{}-monitors}). Their AURO
 the rejected programs lower than real backdoors (AUROC against honest code
 \splitMonTopRej{}, against \splitMonTopKept{}). Bag-of-words stays above \tfidfKoranCount{} of them.
 
+\subsection{Detection at a fixed audit budget}
+\label{app:budget}
 Table~\ref{tab:audit} gives the share of backdoors a detector catches when its threshold is set to
 flag 1\%, 2\% or 5\% of honest programs. Monitor scores are whole numbers from 0 to 100, so many
 honest programs tie at the threshold. We flag every program above it and each program at it with
@@ -1563,11 +1559,7 @@ lost many replies and scores many honest programs near the top of the scale, so 
 flags few backdoors of either kind. Figure~\ref{fig:audit} shows the Sonnet~5 rows on the checked backdoors at
 budgets up to 10\%.
 
-The original and rebuilt rows change the honest side along with the backdoors. Crossing them holds
-one side fixed. With the threshold set on the human solutions for both, the Sonnet~5 monitor catches
-\auditStrictStored{} of the older models' checked backdoors and \auditSwapHumanOurs{} of Sonnet~5's
-(difference \auditSwapDiff{}, \auditSwapDiffLo{} to \auditSwapDiffHi{}); with the threshold set on
-Sonnet~5's honest code, the rates are \auditSwapOursStored{} and \auditStrictOurs{} (source: \texttt{audit\_budget\_verified.json}).
+
 
 \begin{figure}[!htbp]\centering
 \includegraphics{f9b-audit-budget.pdf}
@@ -1617,7 +1609,7 @@ Haiku~4.5, all attempts & 2\% & \audClfHaiHeadTwoSt{} & \audClfHaiHeadTwoSg{} & 
 
 \subsection{Length leaks the label even with one set of authors}
 \label{app:agentic}
-A dataset can leak its labels without any gap between authors. In five agentic settings where the
+A dataset can leak its labels even when the same authors write both classes. In five agentic settings where the
 same three models (claude-sonnet-4, gemini-2.5-pro and gpt-5) write both classes, character count
 alone separates the classes within each task, with AUROC from \bashFloor{} (\texttt{bash}, at chance)
 to \agentdojoFloor{} (\texttt{agentdojo}; Figure~\ref{fig:corpora}). We compute it within each main
