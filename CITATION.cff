@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: "If you use this code or the rebuilt pairs, please cite the paper."
-title: "AI-control monitor benchmarks can be beaten without running the code"
+message: "If you use this code or the rebuilt pairs, please cite the paper. Shubhrangshu Debsarkar and Valmik Nahata contributed equally."
+title: "AI-Control Monitor Benchmarks Can Be Beaten without Running the Code"
 authors:
   - family-names: Debsarkar
     given-names: Shubhrangshu
@@ -12,7 +12,7 @@ license: MIT
 repository-code: "https://github.com/ShubsDS/authorship-not-sabotage"
 preferred-citation:
   type: conference-paper
-  title: "AI-control monitor benchmarks can be beaten without running the code"
+  title: "AI-Control Monitor Benchmarks Can Be Beaten without Running the Code"
   authors:
     - family-names: Debsarkar
       given-names: Shubhrangshu
