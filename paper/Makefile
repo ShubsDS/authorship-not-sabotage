@@ -3,7 +3,7 @@
 
 LATEX = pdflatex -interaction=nonstopmode -halt-on-error
 
-main.pdf: main.tex refs.bib neurips_2026.sty $(wildcard fig/*)
+main.pdf: main.tex prompts.tex refs.bib neurips_2026.sty $(wildcard fig/*)
 	$(LATEX) main
 	bibtex main
 	$(LATEX) main

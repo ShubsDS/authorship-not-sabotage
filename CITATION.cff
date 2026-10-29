@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this code or the rebuilt pairs, please cite the paper."
+title: "Who Wrote the Backdoor? Authorship and Attacker Effects in AI-Control Monitor Benchmarks"
+authors:
+  - family-names: Debsarkar
+    given-names: Shubhrangshu
+    affiliation: University of Virginia
+  - family-names: Nahata
+    given-names: Valmik
+    affiliation: University of California, San Diego
+license: MIT
+repository-code: "https://github.com/ShubsDS/authorship-not-sabotage"
+preferred-citation:
+  type: conference-paper
+  title: "Who Wrote the Backdoor? Authorship and Attacker Effects in AI-Control Monitor Benchmarks"
+  authors:
+    - family-names: Debsarkar
+      given-names: Shubhrangshu
+    - family-names: Nahata
+      given-names: Valmik
+  collection-title: "NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI Systems (EvoRobust)"
+  year: 2026

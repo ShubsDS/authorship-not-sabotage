@@ -277,6 +277,10 @@ python release_split.py --out release --force --keep first \
     --pool-independent bdind_sonnet5_retry.jsonl --poolpass-independent bdindpass_sonnet5_retry.jsonl \
     --also-select best --allow-trivial-identical 120
 python release_split.py --check release --allow-trivial-identical 120
+
+# when only the scripts or the card change: re-render them from HEAD, keeping every data file
+python release_split.py --refresh release --allow-trivial-identical 120
+rm -f ../../same-generator-apps-split.zip && zip -X -r ../../same-generator-apps-split.zip release
 ```
 
 ## Where each result comes from

@@ -72,11 +72,13 @@ independently of whether an attack succeeded.
 
 ```
 experiments/
-  apps/      APPS backdoor dataset: the floors on the original pairs, the rebuilt pairs
-             (generation, test harness, backdoor verification) and every measurement on them
-  agentic/   five agentic settings in which one model wrote both classes (appendix)
-  README.md  how to reproduce each result, with commands
-paper/       LaTeX source, bibliography and figures
+  apps/        APPS backdoor dataset: the floors on the original pairs, the rebuilt pairs
+               (generation, test harness, backdoor verification) and every measurement on them;
+               *.json are the committed outputs behind the paper's numbers
+    validators/  one input validator per checked problem (258), used by the trigger checks
+  agentic/     five agentic settings in which one model wrote both classes (appendix)
+  README.md    how to reproduce each result, with commands, and which script gives each number
+paper/         LaTeX source, bibliography, figures and the built main.pdf
 ```
 
 ## Reproducing
@@ -117,10 +119,31 @@ Our corpus of rebuilt pairs is `same-generator-apps-split.zip`, attached to the
 [v1.0 release](https://github.com/ShubsDS/authorship-not-sabotage/releases/tag/v1.0): the honest
 and attack programs, the independent variant's full retry pool, the pair lists for all attempts
 and for working backdoors under both draw selections (first draw, best draw), the scripts behind
-the paper's numbers, a dataset card and a manifest of row counts and checksums.
+the paper's numbers, a dataset card and a manifest of row counts and checksums (SHA-256 of the
+zip: `33a59428b0cec00acb4311837be84ca19dfb9c3e1bb1805ab04384eba22106f7`).
 `experiments/apps/release_split.py` builds it and `--check` validates it
-(`experiments/README.md`, stage 7).
+(`experiments/README.md`, stage 7). Unpack it at `experiments/apps/release` for the scripts that
+read it; the check compares against the upstream code when `fetch.py` has run:
+
+```bash
+cd experiments/apps
+unzip ../../same-generator-apps-split.zip
+python release_split.py --check release --allow-trivial-identical 120
+```
 
 The code and our generated data are MIT-licensed ([`LICENSE`](LICENSE)). Upstream datasets are
 fetched at run time and not redistributed. Their licences are listed in
 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+
+## Citation
+
+```bibtex
+@inproceedings{debsarkar2026whowrote,
+  title     = {Who Wrote the Backdoor? Authorship and Attacker Effects in {AI}-Control Monitor Benchmarks},
+  author    = {Debsarkar, Shubhrangshu and Nahata, Valmik},
+  booktitle = {NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI Systems (EvoRobust)},
+  year      = {2026}
+}
+```
+
+[`CITATION.cff`](CITATION.cff) has the same entry for GitHub's "Cite this repository".
