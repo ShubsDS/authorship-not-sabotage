@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this code or the rebuilt pairs, please cite the paper."
-title: "AI-Control Monitor Benchmarks Can Be Beaten without Running the Code"
+title: "Code-blind baselines beat most AI-control monitors"
 authors:
   - family-names: Debsarkar
     given-names: Shubhrangshu
@@ -12,7 +12,7 @@ license: MIT
 repository-code: "https://github.com/ShubsDS/authorship-not-sabotage"
 preferred-citation:
   type: conference-paper
-  title: "AI-Control Monitor Benchmarks Can Be Beaten without Running the Code"
+  title: "Code-blind baselines beat most AI-control monitors"
   authors:
     - family-names: Debsarkar
       given-names: Shubhrangshu

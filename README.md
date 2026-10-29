@@ -1,4 +1,4 @@
-# AI-Control Monitor Benchmarks Can Be Beaten without Running the Code
+# Code-blind baselines beat most AI-control monitors
 
 Code and paper source for the EvoRobust @ NeurIPS 2026 workshop paper.
 
@@ -139,7 +139,7 @@ fetched at run time and not redistributed. Their licences are listed in
 
 ```bibtex
 @inproceedings{debsarkar2026whowrote,
-  title     = {{AI}-Control Monitor Benchmarks Can Be Beaten without Running the Code},
+  title     = {Code-blind baselines beat most {AI}-control monitors},
   author    = {Debsarkar, Shubhrangshu and Nahata, Valmik},
   booktitle = {NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI Systems (EvoRobust)},
   year      = {2026}

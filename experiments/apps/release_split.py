@@ -343,7 +343,7 @@ figures in the scripts' comments are redacted to `$X`; nothing else in them was 
 
 ```
 @inproceedings{{debsarkar2026samegenerator,
-  title     = {{AI-Control Monitor Benchmarks Can Be Beaten without Running the Code}},
+  title     = {{Code-blind baselines beat most AI-control monitors}},
   author    = {{Debsarkar, Shubhrangshu and Nahata, Valmik}},
   booktitle = {{NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI
                Systems (EvoRobust)}},
