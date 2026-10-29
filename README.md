@@ -1,4 +1,4 @@
-# Code-blind baselines beat most AI-control monitors
+# Simple features predict backdoor labels better than most trusted monitors in AI control
 
 Code and paper source for the EvoRobust @ NeurIPS 2026 workshop paper.
 
@@ -139,7 +139,7 @@ fetched at run time and not redistributed. Their licences are listed in
 
 ```bibtex
 @inproceedings{debsarkar2026whowrote,
-  title     = {Code-blind baselines beat most {AI}-control monitors},
+  title     = {Simple features predict backdoor labels better than most trusted monitors in {AI} control},
   author    = {Debsarkar, Shubhrangshu and Nahata, Valmik},
   booktitle = {NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI Systems (EvoRobust)},
   year      = {2026}

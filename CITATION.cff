@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this code or the rebuilt pairs, please cite the paper."
-title: "Code-blind baselines beat most AI-control monitors"
+title: "Simple features predict backdoor labels better than most trusted monitors in AI control"
 authors:
   - family-names: Debsarkar
     given-names: Shubhrangshu
@@ -12,7 +12,7 @@ license: MIT
 repository-code: "https://github.com/ShubsDS/authorship-not-sabotage"
 preferred-citation:
   type: conference-paper
-  title: "Code-blind baselines beat most AI-control monitors"
+  title: "Simple features predict backdoor labels better than most trusted monitors in AI control"
   authors:
     - family-names: Debsarkar
       given-names: Shubhrangshu
