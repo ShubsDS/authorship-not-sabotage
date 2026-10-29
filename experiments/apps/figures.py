@@ -132,9 +132,9 @@ LW = 0.5
 # the code, light grey = honest programs. Figures 1 and 2 are TikZ/pgfplots and tcolorbox drawn with
 # the same colours, defined in main.tex (mG, mB, mInk, ...).
 FS = 7.0
-MG, MGL, MGT = "#1F3A68", "#8C9DB8", "#F3F4F6"
-MB, MBL = "#B04A2F", "#E6B3A1"
-MINK, MTXT, MMUTE, MERR, MGRID, MHON = "#1A1A1A", "#3A3A3A", "#7A7A7A", "#6E6E6E", "#E4E4E4", "#B8B3AB"
+MG, MGL, MGT = "#4D4D4D", "#9A9A9A", "#F3F3F3"
+MB, MBL = "#9E2A2B", "#9E2A2B"
+MINK, MTXT, MMUTE, MERR, MGRID, MHON = "#111111", "#3A3A3A", "#7A7A7A", "#2B2B2B", "#E4E4E4", "#D0D0D0"
 plt.rcParams.update({
     "text.latex.preamble": (r"\usepackage[T1]{fontenc}\usepackage[defaultfam,tabular,lining]{montserrat}"
                             r"\renewcommand{\familydefault}{\sfdefault}\usepackage[italic]{mathastext}"
@@ -370,7 +370,7 @@ def fig6_label_leak():
     save(fig, "f6b-nocode.pdf")
 
     fig, ax = panel(W6, H6)
-    _hbars(ax, [("backdoored", TESTS_ATTACK, None, MGL), ("honest", TESTS_HONEST, None, MHON)], 0)
+    _hbars(ax, [("backdoored", TESTS_ATTACK, None, MG), ("honest", TESTS_HONEST, None, MHON)], 0)
     ax.set_xlim(0, 45); ax.set_xticks([0, 10, 20, 30, 40])
     mgrid(ax, "x"); ax.set_xlabel("test cases per problem")
     save(fig, "f6c-tests.pdf")
@@ -585,7 +585,7 @@ def fig10_features(k=8):
     att = json.load(open("lexical_probe.json"))["headline"]["attribution"]
     lim = max(abs(w) for key in ("B_prime", "S") for side in ("attack", "honest")
               for _, w in att[key][side][:k])
-    for key, name, col in (("B_prime", "f10a-features-stored.pdf", MGL), ("S", "f10b-features-samegen.pdf", MBL)):
+    for key, name, col in (("B_prime", "f10a-features-stored.pdf", MG), ("S", "f10b-features-samegen.pdf", MB)):
         fig, ax = panel(0.48, 1.7)
         items = [(_tok(t), w) for t, w in att[key]["attack"][:k]][::-1] + \
                 [(_tok(t), w) for t, w in att[key]["honest"][:k]]
@@ -640,8 +640,8 @@ def fig2_corpora():
     rows = SCAN[::-1]
     fig, ax = panel(0.7, 1.15)
     for i, (name, v, nv, k) in enumerate(rows):
-        ax.barh(i, v - 0.5, left=0.5, height=0.62, color=MINK, zorder=2)
-        ax.plot([nv, nv], [i - 0.4, i + 0.4], color=MMUTE, lw=1.4, zorder=3, solid_capstyle="butt")
+        ax.barh(i, v - 0.5, left=0.5, height=0.62, color=MGL, zorder=2)
+        ax.plot([nv, nv], [i - 0.42, i + 0.42], color=MINK, lw=1.6, zorder=3, solid_capstyle="butt")
     ax.set_yticks(range(len(rows)))
     ax.set_yticklabels([f"\\texttt{{{tex(r[0])}}} ({r[3]})" for r in rows])
     ax.tick_params(axis="y", length=0)
@@ -650,7 +650,7 @@ def fig2_corpora():
     ax.set_xlabel("AUROC from character count, within task")
     ax.axvline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
     top = rows[-1]
-    ax.text(top[2] + 0.006, len(rows) - 1 + 0.42, "shuffled, 95th pct.", fontsize=FS - 1.4, color=MMUTE,
+    ax.text(top[2] + 0.006, len(rows) - 1 + 0.42, "shuffled, 95th pct.", fontsize=FS - 1.4, color=MINK,
             ha="left", va="bottom")
     save(fig, "f2-corpus-floors.pdf")
     nulls = [r[2] for r in SCAN]
