@@ -957,6 +957,15 @@ def check():
             round(m["splitPos"] / m["splitRejected"]) != m["splitRejectedOneInN"]:
         bad.append(f"splitRejectedOneInN = {m['splitRejectedOneInN']:.0f} but splitPos / splitRejected rounds to "
                    f"{round(m['splitPos'] / m['splitRejected'])}")
+    # Table of real backdoors: each row's outcomes add up to the backdoors checked.
+    rows = ((("checkedOursN", "checkedOursInvalid", "checkedOursSpace"), 0, "strictN"),
+            (("checkedStoredN", "checkedStoredInvalid"), 1, "strictN"),
+            (("splitVerified", "splitIllegal", "splitWrongPublic", "splitUndecided"), 0, "splitPos"))
+    for parts, extra, total in rows:
+        if all(k in m for k in parts + (total,)) and sum(m[k] for k in parts) + extra != m[total]:
+            bad.append(f"real-backdoor table: {' + '.join(parts)} + {extra} != {total}")
+    if all(k in m for k in ("splitUndecided", "splitFormat")) and m["splitUndecided"] != m["splitFormat"] + 1:
+        bad.append("splitUndecided should be splitFormat + 1 (the problem with several correct answers)")
     bad += _check_json()
     bad += _check_stored_pairs()
     bad += _check_exploits()

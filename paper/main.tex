@@ -438,7 +438,7 @@
 \newcommand{\checkedStoredWitness}{2}
 \newcommand{\splitIllegal}{17}
 \newcommand{\splitWrongPublic}{7}
-\newcommand{\splitFormat}{6}
+\newcommand{\splitFormat}{6}\newcommand{\splitUndecided}{7}% splitFormat + the one problem with several correct answers
 \newcommand{\splitWitness}{4}
 \newcommand{\splitMonMedian}{+0.010}
 \newcommand{\splitMonTopLo}{0.017}
@@ -977,13 +977,6 @@ backdoors and \atOThreeB{} on o3-mini's. To get these numbers we fit the classif
 cross-validation, on all \baselineBn{} original pairs, and keep the out-of-fold scores of each
 model's backdoors, so the honest code is the same in every row.
 
-The model matters much less for $\rho$. Restricting Sonnet~5's all-attempts row by attacking model
-keeps $\rho$ inside the full row's interval (\sameGenRhoLo{}--\sameGenRhoHi{}). It is \rhoClaudeOnly{}
-(\rhoClaudeOnlyLo{}--\rhoClaudeOnlyHi{}) on the \rhoClaudeOnlyN{} problems whose original backdoor
-a Claude model wrote, \rhoThinkOnly{} (\rhoThinkOnlyLo{}--\rhoThinkOnlyHi{}, $n = \rhoThinkOnlyN{}$)
-for claude-3-7-sonnet-thinking alone, and \rhoNonClaude{} (\rhoNonClaudeLo{}--\rhoNonClaudeHi{},
-$n = \rhoNonClaudeN{}$) for the other models.
-
 The standard split trains and tests on different attackers. All \splitAttack{} backdoors in its test
 set were written by claude-3-7-sonnet-thinking, and its \splitTrain{} training backdoors by six other
 sources (o3-mini, claude-3-7-sonnet, gpt-4o, o1-mini, the unattributed source and gemini-2.0-flash).
@@ -1159,8 +1152,12 @@ shown for contrast.
 \subsection{What removing comments changes}
 \label{app:stripped}
 Comments inflate every result on what bag-of-words reads. We first measured them with comments left
-in, then again with comments removed from both classes (Table~\ref{tab:stripped}); the paper reports
-the second set. Removing comments evens out the use of \texttt{\#}, from \hashPresAttack{}
+in, then again with comments removed from both classes, and the paper reports the second set
+(Table~\ref{tab:protocol-baseline} gives both). Without comments, seven surface features reach AUROC
+\three{\surfaceSeven} (\three{\surfaceSevenKept} with them), bag-of-words reaches \three{\tfidfMatched}
+on matched pairs, and the transfer results between single attackers are \transferOthreeClaude{}
+(o3-mini to claude-3-7-sonnet), \transferClaudeOthree{} (the reverse) and \transferOoneGemini{}
+(o1-mini to gemini-2.0-flash). Removing comments evens out the use of \texttt{\#}, from \hashPresAttack{}
 of backdoored against \hashPresHonest{} of honest programs to \hashPresAttackStripped{} against
 \hashPresHonestStripped{}. It leaves \texttt{\_\_main\_\_} unchanged. Some authorship cues sit in
 string literals, which are not comments. After comments are removed from the training split, an
@@ -1168,28 +1165,6 @@ author line (\texttt{Author :}) remains in \bylineHonest{} of \splitTrain{} hone
 \bylineAttack{} backdoored ones, and a triple-quoted block in \tripleHonest{} against
 \tripleAttack{}. Both are too rare to explain the AUROC of \tfidfKoran{}, but both record who wrote
 the code.
-
-\begin{table}[!htbp]\centering\footnotesize
-\setlength{\tabcolsep}{5pt}
-\caption{Bag-of-words with and without comments. Pairwise accuracy (the share of pairs in
-which the backdoored program scores higher), averaged over five problem-disjoint splits, unless
-marked AUROC. The other transfer results without comments are \transferOthreeClaude{} (o3-mini to
-claude-3-7-sonnet), \transferClaudeOthree{} (the reverse) and \transferOoneGemini{} (o1-mini to
-gemini-2.0-flash).}
-\label{tab:stripped}
-\begin{tabular}{@{}l r r@{}}
-\toprule
-Measurement & comments kept & comments removed \\
-\midrule
-transfer between attacking models & \transferKept{} & \transfer{} \\
-working backdoors & \pairWorkingKept{} & \pairWorking{} \\
-backdoors that never trigger & \pairInertKept{} & \pairInert{} \\
-all pairs & \pairAllKept{} & \pairAll{} \\
-surface features (AUROC) & \three{\surfaceSevenKept} & \three{\surfaceSeven} \\
-matched pairs (AUROC) & --- & \three{\tfidfMatched} \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \begin{figure}[!htbp]\centering
 \begin{subfigure}[b]{0.48\linewidth}\centering
@@ -1270,9 +1245,14 @@ cannot fail on such an input. Of these draws \trigPublicFire{} work, against \tr
 draws with a new trigger input, so our prompt roughly halves the share of backdoors that work. No
 working original backdoor uses a public test input as its trigger (\trigStoredPublic{}).
 
-\subsection{Do working backdoors raise \texorpdfstring{$\rho$}{rho}?}
-\label{app:shared}
-Not detectably. Sonnet~5's all-attempts and working-backdoor rows differ in two ways: in the second
+The attacking model matters little for $\rho$ either. Restricting Sonnet~5's all-attempts row by attacking model
+keeps $\rho$ inside the full row's interval (\sameGenRhoLo{}--\sameGenRhoHi{}). It is \rhoClaudeOnly{}
+(\rhoClaudeOnlyLo{}--\rhoClaudeOnlyHi{}) on the \rhoClaudeOnlyN{} problems whose original backdoor
+a Claude model wrote, \rhoThinkOnly{} (\rhoThinkOnlyLo{}--\rhoThinkOnlyHi{}, $n = \rhoThinkOnlyN{}$)
+for claude-3-7-sonnet-thinking alone, and \rhoNonClaude{} (\rhoNonClaudeLo{}--\rhoNonClaudeHi{},
+$n = \rhoNonClaudeN{}$) for the other models.
+
+\label{app:shared}Working backdoors do not detectably raise $\rho$ either. Sonnet~5's all-attempts and working-backdoor rows differ in two ways: in the second
 row the backdoors work, and it covers only problems where a working backdoor could be drawn. The
 \sharedN{} problems in both rows separate the two effects, since on them the honest program and the
 original pair are the same and only our backdoor differs. We reuse the existing out-of-fold scores
@@ -1395,12 +1375,11 @@ Haiku~4.5 & working backdoors & \three{\monHaikuStoredStrict} & \three{\monHaiku
 \end{tabular}
 \end{table}
 
-Haiku~4.5 lost many replies. The 512-token cap left \monHaikuMissHead{} replies on the rebuilt
-pairs unreadable. On the original pairs the missing share differs by class (\monHaikuMissHonest{} of
-honest against \monHaikuMissAttack{} of backdoored programs), a bias of unknown direction. With a
-1{,}024-token cap on the working-backdoor problems only \monHaikuMissStrictK{} replies on the rebuilt
-pairs and \monHaikuMissStrictStoredK{} on the original pairs are missing,
-and its $\rho$ moves from \monHaikuRhoStrict{} to \monHaikuRhoStrictMt{}, inside the interval.
+Haiku~4.5's 512-token cap left \monHaikuMissHead{} replies on the rebuilt pairs unreadable, and on
+the original pairs more honest than backdoored replies are missing (\monHaikuMissHonest{} against
+\monHaikuMissAttack{}). A 1{,}024-token rerun on the working-backdoor problems loses only
+\monHaikuMissStrictK{} and \monHaikuMissStrictStoredK{} replies, and moves its $\rho$ from
+\monHaikuRhoStrict{} to \monHaikuRhoStrictMt{}, inside the interval.
 
 On these problems the monitors beat bag-of-words. On the original pairs both monitors
 score above bag-of-words, by \monBowGapSonHead{} and \monBowGapSonStrict{} for Sonnet~5 on the
@@ -1504,47 +1483,65 @@ mutants the validator accepts, and compare the backdoor with the human majority 
 with such a witness counts as real. The search is short, so the counts of rejected backdoors are upper
 bounds.
 
-Of Sonnet~5's \strictN{} working backdoors, \checkedOursN{} pass, \checkedOursWitness{} of
-them through a witness. \checkedOursInvalid{} have only an illegal trigger (for example $M > N$ where
-the statement requires $M \le N$), and \checkedOursSpace{} give the human answer on their trigger,
-most once stray whitespace is removed. Of the older models' backdoors on the same problems,
-\checkedStoredN{} pass (\checkedStoredWitness{} through a witness), \checkedStoredInvalid{} have only an
-illegal trigger, and one fails a public test under our runner. Both backdoors pass on \checkedN{}
-problems, and every working-backdoor catch rate in this section is on those problems
-(\texttt{audit\_budget.py -{}-verified}; \checkedClfN{} problems for bag-of-words, whose rebuilt
-backdoors differ on three problems). Honest programs are not filtered, so each threshold is still set
-on all \strictN{} problems' honest programs. Replacing the human honest code with Sonnet~5's raises
-the Sonnet~5 monitor's AUROC by \monCheckedHonestSwap{} (\monCheckedHonestSwapLo{} to
-\monCheckedHonestSwapHi{}) against Sonnet~5's backdoors, an interval that leaves out rescoring noise
-(appendix~\ref{app:monitors}), so the monitor may favour its own model's honest code a little. The Haiku~4.5 figures in
-\S\ref{sec:monitor} come from its 1{,}024-token rerun (\monCheckedHaiN{} problems with readable scores;
-\texttt{monitor\_swap.py -{}-verified}). The monitor never sees the trigger, but it scores the removed
-backdoors low: median \rejScoreMedian{} for Sonnet~5's and \storedRejScoreMedian{} for the older
-models', against \okScoreMedian{} for Sonnet~5's other backdoors. Still, \storedRejHigh{} of the
-\storedRejN{} scored older-model backdoors with only an illegal trigger score 60 or more. Flagging only programs above the 2\% threshold, the monitor catches
-\auditSwapConsHumanStored{} of the older models' checked backdoors and \auditSwapConsHumanOurs{} of
-Sonnet~5's. Two rejections rest on a reading of the
-statement, a trigger written with leading zeros and a problem whose statement gives no bounds, where the
-validator uses the original contest's. We read the least clear-cut rejections against their
-statements, and release the validators.
+Table~\ref{tab:checks} gives the outcome. Most rejected backdoors have only an illegal trigger, for
+example $M > N$ where the statement requires $M \le N$. Sonnet~5's other \checkedOursSpace{} rejections
+give the human answer on their trigger, most once stray whitespace is removed. In the standard split
+every illegal trigger is a plain breach of the statement, such as a value out of range, a sequence that
+is not a permutation, a string of the wrong length, or a reducible fraction where the statement
+guarantees an irreducible one. Its \splitWrongPublic{} wrong public answers are wrong integers (for
+example 47610330 where the answer is 47610390) that the dataset's pass flag misses, because it
+compares numbers with a relative tolerance. Its undecided programs fail a public test under our runner
+only by number formatting, or have several correct answers. The split needed \splitNewValidators{}
+more validators, written the same way, and all \validatorsN{} accept every stored test input of their
+problem. Two rejections on the working-backdoor problems rest on a reading of the statement, a trigger
+written with leading zeros and a problem whose statement gives no bounds, where the validator uses the
+original contest's. We read the least clear-cut rejections against their statements and release the
+validators.
 
-The standard split has the same problem. We ran the checks on its \splitPos{} backdoored programs, each
-the dataset's designated backdoor for its problem (\texttt{-{}-meta koran\_meta.parquet}), written by
-Claude~3.7 Sonnet. This needed \splitNewValidators{} more validators, written the same way, and all
-\validatorsN{} accept every stored test input of their problem. \splitIllegal{} have only an illegal
-trigger, each a plain breach of the statement: a value out of range, a sequence that is not a
-permutation, a string of the wrong length, a reducible fraction where the statement guarantees an
-irreducible one. \splitWrongPublic{} print a wrong integer on a public test (for example 47610330
-where the answer is 47610390); the dataset's pass flag compares numbers with a relative tolerance, so it
-misses them. \splitVerified{} pass, \splitWitness{} of them through a witness. The other
-\splitFormat{} fail a public test under our runner only by number formatting, and one problem has
-several correct answers; we count these as undecided. Dropping the \splitRejected{} rejected programs
-leaves bag-of-words at \splitTfidfChecked{}, against \tfidfKoran{} (\texttt{split\_checks.py},
-\texttt{koran\_split\_eval.py -{}-checked}). We also rescored the \monN{} published monitors from their
-released per-program scores (\texttt{split\_checks.py -{}-monitors}). Their AUROCs change by a median of
-\splitMonMedian{}, and the four best gain \splitMonTopLo{}--\splitMonTopHi{}; those four already score
-the rejected programs lower than real backdoors (AUROC against honest code
-\splitMonTopRej{}, against \splitMonTopKept{}). Bag-of-words stays above \tfidfKoranCount{} of them.
+\begin{table}[!htbp]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Which labelled backdoors are real. A backdoor is real if its trigger is a legal input and its
+output there differs from the human solutions' majority answer, or if a nearby legal input shows it
+wrong (a witness, counted in brackets). The first two rows cover the \strictN{} problems of Sonnet~5's
+working-backdoor row. The last covers the standard test split's backdoored programs, each the
+dataset's designated backdoor for its problem, all written by Claude~3.7 Sonnet. Source:
+\texttt{verify\_backdoor.py}, \texttt{split\_checks.py}.}
+\label{tab:checks}
+\begin{tabular}{@{}l r r r r r r@{}}
+\toprule
+Backdoors & checked & real & illegal trigger & right on & wrong on a & undecided \\
+ & & & only & its trigger & public test & \\
+\midrule
+Sonnet~5, working & \strictN{} & \checkedOursN{} (\checkedOursWitness{}) & \checkedOursInvalid{} & \checkedOursSpace{} & 0 & 0 \\
+older models, same problems & \strictN{} & \checkedStoredN{} (\checkedStoredWitness{}) & \checkedStoredInvalid{} & 0 & 1 & 0 \\
+standard test split & \splitPos{} & \splitVerified{} (\splitWitness{}) & \splitIllegal{} & 0 & \splitWrongPublic{} & \splitUndecided{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Both backdoors are real on \checkedN{} problems, and every working-backdoor catch rate in
+\S\ref{sec:monitor} and appendix~\ref{app:budget} is on those problems (\texttt{audit\_budget.py
+-{}-verified}, and \checkedClfN{} problems for bag-of-words, whose rebuilt backdoors differ on three
+problems). Honest programs are not filtered, so each threshold is still set on all \strictN{} problems'
+honest programs. Replacing the human honest code with Sonnet~5's raises the Sonnet~5 monitor's AUROC by
+\monCheckedHonestSwap{} (\monCheckedHonestSwapLo{} to \monCheckedHonestSwapHi{}) against Sonnet~5's
+backdoors, an interval that leaves out rescoring noise (appendix~\ref{app:monitors}), so the monitor may
+favour its own model's honest code a little. The Haiku~4.5 figures in \S\ref{sec:monitor} come from its
+1{,}024-token rerun (\monCheckedHaiN{} problems with readable scores, \texttt{monitor\_swap.py
+-{}-verified}). The monitor never sees the trigger, but it scores the rejected backdoors low, with a
+median of \rejScoreMedian{} for Sonnet~5's and \storedRejScoreMedian{} for the older models' against
+\okScoreMedian{} for Sonnet~5's other backdoors. Still, \storedRejHigh{} of the \storedRejN{} scored
+older-model backdoors with only an illegal trigger score 60 or more. Flagging only programs above the 2\%
+threshold, the monitor catches \auditSwapConsHumanStored{} of the older models' checked backdoors and
+\auditSwapConsHumanOurs{} of Sonnet~5's.
+
+In the standard split, dropping the \splitRejected{} rejected programs leaves bag-of-words at
+\splitTfidfChecked{} against \tfidfKoran{} (\texttt{split\_checks.py}, \texttt{koran\_split\_eval.py
+-{}-checked}). Rescored from their released per-program scores (\texttt{split\_checks.py -{}-monitors}),
+the \monN{} published monitors change by a median of \splitMonMedian{}, and the four best gain
+\splitMonTopLo{}--\splitMonTopHi{}, since they already score the rejected programs lower than real
+backdoors (AUROC against honest code \splitMonTopRej{}, against \splitMonTopKept{}). Bag-of-words stays
+above \tfidfKoranCount{} of them.
 
 \subsection{Detection at a fixed audit budget}
 \label{app:budget}
