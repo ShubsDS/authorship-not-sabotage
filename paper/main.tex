@@ -11,6 +11,7 @@
 \usepackage{url}
 \usepackage{booktabs}
 \usepackage{placeins}
+\makeatletter\setlength{\@fptop}{0pt}\makeatother % pages of floats start at the top
 \usepackage{array}
 \usepackage{amsfonts}
 \usepackage{amsmath}
@@ -931,7 +932,7 @@ pair each class with another author's code; and check that every trigger is a le
 backdoor is wrong before reporting catch rates for several attacking models. Where they find
 shortcuts, have one model write both classes from one prompt and choose honest examples independently
 of whether an attack succeeded. Automated search that takes such a score as its fitness signal could
-optimise these artifacts too.
+learn to exploit these shortcuts too.
 
 \begin{ack}
 Compute for this work was provided by the Virginia AI Security Initiative, a student
