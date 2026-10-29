@@ -651,21 +651,20 @@
 \maketitle
 
 \begin{abstract}
-AI control aims to deploy capable models safely even if they attempt sabotage, and its main safeguard
-is a trusted monitor that reviews their outputs. Monitors are compared on datasets of honest and
-backdoored code, so their scores are only as meaningful as those datasets. We examine the standard
-such dataset, built on APPS, where people wrote the honest solutions, older language models the
-backdoors, and a problem was labelled backdoored only if its backdoor worked. We find that this
-construction lets the label be predicted without locating any backdoor. A bag-of-words classifier that
-never runs the code outranks \tfidfKoranCount{} of \monN{} open-weight models prompted as monitors,
-and problem metadata alone is nearly as accurate. Rebuilding the pairs with Claude Sonnet~5 writing
-both classes, and exchanging one class at a time, shows that the classifier rewards a contrast between
-authors. Checking the labels shows that one in \splitRejectedOneIn{} backdoors in the test split is not
-real, and such labels distort comparisons between attackers. Once both sets are verified, a Sonnet~5
-monitor catches older models' backdoors more often than Sonnet~5's, but the difference shrinks from
-\auditGapUncheckedPts{} to \auditGapPts{} points. We do not show that published monitors rely on these
-cues, but a high score on such a dataset is not by itself evidence of sabotage detection. We release
-the rebuilt dataset and checks.
+AI control relies on trusted monitors to catch a capable model that slips sabotage into its work, and
+monitors are ranked on datasets of honest and backdoored code. On the standard such dataset, we find
+that a classifier that never runs the code outranks \tfidfKoranCount{} of \monN{} open-weight models
+prompted as monitors. The cause lies in how the dataset was built, since people wrote its honest
+solutions, older language models wrote its backdoors, and a problem was labelled backdoored only if its
+backdoor worked, so the style of the code and basic facts about the problem give the label away.
+Rebuilding the pairs with Claude Sonnet~5 writing both classes, and exchanging one class at a time,
+shows that the classifier rewards a contrast between authors. The labels are also unreliable, as one in
+\splitRejectedOneIn{} backdoors in the test split is not real, failing a public test or misbehaving only
+on inputs the problem forbids. Such labels distort comparisons between attackers. A Sonnet~5 monitor
+appears to catch older models' backdoors far more often than Sonnet~5's, but once both sets are
+verified the difference shrinks from \auditGapUncheckedPts{} to \auditGapPts{} points. We do not show
+that published monitors rely on these shortcuts, but a high score on such a dataset is not by itself
+evidence of sabotage detection. We release the rebuilt dataset and checks.
 \end{abstract}
 
 \section{Introduction}
