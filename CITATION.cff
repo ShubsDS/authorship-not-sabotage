@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this code or the rebuilt pairs, please cite the paper."
-title: "Simple features beat most trusted monitors in AI control"
+title: "Simple Features Beat Most AI Control Monitors"
 authors:
   - family-names: Debsarkar
     given-names: Shubhrangshu
@@ -12,7 +12,7 @@ license: MIT
 repository-code: "https://github.com/ShubsDS/authorship-not-sabotage"
 preferred-citation:
   type: conference-paper
-  title: "Simple features beat most trusted monitors in AI control"
+  title: "Simple Features Beat Most AI Control Monitors"
   authors:
     - family-names: Debsarkar
       given-names: Shubhrangshu
