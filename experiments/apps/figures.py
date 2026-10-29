@@ -638,7 +638,7 @@ def fig3_monitors():
 
 def fig2_corpora():
     rows = SCAN[::-1]
-    fig, ax = panel(0.7, 1.45)
+    fig, ax = panel(0.7, 1.15)
     for i, (name, v, nv, k) in enumerate(rows):
         ax.barh(i, v - 0.5, left=0.5, height=0.62, color=MINK, zorder=2)
         ax.plot([nv, nv], [i - 0.4, i + 0.4], color=MMUTE, lw=1.4, zorder=3, solid_capstyle="butt")

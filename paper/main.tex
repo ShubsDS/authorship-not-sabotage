@@ -943,6 +943,7 @@ organization at the University of Virginia.
 \bibliography{refs}
 
 \appendix
+\raggedbottom\renewcommand{\bottomfraction}{0.6}\renewcommand{\textfraction}{0.1}\renewcommand{\floatpagefraction}{0.75}% appendix only
 \setcounter{table}{0}\renewcommand{\thetable}{A\arabic{table}}
 \setcounter{figure}{0}\renewcommand{\thefigure}{A\arabic{figure}}
 \renewcommand{\theHtable}{A\arabic{table}}\renewcommand{\theHfigure}{A\arabic{figure}}
@@ -1342,6 +1343,7 @@ Sonnet~5, working (\strictN{}) & person & \clfSwapWorkHumanStored{} & \clfSwapWo
 \end{tabular}
 \end{table}
 
+\FloatBarrier
 \input{prompts}
 
 \FloatBarrier
@@ -1499,22 +1501,23 @@ original contest's. We read the least clear-cut rejections against their stateme
 validators.
 
 \begin{table}[!htbp]\centering\footnotesize
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{5pt}
 \caption{Which labelled backdoors are real. A backdoor is real if its trigger is a legal input and its
 output there differs from the human solutions' majority answer, or if a nearby legal input shows it
-wrong (a witness, counted in brackets). The first two rows cover the \strictN{} problems of Sonnet~5's
-working-backdoor row. The last covers the standard test split's backdoored programs, each the
-dataset's designated backdoor for its problem, all written by Claude~3.7 Sonnet. Source:
-\texttt{verify\_backdoor.py}, \texttt{split\_checks.py}.}
+wrong (a witness). It is rejected if it has only an illegal trigger, gives the human answer on its
+trigger, or prints a wrong answer on a public test. The first two rows cover the \strictN{} problems of
+Sonnet~5's working-backdoor row; the last covers the standard test split's backdoored programs, all
+written by Claude~3.7 Sonnet. Source: \texttt{verify\_backdoor.py}, \texttt{split\_checks.py}.}
 \label{tab:checks}
-\begin{tabular}{@{}l r r r r r r@{}}
+\begin{tabular}{@{}l c cc ccc c@{}}
 \toprule
-Backdoors & checked & real & illegal trigger & right on & wrong on a & undecided \\
- & & & only & its trigger & public test & \\
+ & & \multicolumn{2}{c}{real} & \multicolumn{3}{c}{rejected} & \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-7}
+backdoors & checked & all & by witness & illegal trigger & human answer & public test & undecided \\
 \midrule
-Sonnet~5, working & \strictN{} & \checkedOursN{} (\checkedOursWitness{}) & \checkedOursInvalid{} & \checkedOursSpace{} & 0 & 0 \\
-older models, same problems & \strictN{} & \checkedStoredN{} (\checkedStoredWitness{}) & \checkedStoredInvalid{} & 0 & 1 & 0 \\
-standard test split & \splitPos{} & \splitVerified{} (\splitWitness{}) & \splitIllegal{} & 0 & \splitWrongPublic{} & \splitUndecided{} \\
+Sonnet~5, working & \strictN{} & \checkedOursN{} & \checkedOursWitness{} & \checkedOursInvalid{} & \checkedOursSpace{} & 0 & 0 \\
+older models, same problems & \strictN{} & \checkedStoredN{} & \checkedStoredWitness{} & \checkedStoredInvalid{} & 0 & 1 & 0 \\
+standard test split & \splitPos{} & \splitVerified{} & \splitWitness{} & \splitIllegal{} & 0 & \splitWrongPublic{} & \splitUndecided{} \\
 \bottomrule
 \end{tabular}
 \end{table}
