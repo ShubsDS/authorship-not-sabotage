@@ -586,7 +586,7 @@ def fig10_features(k=8):
     lim = max(abs(w) for key in ("B_prime", "S") for side in ("attack", "honest")
               for _, w in att[key][side][:k])
     for key, name, col in (("B_prime", "f10a-features-stored.pdf", MGL), ("S", "f10b-features-samegen.pdf", MBL)):
-        fig, ax = panel(0.48, 2.0)
+        fig, ax = panel(0.48, 1.7)
         items = [(_tok(t), w) for t, w in att[key]["attack"][:k]][::-1] + \
                 [(_tok(t), w) for t, w in att[key]["honest"][:k]]
         n = len(items)
