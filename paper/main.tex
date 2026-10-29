@@ -654,12 +654,12 @@
 AI control relies on trusted monitors to catch a capable model that slips sabotage into its work, and
 monitors are ranked on datasets of honest and backdoored code. On the standard such dataset, we find
 that a classifier that never runs the code outranks \tfidfKoranCount{} of \monN{} open-weight models
-prompted as monitors. The cause lies in how the dataset was built, since people wrote its honest
+prompted as monitors. The cause is how the dataset was built, since people wrote its honest
 solutions, older language models wrote its backdoors, and a problem was labelled backdoored only if its
 backdoor worked, so the style of the code and basic facts about the problem give the label away.
 Rebuilding the pairs with Claude Sonnet~5 writing both classes, and exchanging one class at a time,
 shows that the classifier rewards a contrast between authors. The labels are also unreliable, as one in
-\splitRejectedOneIn{} backdoors in the test split is not real, failing a public test or misbehaving only
+\splitRejectedOneIn{} backdoors in its standard test set is not real, failing a public test or misbehaving only
 on inputs the problem forbids. Such labels distort comparisons between attackers. A Sonnet~5 monitor
 appears to catch older models' backdoors far more often than Sonnet~5's, but once both sets are
 verified the difference shrinks from \auditGapUncheckedPts{} to \auditGapPts{} points. We do not show
