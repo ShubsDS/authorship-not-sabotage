@@ -653,19 +653,19 @@
 
 \begin{abstract}
 AI control relies on trusted monitors to catch a capable model that slips sabotage into its work, and
-monitors are ranked on datasets of honest and backdoored code. On the standard such dataset, we find
-that a classifier that never runs the code outranks \tfidfKoranCount{} of \monN{} open-weight models
-prompted as monitors. The cause is how the dataset was built, since people wrote its honest
-solutions, older language models wrote its backdoors, and a problem was labelled backdoored only if its
-backdoor worked, so the style of the code and basic facts about the problem give the label away.
+these monitors are developed and ranked on datasets of honest and backdoored code. We show that on the
+standard such dataset, simple features beat most monitors without ever running the code, as a
+word-counting classifier outranks \tfidfKoranCount{} of \monN{} open-weight models prompted as
+monitors. The dataset gives its labels away in two ways. People wrote the honest solutions and older
+language models wrote the backdoors, so the style of the code reveals the class, and a problem was
+labelled backdoored only if its backdoor worked, so basic facts about the problem reveal it too.
 Rebuilding the pairs with Claude Sonnet~5 writing both classes, and exchanging one class at a time,
-shows that the classifier rewards a contrast between authors. The labels are also unreliable, as one in
-\splitRejectedOneIn{} backdoors in its standard test set is not real, failing a public test or misbehaving only
-on inputs the problem forbids. Such labels distort comparisons between attackers. A Sonnet~5 monitor
-appears to catch older models' backdoors far more often than Sonnet~5's, but once both sets are
-verified the difference shrinks from \auditGapUncheckedPts{} to \auditGapPts{} points. We do not show
-that published monitors rely on these shortcuts, but a high score on such a dataset is not by itself
-evidence of sabotage detection. We release the rebuilt dataset and checks.
+confirms that the classifier rewards a contrast between authors. One in \splitRejectedOneIn{} backdoors
+in the standard test set is also not real, and such labels distort comparisons between attackers by
+making Sonnet~5's backdoors look much harder to catch than they are. Our findings suggest that a high
+score on such a dataset is not by itself evidence of sabotage detection, although we do not show that
+published monitors rely on these shortcuts. We release the rebuilt dataset and our checks so other
+monitor benchmarks can be tested the same way.
 \end{abstract}
 
 \section{Introduction}
