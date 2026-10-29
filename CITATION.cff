@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use this code or the rebuilt pairs, please cite the paper. Shubhrangshu Debsarkar and Valmik Nahata contributed equally."
+message: "If you use this code or the rebuilt pairs, please cite the paper."
 title: "AI-Control Monitor Benchmarks Can Be Beaten without Running the Code"
 authors:
   - family-names: Debsarkar
