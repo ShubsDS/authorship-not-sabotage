@@ -654,17 +654,17 @@
 AI control aims to deploy capable models safely even if they attempt sabotage, and its main safeguard
 is a trusted monitor that reviews their outputs. Monitors are compared on datasets of honest and
 backdoored code, so their scores are only as meaningful as those datasets. We examine the standard
-such dataset, built on APPS, in which people wrote the honest solutions, older language models the
+such dataset, built on APPS, where people wrote the honest solutions, older language models the
 backdoors, and a problem was labelled backdoored only if its backdoor worked. We find that this
 construction lets the label be predicted without locating any backdoor. A bag-of-words classifier that
 never runs the code outranks \tfidfKoranCount{} of \monN{} open-weight models prompted as monitors,
 and problem metadata alone is nearly as accurate. Rebuilding the pairs with Claude Sonnet~5 writing
 both classes, and exchanging one class at a time, shows that the classifier rewards a contrast between
-authors. Auditing the labels, we find that one in \splitRejectedOneIn{} test-split backdoors is not
-real, and such labels distort comparisons between attackers. Once both sets are verified, the gap
-between how often a Sonnet~5 monitor catches older models' backdoors and its own model's falls from
+authors. Checking the labels shows that one in \splitRejectedOneIn{} backdoors in the test split is not
+real, and such labels distort comparisons between attackers. Once both sets are verified, a Sonnet~5
+monitor catches older models' backdoors more often than Sonnet~5's, but the difference shrinks from
 \auditGapUncheckedPts{} to \auditGapPts{} points. We do not show that published monitors rely on these
-cues, but a high score on such a dataset is not, by itself, evidence of sabotage detection. We release
+cues, but a high score on such a dataset is not by itself evidence of sabotage detection. We release
 the rebuilt dataset and checks.
 \end{abstract}
 
