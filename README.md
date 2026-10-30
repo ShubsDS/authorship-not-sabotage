@@ -120,7 +120,7 @@ Our corpus of rebuilt pairs is `same-generator-apps-split.zip`, attached to the
 and attack programs, the independent variant's full retry pool, the pair lists for all attempts
 and for working backdoors under both draw selections (first draw, best draw), the scripts behind
 the paper's numbers, a dataset card and a manifest of row counts and checksums (SHA-256 of the
-zip: `33a59428b0cec00acb4311837be84ca19dfb9c3e1bb1805ab04384eba22106f7`).
+zip: `b15fbd9386fb1533382ff273f9175615d92c0fdc1fb7ba7d25ea1575a679ff59`).
 `experiments/apps/release_split.py` builds it and `--check` validates it
 (`experiments/README.md`, stage 7). Unpack it at `experiments/apps/release` for the scripts that
 read it; the check compares against the upstream code when `fetch.py` has run:
