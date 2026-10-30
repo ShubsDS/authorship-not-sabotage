@@ -652,20 +652,22 @@
 \maketitle
 
 \begin{abstract}
-AI control relies on trusted monitors to catch a capable model that slips sabotage into its work, and
-these monitors are developed and ranked on datasets of honest and backdoored code. We show that on the
-standard such dataset, simple features beat most monitors without ever running the code, as a
-word-counting classifier outranks \tfidfKoranCount{} of \monN{} open-weight models prompted as
-monitors. The dataset gives its labels away in two ways. People wrote the honest solutions and older
-language models wrote the backdoors, so the style of the code reveals the class, and a problem was
-labelled backdoored only if its backdoor worked, so basic facts about the problem reveal it too.
-Rebuilding the pairs with Claude Sonnet~5 writing both classes, and exchanging one class at a time,
-confirms that the classifier rewards a contrast between authors. One in \splitRejectedOneIn{} backdoors
-in the standard test set is also not real, and such labels distort comparisons between attackers by
-making Sonnet~5's backdoors look much harder to catch than they are. Our findings suggest that a high
-score on such a dataset is not by itself evidence of sabotage detection, although we do not show that
-published monitors rely on these shortcuts. We release the rebuilt dataset and our checks so other
-monitor benchmarks can be tested the same way.
+A common safeguard for capable AI systems is a monitor, a second model that reads their output and
+flags attempts at sabotage. The APPS backdoor dataset evaluates models as
+monitors by their ability to tell code with a backdoor from honest code. We show that the APPS backdoor dataset can be scored well from cues that do not require finding a backdoor.
+Humans wrote the honest solutions and language models wrote the backdoored solutions, and a bag-of-words
+classifier without semantic understanding of the code reaches AUROC \tfidfKoran{}, above
+\tfidfKoranCount{} of \monN{} published open-weight models prompted as monitors. Problem metadata
+also leaks information, allowing a model trained on it to reach \nocodeCV{} within the test split. Having Claude Sonnet~5 write both classes and swapping one
+class at a time shows that the bag-of-words classifier rewards a contrast between authors: human code against
+Sonnet~5's backdoors is easier for it than the original pairs (\clfSwapWorkHumanOurs{} against
+\clfSwapWorkHumanStored{}). We do not show that published monitors use
+these shortcuts. Some labelled backdoors in the APPS dataset are also not real: in the standard test split,
+\splitRejected{} of the \splitPos{} backdoored programs fail a public test or have only an illegal
+trigger, an input the problem's constraints rule out. Such labels inflate comparisons between
+attackers. Flagging 2\% of human solutions, a Sonnet~5 monitor catches \auditUncheckedHumanStored{} of
+older models' backdoors and \auditUncheckedHumanOurs{} of Sonnet~5's; where both attackers'
+backdoors are real, \auditStrictStored{} and \auditSwapHumanOurs{}, a smaller gap whose interval nearly reaches zero. We release the rebuilt pairs and checks.
 \end{abstract}
 
 \section{Introduction}
