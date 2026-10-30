@@ -662,7 +662,7 @@ the class, and a problem was labelled backdoored only if its backdoor worked, so
 problem reveal it too. Swapping one class at a time for code by Claude Sonnet~5 shows that these
 features reward a contrast between authors, since human code against Sonnet~5's backdoors is easier to
 separate than the original pairs, \clfSwapWorkHumanOursTwo{} against \clfSwapWorkHumanStoredTwo{}. One
-in \splitRejectedOneIn{} backdoors in the standard test set is also not real, which distorts
+in \splitRejectedOneIn{} backdoors in the standard test set fails our validity checks, which distorts
 comparisons between attackers. A Sonnet~5 monitor appears to catch \auditUncheckedHumanStored{} of the
 older models' backdoors but \auditUncheckedHumanOurs{} of Sonnet~5's, and \auditStrictStored{} against
 \auditSwapHumanOurs{} once both are verified. We do not show that published monitors rely on these
