@@ -653,12 +653,12 @@
 \maketitle
 
 \begin{abstract}
-AI control relies on trusted monitors to catch a capable model that slips sabotage into its work, and
-they are ranked on datasets of honest and backdoored code. We show that on the standard such dataset,
+AI control relies on monitors to catch a capable model that sabotages its work.
+These monitors are evaluated on their ability to differentiate honest from backdoored code. We show that on a standard evaluation dataset,
 simple features beat most monitors without ever running the code, outranking \tfidfKoranCount{} of
 \monN{} open-weight models prompted as monitors. The dataset gives its labels away in two ways. People
 wrote the honest solutions and older language models the backdoors, so the style of the code reveals
-the class, and a problem was labelled backdoored only if its backdoor worked, so basic facts about the
+the class. Additionally, problems that LLMs can backdoor have different characteristics, so basic facts about the
 problem reveal it too. Swapping one class at a time for code by Claude Sonnet~5 shows that these
 features reward a contrast between authors, since human code against Sonnet~5's backdoors is easier to
 separate than the original pairs, \clfSwapWorkHumanOursTwo{} against \clfSwapWorkHumanStoredTwo{}. One

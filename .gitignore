@@ -23,6 +23,7 @@ paper/*.pdf
 paper/*.fls
 paper/*.fdb_latexmk
 paper/*.synctex.gz
+paper/*.synctex(busy)
 
 # Python and environments
 __pycache__/
