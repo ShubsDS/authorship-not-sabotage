@@ -370,7 +370,7 @@ def fig6_label_leak():
     save(fig, "f6b-nocode.pdf")
 
     fig, ax = panel(W6, H6)
-    _hbars(ax, [("backdoored", TESTS_ATTACK, None, MGL), ("honest", TESTS_HONEST, None, MHON)], 0)
+    _hbars(ax, [("backdoored", TESTS_ATTACK, None, MG), ("honest", TESTS_HONEST, None, MHON)], 0)
     ax.set_xlim(0, 45); ax.set_xticks([0, 10, 20, 30, 40])
     mgrid(ax, "x"); ax.set_xlabel("test cases per problem")
     save(fig, "f6c-tests.pdf")
@@ -586,7 +586,7 @@ def fig10_features(k=8):
     lim = max(abs(w) for key in ("B_prime", "S") for side in ("attack", "honest")
               for _, w in att[key][side][:k])
     for key, name, col in (("B_prime", "f10a-features-stored.pdf", MGL), ("S", "f10b-features-samegen.pdf", MBL)):
-        fig, ax = panel(0.48, 2.0)
+        fig, ax = panel(0.48, 1.7)
         items = [(_tok(t), w) for t, w in att[key]["attack"][:k]][::-1] + \
                 [(_tok(t), w) for t, w in att[key]["honest"][:k]]
         n = len(items)
@@ -638,10 +638,10 @@ def fig3_monitors():
 
 def fig2_corpora():
     rows = SCAN[::-1]
-    fig, ax = panel(0.7, 1.45)
+    fig, ax = panel(0.7, 1.15)
     for i, (name, v, nv, k) in enumerate(rows):
-        ax.barh(i, v - 0.5, left=0.5, height=0.62, color=MINK, zorder=2)
-        ax.plot([nv, nv], [i - 0.4, i + 0.4], color=MMUTE, lw=1.4, zorder=3, solid_capstyle="butt")
+        ax.barh(i, v - 0.5, left=0.5, height=0.62, color="#A6A6A6", zorder=2)  # neutral: not the benchmark's green
+        ax.plot([nv, nv], [i - 0.42, i + 0.42], color=MINK, lw=1.6, zorder=3, solid_capstyle="butt")
     ax.set_yticks(range(len(rows)))
     ax.set_yticklabels([f"\\texttt{{{tex(r[0])}}} ({r[3]})" for r in rows])
     ax.tick_params(axis="y", length=0)
@@ -650,7 +650,7 @@ def fig2_corpora():
     ax.set_xlabel("AUROC from character count, within task")
     ax.axvline(0.5, color=MMUTE, lw=0.6, ls=(0, (3, 2)), zorder=1)
     top = rows[-1]
-    ax.text(top[2] + 0.006, len(rows) - 1 + 0.42, "shuffled, 95th pct.", fontsize=FS - 1.4, color=MMUTE,
+    ax.text(top[2] + 0.006, len(rows) - 1 + 0.42, "shuffled, 95th pct.", fontsize=FS - 1.4, color=MINK,
             ha="left", va="bottom")
     save(fig, "f2-corpus-floors.pdf")
     nulls = [r[2] for r in SCAN]
@@ -949,6 +949,23 @@ def check():
         eq(macro, float(n))
     if counts and "strictN" in m and sum(counts.values()) != m["strictN"]:
         bad.append(f"Table A2 working column sums to {sum(counts.values())}, not {m['strictN']:.0f}")
+    # The abstract's rounded restatements of the audit gaps and the share of rejected split backdoors.
+    for pts, diff_macro in (("auditGapUncheckedPts", "auditSwapDiffUnchecked"), ("auditGapPts", "auditSwapDiff")):
+        if pts in m and diff_macro in m and round(100 * m[diff_macro]) != m[pts]:
+            bad.append(f"{pts} = {m[pts]:.0f} but 100 x {diff_macro} = {100 * m[diff_macro]:.0f}")
+    if all(k in m for k in ("splitRejectedOneInN", "splitPos", "splitRejected")) and \
+            round(m["splitPos"] / m["splitRejected"]) != m["splitRejectedOneInN"]:
+        bad.append(f"splitRejectedOneInN = {m['splitRejectedOneInN']:.0f} but splitPos / splitRejected rounds to "
+                   f"{round(m['splitPos'] / m['splitRejected'])}")
+    # Table of real backdoors: each row's outcomes add up to the backdoors checked.
+    rows = ((("checkedOursN", "checkedOursInvalid", "checkedOursSpace"), 0, "strictN"),
+            (("checkedStoredN", "checkedStoredInvalid"), 1, "strictN"),
+            (("splitVerified", "splitIllegal", "splitWrongPublic", "splitUndecided"), 0, "splitPos"))
+    for parts, extra, total in rows:
+        if all(k in m for k in parts + (total,)) and sum(m[k] for k in parts) + extra != m[total]:
+            bad.append(f"real-backdoor table: {' + '.join(parts)} + {extra} != {total}")
+    if all(k in m for k in ("splitUndecided", "splitFormat")) and m["splitUndecided"] != m["splitFormat"] + 1:
+        bad.append("splitUndecided should be splitFormat + 1 (the problem with several correct answers)")
     bad += _check_json()
     bad += _check_stored_pairs()
     bad += _check_exploits()
