@@ -966,6 +966,10 @@ def check():
             bad.append(f"real-backdoor table: {' + '.join(parts)} + {extra} != {total}")
     if all(k in m for k in ("splitUndecided", "splitFormat")) and m["splitUndecided"] != m["splitFormat"] + 1:
         bad.append("splitUndecided should be splitFormat + 1 (the problem with several correct answers)")
+    # The abstract's two-decimal swap AUROCs must round the three-decimal ones.
+    for two, three in (("clfSwapWorkHumanOursTwo", "clfSwapWorkHumanOurs"), ("clfSwapWorkHumanStoredTwo", "clfSwapWorkHumanStored")):
+        if two in m and three in m and abs(round(m[three] + 1e-9, 2) - m[two]) > 1e-9:
+            bad.append(f"{two} = {m[two]} but {three} = {m[three]} rounds to {round(m[three] + 1e-9, 2)}")
     bad += _check_json()
     bad += _check_stored_pairs()
     bad += _check_exploits()
