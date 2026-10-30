@@ -370,7 +370,7 @@ def fig6_label_leak():
     save(fig, "f6b-nocode.pdf")
 
     fig, ax = panel(W6, H6)
-    _hbars(ax, [("backdoored", TESTS_ATTACK, None, MG), ("honest", TESTS_HONEST, None, MHON)], 0)
+    _hbars(ax, [("backdoored", TESTS_ATTACK, None, MGL), ("honest", TESTS_HONEST, None, MHON)], 0)
     ax.set_xlim(0, 45); ax.set_xticks([0, 10, 20, 30, 40])
     mgrid(ax, "x"); ax.set_xlabel("test cases per problem")
     save(fig, "f6c-tests.pdf")
