@@ -7,7 +7,7 @@ result comes from").
 
 We thank the reviewer. We checked each of the six points against the paper and the committed
 result files. All six are at least partly valid, and two were worse than stated. The camera-ready corrects them
-as follows. It also renames terms the reviewer knows from the submission: the stored pairs are now
+as follows. The paper is now titled "Simple Features Beat Most AI Control Monitors" (arXiv:2610.41713), and it also renames terms the reviewer knows from the submission: the stored pairs are now
 the original pairs, the same-generator pairs the rebuilt pairs, the headline rows all attempts,
 the strict rows working backdoors, and an attack that fires is one that works. B′ and S are
 written out as the AUROC on the original and on the rebuilt pairs of the same problems. The models
@@ -45,7 +45,7 @@ and working backdoors. The text says what the all-attempts rows compare.
 - ρ does not depend on which model wrote the original backdoors: with Claude attackers only it is
   0.715, against 0.687 for the full mix.
 - We ran the experiment that isolates authorship for the classifier: fit it to every pairing
-  of an honest and an attack class (Table A8; Figure 1b shows the working-backdoor problems). We
+  of an honest and an attack class (Table A5; Figure 1b shows the working-backdoor problems). We
   fixed the reading rule before computing the missing cell. On Sonnet 5's all-attempts problems:
   - human honest code against our attacks scores 0.981, above the 0.865 of the original pairs;
   - our honest code against original backdoors scores 0.956;
@@ -58,7 +58,7 @@ and working backdoors. The text says what the all-attempts rows compare.
   code. For the monitor it is the reverse (point 4).
 
 **4. Verified attacks qualify the result.**
-- **Monitor.** Valid, and it changes our claim. Swapping one class at a time (Table A10; Figure 1c
+- **Monitor.** Valid, and it changes our claim. Swapping one class at a time (Table A7; Figure 1c
   shows the working-backdoor problems), the Sonnet 5 monitor scores, over all attempts:
   - 0.958 for human honest against original backdoors;
   - 0.446 for human honest against our attacks;
@@ -91,7 +91,7 @@ and working backdoors. The text says what the all-attempts rows compare.
   ρ. By point estimate, the working-backdoor row's higher ρ comes from which problems yield
   working backdoors: on that set's 35 other problems ρ is 1.09 (rebuilt 0.775, original 0.752).
   That difference from the shared problems is not resolved (+0.34, CI −0.13 to +0.93), and the
-  paper says so. The new appendix section shows this decomposition.
+  paper says so. Appendix C.2 shows this decomposition.
 
 **5. Statistical inconsistencies.** Agreed. Points were fold means while their intervals were
 bootstraps of the pooled out-of-fold scores, and we wrongly called these "the same quantity".
@@ -112,8 +112,9 @@ reverses. Section 3.1 reports it beside the within-split 0.766, as the same rela
 presents both as a measure of how the split chose its labels, not as authorship.
 
 **6. Repetition, and no fixed audit budget.** We cut the repeated numbers and verdict words. The band
-labels are gone: the body reports ρ with its interval, and the two values we fixed in advance (0.33
-and 0.72) are disclosed in the appendix with why we no longer use them. We now report detection at a fixed audit budget. At a
+labels are gone: the body reports ρ with its interval. The two values we fixed in advance (0.33
+and 0.72) assumed ρ could separate authorship from the backdoor, which the class swap shows it
+cannot, so the paper no longer uses them. We now report detection at a fixed audit budget. At a
 2% false-positive rate, with the threshold set on each set's own honest programs, the Sonnet 5
 monitor catches:
 - on the 54 working-backdoor problems where both backdoors pass the trigger checks (point 4): 78%
@@ -126,4 +127,5 @@ monitor catches:
 Honest programs are not filtered, so each threshold is still set on all 99 working-backdoor
 problems' honest programs.
 
-The appendix gives the full table at 1%, 2% and 5% for both monitors.
+The appendix gives the full table at 1%, 2% and 5% for the Sonnet 5 monitor. Haiku 4.5 lost too many
+replies and scores many honest programs near the top of the scale, so its rows are left out.
