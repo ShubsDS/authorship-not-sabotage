@@ -10,13 +10,21 @@ authors:
     affiliation: University of California, San Diego
 license: MIT
 repository-code: "https://github.com/ShubsDS/authorship-not-sabotage"
+url: "https://arxiv.org/abs/2610.41713"
+identifiers:
+  - type: doi
+    value: "10.48550/arXiv.2610.41713"
+    description: "arXiv preprint"
 preferred-citation:
-  type: conference-paper
+  type: article
   title: "Simple Features Beat Most AI Control Monitors"
   authors:
     - family-names: Debsarkar
       given-names: Shubhrangshu
     - family-names: Nahata
       given-names: Valmik
-  collection-title: "NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI Systems (EvoRobust)"
+  journal: "arXiv preprint arXiv:2610.41713"
+  doi: "10.48550/arXiv.2610.41713"
+  url: "https://arxiv.org/abs/2610.41713"
+  notes: "NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI Systems (EvoRobust)"
   year: 2026

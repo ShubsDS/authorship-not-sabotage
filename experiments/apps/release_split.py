@@ -342,12 +342,16 @@ figures in the scripts' comments are redacted to `$X`; nothing else in them was 
 ## Citation
 
 ```
-@inproceedings{{debsarkar2026samegenerator,
-  title     = {{Simple Features Beat Most AI Control Monitors}},
-  author    = {{Debsarkar, Shubhrangshu and Nahata, Valmik}},
-  booktitle = {{NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI
-               Systems (EvoRobust)}},
-  year      = {{2026}}
+@misc{{debsarkar2026simplefeatures,
+  title         = {{Simple Features Beat Most {{AI}} Control Monitors}},
+  author        = {{Debsarkar, Shubhrangshu and Nahata, Valmik}},
+  year          = {{2026}},
+  eprint        = {{2610.41713}},
+  archivePrefix = {{arXiv}},
+  primaryClass  = {{cs.CR}},
+  doi           = {{10.48550/arXiv.2610.41713}},
+  url           = {{https://arxiv.org/abs/2610.41713}},
+  note          = {{NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI Systems (EvoRobust)}}
 }}
 ```
 

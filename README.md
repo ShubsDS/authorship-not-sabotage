@@ -1,6 +1,8 @@
 # Simple Features Beat Most AI Control Monitors
 
-Code and paper source for the EvoRobust @ NeurIPS 2026 workshop paper.
+[![arXiv](https://img.shields.io/badge/arXiv-2610.41713-b31b1b.svg)](https://arxiv.org/abs/2610.41713)
+
+Code and paper source for the EvoRobust @ NeurIPS 2026 workshop paper. Paper: https://arxiv.org/abs/2610.41713
 
 ## What the paper shows
 
@@ -138,11 +140,16 @@ fetched at run time and not redistributed. Their licences are listed in
 ## Citation
 
 ```bibtex
-@inproceedings{debsarkar2026whowrote,
-  title     = {Simple Features Beat Most {AI} Control Monitors},
-  author    = {Debsarkar, Shubhrangshu and Nahata, Valmik},
-  booktitle = {NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI Systems (EvoRobust)},
-  year      = {2026}
+@misc{debsarkar2026simplefeatures,
+  title         = {Simple Features Beat Most {AI} Control Monitors},
+  author        = {Debsarkar, Shubhrangshu and Nahata, Valmik},
+  year          = {2026},
+  eprint        = {2610.41713},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CR},
+  doi           = {10.48550/arXiv.2610.41713},
+  url           = {https://arxiv.org/abs/2610.41713},
+  note          = {NeurIPS 2026 Workshop on Self-Evolving Diversity-Driven Search for Robust AI Systems (EvoRobust)}
 }
 ```
 
