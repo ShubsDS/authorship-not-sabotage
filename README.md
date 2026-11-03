@@ -4,10 +4,6 @@
 
 Code and paper source for the EvoRobust @ NeurIPS 2026 workshop paper.
 
-- Paper: [arxiv.org/abs/2610.41713](https://arxiv.org/abs/2610.41713)
-- Project page: [nahatav.github.io/simple-features-ai-control](https://nahatav.github.io/simple-features-ai-control/)
-- Dataset: [huggingface.co/datasets/vnahata/apps-backdoor-rebuilt-pairs](https://huggingface.co/datasets/vnahata/apps-backdoor-rebuilt-pairs)
-
 ## What the paper shows
 
 AI-control monitors are models that read code and flag backdoors (hidden sabotage). They are
